@@ -1,0 +1,24 @@
+# DEVELOPMENT DOCKERFILE
+# ---------------------
+# This Dockerfile is for local development with live code reload and dev dependencies.
+# It expects source code to be mounted via docker-compose.
+
+FROM node:20-slim
+
+ENV NODE_ENV=development
+
+WORKDIR /usr/src/app
+
+COPY package*.json ./
+RUN npm install
+
+# Ensure dist directory exists and build the application
+COPY . .
+RUN npm run build
+
+USER node
+
+EXPOSE 3010
+
+# Use npm script for development with live reload
+CMD ["npm", "run", "start:dev"]

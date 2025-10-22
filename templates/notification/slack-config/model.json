@@ -1,0 +1,2267 @@
+{
+  "service": {
+    "name": "notification-slack-config",
+    "boundedContext": "notification",
+    "application": "slack-config",
+    "version": "1",
+    "hasRedis": true,
+    "hasSql": true,
+    "hasEventStream": true
+  },
+  "tables": [
+    {
+      "name": "interest_configuration",
+      "description": "Comprehensive interest calculation and accrual configuration table supporting complex financial instruments and regulatory compliance requirements. Enables sophisticated interest strategies with multiple calculation methods and payment schedules.",
+      "columns": [
+        {
+          "name": "id",
+          "type": "Record<string, unknown>",
+          "childRelationshipType": "",
+          "parentRelationshipType": "",
+          "datatype": "JSON",
+          "primaryKey": true,
+          "required": true,
+          "description": "Composite unique identifier object containing tenant context, configuration version, and any hierarchical structure needed for multi-tenant interest management.",
+          "defaultvalue": "",
+          "example": "{\"tenant\": \"bank123\", \"version\": \"v2.1\", \"configId\": \"SAVINGS_PREMIUM\"}",
+          "autoIncrement": false,
+          "array": false,
+          "isPII": "",
+          "parentRelationship": "",
+          "childRelationship": "",
+          "meta": {
+            "kind": "json",
+            "jsonShape": "object"
+          }
+        },
+        {
+          "name": "rate",
+          "type": "number",
+          "childRelationshipType": "",
+          "parentRelationshipType": "",
+          "datatype": "DECIMAL",
+          "primaryKey": false,
+          "required": true,
+          "description": "Annual interest rate expressed as a decimal value. For percentage rates, divide by 100 (e.g., 2.5% = 0.025). Supports up to 6 decimal places for precision.",
+          "defaultvalue": "",
+          "example": "0.025000",
+          "autoIncrement": false,
+          "array": false,
+          "isPII": "",
+          "parentRelationship": "",
+          "childRelationship": "",
+          "meta": {
+            "kind": "decimal",
+            "precision": 10,
+            "scale": 2
+          }
+        },
+        {
+          "name": "rateCode",
+          "type": "string",
+          "childRelationshipType": "",
+          "parentRelationshipType": "",
+          "datatype": "VARCHAR",
+          "primaryKey": false,
+          "required": true,
+          "description": "Reference identifier linking to external rate sources, benchmark rates, or rate tables. Used for dynamic rate updates and regulatory reporting.",
+          "defaultvalue": "",
+          "example": "PRIME_PLUS_050",
+          "autoIncrement": false,
+          "maxLength": "20",
+          "array": false,
+          "isPII": "",
+          "parentRelationship": "",
+          "childRelationship": "",
+          "meta": {
+            "kind": "string",
+            "maxLength": 20
+          }
+        },
+        {
+          "name": "calculation",
+          "type": "InterestConfigurationCalculationEnum",
+          "childRelationshipType": "",
+          "parentRelationshipType": "",
+          "datatype": "ENUM",
+          "primaryKey": false,
+          "required": true,
+          "description": "Mathematical method for interest calculation. Options: SIMPLE (principal only), COMPOUND (interest on interest), COMPOUND_CONTINUOUS (continuous compounding for high-frequency calculations).",
+          "defaultvalue": "",
+          "example": "simple",
+          "autoIncrement": false,
+          "enum": [
+            {
+              "key": "simple"
+            },
+            {
+              "key": "compound"
+            }
+          ],
+          "array": false,
+          "isPII": "",
+          "parentRelationship": "",
+          "childRelationship": "",
+          "meta": {
+            "kind": "enum",
+            "enumValues": [
+              "simple",
+              "compound"
+            ],
+            "enumName": "calculation"
+          }
+        },
+        {
+          "name": "accrual",
+          "type": "InterestConfigurationAccrualEnum",
+          "childRelationshipType": "",
+          "parentRelationshipType": "",
+          "datatype": "ENUM",
+          "primaryKey": false,
+          "required": true,
+          "description": "Frequency and timing for interest accrual calculations. Options: DAILY, WEEKLY, MONTHLY, QUARTERLY, ANNUALLY. Determines how often interest is computed and added to accrued balance.",
+          "defaultvalue": "",
+          "example": "daily",
+          "autoIncrement": false,
+          "enum": [
+            {
+              "key": "daily"
+            },
+            {
+              "key": "monthly"
+            },
+            {
+              "key": "annually"
+            },
+            {
+              "key": "biweekly"
+            },
+            {
+              "key": "semiannually"
+            },
+            {
+              "key": "quarterly"
+            },
+            {
+              "key": "weekly"
+            }
+          ],
+          "array": false,
+          "isPII": "",
+          "parentRelationship": "",
+          "childRelationship": "",
+          "meta": {
+            "kind": "enum",
+            "enumValues": [
+              "daily",
+              "monthly",
+              "annually",
+              "biweekly",
+              "semiannually",
+              "quarterly",
+              "weekly"
+            ],
+            "enumName": "accrual"
+          }
+        },
+        {
+          "name": "capitalization",
+          "type": "InterestConfigurationCapitalizationEnum",
+          "childRelationshipType": "",
+          "parentRelationshipType": "",
+          "datatype": "ENUM",
+          "primaryKey": false,
+          "required": true,
+          "description": "Schedule for converting accrued interest into principal balance. Options: DAILY, MONTHLY, QUARTERLY, ANNUALLY, END_OF_TERM. Affects compound interest calculations.",
+          "defaultvalue": "",
+          "example": "daily",
+          "autoIncrement": false,
+          "enum": [
+            {
+              "key": "daily"
+            },
+            {
+              "key": "monthly"
+            },
+            {
+              "key": "annually"
+            },
+            {
+              "key": "biweekly"
+            },
+            {
+              "key": "semiannually"
+            },
+            {
+              "key": "quarterly"
+            },
+            {
+              "key": "weekly"
+            }
+          ],
+          "array": false,
+          "isPII": "",
+          "parentRelationship": "",
+          "childRelationship": "",
+          "meta": {
+            "kind": "enum",
+            "enumValues": [
+              "daily",
+              "monthly",
+              "annually",
+              "biweekly",
+              "semiannually",
+              "quarterly",
+              "weekly"
+            ],
+            "enumName": "capitalization"
+          }
+        },
+        {
+          "name": "dayCountConversion",
+          "type": "InterestConfigurationDayCountConversionEnum",
+          "childRelationshipType": "",
+          "parentRelationshipType": "",
+          "datatype": "ENUM",
+          "primaryKey": false,
+          "required": true,
+          "description": "Day count convention for interest period calculations. Options: ACTUAL_360 (actual days/360), ACTUAL_365 (actual days/365), THIRTY_360 (30 days per month), ACTUAL_ACTUAL (actual days/actual year).",
+          "defaultvalue": "",
+          "example": "actual",
+          "autoIncrement": false,
+          "enum": [
+            {
+              "key": "actual"
+            },
+            {
+              "key": "thirty360"
+            },
+            {
+              "key": "thirty365"
+            },
+            {
+              "key": "thirtye360"
+            },
+            {
+              "key": "thirtye365"
+            },
+            {
+              "key": "thirtyeplus360"
+            },
+            {
+              "key": "thirtyeplus365"
+            },
+            {
+              "key": "thirtyeplusactual"
+            }
+          ],
+          "array": false,
+          "isPII": "",
+          "parentRelationship": "",
+          "childRelationship": "",
+          "meta": {
+            "kind": "enum",
+            "enumValues": [
+              "actual",
+              "thirty360",
+              "thirty365",
+              "thirtye360",
+              "thirtye365",
+              "thirtyeplus360",
+              "thirtyeplus365",
+              "thirtyeplusactual"
+            ],
+            "enumName": "dayCountConversion"
+          }
+        },
+        {
+          "name": "active",
+          "type": "boolean",
+          "childRelationshipType": "",
+          "parentRelationshipType": "",
+          "datatype": "BOOLEAN",
+          "primaryKey": false,
+          "required": false,
+          "description": "Operational status flag controlling whether this interest configuration is available for new product assignments and active interest calculations.",
+          "defaultvalue": "",
+          "example": "true",
+          "autoIncrement": false,
+          "array": false,
+          "isPII": "",
+          "parentRelationship": "",
+          "childRelationship": "",
+          "meta": {
+            "kind": "boolean"
+          }
+        },
+        {
+          "name": "lastAppliedAt",
+          "type": "string",
+          "childRelationshipType": "",
+          "parentRelationshipType": "",
+          "datatype": "DATETIME",
+          "primaryKey": false,
+          "required": false,
+          "description": "UTC timestamp recording the most recent successful application of interest calculations using this configuration. Used for auditing and reconciliation processes.",
+          "defaultvalue": "",
+          "example": "2025-07-01T10:30:00Z",
+          "autoIncrement": false,
+          "array": false,
+          "isPII": "",
+          "parentRelationship": "",
+          "childRelationship": "",
+          "meta": {
+            "kind": "datetime",
+            "futureOnly": false,
+            "pastOnly": false
+          }
+        }
+      ],
+      "relationships": [],
+      "lines": [],
+      "keys": [
+        {
+          "name": "id",
+          "type": "Record<string, unknown>",
+          "childRelationshipType": "",
+          "parentRelationshipType": "",
+          "datatype": "JSON",
+          "primaryKey": true,
+          "required": true,
+          "description": "Composite unique identifier object containing tenant context, configuration version, and any hierarchical structure needed for multi-tenant interest management.",
+          "defaultvalue": "",
+          "example": "{\"tenant\": \"bank123\", \"version\": \"v2.1\", \"configId\": \"SAVINGS_PREMIUM\"}",
+          "autoIncrement": false,
+          "array": false,
+          "isPII": "",
+          "parentRelationship": "",
+          "childRelationship": "",
+          "meta": {
+            "kind": "json",
+            "jsonShape": "object"
+          }
+        }
+      ],
+      "indexes": [],
+      "docs": {
+        "name": "Interest_configuration",
+        "summary": "Configuration for interest_configuration table",
+        "version": "1.0.0"
+      },
+      "apis": {},
+      "store": {
+        "read": "memory",
+        "write": "memory",
+        "query": "memory",
+        "projector": "memory"
+      },
+      "options": {
+        "command": true,
+        "read": "memory",
+        "write": "memory",
+        "query": "memory",
+        "projector": "memory",
+        "softDelete": true,
+        "timestamps": true,
+        "versioning": true,
+        "logging": true,
+        "auditing": true,
+        "caching": true,
+        "eventStreaming": false
+      },
+      "cancel": {
+        "create": false,
+        "update": false,
+        "delete": false,
+        "batch": false,
+        "get": false
+      },
+      "redis": {
+        "prefix": "",
+        "version": "1.0",
+        "category": "notification:slack-config.interest.configuration.v1",
+        "ttl": 3600,
+        "hash": true,
+        "aggregate": "interest_configuration"
+      },
+      "eventstream": {
+        "boundedContext": "notification",
+        "aggregate": "interest_configuration",
+        "version": "v1",
+        "stream": "notification.slackConfig.interestConfiguration",
+        "createdEvent": "NotificationSlackConfigInterestConfigurationCreated.v1",
+        "updatedEvent": "NotificationSlackConfigInterestConfigurationUpdated.v1",
+        "deletedEvent": "NotificationSlackConfigInterestConfigurationDeleted.v1"
+      },
+      "permissions": {
+        "bulk": [
+          "update",
+          "delete",
+          "import"
+        ],
+        "adminOverride": true,
+        "auditView": true,
+        "custom": []
+      },
+      "domainName": "",
+      "parentPath": []
+    },
+    {
+      "name": "statement",
+      "description": "Statement generation and delivery configuration table managing customer account statements, regulatory reporting requirements, and document retention policies. Supports multiple delivery channels and customizable formatting options.",
+      "columns": [
+        {
+          "name": "id",
+          "type": "Record<string, unknown>",
+          "childRelationshipType": "",
+          "parentRelationshipType": "",
+          "datatype": "JSON",
+          "primaryKey": true,
+          "required": true,
+          "description": "Composite identifier structure containing tenant context, product type, and configuration versioning for multi-tenant statement management systems.",
+          "defaultvalue": "",
+          "example": "{\"tenant\": \"bank123\", \"product\": \"SAVINGS\", \"version\": \"2024Q1\"}",
+          "autoIncrement": false,
+          "array": false,
+          "isPII": "",
+          "parentRelationship": "",
+          "childRelationship": "",
+          "meta": {
+            "kind": "json",
+            "jsonShape": "object"
+          }
+        },
+        {
+          "name": "frequency",
+          "type": "StatementFrequencyEnum",
+          "childRelationshipType": "",
+          "parentRelationshipType": "",
+          "datatype": "ENUM",
+          "primaryKey": false,
+          "required": true,
+          "description": "Statement generation schedule determining how often account statements are produced. Options: WEEKLY, MONTHLY, QUARTERLY, ANNUALLY, ON_DEMAND. Aligns with regulatory requirements and customer preferences.",
+          "defaultvalue": "",
+          "example": "monthly",
+          "autoIncrement": false,
+          "enum": [
+            {
+              "key": "monthly"
+            },
+            {
+              "key": "quarterly"
+            },
+            {
+              "key": "halfannually"
+            },
+            {
+              "key": "annually"
+            }
+          ],
+          "array": false,
+          "isPII": "",
+          "parentRelationship": "",
+          "childRelationship": "",
+          "meta": {
+            "kind": "enum",
+            "enumValues": [
+              "monthly",
+              "quarterly",
+              "halfannually",
+              "annually"
+            ],
+            "enumName": "frequency"
+          }
+        },
+        {
+          "name": "day",
+          "type": "number",
+          "childRelationshipType": "",
+          "parentRelationshipType": "",
+          "datatype": "INT",
+          "primaryKey": false,
+          "required": true,
+          "description": "Specific day of the month (1-31) when periodic statements are generated. For monthly statements, day 31 will default to last day of month for shorter months.",
+          "defaultvalue": "",
+          "example": "15",
+          "autoIncrement": false,
+          "array": false,
+          "isPII": "",
+          "parentRelationship": "",
+          "childRelationship": "",
+          "meta": {
+            "kind": "number",
+            "autoIncrement": false
+          }
+        },
+        {
+          "name": "timeZone",
+          "type": "string",
+          "childRelationshipType": "",
+          "parentRelationshipType": "",
+          "datatype": "VARCHAR",
+          "primaryKey": false,
+          "required": false,
+          "description": "IANA time zone identifier for statement generation scheduling. Ensures consistent timing across geographic regions and daylight saving transitions.",
+          "defaultvalue": "",
+          "example": "America/New_York",
+          "autoIncrement": false,
+          "maxLength": "30",
+          "array": false,
+          "isPII": "",
+          "parentRelationship": "",
+          "childRelationship": "",
+          "meta": {
+            "kind": "string",
+            "maxLength": 30
+          }
+        },
+        {
+          "name": "type",
+          "type": "StatementTypeEnum",
+          "childRelationshipType": "",
+          "parentRelationshipType": "",
+          "datatype": "ENUM",
+          "primaryKey": false,
+          "required": false,
+          "description": "Statement content and format specification. Options: SUMMARY (basic balance and transaction count), DETAILED (full transaction listing), REGULATORY (compliance-focused), CUSTOM (configurable fields).",
+          "defaultvalue": "",
+          "example": "summary",
+          "autoIncrement": false,
+          "enum": [
+            {
+              "key": "summary"
+            },
+            {
+              "key": "detailed"
+            },
+            {
+              "key": "regulatory"
+            }
+          ],
+          "array": false,
+          "isPII": "",
+          "parentRelationship": "",
+          "childRelationship": "",
+          "meta": {
+            "kind": "enum",
+            "enumValues": [
+              "summary",
+              "detailed",
+              "regulatory"
+            ],
+            "enumName": "type"
+          }
+        },
+        {
+          "name": "deliveryMethod",
+          "type": "StatementDeliveryMethodEnum",
+          "childRelationshipType": "",
+          "parentRelationshipType": "",
+          "datatype": "ENUM",
+          "primaryKey": false,
+          "required": false,
+          "description": "Primary delivery channel for statement distribution. Options: EMAIL, POSTAL_MAIL, SECURE_PORTAL, API_PUSH, SMS_LINK. May support multiple methods with customer preferences.",
+          "defaultvalue": "",
+          "example": "email",
+          "autoIncrement": false,
+          "enum": [
+            {
+              "key": "email"
+            },
+            {
+              "key": "pdf"
+            },
+            {
+              "key": "apiOnly"
+            }
+          ],
+          "maxLength": "30",
+          "array": false,
+          "isPII": "",
+          "parentRelationship": "",
+          "childRelationship": "",
+          "meta": {
+            "kind": "enum",
+            "enumValues": [
+              "email",
+              "pdf",
+              "apiOnly"
+            ],
+            "enumName": "deliveryMethod"
+          }
+        },
+        {
+          "name": "gracePeriodDays",
+          "type": "number",
+          "childRelationshipType": "",
+          "parentRelationshipType": "",
+          "datatype": "INT",
+          "primaryKey": false,
+          "required": false,
+          "description": "Number of calendar days after statement generation during which delivery attempts continue before marking as failed. Used for retry logic and customer notification escalation.",
+          "defaultvalue": "",
+          "example": "7",
+          "autoIncrement": false,
+          "array": false,
+          "isPII": "",
+          "parentRelationship": "",
+          "childRelationship": "",
+          "meta": {
+            "kind": "number",
+            "autoIncrement": false
+          }
+        },
+        {
+          "name": "retentionPeriod",
+          "type": "StatementRetentionPeriodEnum",
+          "childRelationshipType": "",
+          "parentRelationshipType": "",
+          "datatype": "ENUM",
+          "primaryKey": false,
+          "required": false,
+          "description": "Document retention policy for generated statements. Options: THREE_MONTHS, SIX_MONTHS, ONE_YEAR, SEVEN_YEARS, PERMANENT. Must comply with financial regulations and data privacy laws.",
+          "defaultvalue": "",
+          "example": "oneyear",
+          "autoIncrement": false,
+          "enum": [
+            {
+              "key": "oneyear"
+            },
+            {
+              "key": "threeyears"
+            },
+            {
+              "key": "forever"
+            }
+          ],
+          "maxLength": "30",
+          "array": false,
+          "isPII": "",
+          "parentRelationship": "",
+          "childRelationship": "",
+          "meta": {
+            "kind": "enum",
+            "enumValues": [
+              "oneyear",
+              "threeyears",
+              "forever"
+            ],
+            "enumName": "retentionPeriod"
+          }
+        }
+      ],
+      "relationships": [],
+      "lines": [],
+      "keys": [
+        {
+          "name": "id",
+          "type": "Record<string, unknown>",
+          "childRelationshipType": "",
+          "parentRelationshipType": "",
+          "datatype": "JSON",
+          "primaryKey": true,
+          "required": true,
+          "description": "Composite identifier structure containing tenant context, product type, and configuration versioning for multi-tenant statement management systems.",
+          "defaultvalue": "",
+          "example": "{\"tenant\": \"bank123\", \"product\": \"SAVINGS\", \"version\": \"2024Q1\"}",
+          "autoIncrement": false,
+          "array": false,
+          "isPII": "",
+          "parentRelationship": "",
+          "childRelationship": "",
+          "meta": {
+            "kind": "json",
+            "jsonShape": "object"
+          }
+        }
+      ],
+      "indexes": [],
+      "docs": {
+        "name": "Statement",
+        "summary": "Configuration for statement table",
+        "version": "1.0.0"
+      },
+      "apis": {},
+      "store": {
+        "read": "memory",
+        "write": "memory",
+        "query": "memory",
+        "projector": "memory"
+      },
+      "options": {
+        "command": true,
+        "read": "memory",
+        "write": "memory",
+        "query": "memory",
+        "projector": "memory",
+        "softDelete": true,
+        "timestamps": true,
+        "versioning": true,
+        "logging": true,
+        "auditing": true,
+        "caching": true,
+        "eventStreaming": false
+      },
+      "cancel": {
+        "create": false,
+        "update": false,
+        "delete": false,
+        "batch": false,
+        "get": false
+      },
+      "redis": {
+        "prefix": "",
+        "version": "1.0",
+        "category": "notification:slack-config.statement.v1",
+        "ttl": 3600,
+        "hash": true,
+        "aggregate": "statement"
+      },
+      "eventstream": {
+        "boundedContext": "notification",
+        "aggregate": "statement",
+        "version": "v1",
+        "stream": "notification.slackConfig.statement",
+        "createdEvent": "NotificationSlackConfigStatementCreated.v1",
+        "updatedEvent": "NotificationSlackConfigStatementUpdated.v1",
+        "deletedEvent": "NotificationSlackConfigStatementDeleted.v1"
+      },
+      "permissions": {
+        "bulk": [
+          "update",
+          "delete",
+          "import"
+        ],
+        "adminOverride": true,
+        "auditView": true,
+        "custom": []
+      },
+      "domainName": "",
+      "parentPath": []
+    },
+    {
+      "name": "limit",
+      "description": "Transaction limit and velocity control configuration table for risk management, fraud prevention, and regulatory compliance. Supports complex limit structures with multiple time periods, transaction types, and enforcement actions.",
+      "columns": [
+        {
+          "name": "id",
+          "type": "Record<string, unknown>",
+          "childRelationshipType": "LimitLink",
+          "parentRelationshipType": "",
+          "datatype": "JSON",
+          "primaryKey": true,
+          "required": true,
+          "description": "Multi-dimensional identifier incorporating tenant, currency, product type, customer segment, and configuration version for granular limit management across diverse banking environments.",
+          "defaultvalue": "",
+          "example": "{\"tenant\": \"bank123\", \"currency\": \"USD\", \"product\": \"CHECKING\", \"segment\": \"PREMIUM\", \"version\": \"2024.1\"}",
+          "autoIncrement": false,
+          "array": false,
+          "isPII": "",
+          "parentRelationship": "",
+          "childRelationship": "limit_limits",
+          "meta": {
+            "kind": "json",
+            "jsonShape": "object"
+          }
+        },
+        {
+          "name": "period",
+          "type": "LimitPeriodEnum",
+          "childRelationshipType": "",
+          "parentRelationshipType": "",
+          "datatype": "ENUM",
+          "primaryKey": false,
+          "required": true,
+          "description": "Time window for limit enforcement and reset cycles. Options: PER_TRANSACTION, HOURLY, DAILY, WEEKLY, MONTHLY, QUARTERLY, ANNUALLY. Supports both sliding and fixed windows.",
+          "defaultvalue": "",
+          "example": "day",
+          "autoIncrement": false,
+          "enum": [
+            {
+              "key": "day"
+            },
+            {
+              "key": "week"
+            },
+            {
+              "key": "month"
+            }
+          ],
+          "array": false,
+          "isPII": "",
+          "parentRelationship": "",
+          "childRelationship": "",
+          "meta": {
+            "kind": "enum",
+            "enumValues": [
+              "day",
+              "week",
+              "month"
+            ],
+            "enumName": "period"
+          }
+        },
+        {
+          "name": "transactionType",
+          "type": "LimitTransactionTypeEnum",
+          "childRelationshipType": "",
+          "parentRelationshipType": "",
+          "datatype": "ENUM",
+          "primaryKey": false,
+          "required": true,
+          "description": "Specific transaction category subject to the limit. Options: PAYMENT, TRANSFER, WITHDRAWAL, DEPOSIT, WIRE, ACH, CHECK, CARD_PURCHASE, ATM_WITHDRAWAL, BILL_PAY. Enables fine-grained control.",
+          "defaultvalue": "",
+          "example": "payment",
+          "autoIncrement": false,
+          "enum": [
+            {
+              "key": "payment"
+            },
+            {
+              "key": "transfer"
+            }
+          ],
+          "array": false,
+          "isPII": "",
+          "parentRelationship": "",
+          "childRelationship": "",
+          "meta": {
+            "kind": "enum",
+            "enumValues": [
+              "payment",
+              "transfer"
+            ],
+            "enumName": "transactionType"
+          }
+        },
+        {
+          "name": "count",
+          "type": "number",
+          "childRelationshipType": "",
+          "parentRelationshipType": "",
+          "datatype": "INT",
+          "primaryKey": false,
+          "required": false,
+          "description": "Maximum number of transactions permitted within the specified time period. Used for velocity controls and anti-fraud measures. Zero indicates no count-based restriction.",
+          "defaultvalue": "",
+          "example": "10",
+          "autoIncrement": false,
+          "array": false,
+          "isPII": "",
+          "parentRelationship": "",
+          "childRelationship": "",
+          "meta": {
+            "kind": "number",
+            "autoIncrement": false
+          }
+        },
+        {
+          "name": "totalValueLimit ",
+          "type": "number",
+          "childRelationshipType": "",
+          "parentRelationshipType": "",
+          "datatype": "DECIMAL",
+          "primaryKey": false,
+          "required": false,
+          "description": "Maximum cumulative value allowed for the transaction type within the defined time period.",
+          "defaultvalue": "",
+          "example": "",
+          "autoIncrement": false,
+          "array": false,
+          "isPII": "",
+          "parentRelationship": "",
+          "childRelationship": "",
+          "meta": {
+            "kind": "decimal",
+            "precision": 10,
+            "scale": 2
+          }
+        },
+        {
+          "name": "perTransactionLimit ",
+          "type": "number",
+          "childRelationshipType": "",
+          "parentRelationshipType": "",
+          "datatype": "DECIMAL",
+          "primaryKey": false,
+          "required": false,
+          "description": "Maximum allowed value for a single transaction.",
+          "defaultvalue": "",
+          "example": "",
+          "autoIncrement": false,
+          "array": false,
+          "isPII": "",
+          "parentRelationship": "",
+          "childRelationship": "",
+          "meta": {
+            "kind": "decimal",
+            "precision": 10,
+            "scale": 2
+          }
+        },
+        {
+          "name": "onViolation",
+          "type": "LimitOnViolationEnum",
+          "childRelationshipType": "",
+          "parentRelationshipType": "",
+          "datatype": "ENUM",
+          "primaryKey": false,
+          "required": false,
+          "description": "Automated system response when limits are exceeded. Options: BLOCK (reject transaction), HOLD (require approval), WARN (allow with alert), ESCALATE (route to review queue), LOG_ONLY (monitor without action).",
+          "defaultvalue": "",
+          "example": "block",
+          "autoIncrement": false,
+          "enum": [
+            {
+              "key": "block"
+            },
+            {
+              "key": "warn"
+            },
+            {
+              "key": "defer"
+            }
+          ],
+          "array": false,
+          "isPII": "",
+          "parentRelationship": "",
+          "childRelationship": "",
+          "meta": {
+            "kind": "enum",
+            "enumValues": [
+              "block",
+              "warn",
+              "defer"
+            ],
+            "enumName": "onViolation"
+          }
+        },
+        {
+          "name": "severity",
+          "type": "LimitSeverityEnum",
+          "childRelationshipType": "",
+          "parentRelationshipType": "",
+          "datatype": "ENUM",
+          "primaryKey": false,
+          "required": false,
+          "description": "Risk classification level for limit violations, determining alert priority and response protocols. Options: LOW (routine monitoring), MEDIUM (enhanced review), HIGH (immediate intervention), CRITICAL (emergency response).",
+          "defaultvalue": "",
+          "example": "low",
+          "autoIncrement": false,
+          "enum": [
+            {
+              "key": "low"
+            },
+            {
+              "key": "medium"
+            },
+            {
+              "key": "high"
+            }
+          ],
+          "array": false,
+          "isPII": "",
+          "parentRelationship": "",
+          "childRelationship": "",
+          "meta": {
+            "kind": "enum",
+            "enumValues": [
+              "low",
+              "medium",
+              "high"
+            ],
+            "enumName": "severity"
+          }
+        }
+      ],
+      "relationships": [
+        {
+          "name": "limit_limits",
+          "parentTable": "limit",
+          "parentColumn": {
+            "name": "id",
+            "type": "Record<string, unknown>",
+            "childRelationshipType": "LimitLink",
+            "parentRelationshipType": "",
+            "datatype": "JSON",
+            "primaryKey": true,
+            "required": true,
+            "description": "Multi-dimensional identifier incorporating tenant, currency, product type, customer segment, and configuration version for granular limit management across diverse banking environments.",
+            "defaultvalue": "",
+            "example": "{\"tenant\": \"bank123\", \"currency\": \"USD\", \"product\": \"CHECKING\", \"segment\": \"PREMIUM\", \"version\": \"2024.1\"}",
+            "autoIncrement": false,
+            "array": false,
+            "isPII": "",
+            "parentRelationship": "",
+            "childRelationship": "limit_limits",
+            "meta": {
+              "kind": "json",
+              "jsonShape": "object"
+            }
+          },
+          "childTable": "limit_link",
+          "childColumn": {
+            "name": "customer",
+            "type": "Record<string, unknown>",
+            "childRelationshipType": "",
+            "parentRelationshipType": "Limit",
+            "datatype": "JSON",
+            "primaryKey": false,
+            "required": true,
+            "description": "Default customer-level limit configuration object that applies across all products unless specifically overridden. Includes base limits, customer segment rules, and fallback enforcement policies.",
+            "defaultvalue": "",
+            "example": "{\"limitConfigId\": \"STANDARD_CUSTOMER\", \"overrideLevel\": \"SEGMENT\", \"effectiveDate\": \"2024-01-01\", \"expirationDate\": null}",
+            "autoIncrement": false,
+            "array": false,
+            "isPII": "",
+            "relationship": "one",
+            "parentRelationship": "limit_limits",
+            "childRelationship": "",
+            "meta": {
+              "kind": "json",
+              "jsonShape": "one"
+            }
+          },
+          "type": "one",
+          "complex": true
+        },
+        {
+          "name": "limit_limits",
+          "parentTable": "limit",
+          "parentColumn": {
+            "name": "id",
+            "type": "Record<string, unknown>",
+            "childRelationshipType": "LimitLink",
+            "parentRelationshipType": "",
+            "datatype": "JSON",
+            "primaryKey": true,
+            "required": true,
+            "description": "Multi-dimensional identifier incorporating tenant, currency, product type, customer segment, and configuration version for granular limit management across diverse banking environments.",
+            "defaultvalue": "",
+            "example": "{\"tenant\": \"bank123\", \"currency\": \"USD\", \"product\": \"CHECKING\", \"segment\": \"PREMIUM\", \"version\": \"2024.1\"}",
+            "autoIncrement": false,
+            "array": false,
+            "isPII": "",
+            "parentRelationship": "",
+            "childRelationship": "limit_limits",
+            "meta": {
+              "kind": "json",
+              "jsonShape": "object"
+            }
+          },
+          "childTable": "limit_link",
+          "childColumn": {
+            "name": "product",
+            "type": "Record<string, unknown>",
+            "childRelationshipType": "",
+            "parentRelationshipType": "Limit",
+            "datatype": "JSON",
+            "primaryKey": false,
+            "required": true,
+            "description": "Product-specific limit override configuration that takes precedence over customer defaults. Enables tailored limits based on account type, risk profile, and regulatory requirements for specific financial products.",
+            "defaultvalue": "",
+            "example": "{\"limitConfigId\": \"HIGH_VALUE_CHECKING\", \"overrideLevel\": \"PRODUCT\", \"conditions\": {\"minimumBalance\": 25000}, \"escalationRequired\": true}",
+            "autoIncrement": false,
+            "array": true,
+            "isPII": "",
+            "relationship": "many",
+            "parentRelationship": "limit_limits",
+            "childRelationship": "",
+            "meta": {
+              "kind": "json",
+              "jsonShape": "many"
+            }
+          },
+          "type": "many",
+          "complex": true
+        }
+      ],
+      "lines": [],
+      "keys": [
+        {
+          "name": "id",
+          "type": "Record<string, unknown>",
+          "childRelationshipType": "LimitLink",
+          "parentRelationshipType": "",
+          "datatype": "JSON",
+          "primaryKey": true,
+          "required": true,
+          "description": "Multi-dimensional identifier incorporating tenant, currency, product type, customer segment, and configuration version for granular limit management across diverse banking environments.",
+          "defaultvalue": "",
+          "example": "{\"tenant\": \"bank123\", \"currency\": \"USD\", \"product\": \"CHECKING\", \"segment\": \"PREMIUM\", \"version\": \"2024.1\"}",
+          "autoIncrement": false,
+          "array": false,
+          "isPII": "",
+          "parentRelationship": "",
+          "childRelationship": "limit_limits",
+          "meta": {
+            "kind": "json",
+            "jsonShape": "object"
+          }
+        }
+      ],
+      "indexes": [],
+      "docs": {
+        "name": "Limit",
+        "summary": "Configuration for limit table",
+        "version": "1.0.0"
+      },
+      "apis": {},
+      "store": {
+        "read": "memory",
+        "write": "memory",
+        "query": "memory",
+        "projector": "memory"
+      },
+      "options": {
+        "command": true,
+        "read": "memory",
+        "write": "memory",
+        "query": "memory",
+        "projector": "memory",
+        "softDelete": true,
+        "timestamps": true,
+        "versioning": true,
+        "logging": true,
+        "auditing": true,
+        "caching": true,
+        "eventStreaming": false
+      },
+      "cancel": {
+        "create": false,
+        "update": false,
+        "delete": false,
+        "batch": false,
+        "get": false
+      },
+      "redis": {
+        "prefix": "",
+        "version": "1.0",
+        "category": "notification:slack-config.limit.v1",
+        "ttl": 3600,
+        "hash": true,
+        "aggregate": "limit"
+      },
+      "eventstream": {
+        "boundedContext": "notification",
+        "aggregate": "limit",
+        "version": "v1",
+        "stream": "notification.slackConfig.limit",
+        "createdEvent": "NotificationSlackConfigLimitCreated.v1",
+        "updatedEvent": "NotificationSlackConfigLimitUpdated.v1",
+        "deletedEvent": "NotificationSlackConfigLimitDeleted.v1"
+      },
+      "permissions": {
+        "bulk": [
+          "update",
+          "delete",
+          "import"
+        ],
+        "adminOverride": true,
+        "auditView": true,
+        "custom": []
+      },
+      "domainName": "limit-link",
+      "parentPath": [
+        "limit_link"
+      ]
+    },
+    {
+      "name": "limit_link",
+      "description": "Limit association and hierarchy management table that links specific limit configurations to customers, products, and organizational scopes. Supports override hierarchies and flexible limit inheritance patterns for complex banking environments.",
+      "columns": [
+        {
+          "name": "id",
+          "type": "Record<string, unknown>",
+          "childRelationshipType": "",
+          "parentRelationshipType": "",
+          "datatype": "JSON",
+          "primaryKey": true,
+          "required": true,
+          "description": "Multi-level identifier incorporating tenant, customer segment, product type, currency, and geographic scope to enable sophisticated limit assignment and inheritance structures.",
+          "defaultvalue": "",
+          "example": "{\"tenant\": \"bank123\", \"customer\": \"PREMIUM\", \"product\": \"CHECKING\", \"currency\": \"USD\", \"region\": \"NORTHEAST\"}",
+          "autoIncrement": false,
+          "array": false,
+          "isPII": "",
+          "parentRelationship": "",
+          "childRelationship": "",
+          "meta": {
+            "kind": "json",
+            "jsonShape": "object"
+          }
+        },
+        {
+          "name": "customer",
+          "type": "Record<string, unknown>",
+          "childRelationshipType": "",
+          "parentRelationshipType": "Limit",
+          "datatype": "JSON",
+          "primaryKey": false,
+          "required": true,
+          "description": "Default customer-level limit configuration object that applies across all products unless specifically overridden. Includes base limits, customer segment rules, and fallback enforcement policies.",
+          "defaultvalue": "",
+          "example": "{\"limitConfigId\": \"STANDARD_CUSTOMER\", \"overrideLevel\": \"SEGMENT\", \"effectiveDate\": \"2024-01-01\", \"expirationDate\": null}",
+          "autoIncrement": false,
+          "array": false,
+          "isPII": "",
+          "relationship": "one",
+          "parentRelationship": "limit_limits",
+          "childRelationship": "",
+          "meta": {
+            "kind": "json",
+            "jsonShape": "one"
+          }
+        },
+        {
+          "name": "product",
+          "type": "Record<string, unknown>",
+          "childRelationshipType": "",
+          "parentRelationshipType": "Limit",
+          "datatype": "JSON",
+          "primaryKey": false,
+          "required": true,
+          "description": "Product-specific limit override configuration that takes precedence over customer defaults. Enables tailored limits based on account type, risk profile, and regulatory requirements for specific financial products.",
+          "defaultvalue": "",
+          "example": "{\"limitConfigId\": \"HIGH_VALUE_CHECKING\", \"overrideLevel\": \"PRODUCT\", \"conditions\": {\"minimumBalance\": 25000}, \"escalationRequired\": true}",
+          "autoIncrement": false,
+          "array": true,
+          "isPII": "",
+          "relationship": "many",
+          "parentRelationship": "limit_limits",
+          "childRelationship": "",
+          "meta": {
+            "kind": "json",
+            "jsonShape": "many"
+          }
+        }
+      ],
+      "relationships": [
+        {
+          "name": "limit_limits",
+          "parentTable": "limit",
+          "parentColumn": {
+            "name": "id",
+            "type": "Record<string, unknown>",
+            "childRelationshipType": "LimitLink",
+            "parentRelationshipType": "",
+            "datatype": "JSON",
+            "primaryKey": true,
+            "required": true,
+            "description": "Multi-dimensional identifier incorporating tenant, currency, product type, customer segment, and configuration version for granular limit management across diverse banking environments.",
+            "defaultvalue": "",
+            "example": "{\"tenant\": \"bank123\", \"currency\": \"USD\", \"product\": \"CHECKING\", \"segment\": \"PREMIUM\", \"version\": \"2024.1\"}",
+            "autoIncrement": false,
+            "array": false,
+            "isPII": "",
+            "parentRelationship": "",
+            "childRelationship": "limit_limits",
+            "meta": {
+              "kind": "json",
+              "jsonShape": "object"
+            }
+          },
+          "childTable": "limit_link",
+          "childColumn": {
+            "name": "customer",
+            "type": "Record<string, unknown>",
+            "childRelationshipType": "",
+            "parentRelationshipType": "Limit",
+            "datatype": "JSON",
+            "primaryKey": false,
+            "required": true,
+            "description": "Default customer-level limit configuration object that applies across all products unless specifically overridden. Includes base limits, customer segment rules, and fallback enforcement policies.",
+            "defaultvalue": "",
+            "example": "{\"limitConfigId\": \"STANDARD_CUSTOMER\", \"overrideLevel\": \"SEGMENT\", \"effectiveDate\": \"2024-01-01\", \"expirationDate\": null}",
+            "autoIncrement": false,
+            "array": false,
+            "isPII": "",
+            "relationship": "one",
+            "parentRelationship": "limit_limits",
+            "childRelationship": "",
+            "meta": {
+              "kind": "json",
+              "jsonShape": "one"
+            }
+          },
+          "type": "one",
+          "complex": true
+        },
+        {
+          "name": "limit_limits",
+          "parentTable": "limit",
+          "parentColumn": {
+            "name": "id",
+            "type": "Record<string, unknown>",
+            "childRelationshipType": "LimitLink",
+            "parentRelationshipType": "",
+            "datatype": "JSON",
+            "primaryKey": true,
+            "required": true,
+            "description": "Multi-dimensional identifier incorporating tenant, currency, product type, customer segment, and configuration version for granular limit management across diverse banking environments.",
+            "defaultvalue": "",
+            "example": "{\"tenant\": \"bank123\", \"currency\": \"USD\", \"product\": \"CHECKING\", \"segment\": \"PREMIUM\", \"version\": \"2024.1\"}",
+            "autoIncrement": false,
+            "array": false,
+            "isPII": "",
+            "parentRelationship": "",
+            "childRelationship": "limit_limits",
+            "meta": {
+              "kind": "json",
+              "jsonShape": "object"
+            }
+          },
+          "childTable": "limit_link",
+          "childColumn": {
+            "name": "product",
+            "type": "Record<string, unknown>",
+            "childRelationshipType": "",
+            "parentRelationshipType": "Limit",
+            "datatype": "JSON",
+            "primaryKey": false,
+            "required": true,
+            "description": "Product-specific limit override configuration that takes precedence over customer defaults. Enables tailored limits based on account type, risk profile, and regulatory requirements for specific financial products.",
+            "defaultvalue": "",
+            "example": "{\"limitConfigId\": \"HIGH_VALUE_CHECKING\", \"overrideLevel\": \"PRODUCT\", \"conditions\": {\"minimumBalance\": 25000}, \"escalationRequired\": true}",
+            "autoIncrement": false,
+            "array": true,
+            "isPII": "",
+            "relationship": "many",
+            "parentRelationship": "limit_limits",
+            "childRelationship": "",
+            "meta": {
+              "kind": "json",
+              "jsonShape": "many"
+            }
+          },
+          "type": "many",
+          "complex": true
+        }
+      ],
+      "lines": [],
+      "keys": [
+        {
+          "name": "id",
+          "type": "Record<string, unknown>",
+          "childRelationshipType": "",
+          "parentRelationshipType": "",
+          "datatype": "JSON",
+          "primaryKey": true,
+          "required": true,
+          "description": "Multi-level identifier incorporating tenant, customer segment, product type, currency, and geographic scope to enable sophisticated limit assignment and inheritance structures.",
+          "defaultvalue": "",
+          "example": "{\"tenant\": \"bank123\", \"customer\": \"PREMIUM\", \"product\": \"CHECKING\", \"currency\": \"USD\", \"region\": \"NORTHEAST\"}",
+          "autoIncrement": false,
+          "array": false,
+          "isPII": "",
+          "parentRelationship": "",
+          "childRelationship": "",
+          "meta": {
+            "kind": "json",
+            "jsonShape": "object"
+          }
+        }
+      ],
+      "indexes": [],
+      "docs": {
+        "name": "Limit_link",
+        "summary": "Configuration for limit_link table",
+        "version": "1.0.0"
+      },
+      "apis": {},
+      "store": {
+        "read": "memory",
+        "write": "memory",
+        "query": "memory",
+        "projector": "memory"
+      },
+      "options": {
+        "command": true,
+        "read": "memory",
+        "write": "memory",
+        "query": "memory",
+        "projector": "memory",
+        "softDelete": true,
+        "timestamps": true,
+        "versioning": true,
+        "logging": true,
+        "auditing": true,
+        "caching": true,
+        "eventStreaming": false
+      },
+      "cancel": {
+        "create": false,
+        "update": false,
+        "delete": false,
+        "batch": false,
+        "get": false
+      },
+      "redis": {
+        "prefix": "",
+        "version": "1.0",
+        "category": "notification:slack-config.limit.link.v1",
+        "ttl": 3600,
+        "hash": true,
+        "aggregate": "limit_link"
+      },
+      "eventstream": {
+        "boundedContext": "notification",
+        "aggregate": "limit_link",
+        "version": "v1",
+        "stream": "notification.slackConfig.limitLink",
+        "createdEvent": "NotificationSlackConfigLimitLinkCreated.v1",
+        "updatedEvent": "NotificationSlackConfigLimitLinkUpdated.v1",
+        "deletedEvent": "NotificationSlackConfigLimitLinkDeleted.v1"
+      },
+      "permissions": {
+        "bulk": [
+          "update",
+          "delete",
+          "import"
+        ],
+        "adminOverride": true,
+        "auditView": true,
+        "custom": []
+      },
+      "domainName": "",
+      "parentPath": []
+    },
+    {
+      "name": "rules",
+      "description": "Payment rails configuration table that defines the settlement networks and payment routing mechanisms available for financial transactions. Rails represent the underlying infrastructure used to move money between accounts.",
+      "columns": [
+        {
+          "name": "code",
+          "type": "Record<string, unknown>",
+          "childRelationshipType": "",
+          "parentRelationshipType": "",
+          "datatype": "JSON",
+          "primaryKey": true,
+          "required": true,
+          "description": "",
+          "defaultvalue": "",
+          "example": "",
+          "autoIncrement": false,
+          "maxLength": "20",
+          "array": false,
+          "isPII": "",
+          "parentRelationship": "",
+          "childRelationship": "",
+          "meta": {
+            "kind": "json",
+            "jsonShape": "object"
+          }
+        },
+        {
+          "name": "name",
+          "type": "string",
+          "childRelationshipType": "",
+          "parentRelationshipType": "",
+          "datatype": "VARCHAR",
+          "primaryKey": false,
+          "required": true,
+          "description": "",
+          "defaultvalue": "",
+          "example": "",
+          "autoIncrement": false,
+          "maxLength": "60",
+          "array": false,
+          "isPII": "",
+          "parentRelationship": "",
+          "childRelationship": "",
+          "meta": {
+            "kind": "string",
+            "maxLength": 60
+          }
+        },
+        {
+          "name": "description",
+          "type": "string",
+          "childRelationshipType": "",
+          "parentRelationshipType": "",
+          "datatype": "VARCHAR",
+          "primaryKey": false,
+          "required": false,
+          "description": "",
+          "defaultvalue": "",
+          "example": "",
+          "autoIncrement": false,
+          "maxLength": "255",
+          "array": false,
+          "isPII": "",
+          "parentRelationship": "",
+          "childRelationship": "",
+          "meta": {
+            "kind": "string",
+            "maxLength": 255
+          }
+        },
+        {
+          "name": "birthDate",
+          "type": "string",
+          "childRelationshipType": "",
+          "parentRelationshipType": "",
+          "datatype": "DATE",
+          "primaryKey": false,
+          "required": false,
+          "description": "",
+          "defaultvalue": "",
+          "example": "",
+          "autoIncrement": false,
+          "array": false,
+          "isPII": "financial",
+          "parentRelationship": "",
+          "childRelationship": "",
+          "meta": {
+            "kind": "date",
+            "futureOnly": false,
+            "pastOnly": false
+          }
+        },
+        {
+          "name": "timeOfRequest",
+          "type": "string",
+          "childRelationshipType": "",
+          "parentRelationshipType": "",
+          "datatype": "TIME",
+          "primaryKey": false,
+          "required": false,
+          "description": "",
+          "defaultvalue": "",
+          "example": "",
+          "autoIncrement": false,
+          "array": false,
+          "isPII": "",
+          "parentRelationship": "",
+          "childRelationship": "",
+          "meta": {
+            "kind": "time"
+          }
+        }
+      ],
+      "relationships": [],
+      "lines": [],
+      "keys": [
+        {
+          "name": "code",
+          "type": "Record<string, unknown>",
+          "childRelationshipType": "",
+          "parentRelationshipType": "",
+          "datatype": "JSON",
+          "primaryKey": true,
+          "required": true,
+          "description": "",
+          "defaultvalue": "",
+          "example": "",
+          "autoIncrement": false,
+          "maxLength": "20",
+          "array": false,
+          "isPII": "",
+          "parentRelationship": "",
+          "childRelationship": "",
+          "meta": {
+            "kind": "json",
+            "jsonShape": "object"
+          }
+        }
+      ],
+      "indexes": [
+        {
+          "name": "code",
+          "type": "Record<string, unknown>",
+          "childRelationshipType": "",
+          "parentRelationshipType": "",
+          "datatype": "JSON",
+          "primaryKey": true,
+          "required": true,
+          "description": "",
+          "defaultvalue": "",
+          "example": "",
+          "autoIncrement": false,
+          "maxLength": "20",
+          "array": false,
+          "isPII": "",
+          "parentRelationship": "",
+          "childRelationship": "",
+          "meta": {
+            "kind": "json",
+            "jsonShape": "object"
+          }
+        },
+        {
+          "name": "name",
+          "type": "string",
+          "childRelationshipType": "",
+          "parentRelationshipType": "",
+          "datatype": "VARCHAR",
+          "primaryKey": false,
+          "required": true,
+          "description": "",
+          "defaultvalue": "",
+          "example": "",
+          "autoIncrement": false,
+          "maxLength": "60",
+          "array": false,
+          "isPII": "",
+          "parentRelationship": "",
+          "childRelationship": "",
+          "meta": {
+            "kind": "string",
+            "maxLength": 60
+          }
+        }
+      ],
+      "docs": {
+        "name": "Rules",
+        "summary": "Configuration for rules table",
+        "version": "1.0.0"
+      },
+      "apis": {},
+      "store": {
+        "read": "memory",
+        "write": "memory",
+        "query": "memory",
+        "projector": "memory"
+      },
+      "options": {
+        "command": true,
+        "read": "memory",
+        "write": "memory",
+        "query": "memory",
+        "projector": "memory",
+        "softDelete": true,
+        "timestamps": true,
+        "versioning": true,
+        "logging": true,
+        "auditing": true,
+        "caching": true,
+        "eventStreaming": false
+      },
+      "cancel": {
+        "create": false,
+        "update": false,
+        "delete": false,
+        "batch": false,
+        "get": false
+      },
+      "redis": {
+        "prefix": "",
+        "version": "1.0",
+        "category": "notification:slack-config.rules.v1",
+        "ttl": 3600,
+        "hash": true,
+        "aggregate": "rules"
+      },
+      "eventstream": {
+        "boundedContext": "notification",
+        "aggregate": "rules",
+        "version": "v1",
+        "stream": "notification.slackConfig.rules",
+        "createdEvent": "NotificationSlackConfigRulesCreated.v1",
+        "updatedEvent": "NotificationSlackConfigRulesUpdated.v1",
+        "deletedEvent": "NotificationSlackConfigRulesDeleted.v1"
+      },
+      "permissions": {
+        "bulk": [
+          "update",
+          "delete",
+          "import"
+        ],
+        "adminOverride": true,
+        "auditView": true,
+        "custom": []
+      },
+      "domainName": "",
+      "parentPath": []
+    },
+    {
+      "name": "simple",
+      "description": "",
+      "columns": [
+        {
+          "name": "id",
+          "type": "string",
+          "childRelationshipType": "",
+          "parentRelationshipType": "",
+          "datatype": "UUID",
+          "primaryKey": true,
+          "required": true,
+          "description": "Unique numeric identifier for the payment rail configuration.",
+          "defaultvalue": "",
+          "example": "1001",
+          "autoIncrement": true,
+          "maxLength": "20",
+          "array": false,
+          "isPII": "",
+          "parentRelationship": "",
+          "childRelationship": "",
+          "meta": {
+            "kind": "uuid",
+            "allowNil": false
+          }
+        },
+        {
+          "name": "name",
+          "type": "string",
+          "childRelationshipType": "",
+          "parentRelationshipType": "",
+          "datatype": "VARCHAR",
+          "primaryKey": false,
+          "required": true,
+          "description": "Human-readable name of the payment rail (e.g., 'SWIFT International', 'ACH Domestic', 'Real-time Payments').",
+          "defaultvalue": "",
+          "example": "SWIFT International Wire",
+          "autoIncrement": false,
+          "maxLength": "60",
+          "array": false,
+          "isPII": "",
+          "parentRelationship": "",
+          "childRelationship": "",
+          "meta": {
+            "kind": "string",
+            "maxLength": 60
+          }
+        },
+        {
+          "name": "description",
+          "type": "string",
+          "childRelationshipType": "",
+          "parentRelationshipType": "",
+          "datatype": "VARCHAR",
+          "primaryKey": false,
+          "required": true,
+          "description": "Detailed explanation of the rail's purpose, capabilities, and typical use cases.",
+          "defaultvalue": "",
+          "example": "International wire transfer network for cross-border payments with same-day settlement",
+          "autoIncrement": false,
+          "maxLength": "255",
+          "array": false,
+          "isPII": "",
+          "parentRelationship": "",
+          "childRelationship": "",
+          "meta": {
+            "kind": "string",
+            "maxLength": 255
+          }
+        },
+        {
+          "name": "status",
+          "type": "SimpleStatusEnum",
+          "childRelationshipType": "",
+          "parentRelationshipType": "",
+          "datatype": "ENUM",
+          "primaryKey": false,
+          "required": true,
+          "description": "Current operational status of the rail. Values: ACTIVE, INACTIVE, MAINTENANCE, DEPRECATED.",
+          "defaultvalue": "",
+          "example": "active",
+          "autoIncrement": false,
+          "enum": [
+            {
+              "key": "active"
+            },
+            {
+              "key": "disabled"
+            },
+            {
+              "key": "pending"
+            }
+          ],
+          "array": false,
+          "isPII": "",
+          "parentRelationship": "",
+          "childRelationship": "",
+          "meta": {
+            "kind": "enum",
+            "enumValues": [
+              "active",
+              "disabled",
+              "pending"
+            ],
+            "enumName": "status"
+          }
+        },
+        {
+          "name": "enabled",
+          "type": "boolean",
+          "childRelationshipType": "",
+          "parentRelationshipType": "",
+          "datatype": "BOOLEAN",
+          "primaryKey": false,
+          "required": true,
+          "description": "Flag indicating whether this rail is currently available for processing transactions.",
+          "defaultvalue": "",
+          "example": "true",
+          "autoIncrement": false,
+          "array": false,
+          "isPII": "",
+          "parentRelationship": "",
+          "childRelationship": "",
+          "meta": {
+            "kind": "boolean"
+          }
+        },
+        {
+          "name": "rules_code",
+          "type": "Record<string, unknown>",
+          "childRelationshipType": "",
+          "parentRelationshipType": "",
+          "datatype": "JSON",
+          "primaryKey": false,
+          "required": true,
+          "description": "Unique numeric identifier for the payment rail configuration.",
+          "defaultvalue": "object()",
+          "example": "1001",
+          "autoIncrement": false,
+          "maxLength": "20",
+          "array": false,
+          "isPII": "",
+          "parentRelationship": "",
+          "childRelationship": "",
+          "meta": {
+            "kind": "json",
+            "jsonShape": "object"
+          }
+        },
+        {
+          "name": "time",
+          "type": "string",
+          "childRelationshipType": "",
+          "parentRelationshipType": "",
+          "datatype": "TIME",
+          "primaryKey": false,
+          "required": true,
+          "description": "",
+          "defaultvalue": "",
+          "example": "",
+          "autoIncrement": false,
+          "array": false,
+          "isPII": "",
+          "parentRelationship": "",
+          "childRelationship": "",
+          "meta": {
+            "kind": "time"
+          }
+        },
+        {
+          "name": "datetime",
+          "type": "string",
+          "childRelationshipType": "",
+          "parentRelationshipType": "",
+          "datatype": "DATETIME",
+          "primaryKey": false,
+          "required": true,
+          "description": "",
+          "defaultvalue": "",
+          "example": "",
+          "autoIncrement": false,
+          "array": false,
+          "isPII": "",
+          "parentRelationship": "",
+          "childRelationship": "",
+          "meta": {
+            "kind": "date",
+            "futureOnly": false,
+            "pastOnly": false
+          }
+        },
+        {
+          "name": "date",
+          "type": "string",
+          "childRelationshipType": "",
+          "parentRelationshipType": "",
+          "datatype": "DATE",
+          "primaryKey": false,
+          "required": true,
+          "description": "",
+          "defaultvalue": "",
+          "example": "",
+          "autoIncrement": false,
+          "array": false,
+          "isPII": "",
+          "parentRelationship": "",
+          "childRelationship": "",
+          "meta": {
+            "kind": "date",
+            "futureOnly": false,
+            "pastOnly": false
+          }
+        },
+        {
+          "name": "float",
+          "type": "number",
+          "childRelationshipType": "",
+          "parentRelationshipType": "",
+          "datatype": "FLOAT",
+          "primaryKey": false,
+          "required": true,
+          "description": "",
+          "defaultvalue": "",
+          "example": "",
+          "autoIncrement": false,
+          "maxLength": "10000",
+          "minLength": "20",
+          "array": false,
+          "isPII": "",
+          "parentRelationship": "",
+          "childRelationship": "",
+          "meta": {
+            "kind": "money",
+            "scale": 2
+          }
+        },
+        {
+          "name": "decimal",
+          "type": "number",
+          "childRelationshipType": "",
+          "parentRelationshipType": "",
+          "datatype": "DECIMAL",
+          "primaryKey": false,
+          "required": true,
+          "description": "",
+          "defaultvalue": "",
+          "example": "",
+          "autoIncrement": false,
+          "array": false,
+          "isPII": "",
+          "parentRelationship": "",
+          "childRelationship": "",
+          "meta": {
+            "kind": "decimal",
+            "precision": 10,
+            "scale": 2
+          }
+        },
+        {
+          "name": "uuid",
+          "type": "string",
+          "childRelationshipType": "",
+          "parentRelationshipType": "",
+          "datatype": "UUID",
+          "primaryKey": false,
+          "required": true,
+          "description": "",
+          "defaultvalue": "",
+          "example": "",
+          "autoIncrement": false,
+          "array": false,
+          "isPII": "",
+          "parentRelationship": "",
+          "childRelationship": "",
+          "meta": {
+            "kind": "uuid",
+            "allowNil": false
+          }
+        }
+      ],
+      "relationships": [],
+      "lines": [],
+      "keys": [
+        {
+          "name": "id",
+          "type": "string",
+          "childRelationshipType": "",
+          "parentRelationshipType": "",
+          "datatype": "UUID",
+          "primaryKey": true,
+          "required": true,
+          "description": "Unique numeric identifier for the payment rail configuration.",
+          "defaultvalue": "",
+          "example": "1001",
+          "autoIncrement": true,
+          "maxLength": "20",
+          "array": false,
+          "isPII": "",
+          "parentRelationship": "",
+          "childRelationship": "",
+          "meta": {
+            "kind": "uuid",
+            "allowNil": false
+          }
+        }
+      ],
+      "indexes": [],
+      "docs": {
+        "name": "Simple",
+        "summary": "Configuration for simple table",
+        "version": "1.0.0"
+      },
+      "apis": {},
+      "store": {
+        "read": "memory",
+        "write": "memory",
+        "query": "sql,eventstream,redis",
+        "projector": "memory"
+      },
+      "options": {
+        "command": true,
+        "read": "memory",
+        "write": "memory",
+        "query": "none",
+        "projector": "memory",
+        "softDelete": true,
+        "timestamps": true,
+        "versioning": true,
+        "logging": true,
+        "auditing": true,
+        "caching": true,
+        "eventStreaming": false
+      },
+      "cancel": {
+        "create": false,
+        "update": false,
+        "delete": false,
+        "batch": false,
+        "get": false
+      },
+      "redis": {
+        "prefix": "",
+        "version": "1.0",
+        "category": "notification:slack-config.simple.v1",
+        "ttl": 3600,
+        "hash": true,
+        "aggregate": "simple"
+      },
+      "eventstream": {
+        "boundedContext": "notification",
+        "aggregate": "simple",
+        "version": "v1",
+        "stream": "notification.slackConfig.simple",
+        "createdEvent": "NotificationSlackConfigSimpleCreated.v1",
+        "updatedEvent": "NotificationSlackConfigSimpleUpdated.v1",
+        "deletedEvent": "NotificationSlackConfigSimpleDeleted.v1"
+      },
+      "permissions": {
+        "bulk": [
+          "update",
+          "delete",
+          "import"
+        ],
+        "adminOverride": true,
+        "auditView": true,
+        "custom": []
+      },
+      "domainName": "",
+      "parentPath": []
+    },
+    {
+      "name": "workspace",
+      "description": "",
+      "columns": [
+        {
+          "name": "id",
+          "type": "string",
+          "childRelationshipType": "",
+          "parentRelationshipType": "",
+          "datatype": "VARCHAR",
+          "primaryKey": true,
+          "required": true,
+          "description": "",
+          "defaultvalue": "",
+          "example": "",
+          "autoIncrement": false,
+          "maxLength": "64",
+          "array": false,
+          "isPII": "",
+          "parentRelationship": "",
+          "childRelationship": "",
+          "meta": {
+            "kind": "string",
+            "maxLength": 64
+          }
+        }
+      ],
+      "relationships": [],
+      "lines": [],
+      "keys": [
+        {
+          "name": "id",
+          "type": "string",
+          "childRelationshipType": "",
+          "parentRelationshipType": "",
+          "datatype": "VARCHAR",
+          "primaryKey": true,
+          "required": true,
+          "description": "",
+          "defaultvalue": "",
+          "example": "",
+          "autoIncrement": false,
+          "maxLength": "64",
+          "array": false,
+          "isPII": "",
+          "parentRelationship": "",
+          "childRelationship": "",
+          "meta": {
+            "kind": "string",
+            "maxLength": 64
+          }
+        }
+      ],
+      "indexes": [],
+      "docs": {
+        "name": "Workspace",
+        "summary": "Configuration for workspace table",
+        "version": "1.0.0"
+      },
+      "apis": {},
+      "store": {
+        "read": "memory",
+        "write": "memory",
+        "query": "memory",
+        "projector": "memory"
+      },
+      "options": {
+        "command": true,
+        "read": "memory",
+        "write": "memory",
+        "query": "memory",
+        "projector": "memory",
+        "softDelete": true,
+        "timestamps": true,
+        "versioning": true,
+        "logging": true,
+        "auditing": true,
+        "caching": true,
+        "eventStreaming": false
+      },
+      "cancel": {
+        "create": false,
+        "update": false,
+        "delete": false,
+        "batch": false,
+        "get": false
+      },
+      "redis": {
+        "prefix": "",
+        "version": "1.0",
+        "category": "notification:slack-config.workspace.v1",
+        "ttl": 3600,
+        "hash": true,
+        "aggregate": "workspace"
+      },
+      "eventstream": {
+        "boundedContext": "notification",
+        "aggregate": "workspace",
+        "version": "v1",
+        "stream": "notification.slackConfig.workspace",
+        "createdEvent": "NotificationSlackConfigWorkspaceCreated.v1",
+        "updatedEvent": "NotificationSlackConfigWorkspaceUpdated.v1",
+        "deletedEvent": "NotificationSlackConfigWorkspaceDeleted.v1"
+      },
+      "permissions": {
+        "bulk": [
+          "update",
+          "delete",
+          "import"
+        ],
+        "adminOverride": true,
+        "auditView": true,
+        "custom": []
+      },
+      "domainName": "",
+      "parentPath": []
+    }
+  ],
+  "relationships": [
+    {
+      "name": "limit_limits",
+      "parentTable": "limit",
+      "parentColumn": {
+        "name": "id",
+        "type": "Record<string, unknown>",
+        "childRelationshipType": "LimitLink",
+        "parentRelationshipType": "",
+        "datatype": "JSON",
+        "primaryKey": true,
+        "required": true,
+        "description": "Multi-dimensional identifier incorporating tenant, currency, product type, customer segment, and configuration version for granular limit management across diverse banking environments.",
+        "defaultvalue": "",
+        "example": "{\"tenant\": \"bank123\", \"currency\": \"USD\", \"product\": \"CHECKING\", \"segment\": \"PREMIUM\", \"version\": \"2024.1\"}",
+        "autoIncrement": false,
+        "array": false,
+        "isPII": "",
+        "parentRelationship": "",
+        "childRelationship": "limit_limits",
+        "meta": {
+          "kind": "json",
+          "jsonShape": "object"
+        }
+      },
+      "childTable": "limit_link",
+      "childColumn": {
+        "name": "customer",
+        "type": "Record<string, unknown>",
+        "childRelationshipType": "",
+        "parentRelationshipType": "Limit",
+        "datatype": "JSON",
+        "primaryKey": false,
+        "required": true,
+        "description": "Default customer-level limit configuration object that applies across all products unless specifically overridden. Includes base limits, customer segment rules, and fallback enforcement policies.",
+        "defaultvalue": "",
+        "example": "{\"limitConfigId\": \"STANDARD_CUSTOMER\", \"overrideLevel\": \"SEGMENT\", \"effectiveDate\": \"2024-01-01\", \"expirationDate\": null}",
+        "autoIncrement": false,
+        "array": false,
+        "isPII": "",
+        "relationship": "one",
+        "parentRelationship": "limit_limits",
+        "childRelationship": "",
+        "meta": {
+          "kind": "json",
+          "jsonShape": "one"
+        }
+      },
+      "type": "one",
+      "complex": true
+    },
+    {
+      "name": "limit_limits",
+      "parentTable": "limit",
+      "parentColumn": {
+        "name": "id",
+        "type": "Record<string, unknown>",
+        "childRelationshipType": "LimitLink",
+        "parentRelationshipType": "",
+        "datatype": "JSON",
+        "primaryKey": true,
+        "required": true,
+        "description": "Multi-dimensional identifier incorporating tenant, currency, product type, customer segment, and configuration version for granular limit management across diverse banking environments.",
+        "defaultvalue": "",
+        "example": "{\"tenant\": \"bank123\", \"currency\": \"USD\", \"product\": \"CHECKING\", \"segment\": \"PREMIUM\", \"version\": \"2024.1\"}",
+        "autoIncrement": false,
+        "array": false,
+        "isPII": "",
+        "parentRelationship": "",
+        "childRelationship": "limit_limits",
+        "meta": {
+          "kind": "json",
+          "jsonShape": "object"
+        }
+      },
+      "childTable": "limit_link",
+      "childColumn": {
+        "name": "product",
+        "type": "Record<string, unknown>",
+        "childRelationshipType": "",
+        "parentRelationshipType": "Limit",
+        "datatype": "JSON",
+        "primaryKey": false,
+        "required": true,
+        "description": "Product-specific limit override configuration that takes precedence over customer defaults. Enables tailored limits based on account type, risk profile, and regulatory requirements for specific financial products.",
+        "defaultvalue": "",
+        "example": "{\"limitConfigId\": \"HIGH_VALUE_CHECKING\", \"overrideLevel\": \"PRODUCT\", \"conditions\": {\"minimumBalance\": 25000}, \"escalationRequired\": true}",
+        "autoIncrement": false,
+        "array": true,
+        "isPII": "",
+        "relationship": "many",
+        "parentRelationship": "limit_limits",
+        "childRelationship": "",
+        "meta": {
+          "kind": "json",
+          "jsonShape": "many"
+        }
+      },
+      "type": "many",
+      "complex": true
+    }
+  ]
+}
