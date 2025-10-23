@@ -142,6 +142,13 @@ export class WorkspaceAggregate extends AggregateRootBase {
     // Create typed WorkspaceCreatedEvent with only business data
     const createdEvent = WorkspaceCreatedEvent.create({
       id: entityProps.id.value,
+      name: entityProps.name.value,
+      botToken: entityProps.botToken?.value,
+      signingSecret: entityProps.signingSecret?.value,
+      appId: entityProps.appId?.value,
+      botUserId: entityProps.botUserId?.value,
+      defaultChannelId: entityProps.defaultChannelId?.value,
+      enabled: entityProps.enabled.value,
     });
 
     // Apply as domain event with clean business data
@@ -187,10 +194,24 @@ export class WorkspaceAggregate extends AggregateRootBase {
       case 'WorkspaceCreated.v1': {
         const d = event.data as {
           id: string;
+          name: string;
+          botToken?: string;
+          signingSecret?: string;
+          appId?: string;
+          botUserId?: string;
+          defaultChannelId?: string;
+          enabled: boolean;
         };
 
         const entityResult = WorkspaceEntity.fromSnapshot({
           id: d.id,
+          name: d.name,
+          botToken: d.botToken,
+          signingSecret: d.signingSecret,
+          appId: d.appId,
+          botUserId: d.botUserId,
+          defaultChannelId: d.defaultChannelId,
+          enabled: d.enabled,
           createdAt: event.occurredAt, // Use envelope timestamp
           updatedAt: event.occurredAt, // Use envelope timestamp
           version: 1, // First version
@@ -304,6 +325,23 @@ export class WorkspaceAggregate extends AggregateRootBase {
     const cs: WorkspaceChangeSet = {};
 
     // Simple field comparisons
+    compareField(before.name, after.name, 'name', cs);
+    compareField(before.botToken, after.botToken, 'botToken', cs);
+    compareField(
+      before.signingSecret,
+      after.signingSecret,
+      'signingSecret',
+      cs,
+    );
+    compareField(before.appId, after.appId, 'appId', cs);
+    compareField(before.botUserId, after.botUserId, 'botUserId', cs);
+    compareField(
+      before.defaultChannelId,
+      after.defaultChannelId,
+      'defaultChannelId',
+      cs,
+    );
+    compareField(before.enabled, after.enabled, 'enabled', cs);
 
     return cs;
   }
@@ -371,6 +409,76 @@ export class WorkspaceAggregate extends AggregateRootBase {
     let currentEntity = this._entity;
 
     // Apply each validated field change with type safety
+    if (validatedFields.name !== undefined) {
+      const entityResult = currentEntity.withName(
+        validatedFields.name,
+        updatedAt,
+        nextVersion,
+      );
+      if (!entityResult.ok) return err(entityResult.error);
+      currentEntity = entityResult.value;
+    }
+
+    if (validatedFields.botToken !== undefined) {
+      const entityResult = currentEntity.withBotToken(
+        validatedFields.botToken,
+        updatedAt,
+        nextVersion,
+      );
+      if (!entityResult.ok) return err(entityResult.error);
+      currentEntity = entityResult.value;
+    }
+
+    if (validatedFields.signingSecret !== undefined) {
+      const entityResult = currentEntity.withSigningSecret(
+        validatedFields.signingSecret,
+        updatedAt,
+        nextVersion,
+      );
+      if (!entityResult.ok) return err(entityResult.error);
+      currentEntity = entityResult.value;
+    }
+
+    if (validatedFields.appId !== undefined) {
+      const entityResult = currentEntity.withAppId(
+        validatedFields.appId,
+        updatedAt,
+        nextVersion,
+      );
+      if (!entityResult.ok) return err(entityResult.error);
+      currentEntity = entityResult.value;
+    }
+
+    if (validatedFields.botUserId !== undefined) {
+      const entityResult = currentEntity.withBotUserId(
+        validatedFields.botUserId,
+        updatedAt,
+        nextVersion,
+      );
+      if (!entityResult.ok) return err(entityResult.error);
+      currentEntity = entityResult.value;
+    }
+
+    if (validatedFields.defaultChannelId !== undefined) {
+      const entityResult = currentEntity.withDefaultChannelId(
+        validatedFields.defaultChannelId,
+        updatedAt,
+        nextVersion,
+      );
+      if (!entityResult.ok) return err(entityResult.error);
+      currentEntity = entityResult.value;
+    }
+
+    if (validatedFields.enabled !== undefined) {
+      const entityResult = currentEntity.withEnabled(
+        validatedFields.enabled,
+        updatedAt,
+        nextVersion,
+      );
+      if (!entityResult.ok) return err(entityResult.error);
+      currentEntity = entityResult.value;
+    }
+
     // Commit the batched changes
     this._entity = currentEntity;
     const after = this._entity.toSnapshot();

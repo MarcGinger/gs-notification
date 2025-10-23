@@ -7,10 +7,17 @@ import { WorkspaceSnapshotProps } from '../props';
 import { WorkspaceDomainState } from '../state';
 import { WorkspaceErrors } from '../errors/workspace.errors';
 import {
+  WorkspaceAppId,
+  WorkspaceBotToken,
+  WorkspaceBotUserId,
   WorkspaceCreatedAt,
   WorkspaceUpdatedAt,
   WorkspaceVersion,
+  WorkspaceDefaultChannelId,
+  WorkspaceEnabled,
   WorkspaceId,
+  WorkspaceName,
+  WorkspaceSigningSecret,
 } from '../value-objects';
 
 /**
@@ -150,6 +157,38 @@ export class WorkspaceEntity extends EntityIdBase<
     if (!idResult.ok) {
       return err(idResult.error);
     }
+    const nameResult = WorkspaceName.from(snapshot.name);
+    if (!nameResult.ok) {
+      return err(nameResult.error);
+    }
+    const botTokenResult = WorkspaceBotToken.from(snapshot.botToken);
+    if (!botTokenResult.ok) {
+      return err(botTokenResult.error);
+    }
+    const signingSecretResult = WorkspaceSigningSecret.from(
+      snapshot.signingSecret,
+    );
+    if (!signingSecretResult.ok) {
+      return err(signingSecretResult.error);
+    }
+    const appIdResult = WorkspaceAppId.from(snapshot.appId);
+    if (!appIdResult.ok) {
+      return err(appIdResult.error);
+    }
+    const botUserIdResult = WorkspaceBotUserId.from(snapshot.botUserId);
+    if (!botUserIdResult.ok) {
+      return err(botUserIdResult.error);
+    }
+    const defaultChannelIdResult = WorkspaceDefaultChannelId.from(
+      snapshot.defaultChannelId,
+    );
+    if (!defaultChannelIdResult.ok) {
+      return err(defaultChannelIdResult.error);
+    }
+    const enabledResult = WorkspaceEnabled.from(snapshot.enabled);
+    if (!enabledResult.ok) {
+      return err(enabledResult.error);
+    }
     const createdAtResult = WorkspaceCreatedAt.from(snapshot.createdAt);
     if (!createdAtResult.ok) {
       return err(createdAtResult.error);
@@ -167,6 +206,13 @@ export class WorkspaceEntity extends EntityIdBase<
 
     const props: WorkspaceDomainState = {
       id: idResult.value,
+      name: nameResult.value,
+      botToken: botTokenResult.value,
+      signingSecret: signingSecretResult.value,
+      appId: appIdResult.value,
+      botUserId: botUserIdResult.value,
+      defaultChannelId: defaultChannelIdResult.value,
+      enabled: enabledResult.value,
       createdAt: createdAtResult.value,
       updatedAt: updatedAtResult.value,
       version: versionResult.value,
@@ -188,6 +234,12 @@ export class WorkspaceEntity extends EntityIdBase<
     if (!props.id) {
       return err(WorkspaceErrors.INVALID_ID_DATA);
     }
+    if (!props.name) {
+      return err(WorkspaceErrors.INVALID_NAME_DATA);
+    }
+    if (!props.enabled) {
+      return err(WorkspaceErrors.INVALID_ENABLED_DATA);
+    }
 
     return ok(undefined);
   }
@@ -198,6 +250,34 @@ export class WorkspaceEntity extends EntityIdBase<
 
   public get id(): WorkspaceId {
     return this.props.id;
+  }
+
+  public get name(): WorkspaceName {
+    return this.props.name;
+  }
+
+  public get botToken(): WorkspaceBotToken | undefined {
+    return this.props.botToken;
+  }
+
+  public get signingSecret(): WorkspaceSigningSecret | undefined {
+    return this.props.signingSecret;
+  }
+
+  public get appId(): WorkspaceAppId | undefined {
+    return this.props.appId;
+  }
+
+  public get botUserId(): WorkspaceBotUserId | undefined {
+    return this.props.botUserId;
+  }
+
+  public get defaultChannelId(): WorkspaceDefaultChannelId | undefined {
+    return this.props.defaultChannelId;
+  }
+
+  public get enabled(): WorkspaceEnabled {
+    return this.props.enabled;
   }
 
   public get createdAt(): WorkspaceCreatedAt {
@@ -215,6 +295,111 @@ export class WorkspaceEntity extends EntityIdBase<
   // ======================
   // Simple Update Methods (No Business Logic)
   // ======================
+
+  /**
+   * Creates a new entity with updated name (pure state transition)
+   *
+   * @param name - New name value
+   * @param updatedAt - Optional timestamp (uses clock if not provided)
+   * @returns Result<WorkspaceEntity, DomainError>
+   */
+  public withName(
+    name: WorkspaceName,
+    updatedAt?: Date,
+    version?: number,
+  ): Result<WorkspaceEntity, DomainError> {
+    return this.createUpdatedEntity({ name }, updatedAt, version);
+  }
+
+  /**
+   * Creates a new entity with updated botToken (pure state transition)
+   *
+   * @param botToken - New bot_token value
+   * @param updatedAt - Optional timestamp (uses clock if not provided)
+   * @returns Result<WorkspaceEntity, DomainError>
+   */
+  public withBotToken(
+    botToken: WorkspaceBotToken,
+    updatedAt?: Date,
+    version?: number,
+  ): Result<WorkspaceEntity, DomainError> {
+    return this.createUpdatedEntity({ botToken }, updatedAt, version);
+  }
+
+  /**
+   * Creates a new entity with updated signingSecret (pure state transition)
+   *
+   * @param signingSecret - New signing_secret value
+   * @param updatedAt - Optional timestamp (uses clock if not provided)
+   * @returns Result<WorkspaceEntity, DomainError>
+   */
+  public withSigningSecret(
+    signingSecret: WorkspaceSigningSecret,
+    updatedAt?: Date,
+    version?: number,
+  ): Result<WorkspaceEntity, DomainError> {
+    return this.createUpdatedEntity({ signingSecret }, updatedAt, version);
+  }
+
+  /**
+   * Creates a new entity with updated appId (pure state transition)
+   *
+   * @param appId - New app_id value
+   * @param updatedAt - Optional timestamp (uses clock if not provided)
+   * @returns Result<WorkspaceEntity, DomainError>
+   */
+  public withAppId(
+    appId: WorkspaceAppId,
+    updatedAt?: Date,
+    version?: number,
+  ): Result<WorkspaceEntity, DomainError> {
+    return this.createUpdatedEntity({ appId }, updatedAt, version);
+  }
+
+  /**
+   * Creates a new entity with updated botUserId (pure state transition)
+   *
+   * @param botUserId - New bot_user_id value
+   * @param updatedAt - Optional timestamp (uses clock if not provided)
+   * @returns Result<WorkspaceEntity, DomainError>
+   */
+  public withBotUserId(
+    botUserId: WorkspaceBotUserId,
+    updatedAt?: Date,
+    version?: number,
+  ): Result<WorkspaceEntity, DomainError> {
+    return this.createUpdatedEntity({ botUserId }, updatedAt, version);
+  }
+
+  /**
+   * Creates a new entity with updated defaultChannelId (pure state transition)
+   *
+   * @param defaultChannelId - New default_channel_id value
+   * @param updatedAt - Optional timestamp (uses clock if not provided)
+   * @returns Result<WorkspaceEntity, DomainError>
+   */
+  public withDefaultChannelId(
+    defaultChannelId: WorkspaceDefaultChannelId,
+    updatedAt?: Date,
+    version?: number,
+  ): Result<WorkspaceEntity, DomainError> {
+    return this.createUpdatedEntity({ defaultChannelId }, updatedAt, version);
+  }
+
+  /**
+   * Creates a new entity with updated enabled (pure state transition)
+   *
+   * @param enabled - New enabled value
+   * @param updatedAt - Optional timestamp (uses clock if not provided)
+   * @returns Result<WorkspaceEntity, DomainError>
+   */
+  public withEnabled(
+    enabled: WorkspaceEnabled,
+    updatedAt?: Date,
+    version?: number,
+  ): Result<WorkspaceEntity, DomainError> {
+    return this.createUpdatedEntity({ enabled }, updatedAt, version);
+  }
 
   // ======================
   // Query Methods
@@ -235,6 +420,13 @@ export class WorkspaceEntity extends EntityIdBase<
   public toSnapshot(): WorkspaceSnapshotProps {
     return {
       id: this.props.id.value,
+      name: this.props.name.value,
+      botToken: this.props.botToken?.value,
+      signingSecret: this.props.signingSecret?.value,
+      appId: this.props.appId?.value,
+      botUserId: this.props.botUserId?.value,
+      defaultChannelId: this.props.defaultChannelId?.value,
+      enabled: this.props.enabled.value,
       createdAt: this.props.createdAt.value,
       updatedAt: this.props.updatedAt.value,
       version: this.props.version.value,

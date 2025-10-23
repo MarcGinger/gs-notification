@@ -11,17 +11,103 @@
   "tables": [
     {
       "name": "workspace",
-      "description": "",
+      "description": "Represents each tenant’s registered Slack workspace.",
       "columns": [
         {
           "name": "id",
           "type": "string",
-          "childRelationshipType": "",
+          "childRelationshipType": "AppConfig",
           "parentRelationshipType": "",
           "datatype": "VARCHAR",
           "primaryKey": true,
           "required": true,
-          "description": "",
+          "description": "Slack-provided workspace/team ID.",
+          "defaultvalue": "",
+          "example": "",
+          "autoIncrement": false,
+          "maxLength": "64",
+          "array": false,
+          "isPII": "",
+          "parentRelationship": "",
+          "childRelationship": "workspace_channel, workspace_template, workspace_app_config",
+          "meta": {
+            "kind": "string",
+            "maxLength": 64
+          }
+        },
+        {
+          "name": "name",
+          "type": "string",
+          "childRelationshipType": "",
+          "parentRelationshipType": "",
+          "datatype": "VARCHAR",
+          "primaryKey": false,
+          "required": true,
+          "description": "Human-readable workspace name.",
+          "defaultvalue": "",
+          "example": "",
+          "autoIncrement": false,
+          "maxLength": "255",
+          "array": false,
+          "isPII": "",
+          "parentRelationship": "",
+          "childRelationship": "",
+          "meta": {
+            "kind": "string",
+            "maxLength": 255
+          }
+        },
+        {
+          "name": "bot_token",
+          "type": "string",
+          "childRelationshipType": "",
+          "parentRelationshipType": "",
+          "datatype": "TEXT",
+          "primaryKey": false,
+          "required": false,
+          "description": "OAuth bot token (encrypted at rest).",
+          "defaultvalue": "",
+          "example": "",
+          "autoIncrement": false,
+          "array": false,
+          "isPII": "",
+          "parentRelationship": "",
+          "childRelationship": "",
+          "meta": {
+            "kind": "string",
+            "maxLength": 65535
+          }
+        },
+        {
+          "name": "signing_secret",
+          "type": "string",
+          "childRelationshipType": "",
+          "parentRelationshipType": "",
+          "datatype": "TEXT",
+          "primaryKey": false,
+          "required": false,
+          "description": "Slack app signing secret (encrypted).",
+          "defaultvalue": "",
+          "example": "",
+          "autoIncrement": false,
+          "array": false,
+          "isPII": "",
+          "parentRelationship": "",
+          "childRelationship": "",
+          "meta": {
+            "kind": "string",
+            "maxLength": 65535
+          }
+        },
+        {
+          "name": "app_id",
+          "type": "string",
+          "childRelationshipType": "",
+          "parentRelationshipType": "",
+          "datatype": "VARCHAR",
+          "primaryKey": false,
+          "required": false,
+          "description": "Slack app ID.",
           "defaultvalue": "",
           "example": "",
           "autoIncrement": false,
@@ -34,20 +120,16 @@
             "kind": "string",
             "maxLength": 64
           }
-        }
-      ],
-      "relationships": [],
-      "lines": [],
-      "keys": [
+        },
         {
-          "name": "id",
+          "name": "bot_user_id",
           "type": "string",
           "childRelationshipType": "",
           "parentRelationshipType": "",
           "datatype": "VARCHAR",
-          "primaryKey": true,
-          "required": true,
-          "description": "",
+          "primaryKey": false,
+          "required": false,
+          "description": "Bot user ID.",
           "defaultvalue": "",
           "example": "",
           "autoIncrement": false,
@@ -56,6 +138,231 @@
           "isPII": "",
           "parentRelationship": "",
           "childRelationship": "",
+          "meta": {
+            "kind": "string",
+            "maxLength": 64
+          }
+        },
+        {
+          "name": "default_channel_id",
+          "type": "string",
+          "childRelationshipType": "",
+          "parentRelationshipType": "",
+          "datatype": "VARCHAR",
+          "primaryKey": false,
+          "required": false,
+          "description": "Default posting channel.",
+          "defaultvalue": "",
+          "example": "",
+          "autoIncrement": false,
+          "maxLength": "64",
+          "array": false,
+          "isPII": "",
+          "parentRelationship": "",
+          "childRelationship": "",
+          "meta": {
+            "kind": "string",
+            "maxLength": 64
+          }
+        },
+        {
+          "name": "enabled",
+          "type": "boolean",
+          "childRelationshipType": "",
+          "parentRelationshipType": "",
+          "datatype": "BOOLEAN",
+          "primaryKey": false,
+          "required": true,
+          "description": "Whether Slack integration is active.",
+          "defaultvalue": "true",
+          "example": "",
+          "autoIncrement": false,
+          "array": false,
+          "isPII": "",
+          "parentRelationship": "",
+          "childRelationship": "",
+          "meta": {
+            "kind": "boolean"
+          }
+        }
+      ],
+      "relationships": [
+        {
+          "name": "workspace_channel",
+          "parentTable": "workspace",
+          "parentColumn": {
+            "name": "id",
+            "type": "string",
+            "childRelationshipType": "AppConfig",
+            "parentRelationshipType": "",
+            "datatype": "VARCHAR",
+            "primaryKey": true,
+            "required": true,
+            "description": "Slack-provided workspace/team ID.",
+            "defaultvalue": "",
+            "example": "",
+            "autoIncrement": false,
+            "maxLength": "64",
+            "array": false,
+            "isPII": "",
+            "parentRelationship": "",
+            "childRelationship": "workspace_channel, workspace_template, workspace_app_config",
+            "meta": {
+              "kind": "string",
+              "maxLength": 64
+            }
+          },
+          "childTable": "channel",
+          "childColumn": {
+            "name": "workspace_id",
+            "type": "string",
+            "childRelationshipType": "",
+            "parentRelationshipType": "Workspace",
+            "datatype": "VARCHAR",
+            "primaryKey": false,
+            "required": true,
+            "description": "Slack-provided workspace/team ID.",
+            "defaultvalue": "",
+            "example": "",
+            "autoIncrement": false,
+            "maxLength": "64",
+            "array": true,
+            "isPII": "",
+            "relationship": "many",
+            "parentRelationship": "workspace_channel",
+            "childRelationship": "",
+            "meta": {
+              "kind": "string",
+              "maxLength": 64
+            }
+          },
+          "type": "many",
+          "complex": true
+        },
+        {
+          "name": "workspace_template",
+          "parentTable": "workspace",
+          "parentColumn": {
+            "name": "id",
+            "type": "string",
+            "childRelationshipType": "AppConfig",
+            "parentRelationshipType": "",
+            "datatype": "VARCHAR",
+            "primaryKey": true,
+            "required": true,
+            "description": "Slack-provided workspace/team ID.",
+            "defaultvalue": "",
+            "example": "",
+            "autoIncrement": false,
+            "maxLength": "64",
+            "array": false,
+            "isPII": "",
+            "parentRelationship": "",
+            "childRelationship": "workspace_channel, workspace_template, workspace_app_config",
+            "meta": {
+              "kind": "string",
+              "maxLength": 64
+            }
+          },
+          "childTable": "template",
+          "childColumn": {
+            "name": "workspace_id",
+            "type": "string",
+            "childRelationshipType": "",
+            "parentRelationshipType": "Workspace",
+            "datatype": "VARCHAR",
+            "primaryKey": false,
+            "required": true,
+            "description": "Slack-provided workspace/team ID.",
+            "defaultvalue": "",
+            "example": "",
+            "autoIncrement": false,
+            "maxLength": "64",
+            "array": true,
+            "isPII": "",
+            "relationship": "many",
+            "parentRelationship": "workspace_template",
+            "childRelationship": "",
+            "meta": {
+              "kind": "string",
+              "maxLength": 64
+            }
+          },
+          "type": "many",
+          "complex": true
+        },
+        {
+          "name": "workspace_app_config",
+          "parentTable": "workspace",
+          "parentColumn": {
+            "name": "id",
+            "type": "string",
+            "childRelationshipType": "AppConfig",
+            "parentRelationshipType": "",
+            "datatype": "VARCHAR",
+            "primaryKey": true,
+            "required": true,
+            "description": "Slack-provided workspace/team ID.",
+            "defaultvalue": "",
+            "example": "",
+            "autoIncrement": false,
+            "maxLength": "64",
+            "array": false,
+            "isPII": "",
+            "parentRelationship": "",
+            "childRelationship": "workspace_channel, workspace_template, workspace_app_config",
+            "meta": {
+              "kind": "string",
+              "maxLength": 64
+            }
+          },
+          "childTable": "app_config",
+          "childColumn": {
+            "name": "workspace_id",
+            "type": "string",
+            "childRelationshipType": "",
+            "parentRelationshipType": "Workspace",
+            "datatype": "VARCHAR",
+            "primaryKey": false,
+            "required": true,
+            "description": "Slack-provided workspace/team ID.",
+            "defaultvalue": "",
+            "example": "",
+            "autoIncrement": false,
+            "maxLength": "64",
+            "array": false,
+            "isPII": "",
+            "relationship": "one",
+            "parentRelationship": "workspace_app_config",
+            "childRelationship": "",
+            "meta": {
+              "kind": "string",
+              "maxLength": 64
+            }
+          },
+          "type": "one",
+          "complex": true
+        }
+      ],
+      "lines": [],
+      "keys": [
+        {
+          "name": "id",
+          "type": "string",
+          "childRelationshipType": "AppConfig",
+          "parentRelationshipType": "",
+          "datatype": "VARCHAR",
+          "primaryKey": true,
+          "required": true,
+          "description": "Slack-provided workspace/team ID.",
+          "defaultvalue": "",
+          "example": "",
+          "autoIncrement": false,
+          "maxLength": "64",
+          "array": false,
+          "isPII": "",
+          "parentRelationship": "",
+          "childRelationship": "workspace_channel, workspace_template, workspace_app_config",
           "meta": {
             "kind": "string",
             "maxLength": 64
@@ -125,7 +432,1141 @@
       },
       "domainName": "",
       "parentPath": []
+    },
+    {
+      "name": "channel",
+      "description": "Represents known or approved Slack channels in the workspace.",
+      "columns": [
+        {
+          "name": "id",
+          "type": "string",
+          "childRelationshipType": "",
+          "parentRelationshipType": "",
+          "datatype": "VARCHAR",
+          "primaryKey": true,
+          "required": true,
+          "description": "Slack channel ID.",
+          "defaultvalue": "",
+          "example": "",
+          "autoIncrement": false,
+          "maxLength": "64",
+          "array": false,
+          "isPII": "",
+          "parentRelationship": "",
+          "childRelationship": "",
+          "meta": {
+            "kind": "string",
+            "maxLength": 64
+          }
+        },
+        {
+          "name": "name",
+          "type": "string",
+          "childRelationshipType": "",
+          "parentRelationshipType": "",
+          "datatype": "VARCHAR",
+          "primaryKey": false,
+          "required": true,
+          "description": "Name, e.g., #approvals.",
+          "defaultvalue": "",
+          "example": "",
+          "autoIncrement": false,
+          "maxLength": "255",
+          "array": false,
+          "isPII": "",
+          "parentRelationship": "",
+          "childRelationship": "",
+          "meta": {
+            "kind": "string",
+            "maxLength": 255
+          }
+        },
+        {
+          "name": "workspace_id",
+          "type": "string",
+          "childRelationshipType": "",
+          "parentRelationshipType": "Workspace",
+          "datatype": "VARCHAR",
+          "primaryKey": false,
+          "required": true,
+          "description": "Slack-provided workspace/team ID.",
+          "defaultvalue": "",
+          "example": "",
+          "autoIncrement": false,
+          "maxLength": "64",
+          "array": true,
+          "isPII": "",
+          "relationship": "many",
+          "parentRelationship": "workspace_channel",
+          "childRelationship": "",
+          "meta": {
+            "kind": "string",
+            "maxLength": 64
+          }
+        },
+        {
+          "name": "is_private",
+          "type": "boolean",
+          "childRelationshipType": "",
+          "parentRelationshipType": "",
+          "datatype": "BOOLEAN",
+          "primaryKey": false,
+          "required": true,
+          "description": "Whether private channel.",
+          "defaultvalue": "false",
+          "example": "",
+          "autoIncrement": false,
+          "array": false,
+          "isPII": "",
+          "parentRelationship": "",
+          "childRelationship": "",
+          "meta": {
+            "kind": "boolean"
+          }
+        },
+        {
+          "name": "is_dm",
+          "type": "boolean",
+          "childRelationshipType": "",
+          "parentRelationshipType": "",
+          "datatype": "BOOLEAN",
+          "primaryKey": false,
+          "required": true,
+          "description": "Whether direct message.",
+          "defaultvalue": "false",
+          "example": "",
+          "autoIncrement": false,
+          "array": false,
+          "isPII": "",
+          "parentRelationship": "",
+          "childRelationship": "",
+          "meta": {
+            "kind": "boolean"
+          }
+        },
+        {
+          "name": "topic",
+          "type": "string",
+          "childRelationshipType": "",
+          "parentRelationshipType": "",
+          "datatype": "VARCHAR",
+          "primaryKey": false,
+          "required": false,
+          "description": "Channel topic (optional).",
+          "defaultvalue": "",
+          "example": "",
+          "autoIncrement": false,
+          "maxLength": "255",
+          "array": false,
+          "isPII": "",
+          "parentRelationship": "",
+          "childRelationship": "",
+          "meta": {
+            "kind": "string",
+            "maxLength": 255
+          }
+        },
+        {
+          "name": "purpose",
+          "type": "string",
+          "childRelationshipType": "",
+          "parentRelationshipType": "",
+          "datatype": "VARCHAR",
+          "primaryKey": false,
+          "required": false,
+          "description": "Channel purpose (optional).",
+          "defaultvalue": "",
+          "example": "",
+          "autoIncrement": false,
+          "maxLength": "255",
+          "array": false,
+          "isPII": "",
+          "parentRelationship": "",
+          "childRelationship": "",
+          "meta": {
+            "kind": "string",
+            "maxLength": 255
+          }
+        },
+        {
+          "name": "subscribed_events",
+          "type": "Record<string, unknown>",
+          "childRelationshipType": "",
+          "parentRelationshipType": "",
+          "datatype": "JSON",
+          "primaryKey": false,
+          "required": false,
+          "description": "List of events this channel listens to (e.g., [\"product.approved\",\"alert.error\"]).",
+          "defaultvalue": "",
+          "example": "",
+          "autoIncrement": false,
+          "array": false,
+          "isPII": "",
+          "parentRelationship": "",
+          "childRelationship": "",
+          "meta": {
+            "kind": "json",
+            "jsonShape": "object"
+          }
+        },
+        {
+          "name": "enabled",
+          "type": "boolean",
+          "childRelationshipType": "",
+          "parentRelationshipType": "",
+          "datatype": "BOOLEAN",
+          "primaryKey": false,
+          "required": true,
+          "description": "Whether channel is available for posting.",
+          "defaultvalue": "true",
+          "example": "",
+          "autoIncrement": false,
+          "array": false,
+          "isPII": "",
+          "parentRelationship": "",
+          "childRelationship": "",
+          "meta": {
+            "kind": "boolean"
+          }
+        }
+      ],
+      "relationships": [
+        {
+          "name": "workspace_channel",
+          "parentTable": "workspace",
+          "parentColumn": {
+            "name": "id",
+            "type": "string",
+            "childRelationshipType": "AppConfig",
+            "parentRelationshipType": "",
+            "datatype": "VARCHAR",
+            "primaryKey": true,
+            "required": true,
+            "description": "Slack-provided workspace/team ID.",
+            "defaultvalue": "",
+            "example": "",
+            "autoIncrement": false,
+            "maxLength": "64",
+            "array": false,
+            "isPII": "",
+            "parentRelationship": "",
+            "childRelationship": "workspace_channel, workspace_template, workspace_app_config",
+            "meta": {
+              "kind": "string",
+              "maxLength": 64
+            }
+          },
+          "childTable": "channel",
+          "childColumn": {
+            "name": "workspace_id",
+            "type": "string",
+            "childRelationshipType": "",
+            "parentRelationshipType": "Workspace",
+            "datatype": "VARCHAR",
+            "primaryKey": false,
+            "required": true,
+            "description": "Slack-provided workspace/team ID.",
+            "defaultvalue": "",
+            "example": "",
+            "autoIncrement": false,
+            "maxLength": "64",
+            "array": true,
+            "isPII": "",
+            "relationship": "many",
+            "parentRelationship": "workspace_channel",
+            "childRelationship": "",
+            "meta": {
+              "kind": "string",
+              "maxLength": 64
+            }
+          },
+          "type": "many",
+          "complex": true
+        }
+      ],
+      "lines": [],
+      "keys": [
+        {
+          "name": "id",
+          "type": "string",
+          "childRelationshipType": "",
+          "parentRelationshipType": "",
+          "datatype": "VARCHAR",
+          "primaryKey": true,
+          "required": true,
+          "description": "Slack channel ID.",
+          "defaultvalue": "",
+          "example": "",
+          "autoIncrement": false,
+          "maxLength": "64",
+          "array": false,
+          "isPII": "",
+          "parentRelationship": "",
+          "childRelationship": "",
+          "meta": {
+            "kind": "string",
+            "maxLength": 64
+          }
+        }
+      ],
+      "indexes": [],
+      "docs": {
+        "name": "Channel",
+        "summary": "Configuration for channel table",
+        "version": "1.0.0"
+      },
+      "apis": {},
+      "store": {
+        "read": "memory",
+        "write": "memory",
+        "query": "memory",
+        "projector": "memory"
+      },
+      "options": {
+        "command": true,
+        "read": "memory",
+        "write": "memory",
+        "query": "memory",
+        "projector": "memory",
+        "softDelete": true,
+        "timestamps": true,
+        "versioning": true,
+        "logging": true,
+        "auditing": true,
+        "caching": true,
+        "eventStreaming": false
+      },
+      "cancel": {
+        "create": false,
+        "update": false,
+        "delete": false,
+        "batch": false,
+        "get": false
+      },
+      "redis": {
+        "prefix": "",
+        "version": "1.0",
+        "category": "notification:slack-config.channel.v1",
+        "ttl": 3600,
+        "hash": true,
+        "aggregate": "channel"
+      },
+      "eventstream": {
+        "boundedContext": "notification",
+        "aggregate": "channel",
+        "version": "v1",
+        "stream": "notification.slackConfig.channel",
+        "createdEvent": "NotificationSlackConfigChannelCreated.v1",
+        "updatedEvent": "NotificationSlackConfigChannelUpdated.v1",
+        "deletedEvent": "NotificationSlackConfigChannelDeleted.v1"
+      },
+      "permissions": {
+        "bulk": [
+          "update",
+          "delete",
+          "import"
+        ],
+        "adminOverride": true,
+        "auditView": true,
+        "custom": []
+      },
+      "domainName": "",
+      "parentPath": []
+    },
+    {
+      "name": "template",
+      "description": "Stores reusable templates for Slack messages (both plain text and block-based).",
+      "columns": [
+        {
+          "name": "code",
+          "type": "string",
+          "childRelationshipType": "",
+          "parentRelationshipType": "",
+          "datatype": "VARCHAR",
+          "primaryKey": true,
+          "required": true,
+          "description": "Unique template identifier (e.g., approval_pending).",
+          "defaultvalue": "",
+          "example": "",
+          "autoIncrement": false,
+          "maxLength": "128",
+          "array": false,
+          "isPII": "",
+          "parentRelationship": "",
+          "childRelationship": "",
+          "meta": {
+            "kind": "string",
+            "maxLength": 128
+          }
+        },
+        {
+          "name": "workspace_id",
+          "type": "string",
+          "childRelationshipType": "",
+          "parentRelationshipType": "Workspace",
+          "datatype": "VARCHAR",
+          "primaryKey": false,
+          "required": true,
+          "description": "Slack-provided workspace/team ID.",
+          "defaultvalue": "",
+          "example": "",
+          "autoIncrement": false,
+          "maxLength": "64",
+          "array": true,
+          "isPII": "",
+          "relationship": "many",
+          "parentRelationship": "workspace_template",
+          "childRelationship": "",
+          "meta": {
+            "kind": "string",
+            "maxLength": 64
+          }
+        },
+        {
+          "name": "name",
+          "type": "string",
+          "childRelationshipType": "",
+          "parentRelationshipType": "",
+          "datatype": "VARCHAR",
+          "primaryKey": false,
+          "required": true,
+          "description": "Human-readable template name.",
+          "defaultvalue": "",
+          "example": "",
+          "autoIncrement": false,
+          "maxLength": "255",
+          "array": false,
+          "isPII": "",
+          "parentRelationship": "",
+          "childRelationship": "",
+          "meta": {
+            "kind": "string",
+            "maxLength": 255
+          }
+        },
+        {
+          "name": "description",
+          "type": "string",
+          "childRelationshipType": "",
+          "parentRelationshipType": "",
+          "datatype": "TEXT",
+          "primaryKey": false,
+          "required": false,
+          "description": "Description or purpose.",
+          "defaultvalue": "",
+          "example": "",
+          "autoIncrement": false,
+          "array": false,
+          "isPII": "",
+          "parentRelationship": "",
+          "childRelationship": "",
+          "meta": {
+            "kind": "string",
+            "maxLength": 65535
+          }
+        },
+        {
+          "name": "content_blocks",
+          "type": "Record<string, unknown>",
+          "childRelationshipType": "",
+          "parentRelationshipType": "",
+          "datatype": "JSON",
+          "primaryKey": false,
+          "required": true,
+          "description": "Array of Slack Block Kit objects.",
+          "defaultvalue": "",
+          "example": "",
+          "autoIncrement": false,
+          "array": false,
+          "isPII": "",
+          "parentRelationship": "",
+          "childRelationship": "",
+          "meta": {
+            "kind": "json",
+            "jsonShape": "object"
+          }
+        },
+        {
+          "name": "variables",
+          "type": "Record<string, unknown>",
+          "childRelationshipType": "",
+          "parentRelationshipType": "",
+          "datatype": "JSON",
+          "primaryKey": false,
+          "required": false,
+          "description": "List of variable placeholders ([\"approver\",\"productName\"]).",
+          "defaultvalue": "",
+          "example": "",
+          "autoIncrement": false,
+          "array": false,
+          "isPII": "",
+          "parentRelationship": "",
+          "childRelationship": "",
+          "meta": {
+            "kind": "json",
+            "jsonShape": "object"
+          }
+        },
+        {
+          "name": "sample_payload",
+          "type": "Record<string, unknown>",
+          "childRelationshipType": "",
+          "parentRelationshipType": "",
+          "datatype": "JSON",
+          "primaryKey": false,
+          "required": false,
+          "description": "Example data for testing.",
+          "defaultvalue": "",
+          "example": "",
+          "autoIncrement": false,
+          "array": false,
+          "isPII": "",
+          "parentRelationship": "",
+          "childRelationship": "",
+          "meta": {
+            "kind": "json",
+            "jsonShape": "object"
+          }
+        },
+        {
+          "name": "enabled",
+          "type": "boolean",
+          "childRelationshipType": "",
+          "parentRelationshipType": "",
+          "datatype": "BOOLEAN",
+          "primaryKey": false,
+          "required": true,
+          "description": "Active status.",
+          "defaultvalue": "true",
+          "example": "",
+          "autoIncrement": false,
+          "array": false,
+          "isPII": "",
+          "parentRelationship": "",
+          "childRelationship": "",
+          "meta": {
+            "kind": "boolean"
+          }
+        }
+      ],
+      "relationships": [
+        {
+          "name": "workspace_template",
+          "parentTable": "workspace",
+          "parentColumn": {
+            "name": "id",
+            "type": "string",
+            "childRelationshipType": "AppConfig",
+            "parentRelationshipType": "",
+            "datatype": "VARCHAR",
+            "primaryKey": true,
+            "required": true,
+            "description": "Slack-provided workspace/team ID.",
+            "defaultvalue": "",
+            "example": "",
+            "autoIncrement": false,
+            "maxLength": "64",
+            "array": false,
+            "isPII": "",
+            "parentRelationship": "",
+            "childRelationship": "workspace_channel, workspace_template, workspace_app_config",
+            "meta": {
+              "kind": "string",
+              "maxLength": 64
+            }
+          },
+          "childTable": "template",
+          "childColumn": {
+            "name": "workspace_id",
+            "type": "string",
+            "childRelationshipType": "",
+            "parentRelationshipType": "Workspace",
+            "datatype": "VARCHAR",
+            "primaryKey": false,
+            "required": true,
+            "description": "Slack-provided workspace/team ID.",
+            "defaultvalue": "",
+            "example": "",
+            "autoIncrement": false,
+            "maxLength": "64",
+            "array": true,
+            "isPII": "",
+            "relationship": "many",
+            "parentRelationship": "workspace_template",
+            "childRelationship": "",
+            "meta": {
+              "kind": "string",
+              "maxLength": 64
+            }
+          },
+          "type": "many",
+          "complex": true
+        }
+      ],
+      "lines": [],
+      "keys": [
+        {
+          "name": "code",
+          "type": "string",
+          "childRelationshipType": "",
+          "parentRelationshipType": "",
+          "datatype": "VARCHAR",
+          "primaryKey": true,
+          "required": true,
+          "description": "Unique template identifier (e.g., approval_pending).",
+          "defaultvalue": "",
+          "example": "",
+          "autoIncrement": false,
+          "maxLength": "128",
+          "array": false,
+          "isPII": "",
+          "parentRelationship": "",
+          "childRelationship": "",
+          "meta": {
+            "kind": "string",
+            "maxLength": 128
+          }
+        }
+      ],
+      "indexes": [],
+      "docs": {
+        "name": "Template",
+        "summary": "Configuration for template table",
+        "version": "1.0.0"
+      },
+      "apis": {},
+      "store": {
+        "read": "memory",
+        "write": "memory",
+        "query": "memory",
+        "projector": "memory"
+      },
+      "options": {
+        "command": true,
+        "read": "memory",
+        "write": "memory",
+        "query": "memory",
+        "projector": "memory",
+        "softDelete": true,
+        "timestamps": true,
+        "versioning": true,
+        "logging": true,
+        "auditing": true,
+        "caching": true,
+        "eventStreaming": false
+      },
+      "cancel": {
+        "create": false,
+        "update": false,
+        "delete": false,
+        "batch": false,
+        "get": false
+      },
+      "redis": {
+        "prefix": "",
+        "version": "1.0",
+        "category": "notification:slack-config.template.v1",
+        "ttl": 3600,
+        "hash": true,
+        "aggregate": "template"
+      },
+      "eventstream": {
+        "boundedContext": "notification",
+        "aggregate": "template",
+        "version": "v1",
+        "stream": "notification.slackConfig.template",
+        "createdEvent": "NotificationSlackConfigTemplateCreated.v1",
+        "updatedEvent": "NotificationSlackConfigTemplateUpdated.v1",
+        "deletedEvent": "NotificationSlackConfigTemplateDeleted.v1"
+      },
+      "permissions": {
+        "bulk": [
+          "update",
+          "delete",
+          "import"
+        ],
+        "adminOverride": true,
+        "auditView": true,
+        "custom": []
+      },
+      "domainName": "",
+      "parentPath": []
+    },
+    {
+      "name": "app_config",
+      "description": "High-level operational configuration for the Slack app itself.",
+      "columns": [
+        {
+          "name": "id",
+          "type": "number",
+          "childRelationshipType": "",
+          "parentRelationshipType": "",
+          "datatype": "INT",
+          "primaryKey": true,
+          "required": true,
+          "description": "",
+          "defaultvalue": "",
+          "example": "",
+          "autoIncrement": false,
+          "array": false,
+          "isPII": "",
+          "parentRelationship": "",
+          "childRelationship": "",
+          "meta": {
+            "kind": "number",
+            "autoIncrement": false
+          }
+        },
+        {
+          "name": "workspace_id",
+          "type": "string",
+          "childRelationshipType": "",
+          "parentRelationshipType": "Workspace",
+          "datatype": "VARCHAR",
+          "primaryKey": false,
+          "required": true,
+          "description": "Slack-provided workspace/team ID.",
+          "defaultvalue": "",
+          "example": "",
+          "autoIncrement": false,
+          "maxLength": "64",
+          "array": false,
+          "isPII": "",
+          "relationship": "one",
+          "parentRelationship": "workspace_app_config",
+          "childRelationship": "",
+          "meta": {
+            "kind": "string",
+            "maxLength": 64
+          }
+        },
+        {
+          "name": "max_retry_attempts",
+          "type": "number",
+          "childRelationshipType": "",
+          "parentRelationshipType": "",
+          "datatype": "INT",
+          "primaryKey": false,
+          "required": true,
+          "description": "Retry attempts on failure.",
+          "defaultvalue": "3",
+          "example": "",
+          "autoIncrement": false,
+          "array": false,
+          "isPII": "",
+          "parentRelationship": "",
+          "childRelationship": "",
+          "meta": {
+            "kind": "number",
+            "autoIncrement": false
+          }
+        },
+        {
+          "name": "retry_backoff_seconds",
+          "type": "number",
+          "childRelationshipType": "",
+          "parentRelationshipType": "",
+          "datatype": "INT",
+          "primaryKey": false,
+          "required": true,
+          "description": "Backoff duration between retries.",
+          "defaultvalue": "5",
+          "example": "",
+          "autoIncrement": false,
+          "array": false,
+          "isPII": "",
+          "parentRelationship": "",
+          "childRelationship": "",
+          "meta": {
+            "kind": "number",
+            "autoIncrement": false
+          }
+        },
+        {
+          "name": "default_locale",
+          "type": "string",
+          "childRelationshipType": "",
+          "parentRelationshipType": "",
+          "datatype": "VARCHAR",
+          "primaryKey": false,
+          "required": true,
+          "description": "Default message locale.",
+          "defaultvalue": "en_US",
+          "example": "",
+          "autoIncrement": false,
+          "maxLength": "16",
+          "array": false,
+          "isPII": "",
+          "parentRelationship": "",
+          "childRelationship": "",
+          "meta": {
+            "kind": "string",
+            "maxLength": 16
+          }
+        },
+        {
+          "name": "logging_enabled",
+          "type": "boolean",
+          "childRelationshipType": "",
+          "parentRelationshipType": "",
+          "datatype": "BOOLEAN",
+          "primaryKey": false,
+          "required": true,
+          "description": "Enable message audit logging.",
+          "defaultvalue": "true",
+          "example": "",
+          "autoIncrement": false,
+          "array": false,
+          "isPII": "",
+          "parentRelationship": "",
+          "childRelationship": "",
+          "meta": {
+            "kind": "boolean"
+          }
+        },
+        {
+          "name": "audit_channel_id",
+          "type": "string",
+          "childRelationshipType": "",
+          "parentRelationshipType": "",
+          "datatype": "VARCHAR",
+          "primaryKey": false,
+          "required": false,
+          "description": "Channel for operational logs.",
+          "defaultvalue": "",
+          "example": "",
+          "autoIncrement": false,
+          "maxLength": "64",
+          "array": false,
+          "isPII": "",
+          "parentRelationship": "",
+          "childRelationship": "",
+          "meta": {
+            "kind": "string",
+            "maxLength": 64
+          }
+        },
+        {
+          "name": "metadata",
+          "type": "Record<string, unknown>",
+          "childRelationshipType": "",
+          "parentRelationshipType": "",
+          "datatype": "JSON",
+          "primaryKey": false,
+          "required": false,
+          "description": "Miscellaneous configuration.",
+          "defaultvalue": "",
+          "example": "",
+          "autoIncrement": false,
+          "array": false,
+          "isPII": "",
+          "parentRelationship": "",
+          "childRelationship": "",
+          "meta": {
+            "kind": "json",
+            "jsonShape": "object"
+          }
+        }
+      ],
+      "relationships": [
+        {
+          "name": "workspace_app_config",
+          "parentTable": "workspace",
+          "parentColumn": {
+            "name": "id",
+            "type": "string",
+            "childRelationshipType": "AppConfig",
+            "parentRelationshipType": "",
+            "datatype": "VARCHAR",
+            "primaryKey": true,
+            "required": true,
+            "description": "Slack-provided workspace/team ID.",
+            "defaultvalue": "",
+            "example": "",
+            "autoIncrement": false,
+            "maxLength": "64",
+            "array": false,
+            "isPII": "",
+            "parentRelationship": "",
+            "childRelationship": "workspace_channel, workspace_template, workspace_app_config",
+            "meta": {
+              "kind": "string",
+              "maxLength": 64
+            }
+          },
+          "childTable": "app_config",
+          "childColumn": {
+            "name": "workspace_id",
+            "type": "string",
+            "childRelationshipType": "",
+            "parentRelationshipType": "Workspace",
+            "datatype": "VARCHAR",
+            "primaryKey": false,
+            "required": true,
+            "description": "Slack-provided workspace/team ID.",
+            "defaultvalue": "",
+            "example": "",
+            "autoIncrement": false,
+            "maxLength": "64",
+            "array": false,
+            "isPII": "",
+            "relationship": "one",
+            "parentRelationship": "workspace_app_config",
+            "childRelationship": "",
+            "meta": {
+              "kind": "string",
+              "maxLength": 64
+            }
+          },
+          "type": "one",
+          "complex": true
+        }
+      ],
+      "lines": [],
+      "keys": [
+        {
+          "name": "id",
+          "type": "number",
+          "childRelationshipType": "",
+          "parentRelationshipType": "",
+          "datatype": "INT",
+          "primaryKey": true,
+          "required": true,
+          "description": "",
+          "defaultvalue": "",
+          "example": "",
+          "autoIncrement": false,
+          "array": false,
+          "isPII": "",
+          "parentRelationship": "",
+          "childRelationship": "",
+          "meta": {
+            "kind": "number",
+            "autoIncrement": false
+          }
+        }
+      ],
+      "indexes": [],
+      "docs": {
+        "name": "App_config",
+        "summary": "Configuration for app_config table",
+        "version": "1.0.0"
+      },
+      "apis": {},
+      "store": {
+        "read": "memory",
+        "write": "memory",
+        "query": "memory",
+        "projector": "memory"
+      },
+      "options": {
+        "command": true,
+        "read": "memory",
+        "write": "memory",
+        "query": "memory",
+        "projector": "memory",
+        "softDelete": true,
+        "timestamps": true,
+        "versioning": true,
+        "logging": true,
+        "auditing": true,
+        "caching": true,
+        "eventStreaming": false
+      },
+      "cancel": {
+        "create": false,
+        "update": false,
+        "delete": false,
+        "batch": false,
+        "get": false
+      },
+      "redis": {
+        "prefix": "",
+        "version": "1.0",
+        "category": "notification:slack-config.app.config.v1",
+        "ttl": 3600,
+        "hash": true,
+        "aggregate": "app_config"
+      },
+      "eventstream": {
+        "boundedContext": "notification",
+        "aggregate": "app_config",
+        "version": "v1",
+        "stream": "notification.slackConfig.appConfig",
+        "createdEvent": "NotificationSlackConfigAppConfigCreated.v1",
+        "updatedEvent": "NotificationSlackConfigAppConfigUpdated.v1",
+        "deletedEvent": "NotificationSlackConfigAppConfigDeleted.v1"
+      },
+      "permissions": {
+        "bulk": [
+          "update",
+          "delete",
+          "import"
+        ],
+        "adminOverride": true,
+        "auditView": true,
+        "custom": []
+      },
+      "domainName": "",
+      "parentPath": []
     }
   ],
-  "relationships": []
+  "relationships": [
+    {
+      "name": "workspace_channel",
+      "parentTable": "workspace",
+      "parentColumn": {
+        "name": "id",
+        "type": "string",
+        "childRelationshipType": "AppConfig",
+        "parentRelationshipType": "",
+        "datatype": "VARCHAR",
+        "primaryKey": true,
+        "required": true,
+        "description": "Slack-provided workspace/team ID.",
+        "defaultvalue": "",
+        "example": "",
+        "autoIncrement": false,
+        "maxLength": "64",
+        "array": false,
+        "isPII": "",
+        "parentRelationship": "",
+        "childRelationship": "workspace_channel, workspace_template, workspace_app_config",
+        "meta": {
+          "kind": "string",
+          "maxLength": 64
+        }
+      },
+      "childTable": "channel",
+      "childColumn": {
+        "name": "workspace_id",
+        "type": "string",
+        "childRelationshipType": "",
+        "parentRelationshipType": "Workspace",
+        "datatype": "VARCHAR",
+        "primaryKey": false,
+        "required": true,
+        "description": "Slack-provided workspace/team ID.",
+        "defaultvalue": "",
+        "example": "",
+        "autoIncrement": false,
+        "maxLength": "64",
+        "array": true,
+        "isPII": "",
+        "relationship": "many",
+        "parentRelationship": "workspace_channel",
+        "childRelationship": "",
+        "meta": {
+          "kind": "string",
+          "maxLength": 64
+        }
+      },
+      "type": "many",
+      "complex": true
+    },
+    {
+      "name": "workspace_template",
+      "parentTable": "workspace",
+      "parentColumn": {
+        "name": "id",
+        "type": "string",
+        "childRelationshipType": "AppConfig",
+        "parentRelationshipType": "",
+        "datatype": "VARCHAR",
+        "primaryKey": true,
+        "required": true,
+        "description": "Slack-provided workspace/team ID.",
+        "defaultvalue": "",
+        "example": "",
+        "autoIncrement": false,
+        "maxLength": "64",
+        "array": false,
+        "isPII": "",
+        "parentRelationship": "",
+        "childRelationship": "workspace_channel, workspace_template, workspace_app_config",
+        "meta": {
+          "kind": "string",
+          "maxLength": 64
+        }
+      },
+      "childTable": "template",
+      "childColumn": {
+        "name": "workspace_id",
+        "type": "string",
+        "childRelationshipType": "",
+        "parentRelationshipType": "Workspace",
+        "datatype": "VARCHAR",
+        "primaryKey": false,
+        "required": true,
+        "description": "Slack-provided workspace/team ID.",
+        "defaultvalue": "",
+        "example": "",
+        "autoIncrement": false,
+        "maxLength": "64",
+        "array": true,
+        "isPII": "",
+        "relationship": "many",
+        "parentRelationship": "workspace_template",
+        "childRelationship": "",
+        "meta": {
+          "kind": "string",
+          "maxLength": 64
+        }
+      },
+      "type": "many",
+      "complex": true
+    },
+    {
+      "name": "workspace_app_config",
+      "parentTable": "workspace",
+      "parentColumn": {
+        "name": "id",
+        "type": "string",
+        "childRelationshipType": "AppConfig",
+        "parentRelationshipType": "",
+        "datatype": "VARCHAR",
+        "primaryKey": true,
+        "required": true,
+        "description": "Slack-provided workspace/team ID.",
+        "defaultvalue": "",
+        "example": "",
+        "autoIncrement": false,
+        "maxLength": "64",
+        "array": false,
+        "isPII": "",
+        "parentRelationship": "",
+        "childRelationship": "workspace_channel, workspace_template, workspace_app_config",
+        "meta": {
+          "kind": "string",
+          "maxLength": 64
+        }
+      },
+      "childTable": "app_config",
+      "childColumn": {
+        "name": "workspace_id",
+        "type": "string",
+        "childRelationshipType": "",
+        "parentRelationshipType": "Workspace",
+        "datatype": "VARCHAR",
+        "primaryKey": false,
+        "required": true,
+        "description": "Slack-provided workspace/team ID.",
+        "defaultvalue": "",
+        "example": "",
+        "autoIncrement": false,
+        "maxLength": "64",
+        "array": false,
+        "isPII": "",
+        "relationship": "one",
+        "parentRelationship": "workspace_app_config",
+        "childRelationship": "",
+        "meta": {
+          "kind": "string",
+          "maxLength": 64
+        }
+      },
+      "type": "one",
+      "complex": true
+    }
+  ]
 }

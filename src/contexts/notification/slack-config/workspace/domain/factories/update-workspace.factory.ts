@@ -8,6 +8,15 @@ import { WorkspaceAggregate } from '../aggregates';
 import { WorkspaceEntity } from '../entities';
 import { UpdateWorkspaceProps, WorkspaceSnapshotProps } from '../props';
 import { ValidatedWorkspaceUpdateFields } from '../types';
+import {
+  WorkspaceName,
+  WorkspaceBotToken,
+  WorkspaceSigningSecret,
+  WorkspaceAppId,
+  WorkspaceBotUserId,
+  WorkspaceDefaultChannelId,
+  WorkspaceEnabled,
+} from '../value-objects';
 
 /**
  * Update Workspace Aggregate Factory
@@ -50,6 +59,122 @@ export function updateWorkspaceAggregateFromSnapshot(
 
   // 2. Validate and apply updates for each provided field
   const validatedFields: ValidatedWorkspaceUpdateFields = {};
+
+  // Validate name if provided
+  if (updateProps.name !== undefined) {
+    const nameResult = WorkspaceName.from(updateProps.name);
+    if (!nameResult.ok) {
+      return err(
+        withContext(nameResult.error, {
+          operation: 'update_workspace_name_validation',
+          correlationId: metadata.correlationId,
+          userId: metadata.actor?.userId,
+          providedName: updateProps.name,
+        }),
+      );
+    }
+    validatedFields.name = nameResult.value;
+  }
+
+  // Validate botToken if provided
+  if (updateProps.botToken !== undefined) {
+    const botTokenResult = WorkspaceBotToken.from(updateProps.botToken);
+    if (!botTokenResult.ok) {
+      return err(
+        withContext(botTokenResult.error, {
+          operation: 'update_workspace_bot_token_validation',
+          correlationId: metadata.correlationId,
+          userId: metadata.actor?.userId,
+          providedBotToken: updateProps.botToken,
+        }),
+      );
+    }
+    validatedFields.botToken = botTokenResult.value;
+  }
+
+  // Validate signingSecret if provided
+  if (updateProps.signingSecret !== undefined) {
+    const signingSecretResult = WorkspaceSigningSecret.from(
+      updateProps.signingSecret,
+    );
+    if (!signingSecretResult.ok) {
+      return err(
+        withContext(signingSecretResult.error, {
+          operation: 'update_workspace_signing_secret_validation',
+          correlationId: metadata.correlationId,
+          userId: metadata.actor?.userId,
+          providedSigningSecret: updateProps.signingSecret,
+        }),
+      );
+    }
+    validatedFields.signingSecret = signingSecretResult.value;
+  }
+
+  // Validate appId if provided
+  if (updateProps.appId !== undefined) {
+    const appIdResult = WorkspaceAppId.from(updateProps.appId);
+    if (!appIdResult.ok) {
+      return err(
+        withContext(appIdResult.error, {
+          operation: 'update_workspace_app_id_validation',
+          correlationId: metadata.correlationId,
+          userId: metadata.actor?.userId,
+          providedAppId: updateProps.appId,
+        }),
+      );
+    }
+    validatedFields.appId = appIdResult.value;
+  }
+
+  // Validate botUserId if provided
+  if (updateProps.botUserId !== undefined) {
+    const botUserIdResult = WorkspaceBotUserId.from(updateProps.botUserId);
+    if (!botUserIdResult.ok) {
+      return err(
+        withContext(botUserIdResult.error, {
+          operation: 'update_workspace_bot_user_id_validation',
+          correlationId: metadata.correlationId,
+          userId: metadata.actor?.userId,
+          providedBotUserId: updateProps.botUserId,
+        }),
+      );
+    }
+    validatedFields.botUserId = botUserIdResult.value;
+  }
+
+  // Validate defaultChannelId if provided
+  if (updateProps.defaultChannelId !== undefined) {
+    const defaultChannelIdResult = WorkspaceDefaultChannelId.from(
+      updateProps.defaultChannelId,
+    );
+    if (!defaultChannelIdResult.ok) {
+      return err(
+        withContext(defaultChannelIdResult.error, {
+          operation: 'update_workspace_default_channel_id_validation',
+          correlationId: metadata.correlationId,
+          userId: metadata.actor?.userId,
+          providedDefaultChannelId: updateProps.defaultChannelId,
+        }),
+      );
+    }
+    validatedFields.defaultChannelId = defaultChannelIdResult.value;
+  }
+
+  // Validate enabled if provided
+  if (updateProps.enabled !== undefined) {
+    const enabledResult = WorkspaceEnabled.from(updateProps.enabled);
+    if (!enabledResult.ok) {
+      return err(
+        withContext(enabledResult.error, {
+          operation: 'update_workspace_enabled_validation',
+          correlationId: metadata.correlationId,
+          userId: metadata.actor?.userId,
+          providedEnabled: updateProps.enabled,
+        }),
+      );
+    }
+    validatedFields.enabled = enabledResult.value;
+  }
 
   // 3. Apply all validated changes in single atomic operation
   const batchUpdateResult = existingAggregate.updateBatch(validatedFields);

@@ -32,7 +32,7 @@ export class WorkspaceDocumentation {
 
 ### application: slack-config
 [← Back to documentation](/api/docs/notification/slack-config)
-`,
+Represents each tenant’s registered Slack workspace.`,
       )
       .setVersion('1.0.0')
       .addTag('Workspaces', `Configuration for workspace table`);

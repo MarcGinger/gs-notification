@@ -41,8 +41,24 @@ export const WorkspaceResource = (permission: WorkspacePermission) =>
       const query = req.query as Record<string, unknown> | undefined;
 
       // Business data extraction
+      const name = body?.name || query?.name;
+      const botToken = body?.botToken || query?.botToken;
+      const signingSecret = body?.signingSecret || query?.signingSecret;
+      const appId = body?.appId || query?.appId;
+      const botUserId = body?.botUserId || query?.botUserId;
+      const defaultChannelId =
+        body?.defaultChannelId || query?.defaultChannelId;
+      const enabled = body?.enabled || query?.enabled;
 
-      const baseAttributes = {};
+      const baseAttributes = {
+        name,
+        botToken,
+        signingSecret,
+        appId,
+        botUserId,
+        defaultChannelId,
+        enabled,
+      };
 
       // Domain-driven permission context (no hardcoded business rules!)
       const permissionMeta = WorkspacePermissionRegistry[permission];

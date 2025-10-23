@@ -12,6 +12,13 @@ import {
   WorkspaceUpdatedAt,
   WorkspaceVersion,
   WorkspaceId,
+  WorkspaceName,
+  WorkspaceBotToken,
+  WorkspaceSigningSecret,
+  WorkspaceAppId,
+  WorkspaceBotUserId,
+  WorkspaceDefaultChannelId,
+  WorkspaceEnabled,
 } from '../value-objects';
 
 /**
@@ -40,6 +47,99 @@ export function createWorkspaceAggregateFromProps(
     );
   }
 
+  const nameResult = WorkspaceName.from(props.name);
+  if (!nameResult.ok) {
+    return err(
+      withContext(nameResult.error, {
+        ...nameResult.error.context,
+        correlationId: metadata.correlationId,
+        userId: metadata.userId,
+        operation: 'create_workspace',
+        name: props.name,
+      }),
+    );
+  }
+
+  const botTokenResult = WorkspaceBotToken.from(props.botToken);
+  if (!botTokenResult.ok) {
+    return err(
+      withContext(botTokenResult.error, {
+        ...botTokenResult.error.context,
+        correlationId: metadata.correlationId,
+        userId: metadata.userId,
+        operation: 'create_workspace',
+        botToken: props.botToken,
+      }),
+    );
+  }
+
+  const signingSecretResult = WorkspaceSigningSecret.from(props.signingSecret);
+  if (!signingSecretResult.ok) {
+    return err(
+      withContext(signingSecretResult.error, {
+        ...signingSecretResult.error.context,
+        correlationId: metadata.correlationId,
+        userId: metadata.userId,
+        operation: 'create_workspace',
+        signingSecret: props.signingSecret,
+      }),
+    );
+  }
+
+  const appIdResult = WorkspaceAppId.from(props.appId);
+  if (!appIdResult.ok) {
+    return err(
+      withContext(appIdResult.error, {
+        ...appIdResult.error.context,
+        correlationId: metadata.correlationId,
+        userId: metadata.userId,
+        operation: 'create_workspace',
+        appId: props.appId,
+      }),
+    );
+  }
+
+  const botUserIdResult = WorkspaceBotUserId.from(props.botUserId);
+  if (!botUserIdResult.ok) {
+    return err(
+      withContext(botUserIdResult.error, {
+        ...botUserIdResult.error.context,
+        correlationId: metadata.correlationId,
+        userId: metadata.userId,
+        operation: 'create_workspace',
+        botUserId: props.botUserId,
+      }),
+    );
+  }
+
+  const defaultChannelIdResult = WorkspaceDefaultChannelId.from(
+    props.defaultChannelId,
+  );
+  if (!defaultChannelIdResult.ok) {
+    return err(
+      withContext(defaultChannelIdResult.error, {
+        ...defaultChannelIdResult.error.context,
+        correlationId: metadata.correlationId,
+        userId: metadata.userId,
+        operation: 'create_workspace',
+        defaultChannelId: props.defaultChannelId,
+      }),
+    );
+  }
+
+  const enabledResult = WorkspaceEnabled.from(props.enabled);
+  if (!enabledResult.ok) {
+    return err(
+      withContext(enabledResult.error, {
+        ...enabledResult.error.context,
+        correlationId: metadata.correlationId,
+        userId: metadata.userId,
+        operation: 'create_workspace',
+        enabled: props.enabled,
+      }),
+    );
+  }
+
   const createdAtResult = WorkspaceCreatedAt.create(clock.now());
   if (!createdAtResult.ok) {
     return err(createdAtResult.error);
@@ -58,6 +158,13 @@ export function createWorkspaceAggregateFromProps(
   // Create the entity properties with validated value objects
   const entityProps: WorkspaceDomainState = {
     id: idResult.value,
+    name: nameResult.value,
+    botToken: botTokenResult.value,
+    signingSecret: signingSecretResult.value,
+    appId: appIdResult.value,
+    botUserId: botUserIdResult.value,
+    defaultChannelId: defaultChannelIdResult.value,
+    enabled: enabledResult.value,
     createdAt: createdAtResult.value,
     updatedAt: updatedAtResult.value,
     version: versionResult.value,

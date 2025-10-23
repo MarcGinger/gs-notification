@@ -30,6 +30,9 @@ export class SlackConfigDocumentation {
   | Modules |
   |---------------|
   | [***workspace  →***](/api/docs/notification/slack-config/workspace) |
+  | [***channel  →***](/api/docs/notification/slack-config/channel) |
+  | [***template  →***](/api/docs/notification/slack-config/template) |
+  | [***app-config  →***](/api/docs/notification/slack-config/app-config) |
         `,
       )
       .setVersion('1.0.0')

@@ -17,5 +17,12 @@ export const mapWorkspaceSnapshotToDto = (
 ): DetailWorkspaceResponse => {
   return {
     id: snapshot.id,
+    name: snapshot.name,
+    botToken: snapshot.botToken,
+    signingSecret: snapshot.signingSecret,
+    appId: snapshot.appId,
+    botUserId: snapshot.botUserId,
+    defaultChannelId: snapshot.defaultChannelId,
+    enabled: snapshot.enabled,
   };
 };

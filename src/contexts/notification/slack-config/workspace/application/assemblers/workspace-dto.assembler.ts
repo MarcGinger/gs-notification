@@ -29,6 +29,13 @@ export class WorkspaceDtoAssembler {
 
     // Extract primitive values from VOs
     dto.id = domainState.id.value;
+    dto.name = domainState.name.value;
+    dto.botToken = domainState.botToken?.value;
+    dto.signingSecret = domainState.signingSecret?.value;
+    dto.appId = domainState.appId?.value;
+    dto.botUserId = domainState.botUserId?.value;
+    dto.defaultChannelId = domainState.defaultChannelId?.value;
+    dto.enabled = domainState.enabled.value;
 
     return dto;
   }

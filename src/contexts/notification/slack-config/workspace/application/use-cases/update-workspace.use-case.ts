@@ -357,7 +357,6 @@ export class UpdateWorkspaceUseCase implements IUpdateWorkspaceUseCase {
         eventCount: aggregate.uncommittedEvents?.length ?? 0,
         businessData: {
           workspaceCode: dto.id,
-          workspaceName: dto.name,
           complianceApplied: classification.containsPII,
           fieldsUpdated: Object.keys(fieldsToUpdate).length,
         },

@@ -35,6 +35,13 @@ export class CreateWorkspacesTable0000000000002 implements MigrationInterface {
     await queryRunner.query(`
       CREATE TABLE "slack_config"."workspaces" (
         "id" VARCHAR(64) NOT NULL,
+        "name" VARCHAR(255) NOT NULL,
+        "bot_token" TEXT,
+        "signing_secret" TEXT,
+        "app_id" VARCHAR(64),
+        "bot_user_id" VARCHAR(64),
+        "default_channel_id" VARCHAR(64),
+        "enabled" BOOLEAN NOT NULL,
         "tenant_id" VARCHAR(100) NOT NULL,
         "version" INTEGER NOT NULL DEFAULT 0,
         "created_at" TIMESTAMP NOT NULL DEFAULT NOW(),
@@ -66,6 +73,30 @@ export class CreateWorkspacesTable0000000000002 implements MigrationInterface {
     `);
 
     // Add column comments for better documentation
+    await queryRunner.query(`
+      COMMENT ON COLUMN "slack_config"."workspaces"."id" IS 'Slack-provided workspace/team ID.';
+    `);
+    await queryRunner.query(`
+      COMMENT ON COLUMN "slack_config"."workspaces"."name" IS 'Human-readable workspace name.';
+    `);
+    await queryRunner.query(`
+      COMMENT ON COLUMN "slack_config"."workspaces"."bot_token" IS 'OAuth bot token (encrypted at rest).';
+    `);
+    await queryRunner.query(`
+      COMMENT ON COLUMN "slack_config"."workspaces"."signing_secret" IS 'Slack app signing secret (encrypted).';
+    `);
+    await queryRunner.query(`
+      COMMENT ON COLUMN "slack_config"."workspaces"."app_id" IS 'Slack app ID.';
+    `);
+    await queryRunner.query(`
+      COMMENT ON COLUMN "slack_config"."workspaces"."bot_user_id" IS 'Bot user ID.';
+    `);
+    await queryRunner.query(`
+      COMMENT ON COLUMN "slack_config"."workspaces"."default_channel_id" IS 'Default posting channel.';
+    `);
+    await queryRunner.query(`
+      COMMENT ON COLUMN "slack_config"."workspaces"."enabled" IS 'Whether Slack integration is active.';
+    `);
 
     await queryRunner.query(`
       COMMENT ON COLUMN "slack_config"."workspaces"."tenant_id" IS 'Multi-tenant isolation key - identifies which tenant this channel belongs to.';

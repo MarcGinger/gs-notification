@@ -163,6 +163,13 @@ export class WorkspaceReaderRepository implements IWorkspaceReader {
       // Map projection to WorkspaceSnapshot
       const workspaceSnapshot: WorkspaceSnapshotProps = {
         id: projection.id,
+        name: projection.name,
+        botToken: projection.botToken,
+        signingSecret: projection.signingSecret,
+        appId: projection.appId,
+        botUserId: projection.botUserId,
+        defaultChannelId: projection.defaultChannelId,
+        enabled: projection.enabled,
         version: projection.version,
         createdAt: projection.createdAt,
         updatedAt: projection.updatedAt,

@@ -17,7 +17,7 @@ export function setupMultipleSwaggerDocs(
     return {};
   }
 
-  // Setup product-config domain documentation (delegated to bounded context)
+  // Setup domain documentation (delegated to bounded context)
   const standardConfigUrls = setupStandardSwaggerDocs(app, port);
   const notificationConfigUrls = setupNotificationConfigDocs(app, port);
 

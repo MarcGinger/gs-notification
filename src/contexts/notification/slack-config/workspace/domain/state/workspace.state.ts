@@ -5,7 +5,14 @@ import {
   WorkspaceCreatedAt,
   WorkspaceUpdatedAt,
   WorkspaceVersion,
+  WorkspaceAppId,
+  WorkspaceBotToken,
+  WorkspaceBotUserId,
+  WorkspaceDefaultChannelId,
+  WorkspaceEnabled,
   WorkspaceId,
+  WorkspaceName,
+  WorkspaceSigningSecret,
 } from '../value-objects';
 
 /**
@@ -23,6 +30,13 @@ import {
 
 export interface WorkspaceDomainState {
   id: WorkspaceId;
+  name: WorkspaceName;
+  botToken?: WorkspaceBotToken;
+  signingSecret?: WorkspaceSigningSecret;
+  appId?: WorkspaceAppId;
+  botUserId?: WorkspaceBotUserId;
+  defaultChannelId?: WorkspaceDefaultChannelId;
+  enabled: WorkspaceEnabled;
   version: WorkspaceVersion;
   createdAt: WorkspaceCreatedAt;
   updatedAt: WorkspaceUpdatedAt;

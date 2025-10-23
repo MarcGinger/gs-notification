@@ -2,9 +2,39 @@
 // REMOVE THIS COMMENT TO STOP AUTOMATIC UPDATES TO THIS BLOCK
 
 import { CreateWorkspaceProps } from '../../domain/props';
-import { ApiWorkspaceId } from './decorators';
+import {
+  ApiWorkspaceAppId,
+  ApiWorkspaceBotToken,
+  ApiWorkspaceBotUserId,
+  ApiWorkspaceDefaultChannelId,
+  ApiWorkspaceEnabled,
+  ApiWorkspaceId,
+  ApiWorkspaceName,
+  ApiWorkspaceSigningSecret,
+} from './decorators';
 
 export class CreateWorkspaceRequest implements CreateWorkspaceProps {
   @ApiWorkspaceId()
   id: string;
+
+  @ApiWorkspaceName()
+  name: string;
+
+  @ApiWorkspaceBotToken({ required: false })
+  botToken?: string;
+
+  @ApiWorkspaceSigningSecret({ required: false })
+  signingSecret?: string;
+
+  @ApiWorkspaceAppId({ required: false })
+  appId?: string;
+
+  @ApiWorkspaceBotUserId({ required: false })
+  botUserId?: string;
+
+  @ApiWorkspaceDefaultChannelId({ required: false })
+  defaultChannelId?: string;
+
+  @ApiWorkspaceEnabled()
+  enabled: boolean;
 }

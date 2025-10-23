@@ -8,7 +8,15 @@ import type { WorkspaceSnapshotProps } from '../props';
  * Workspace change tracking interface
  * Used to track field-level changes in workspace updates
  */
-export interface WorkspaceChangeSet {}
+export interface WorkspaceChangeSet {
+  name?: { old: string; new: string };
+  botToken?: { old?: string | undefined; new?: string | undefined };
+  signingSecret?: { old?: string | undefined; new?: string | undefined };
+  appId?: { old?: string | undefined; new?: string | undefined };
+  botUserId?: { old?: string | undefined; new?: string | undefined };
+  defaultChannelId?: { old?: string | undefined; new?: string | undefined };
+  enabled?: { old: boolean; new: boolean };
+}
 
 /**
  * Workspace Updated Event Payload

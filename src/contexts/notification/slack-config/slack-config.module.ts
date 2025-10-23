@@ -9,9 +9,15 @@ import { SlackConfigSharedModule } from './slack-config-shared.module';
 // Import all slack-config domain modules
 import { WorkspaceModule } from './workspace/workspace.module';
 import { WorkspaceProjectorModule } from './workspace/workspace-projector.module';
+import { ChannelModule } from './channel/channel.module';
+import { ChannelProjectorModule } from './channel/channel-projector.module';
+import { TemplateModule } from './template/template.module';
+import { TemplateProjectorModule } from './template/template-projector.module';
+import { AppConfigModule } from './app-config/app-config.module';
+import { AppConfigProjectorModule } from './app-config/app-config-projector.module';
 
 /**
- * Product Config Module - Bounded Context Entry Point
+ * SlackConfig Module - Bounded Context Entry Point
  *
  * This module serves as the single entry point for the entire slack-config bounded context.
  * It aggregates all domain modules and their corresponding projector modules, providing
@@ -33,11 +39,23 @@ import { WorkspaceProjectorModule } from './workspace/workspace-projector.module
     SlackConfigSharedModule,
     WorkspaceModule,
     WorkspaceProjectorModule,
+    ChannelModule,
+    ChannelProjectorModule,
+    TemplateModule,
+    TemplateProjectorModule,
+    AppConfigModule,
+    AppConfigProjectorModule,
   ],
   exports: [
     // Export all modules for potential cross-domain dependencies
     WorkspaceModule,
     WorkspaceProjectorModule,
+    ChannelModule,
+    ChannelProjectorModule,
+    TemplateModule,
+    TemplateProjectorModule,
+    AppConfigModule,
+    AppConfigProjectorModule,
   ],
 })
 export class NotificationSlackConfigModule {}

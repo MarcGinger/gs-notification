@@ -13,6 +13,13 @@ import {
   WorkspaceUpdatedAt,
   WorkspaceVersion,
   WorkspaceId,
+  WorkspaceName,
+  WorkspaceBotToken,
+  WorkspaceSigningSecret,
+  WorkspaceAppId,
+  WorkspaceBotUserId,
+  WorkspaceDefaultChannelId,
+  WorkspaceEnabled,
 } from '../../domain/value-objects';
 import { Result, ok, err, DomainError } from 'src/shared/errors';
 import { WorkspaceDomainState } from '../../domain/state/workspace.state';
@@ -51,6 +58,32 @@ export class WorkspaceStateMapper {
 
     // Convert each primitive to its corresponding VO with error collection
     const id = validateField('id', WorkspaceId.from(snapshot.id));
+    const name = validateField('name', WorkspaceName.from(snapshot.name));
+    const botToken = snapshot.botToken
+      ? validateField('botToken', WorkspaceBotToken.from(snapshot.botToken))
+      : undefined;
+    const signingSecret = snapshot.signingSecret
+      ? validateField(
+          'signingSecret',
+          WorkspaceSigningSecret.from(snapshot.signingSecret),
+        )
+      : undefined;
+    const appId = snapshot.appId
+      ? validateField('appId', WorkspaceAppId.from(snapshot.appId))
+      : undefined;
+    const botUserId = snapshot.botUserId
+      ? validateField('botUserId', WorkspaceBotUserId.from(snapshot.botUserId))
+      : undefined;
+    const defaultChannelId = snapshot.defaultChannelId
+      ? validateField(
+          'defaultChannelId',
+          WorkspaceDefaultChannelId.from(snapshot.defaultChannelId),
+        )
+      : undefined;
+    const enabled = validateField(
+      'enabled',
+      WorkspaceEnabled.from(snapshot.enabled),
+    );
     const version = validateField(
       'version',
       WorkspaceVersion.from(snapshot.version),
@@ -86,6 +119,13 @@ export class WorkspaceStateMapper {
     // All validations passed, construct the rich domain state
     const domainState: WorkspaceDomainState = {
       id: id!,
+      name: name!,
+      botToken: botToken || undefined,
+      signingSecret: signingSecret || undefined,
+      appId: appId || undefined,
+      botUserId: botUserId || undefined,
+      defaultChannelId: defaultChannelId || undefined,
+      enabled: enabled!,
       version: version!,
       createdAt: createdAt!,
       updatedAt: updatedAt!,
@@ -104,6 +144,13 @@ export class WorkspaceStateMapper {
     return {
       // Extract primitive values from VOs
       id: domainState.id.value,
+      name: domainState.name.value,
+      botToken: domainState.botToken?.value,
+      signingSecret: domainState.signingSecret?.value,
+      appId: domainState.appId?.value,
+      botUserId: domainState.botUserId?.value,
+      defaultChannelId: domainState.defaultChannelId?.value,
+      enabled: domainState.enabled.value,
       version: domainState.version.value,
       createdAt: domainState.createdAt.value,
       updatedAt: domainState.updatedAt.value,

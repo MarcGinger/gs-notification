@@ -22,7 +22,7 @@ export function ApiWorkspaceId(options: PropOptions = {}) {
 
   return applyDecorators(
     ApiProperty({
-      description: `Workspace Id`,
+      description: `Slack-provided workspace/team ID.`,
       type: String,
       required,
     }),

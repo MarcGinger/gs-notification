@@ -14,7 +14,7 @@ import { DetailWorkspaceResponse } from '../../application/dtos';
  * Provides consistent field validation patterns that can be reused across repositories
  * and projectors for Workspace domain operations.
  *
- * @domain Bank Context - Workspace Field Validation Utility
+ * @domain Notification Context - Workspace Field Validation Utility
  * @layer Infrastructure
  * @pattern Utility Pattern + Field Validation
  */
@@ -39,6 +39,14 @@ export class WorkspaceFieldValidatorUtil {
     // Parse array fields using safeParseJSONArray utility
     // Extract simple fields directly from event data
     const id = aggregateData.id as string;
+    const name = aggregateData.name as string;
+    const botToken = aggregateData.botToken as string;
+    const signingSecret = aggregateData.signingSecret as string;
+    const appId = aggregateData.appId as string;
+    const botUserId = aggregateData.botUserId as string;
+    const defaultChannelId = aggregateData.defaultChannelId as string;
+    const enabled =
+      aggregateData.enabled === 'true' || aggregateData.enabled === true;
 
     // Extract version and timestamps with proper type conversion
     const version =
@@ -58,6 +66,13 @@ export class WorkspaceFieldValidatorUtil {
     // direct field access provides type safety and truthful representation
     return {
       id,
+      name,
+      botToken,
+      signingSecret,
+      appId,
+      botUserId,
+      defaultChannelId,
+      enabled,
       version,
       createdAt,
       updatedAt,

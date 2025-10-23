@@ -7,6 +7,13 @@
  */
 export interface WorkspaceCreatedEventPayload {
   id: string;
+  name: string;
+  botToken?: string;
+  signingSecret?: string;
+  appId?: string;
+  botUserId?: string;
+  defaultChannelId?: string;
+  enabled: boolean;
 }
 
 /**
@@ -29,5 +36,33 @@ export class WorkspaceCreatedEvent {
 
   get id(): string {
     return this.payload.id;
+  }
+
+  get name(): string {
+    return this.payload.name;
+  }
+
+  get botToken(): string | undefined {
+    return this.payload.botToken;
+  }
+
+  get signingSecret(): string | undefined {
+    return this.payload.signingSecret;
+  }
+
+  get appId(): string | undefined {
+    return this.payload.appId;
+  }
+
+  get botUserId(): string | undefined {
+    return this.payload.botUserId;
+  }
+
+  get defaultChannelId(): string | undefined {
+    return this.payload.defaultChannelId;
+  }
+
+  get enabled(): boolean {
+    return this.payload.enabled;
   }
 }

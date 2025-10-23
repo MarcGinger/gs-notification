@@ -4,6 +4,13 @@ import { DomainError } from 'src/shared/errors';
 
 export interface WorkspaceContext extends Record<string, unknown> {
   id: string;
+  name: string;
+  botToken?: string;
+  signingSecret?: string;
+  appId?: string;
+  botUserId?: string;
+  defaultChannelId?: string;
+  enabled: boolean;
   userId?: string;
   correlationId?: string;
   operation?: string;
@@ -42,6 +49,48 @@ export const WorkspaceErrors = {
     category: 'validation',
     retryable: false,
   } as DomainError<'WORKSPACE.CREATED_AT_REQUIRED', WorkspaceContext>,
+  INVALID_APP_ID: {
+    code: 'WORKSPACE.INVALID_APP_ID',
+    title: 'Value Required',
+    detail: 'App is required for Workspace.',
+    category: 'validation',
+    retryable: false,
+  } as DomainError<'WORKSPACE.INVALID_APP_ID', WorkspaceContext>,
+  INVALID_APP_ID_DATA: {
+    code: 'WORKSPACE.INVALID_APP_ID_DATA',
+    title: 'Value Required',
+    detail: 'App is required for Workspace.',
+    category: 'validation',
+    retryable: false,
+  } as DomainError<'WORKSPACE.INVALID_APP_ID_DATA', WorkspaceContext>,
+  INVALID_BOT_TOKEN: {
+    code: 'WORKSPACE.INVALID_BOT_TOKEN',
+    title: 'Value Required',
+    detail: 'Bot is required for Workspace.',
+    category: 'validation',
+    retryable: false,
+  } as DomainError<'WORKSPACE.INVALID_BOT_TOKEN', WorkspaceContext>,
+  INVALID_BOT_TOKEN_DATA: {
+    code: 'WORKSPACE.INVALID_BOT_TOKEN_DATA',
+    title: 'Value Required',
+    detail: 'Bot is required for Workspace.',
+    category: 'validation',
+    retryable: false,
+  } as DomainError<'WORKSPACE.INVALID_BOT_TOKEN_DATA', WorkspaceContext>,
+  INVALID_BOT_USER_ID: {
+    code: 'WORKSPACE.INVALID_BOT_USER_ID',
+    title: 'Value Required',
+    detail: 'Bot is required for Workspace.',
+    category: 'validation',
+    retryable: false,
+  } as DomainError<'WORKSPACE.INVALID_BOT_USER_ID', WorkspaceContext>,
+  INVALID_BOT_USER_ID_DATA: {
+    code: 'WORKSPACE.INVALID_BOT_USER_ID_DATA',
+    title: 'Value Required',
+    detail: 'Bot is required for Workspace.',
+    category: 'validation',
+    retryable: false,
+  } as DomainError<'WORKSPACE.INVALID_BOT_USER_ID_DATA', WorkspaceContext>,
   INVALID_CODE_DATA: {
     code: 'WORKSPACE.INVALID_CODE_DATA',
     title: 'Invalid Version Data',
@@ -49,6 +98,37 @@ export const WorkspaceErrors = {
     category: 'validation',
     retryable: false,
   } as DomainError<'WORKSPACE.INVALID_CODE_DATA', WorkspaceContext>,
+  INVALID_DEFAULT_CHANNEL_ID: {
+    code: 'WORKSPACE.INVALID_DEFAULT_CHANNEL_ID',
+    title: 'Value Required',
+    detail: 'Default is required for Workspace.',
+    category: 'validation',
+    retryable: false,
+  } as DomainError<'WORKSPACE.INVALID_DEFAULT_CHANNEL_ID', WorkspaceContext>,
+  INVALID_DEFAULT_CHANNEL_ID_DATA: {
+    code: 'WORKSPACE.INVALID_DEFAULT_CHANNEL_ID_DATA',
+    title: 'Value Required',
+    detail: 'Default is required for Workspace.',
+    category: 'validation',
+    retryable: false,
+  } as DomainError<
+    'WORKSPACE.INVALID_DEFAULT_CHANNEL_ID_DATA',
+    WorkspaceContext
+  >,
+  INVALID_ENABLED: {
+    code: 'WORKSPACE.INVALID_ENABLED',
+    title: 'Value Required',
+    detail: 'Enabled is required for Workspace.',
+    category: 'validation',
+    retryable: false,
+  } as DomainError<'WORKSPACE.INVALID_ENABLED', WorkspaceContext>,
+  INVALID_ENABLED_DATA: {
+    code: 'WORKSPACE.INVALID_ENABLED_DATA',
+    title: 'Value Required',
+    detail: 'Enabled is required for Workspace.',
+    category: 'validation',
+    retryable: false,
+  } as DomainError<'WORKSPACE.INVALID_ENABLED_DATA', WorkspaceContext>,
   INVALID_ID: {
     code: 'WORKSPACE.INVALID_ID',
     title: 'Value Required',
@@ -63,6 +143,34 @@ export const WorkspaceErrors = {
     category: 'validation',
     retryable: false,
   } as DomainError<'WORKSPACE.INVALID_ID_DATA', WorkspaceContext>,
+  INVALID_NAME: {
+    code: 'WORKSPACE.INVALID_NAME',
+    title: 'Value Required',
+    detail: 'Name is required for Workspace.',
+    category: 'validation',
+    retryable: false,
+  } as DomainError<'WORKSPACE.INVALID_NAME', WorkspaceContext>,
+  INVALID_NAME_DATA: {
+    code: 'WORKSPACE.INVALID_NAME_DATA',
+    title: 'Value Required',
+    detail: 'Name is required for Workspace.',
+    category: 'validation',
+    retryable: false,
+  } as DomainError<'WORKSPACE.INVALID_NAME_DATA', WorkspaceContext>,
+  INVALID_SIGNING_SECRET: {
+    code: 'WORKSPACE.INVALID_SIGNING_SECRET',
+    title: 'Value Required',
+    detail: 'Signing is required for Workspace.',
+    category: 'validation',
+    retryable: false,
+  } as DomainError<'WORKSPACE.INVALID_SIGNING_SECRET', WorkspaceContext>,
+  INVALID_SIGNING_SECRET_DATA: {
+    code: 'WORKSPACE.INVALID_SIGNING_SECRET_DATA',
+    title: 'Value Required',
+    detail: 'Signing is required for Workspace.',
+    category: 'validation',
+    retryable: false,
+  } as DomainError<'WORKSPACE.INVALID_SIGNING_SECRET_DATA', WorkspaceContext>,
   INVALID_WORKSPACE_DATA: {
     code: 'WORKSPACE.INVALID_WORKSPACE_DATA',
     title: 'Invalid Data',
@@ -70,6 +178,13 @@ export const WorkspaceErrors = {
     category: 'validation',
     retryable: false,
   } as DomainError<'WORKSPACE.INVALID_WORKSPACE_DATA', WorkspaceContext>,
+  NOT_BOOLEAN_ENABLED: {
+    code: 'WORKSPACE.NOT_BOOLEAN_ENABLED',
+    title: 'Not a Boolean',
+    detail: 'Enabled must be true or false.',
+    category: 'validation',
+    retryable: false,
+  } as DomainError<'WORKSPACE.NOT_BOOLEAN_ENABLED', WorkspaceContext>,
   NOT_IMPLEMENTED: {
     code: 'WORKSPACE.NOT_IMPLEMENTED',
     title: 'Not Implemented',

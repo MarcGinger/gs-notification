@@ -2,9 +2,9 @@
 // REMOVE THIS COMMENT TO STOP AUTOMATIC UPDATES TO THIS BLOCK
 
 /**
- * Product Config Domain Constants
+ * SlackConfig Domain Constants
  *
- * Centralized constants for the product-config bounded context to avoid
+ * Centralized constants for the slack-config bounded context to avoid
  * string literals scattered throughout the codebase. This improves
  * maintainability, type safety, and reduces the risk of typos.
  */

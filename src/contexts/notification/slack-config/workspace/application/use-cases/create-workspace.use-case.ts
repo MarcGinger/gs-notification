@@ -319,7 +319,6 @@ export class CreateWorkspaceUseCase implements ICreateWorkspaceUseCase {
         eventCount: aggregate.uncommittedEvents?.length ?? 0,
         businessData: {
           workspaceCode: dto.id,
-          workspaceName: dto.name,
           complianceApplied: classification.containsPII,
         },
       },

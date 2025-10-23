@@ -3,4 +3,11 @@
 
 export interface CreateWorkspaceProps {
   id: string;
+  name: string;
+  botToken?: string;
+  signingSecret?: string;
+  appId?: string;
+  botUserId?: string;
+  defaultChannelId?: string;
+  enabled: boolean;
 }

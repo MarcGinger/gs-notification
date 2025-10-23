@@ -246,6 +246,13 @@ export class WorkspaceWriterRepository implements IWorkspaceWriter {
       const projection: WorkspaceProjection = {
         // WorkspaceProps fields
         id: workspace.entity.id.value,
+        name: workspace.entity.name.value,
+        botToken: workspace.entity.botToken?.value,
+        signingSecret: workspace.entity.signingSecret?.value,
+        appId: workspace.entity.appId?.value,
+        botUserId: workspace.entity.botUserId?.value,
+        defaultChannelId: workspace.entity.defaultChannelId?.value,
+        enabled: workspace.entity.enabled.value,
         // BaseProjection fields
         tenantId: actor.tenantId,
         version: workspace.version,
