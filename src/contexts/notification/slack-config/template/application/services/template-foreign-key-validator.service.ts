@@ -6,7 +6,7 @@ import { Result, ok, err, DomainError, withContext } from 'src/shared/errors';
 import { Log, Logger } from 'src/shared/logging';
 import { ActorContext } from 'src/shared/application/context';
 import { Option } from 'src/shared/domain/types';
-import { ChannelErrors } from '../../domain/errors';
+import { TemplateErrors } from '../../domain/errors';
 import { SlackConfigServiceConstants } from '../../../service-constants';
 import {
   WORKSPACE_READER_TOKEN,
@@ -22,10 +22,10 @@ export interface ForeignKeyValidationContext {
 }
 
 /**
- * Channel Foreign Key Validation Service
+ * Template Foreign Key Validation Service
  *
- * Provides centralized validation for foreign key references used in Channel domain.
- * This service validates that referenced entities exist before Channel creation or updates.
+ * Provides centralized validation for foreign key references used in Template domain.
+ * This service validates that referenced entities exist before Template creation or updates.
  *
  * Benefits:
  * - Single responsibility for foreign key validation
@@ -34,7 +34,7 @@ export interface ForeignKeyValidationContext {
  * - Fail-fast validation to avoid expensive operations
  */
 @Injectable()
-export class ChannelForeignKeyValidatorService {
+export class TemplateForeignKeyValidatorService {
   constructor(
     @Inject(WORKSPACE_READER_TOKEN)
     private readonly workspaceReader: IWorkspaceReader,
@@ -102,7 +102,7 @@ export class ChannelForeignKeyValidatorService {
         operation: context.operation,
       });
       return err(
-        withContext(ChannelErrors.INVALID_WORKSPACE_IDS, {
+        withContext(TemplateErrors.INVALID_WORKSPACE_IDS, {
           correlationId: context.correlationId,
           userId: context.userId,
           operation: context.operation,
@@ -127,14 +127,14 @@ export class ChannelForeignKeyValidatorService {
   }
 
   /**
-   * Validates all foreign keys for channel props
+   * Validates all foreign keys for template props
    * @param actor - User context for authorization
-   * @param props - Channel properties containing foreign key fields
+   * @param props - Template properties containing foreign key fields
    * @param context - Validation context for logging and error handling
    * @param logger - Logger instance for structured logging
    * @returns Result indicating validation success or failure
    */
-  async validateChannelForeignKeys(
+  async validateTemplateForeignKeys(
     actor: ActorContext,
     props: {
       workspaceId?: string[];
@@ -166,7 +166,7 @@ export class ChannelForeignKeyValidatorService {
   }
 
   /**
-   * Generic alias for validateChannelForeignKeys to match shared runner interface
+   * Generic alias for validateTemplateForeignKeys to match shared runner interface
    * @param actor - Actor context for permissions and auditing
    * @param props - Props containing foreign key fields to validate
    * @param context - Validation context for logging and error handling
@@ -188,6 +188,6 @@ export class ChannelForeignKeyValidatorService {
       DomainError
     >
   > {
-    return this.validateChannelForeignKeys(actor, props, context, logger);
+    return this.validateTemplateForeignKeys(actor, props, context, logger);
   }
 }

@@ -35,7 +35,10 @@ import {
   TEMPLATE_READER_TOKEN,
   TEMPLATE_WRITER_TOKEN,
 } from '../ports';
-import { TemplateAuthorizationAdapter } from '../services';
+import {
+  TemplateForeignKeyValidatorService,
+  TemplateAuthorizationAdapter,
+} from '../services';
 
 // Shared compliance services
 import {
@@ -74,6 +77,7 @@ export class DeleteTemplateUseCase implements IDeleteTemplateUseCase {
     private readonly templateReader: ITemplateReader,
     @Inject(TEMPLATE_WRITER_TOKEN)
     private readonly templateWriter: ITemplateWriter,
+    private readonly foreignKeyValidator: TemplateForeignKeyValidatorService,
     private readonly authorizationService: TemplateAuthorizationAdapter,
     @Inject(CLOCK) private readonly clock: Clock,
     @Inject(APP_LOGGER) moduleLogger: Logger,
@@ -205,6 +209,7 @@ export class DeleteTemplateUseCase implements IDeleteTemplateUseCase {
             return deleteResult.ok ? ok(undefined) : deleteResult;
           },
         },
+        fkValidator: this.foreignKeyValidator,
         propsMissingError: TemplateErrors.INVALID_TEMPLATE_DATA,
 
         // Security configuration

@@ -8,9 +8,11 @@ import { ActorContext } from 'src/shared/application/context';
 import { Option } from 'src/shared/domain/types';
 import { AppConfigErrors } from '../../domain/errors';
 import { SlackConfigServiceConstants } from '../../../service-constants';
-import { SLACK_CONFIG_DI_TOKENS } from '../../../slack-config.constants';
-import { WorkspaceReference, IWorkspaceReader } from '../ports';
-import { WORKSPACE_READER_TOKEN } from '../../../workspace/application/ports';
+import {
+  WORKSPACE_READER_TOKEN,
+  WorkspaceReference,
+  IWorkspaceReader,
+} from '../ports';
 
 export interface ForeignKeyValidationContext {
   correlationId?: string;

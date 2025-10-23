@@ -33,7 +33,10 @@ import {
   TEMPLATE_READER_TOKEN,
   TEMPLATE_WRITER_TOKEN,
 } from '../ports';
-import { TemplateAuthorizationAdapter } from '../services';
+import {
+  TemplateForeignKeyValidatorService,
+  TemplateAuthorizationAdapter,
+} from '../services';
 import { DetailTemplateResponse } from '../dtos';
 import { TemplateDtoAssembler } from '../assemblers';
 import { ICreateTemplateUseCase } from './contracts';
@@ -55,6 +58,7 @@ export class CreateTemplateUseCase implements ICreateTemplateUseCase {
     private readonly templateReader: ITemplateReader,
     @Inject(TEMPLATE_WRITER_TOKEN)
     private readonly templateWriter: ITemplateWriter,
+    private readonly foreignKeyValidator: TemplateForeignKeyValidatorService,
     private readonly authorizationService: TemplateAuthorizationAdapter,
     @Inject(APP_LOGGER)
     readonly moduleLogger: Logger,
@@ -215,6 +219,7 @@ export class CreateTemplateUseCase implements ICreateTemplateUseCase {
           return result.ok ? ok(undefined) : result;
         },
       },
+      fkValidator: this.foreignKeyValidator,
       runDomain: ({ metadata, clock }) => {
         // Use classification for metadata only, not to mutate props
         const enhancedMetadata = {

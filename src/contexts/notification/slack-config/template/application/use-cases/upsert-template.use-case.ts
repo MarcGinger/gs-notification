@@ -41,7 +41,10 @@ import {
 import { UpsertTemplateCommand } from '../commands';
 import { IUpsertTemplateUseCase } from './contracts';
 
-import { TemplateAuthorizationAdapter } from '../services';
+import {
+  TemplateForeignKeyValidatorService,
+  TemplateAuthorizationAdapter,
+} from '../services';
 import { DetailTemplateResponse } from '../dtos';
 import { TemplateDtoAssembler } from '../assemblers';
 // Shared compliance services
@@ -64,6 +67,7 @@ export class UpsertTemplateUseCase implements IUpsertTemplateUseCase {
     private readonly templateReader: ITemplateReader,
     @Inject(TEMPLATE_WRITER_TOKEN)
     private readonly templateWriter: ITemplateWriter,
+    private readonly foreignKeyValidator: TemplateForeignKeyValidatorService,
     private readonly authorizationService: TemplateAuthorizationAdapter,
     @Inject(APP_LOGGER)
     readonly moduleLogger: Logger,
@@ -242,6 +246,7 @@ export class UpsertTemplateUseCase implements IUpsertTemplateUseCase {
         },
       },
 
+      fkValidator: this.foreignKeyValidator,
       propsMissingError: TemplateErrors.INVALID_TEMPLATE_DATA,
 
       authorizationService: this.authorizationService,

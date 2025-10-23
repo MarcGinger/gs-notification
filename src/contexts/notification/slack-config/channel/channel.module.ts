@@ -23,17 +23,19 @@ import {
 
 // import { IChannelRepository } from './application/ports';
 import {
+  ChannelQueryRepository,
   ChannelReaderRepository,
   ChannelWriterRepository,
+  WorkspaceReaderRepository,
 } from './infrastructure/repositories';
-import { WorkspaceReaderRepository } from '../workspace/infrastructure/repositories';
 
 // Tokens for injection - imported directly from port files
 import {
   CHANNEL_READER_TOKEN,
   CHANNEL_WRITER_TOKEN,
+  WORKSPACE_READER_TOKEN,
+  CHANNEL_QUERY_TOKEN,
 } from './application/ports';
-import { WORKSPACE_READER_TOKEN } from '../workspace/application/ports';
 @Module({
   imports: [
     SlackConfigSharedModule, // Provides all common infrastructure and services
@@ -48,6 +50,10 @@ import { WORKSPACE_READER_TOKEN } from '../workspace/application/ports';
     {
       provide: CHANNEL_WRITER_TOKEN,
       useClass: ChannelWriterRepository,
+    },
+    {
+      provide: CHANNEL_QUERY_TOKEN,
+      useClass: ChannelQueryRepository,
     },
 
     // Bounded Context Reader Repositories
@@ -84,6 +90,7 @@ import { WORKSPACE_READER_TOKEN } from '../workspace/application/ports';
     // Repository tokens for external module consumption
     CHANNEL_READER_TOKEN,
     CHANNEL_WRITER_TOKEN,
+    CHANNEL_QUERY_TOKEN,
     // Bounded Context Reader tokens
     WORKSPACE_READER_TOKEN,
   ],

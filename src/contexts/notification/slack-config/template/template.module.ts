@@ -8,6 +8,7 @@ import {
   TemplateApplicationService,
   TemplateAuthorizationService,
   TemplateAuthorizationAdapter,
+  TemplateForeignKeyValidatorService,
 } from './application/services';
 import {
   ICreateTemplateUseCase,
@@ -22,17 +23,19 @@ import {
 
 // import { ITemplateRepository } from './application/ports';
 import {
+  TemplateQueryRepository,
   TemplateReaderRepository,
   TemplateWriterRepository,
+  WorkspaceReaderRepository,
 } from './infrastructure/repositories';
-import { WorkspaceReaderRepository } from '../workspace/infrastructure/repositories';
 
 // Tokens for injection - imported directly from port files
 import {
   TEMPLATE_READER_TOKEN,
   TEMPLATE_WRITER_TOKEN,
+  WORKSPACE_READER_TOKEN,
+  TEMPLATE_QUERY_TOKEN,
 } from './application/ports';
-import { WORKSPACE_READER_TOKEN } from '../workspace/application/ports';
 @Module({
   imports: [
     SlackConfigSharedModule, // Provides all common infrastructure and services
@@ -48,6 +51,10 @@ import { WORKSPACE_READER_TOKEN } from '../workspace/application/ports';
       provide: TEMPLATE_WRITER_TOKEN,
       useClass: TemplateWriterRepository,
     },
+    {
+      provide: TEMPLATE_QUERY_TOKEN,
+      useClass: TemplateQueryRepository,
+    },
 
     // Bounded Context Reader Repositories
     {
@@ -59,6 +66,7 @@ import { WORKSPACE_READER_TOKEN } from '../workspace/application/ports';
     TemplateApplicationService,
     TemplateAuthorizationService,
     TemplateAuthorizationAdapter,
+    TemplateForeignKeyValidatorService,
 
     // Use case implementations
     {
@@ -82,6 +90,7 @@ import { WORKSPACE_READER_TOKEN } from '../workspace/application/ports';
     // Repository tokens for external module consumption
     TEMPLATE_READER_TOKEN,
     TEMPLATE_WRITER_TOKEN,
+    TEMPLATE_QUERY_TOKEN,
     // Bounded Context Reader tokens
     WORKSPACE_READER_TOKEN,
   ],

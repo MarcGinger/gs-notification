@@ -36,7 +36,10 @@ import {
   TEMPLATE_READER_TOKEN,
   TEMPLATE_WRITER_TOKEN,
 } from '../ports';
-import { TemplateAuthorizationAdapter } from '../services';
+import {
+  TemplateForeignKeyValidatorService,
+  TemplateAuthorizationAdapter,
+} from '../services';
 import { DetailTemplateResponse } from '../dtos';
 import { TemplateDtoAssembler } from '../assemblers';
 import { IUpdateTemplateUseCase } from './contracts';
@@ -60,6 +63,7 @@ export class UpdateTemplateUseCase implements IUpdateTemplateUseCase {
     private readonly templateReader: ITemplateReader,
     @Inject(TEMPLATE_WRITER_TOKEN)
     private readonly templateWriter: ITemplateWriter,
+    private readonly foreignKeyValidator: TemplateForeignKeyValidatorService,
     private readonly authorizationService: TemplateAuthorizationAdapter,
     @Inject(APP_LOGGER)
     readonly moduleLogger: Logger,
@@ -213,6 +217,7 @@ export class UpdateTemplateUseCase implements IUpdateTemplateUseCase {
           return result.ok ? ok(undefined) : result;
         },
       },
+      fkValidator: this.foreignKeyValidator,
       propsMissingError: TemplateErrors.INVALID_TEMPLATE_DATA,
 
       // Security configuration

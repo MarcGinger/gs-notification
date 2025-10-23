@@ -22,6 +22,7 @@ import {
 
 // import { IWorkspaceRepository } from './application/ports';
 import {
+  WorkspaceQueryRepository,
   WorkspaceReaderRepository,
   WorkspaceWriterRepository,
 } from './infrastructure/repositories';
@@ -30,6 +31,7 @@ import {
 import {
   WORKSPACE_READER_TOKEN,
   WORKSPACE_WRITER_TOKEN,
+  WORKSPACE_QUERY_TOKEN,
 } from './application/ports';
 @Module({
   imports: [
@@ -45,6 +47,10 @@ import {
     {
       provide: WORKSPACE_WRITER_TOKEN,
       useClass: WorkspaceWriterRepository,
+    },
+    {
+      provide: WORKSPACE_QUERY_TOKEN,
+      useClass: WorkspaceQueryRepository,
     },
 
     // Services that depend on repositories
@@ -74,6 +80,7 @@ import {
     // Repository tokens for external module consumption
     WORKSPACE_READER_TOKEN,
     WORKSPACE_WRITER_TOKEN,
+    WORKSPACE_QUERY_TOKEN,
   ],
 })
 export class WorkspaceModule {}

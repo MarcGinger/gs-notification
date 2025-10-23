@@ -23,17 +23,19 @@ import {
 
 // import { IAppConfigRepository } from './application/ports';
 import {
+  AppConfigQueryRepository,
   AppConfigReaderRepository,
   AppConfigWriterRepository,
+  WorkspaceReaderRepository,
 } from './infrastructure/repositories';
-import { WorkspaceReaderRepository } from '../workspace/infrastructure/repositories';
 
 // Tokens for injection - imported directly from port files
 import {
   APP_CONFIG_READER_TOKEN,
   APP_CONFIG_WRITER_TOKEN,
+  WORKSPACE_READER_TOKEN,
+  APP_CONFIG_QUERY_TOKEN,
 } from './application/ports';
-import { WORKSPACE_READER_TOKEN } from '../workspace/application/ports';
 @Module({
   imports: [
     SlackConfigSharedModule, // Provides all common infrastructure and services
@@ -48,6 +50,10 @@ import { WORKSPACE_READER_TOKEN } from '../workspace/application/ports';
     {
       provide: APP_CONFIG_WRITER_TOKEN,
       useClass: AppConfigWriterRepository,
+    },
+    {
+      provide: APP_CONFIG_QUERY_TOKEN,
+      useClass: AppConfigQueryRepository,
     },
 
     // Bounded Context Reader Repositories
@@ -84,6 +90,7 @@ import { WORKSPACE_READER_TOKEN } from '../workspace/application/ports';
     // Repository tokens for external module consumption
     APP_CONFIG_READER_TOKEN,
     APP_CONFIG_WRITER_TOKEN,
+    APP_CONFIG_QUERY_TOKEN,
     // Bounded Context Reader tokens
     WORKSPACE_READER_TOKEN,
   ],
