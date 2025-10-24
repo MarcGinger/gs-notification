@@ -962,7 +962,7 @@
 		},
 		"type": "MARIADB",
 		"version": 1,
-		"lastSaved": 1761172891470,
+		"lastSaved": 1761274751116,
 		"beforeScript": "",
 		"afterScript": "",
 		"sqlSettings": {
@@ -1021,8 +1021,8 @@
 				},
 				"28bc4a23-c479-4f19-a1b4-9b81f20e3f40": {
 					"referencedItemId": "28bc4a23-c479-4f19-a1b4-9b81f20e3f40",
-					"x": 413,
-					"y": 289,
+					"x": 523,
+					"y": 333,
 					"gHeight": 189,
 					"gWidth": 239,
 					"color": "#ffffff",
@@ -1034,8 +1034,8 @@
 				},
 				"ba3870e2-44f1-4d0d-afa9-a7ca627637be": {
 					"referencedItemId": "ba3870e2-44f1-4d0d-afa9-a7ca627637be",
-					"x": 542,
-					"y": 80,
+					"x": 527,
+					"y": 45,
 					"gHeight": 171,
 					"gWidth": 239,
 					"color": "#ffffff",
@@ -1047,8 +1047,8 @@
 				},
 				"00829685-51b5-4cea-a843-525855771acd": {
 					"referencedItemId": "00829685-51b5-4cea-a843-525855771acd",
-					"x": 127,
-					"y": 36,
+					"x": 45,
+					"y": 35,
 					"gHeight": 171,
 					"gWidth": 258,
 					"color": "#ffffff",

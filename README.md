@@ -1,3 +1,10 @@
+Event Table Action
+SlackWorkspaceConfigured.v1 slack_workspaces Insert/update workspace config.
+SlackChannelLinked.v1 slack_channels Insert/update channel details.
+SlackTemplateCreated.v1 slack_templates Insert template row.
+SlackTemplateUpdated.v1 slack_templates Update template content.
+SlackAppConfigUpdated.v1 slack_app_config Upsert configuration.
+
 # Domain Review - Value Object Standardization Project
 
 ## Overview

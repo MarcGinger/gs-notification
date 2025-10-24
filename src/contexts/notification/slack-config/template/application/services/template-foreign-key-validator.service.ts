@@ -9,7 +9,7 @@ import { Option } from 'src/shared/domain/types';
 import { TemplateErrors } from '../../domain/errors';
 import { SlackConfigServiceConstants } from '../../../service-constants';
 import {
-  WORKSPACE_READER_TOKEN,
+  WORKSPACE_REFERENCE_READER_TOKEN,
   WorkspaceReference,
   IWorkspaceReader,
 } from '../ports';
@@ -36,7 +36,7 @@ export interface ForeignKeyValidationContext {
 @Injectable()
 export class TemplateForeignKeyValidatorService {
   constructor(
-    @Inject(WORKSPACE_READER_TOKEN)
+    @Inject(WORKSPACE_REFERENCE_READER_TOKEN)
     private readonly workspaceReader: IWorkspaceReader,
   ) {}
   /**

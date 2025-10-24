@@ -7,7 +7,7 @@ import { RepositoryOptions } from 'src/shared/infrastructure/repositories';
 import { Option } from 'src/shared/domain/types';
 import { WorkspaceReference } from './references';
 
-export const WORKSPACE_READER_TOKEN = 'IWorkspaceReader' as const;
+export const WORKSPACE_REFERENCE_READER_TOKEN = 'IWorkspaceReader' as const;
 
 // FK validation result types
 export interface WorkspaceValidationResult {

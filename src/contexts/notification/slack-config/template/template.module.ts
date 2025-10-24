@@ -33,7 +33,7 @@ import {
 import {
   TEMPLATE_READER_TOKEN,
   TEMPLATE_WRITER_TOKEN,
-  WORKSPACE_READER_TOKEN,
+  WORKSPACE_REFERENCE_READER_TOKEN,
   TEMPLATE_QUERY_TOKEN,
 } from './application/ports';
 @Module({
@@ -58,7 +58,7 @@ import {
 
     // Bounded Context Reader Repositories
     {
-      provide: WORKSPACE_READER_TOKEN,
+      provide: WORKSPACE_REFERENCE_READER_TOKEN,
       useClass: WorkspaceReaderRepository,
     },
 
@@ -92,7 +92,7 @@ import {
     TEMPLATE_WRITER_TOKEN,
     TEMPLATE_QUERY_TOKEN,
     // Bounded Context Reader tokens
-    WORKSPACE_READER_TOKEN,
+    WORKSPACE_REFERENCE_READER_TOKEN,
   ],
 })
 export class TemplateModule {}

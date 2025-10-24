@@ -7,7 +7,13 @@ import { RepositoryOptions } from 'src/shared/infrastructure/repositories';
 import { Option } from 'src/shared/domain/types';
 import { WorkspaceReference } from './references';
 
-export const WORKSPACE_READER_TOKEN = 'IWorkspaceReader' as const;
+export const WORKSPACE_REFERENCE_READER_TOKEN = 'IWorkspaceReader' as const;
+
+// FK validation result types
+export interface WorkspaceValidationResult {
+  found: WorkspaceReference[];
+  missing: string[];
+}
 
 /**
  * Workspace Reader Port (Bounded Context: Notification)
@@ -39,4 +45,17 @@ export interface IWorkspaceReader {
     id: string,
     options?: RepositoryOptions,
   ): Promise<Result<Option<WorkspaceReference>, DomainError>>;
+
+  /**
+   * Find Workspace configurations by Workspace Ids
+   * @param actor - The authenticated user context
+   * @param ids - The Workspace Ids to lookup
+   * @param options - Optional repository options
+   * @returns Result containing Workspace configurations or empty array if not found
+   */
+  findWorkspacesByIds(
+    actor: ActorContext,
+    ids: string[],
+    options?: RepositoryOptions,
+  ): Promise<Result<WorkspaceValidationResult, DomainError>>;
 }
