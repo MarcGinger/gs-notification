@@ -22,7 +22,8 @@ export function ApiWorkspaceAppId(options: PropOptions = {}) {
 
   return applyDecorators(
     ApiProperty({
-      description: `Slack app ID.`,
+      description: `Unique identifier for the Slack application as registered in the Slack App Directory. Used for app-specific API calls and identifying the source of bot interactions.`,
+      example: `A01EXAMPLE456`,
       type: String,
       required,
     }),

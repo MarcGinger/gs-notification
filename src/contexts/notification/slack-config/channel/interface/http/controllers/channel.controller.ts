@@ -63,6 +63,7 @@ export class ChannelController {
     name: 'id',
     type: 'string',
     description: 'Channel unique identifier',
+    example: 'C01EXAMPLE001',
   })
   @ApiOkResponse({
     description: 'Channel details retrieved successfully',
@@ -144,6 +145,7 @@ export class ChannelController {
     name: 'id',
     type: 'string',
     description: 'Channel unique identifier',
+    example: 'C01EXAMPLE001',
   })
   @ApiResponse({
     status: HttpStatus.OK,

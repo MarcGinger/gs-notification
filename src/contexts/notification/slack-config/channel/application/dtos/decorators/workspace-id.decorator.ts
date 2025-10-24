@@ -22,8 +22,8 @@ export function ApiChannelWorkspaceId(options: PropOptions = {}) {
 
   return applyDecorators(
     ApiProperty({
-      description: `Slack-provided workspace/team ID.`,
-      example: `['']`,
+      description: `Foreign key reference to the workspace this channel belongs to. Establishes the parent-child relationship between workspace and channels for multi-tenant support.`,
+      example: `['T01EXAMPLE123']`,
       type: String,
       required,
     }),

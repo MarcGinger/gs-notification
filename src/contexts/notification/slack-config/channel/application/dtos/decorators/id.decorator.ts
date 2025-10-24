@@ -22,7 +22,8 @@ export function ApiChannelId(options: PropOptions = {}) {
 
   return applyDecorators(
     ApiProperty({
-      description: `Slack channel ID.`,
+      description: `Unique Slack channel identifier provided by Slack API. Used for all channel-specific operations including message posting and permissions validation.`,
+      example: `C01EXAMPLE001`,
       type: String,
       required,
     }),

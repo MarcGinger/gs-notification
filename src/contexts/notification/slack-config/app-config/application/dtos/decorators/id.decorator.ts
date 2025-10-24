@@ -21,7 +21,8 @@ export function ApiAppConfigId(options: PropOptions = {}) {
 
   return applyDecorators(
     ApiProperty({
-      description: `App Id`,
+      description: `Auto-incrementing primary key for app configuration records. Each workspace typically has one configuration record.`,
+      example: 1,
       type: Number,
       required,
     }),

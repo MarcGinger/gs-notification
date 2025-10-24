@@ -22,7 +22,8 @@ export function ApiTemplateCode(options: PropOptions = {}) {
 
   return applyDecorators(
     ApiProperty({
-      description: `Unique template identifier (e.g., approval_pending).`,
+      description: `Unique template identifier used for programmatic template selection. Must follow snake_case naming convention for consistency with application code.`,
+      example: `payment_failure_alert`,
       type: String,
       required,
     }),

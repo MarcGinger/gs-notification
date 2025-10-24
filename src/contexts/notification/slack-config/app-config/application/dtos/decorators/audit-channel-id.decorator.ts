@@ -22,7 +22,8 @@ export function ApiAppConfigAuditChannelId(options: PropOptions = {}) {
 
   return applyDecorators(
     ApiProperty({
-      description: `Channel for operational logs.`,
+      description: `Optional dedicated channel for system operational logs, error reports, and delivery confirmations. Separate from business notification channels for administrative clarity.`,
+      example: `C01EXAMPLE999`,
       type: String,
       required,
     }),

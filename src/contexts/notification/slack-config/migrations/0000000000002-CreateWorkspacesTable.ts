@@ -74,28 +74,28 @@ export class CreateWorkspacesTable0000000000002 implements MigrationInterface {
 
     // Add column comments for better documentation
     await queryRunner.query(`
-      COMMENT ON COLUMN "slack_config"."workspaces"."id" IS 'Slack-provided workspace/team ID.';
+      COMMENT ON COLUMN "slack_config"."workspaces"."id" IS 'Unique identifier for the Slack workspace/team, provided by Slack API during OAuth installation. This is the primary key linking all workspace-specific configurations.';
     `);
     await queryRunner.query(`
-      COMMENT ON COLUMN "slack_config"."workspaces"."name" IS 'Human-readable workspace name.';
+      COMMENT ON COLUMN "slack_config"."workspaces"."name" IS 'Human-readable display name of the Slack workspace as configured by workspace administrators. Used for identification and logging purposes.';
     `);
     await queryRunner.query(`
-      COMMENT ON COLUMN "slack_config"."workspaces"."bot_token" IS 'OAuth bot token (encrypted at rest).';
+      COMMENT ON COLUMN "slack_config"."workspaces"."bot_token" IS 'OAuth bot token with scope permissions for posting messages, reading channels, and accessing workspace information. Encrypted at rest using AES-256 encryption for security compliance.';
     `);
     await queryRunner.query(`
-      COMMENT ON COLUMN "slack_config"."workspaces"."signing_secret" IS 'Slack app signing secret (encrypted).';
+      COMMENT ON COLUMN "slack_config"."workspaces"."signing_secret" IS 'Slack application signing secret used to verify that incoming requests are genuinely from Slack. Required for webhook authentication and security validation. Encrypted using the same key as bot_token.';
     `);
     await queryRunner.query(`
-      COMMENT ON COLUMN "slack_config"."workspaces"."app_id" IS 'Slack app ID.';
+      COMMENT ON COLUMN "slack_config"."workspaces"."app_id" IS 'Unique identifier for the Slack application as registered in the Slack App Directory. Used for app-specific API calls and identifying the source of bot interactions.';
     `);
     await queryRunner.query(`
-      COMMENT ON COLUMN "slack_config"."workspaces"."bot_user_id" IS 'Bot user ID.';
+      COMMENT ON COLUMN "slack_config"."workspaces"."bot_user_id" IS 'Unique user identifier for the bot within the workspace. Used to identify bot messages and prevent the bot from responding to its own messages in conversations.';
     `);
     await queryRunner.query(`
-      COMMENT ON COLUMN "slack_config"."workspaces"."default_channel_id" IS 'Default posting channel.';
+      COMMENT ON COLUMN "slack_config"."workspaces"."default_channel_id" IS 'Fallback channel ID for notifications when no specific channel is configured or available. Must be a channel where the bot has posting permissions.';
     `);
     await queryRunner.query(`
-      COMMENT ON COLUMN "slack_config"."workspaces"."enabled" IS 'Whether Slack integration is active.';
+      COMMENT ON COLUMN "slack_config"."workspaces"."enabled" IS 'Global toggle for Slack integration functionality. When false, all notifications to this workspace are disabled, useful for maintenance or temporary suspension.';
     `);
 
     await queryRunner.query(`

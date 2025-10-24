@@ -22,7 +22,8 @@ export function ApiWorkspaceSigningSecret(options: PropOptions = {}) {
 
   return applyDecorators(
     ApiProperty({
-      description: `Slack app signing secret (encrypted).`,
+      description: `Slack application signing secret used to verify that incoming requests are genuinely from Slack. Required for webhook authentication and security validation. Encrypted using the same key as bot_token.`,
+      example: `example_signing_secret_not_real_123`,
       type: String,
       required,
     }),

@@ -22,7 +22,8 @@ export function ApiWorkspaceBotUserId(options: PropOptions = {}) {
 
   return applyDecorators(
     ApiProperty({
-      description: `Bot user ID.`,
+      description: `Unique user identifier for the bot within the workspace. Used to identify bot messages and prevent the bot from responding to its own messages in conversations.`,
+      example: `U01EXAMPLE789`,
       type: String,
       required,
     }),

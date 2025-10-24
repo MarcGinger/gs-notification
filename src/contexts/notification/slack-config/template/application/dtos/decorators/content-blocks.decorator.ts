@@ -22,8 +22,9 @@ export function ApiTemplateContentBlocks(options: PropOptions = {}) {
 
   return applyDecorators(
     ApiProperty({
-      description: `Array of Slack Block Kit objects.`,
-      example: '{ "key1": "value1", "key2": 123 }',
+      description: `Slack Block Kit JSON structure defining the visual layout and interactive elements of the message. Supports rich formatting, buttons, and dynamic content replacement.`,
+      example:
+        '[{"type":"section","text":{"type":"mrkdwn","text":"*Payment Failed* \n Transaction {{transactionId}} failed"}}]',
       type: 'object',
       additionalProperties: true,
     }),

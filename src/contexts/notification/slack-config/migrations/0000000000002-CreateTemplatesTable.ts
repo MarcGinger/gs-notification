@@ -74,28 +74,28 @@ export class CreateTemplatesTable0000000000002 implements MigrationInterface {
 
     // Add column comments for better documentation
     await queryRunner.query(`
-      COMMENT ON COLUMN "slack_config"."templates"."code" IS 'Unique template identifier (e.g., approval_pending).';
+      COMMENT ON COLUMN "slack_config"."templates"."code" IS 'Unique template identifier used for programmatic template selection. Must follow snake_case naming convention for consistency with application code.';
     `);
     await queryRunner.query(`
-      COMMENT ON COLUMN "slack_config"."templates"."workspace_id" IS 'Slack-provided workspace/team ID.';
+      COMMENT ON COLUMN "slack_config"."templates"."workspace_id" IS 'Foreign key linking template to its workspace. Enables workspace-specific template customization and multi-tenant template isolation.';
     `);
     await queryRunner.query(`
-      COMMENT ON COLUMN "slack_config"."templates"."name" IS 'Human-readable template name.';
+      COMMENT ON COLUMN "slack_config"."templates"."name" IS 'User-friendly template name displayed in admin interfaces and template selection menus. Should clearly describe the template's purpose and usage context.';
     `);
     await queryRunner.query(`
-      COMMENT ON COLUMN "slack_config"."templates"."description" IS 'Description or purpose.';
+      COMMENT ON COLUMN "slack_config"."templates"."description" IS 'Detailed description of the template's purpose, when to use it, and any special considerations. Helps administrators choose appropriate templates for specific notification scenarios.';
     `);
     await queryRunner.query(`
-      COMMENT ON COLUMN "slack_config"."templates"."content_blocks" IS 'Array of Slack Block Kit objects.';
+      COMMENT ON COLUMN "slack_config"."templates"."content_blocks" IS 'Slack Block Kit JSON structure defining the visual layout and interactive elements of the message. Supports rich formatting, buttons, and dynamic content replacement.';
     `);
     await queryRunner.query(`
-      COMMENT ON COLUMN "slack_config"."templates"."variables" IS 'List of variable placeholders (["approver","productName"]).';
+      COMMENT ON COLUMN "slack_config"."templates"."variables" IS 'Array of variable names that can be dynamically replaced in the template content. Each variable corresponds to a placeholder in content_blocks using {{variableName}} syntax.';
     `);
     await queryRunner.query(`
-      COMMENT ON COLUMN "slack_config"."templates"."sample_payload" IS 'Example data for testing.';
+      COMMENT ON COLUMN "slack_config"."templates"."sample_payload" IS 'Example data structure showing realistic values for all template variables. Used for template testing, preview generation, and developer documentation.';
     `);
     await queryRunner.query(`
-      COMMENT ON COLUMN "slack_config"."templates"."enabled" IS 'Active status.';
+      COMMENT ON COLUMN "slack_config"."templates"."enabled" IS 'Template availability toggle. Disabled templates cannot be used for new notifications but existing scheduled notifications will continue to use them.';
     `);
 
     await queryRunner.query(`

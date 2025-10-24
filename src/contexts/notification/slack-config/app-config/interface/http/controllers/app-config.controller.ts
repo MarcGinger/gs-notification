@@ -65,6 +65,7 @@ export class AppConfigController {
     type: 'number',
     description: 'AppConfig unique identifier',
     format: 'int64',
+    example: 1,
   })
   @ApiOkResponse({
     description: 'AppConfig details retrieved successfully',
@@ -147,6 +148,7 @@ export class AppConfigController {
     type: 'number',
     description: 'AppConfig unique identifier',
     format: 'int64',
+    example: 1,
   })
   @ApiResponse({
     status: HttpStatus.OK,

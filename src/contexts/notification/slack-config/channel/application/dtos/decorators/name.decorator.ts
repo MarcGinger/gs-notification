@@ -22,7 +22,8 @@ export function ApiChannelName(options: PropOptions = {}) {
 
   return applyDecorators(
     ApiProperty({
-      description: `Name, e.g., #approvals.`,
+      description: `Human-readable channel name as displayed in Slack, including the # prefix for public channels. Used for display purposes and channel identification in logs.`,
+      example: `#notifications`,
       type: String,
       required,
     }),

@@ -22,7 +22,8 @@ export function ApiWorkspaceId(options: PropOptions = {}) {
 
   return applyDecorators(
     ApiProperty({
-      description: `Slack-provided workspace/team ID.`,
+      description: `Unique identifier for the Slack workspace/team, provided by Slack API during OAuth installation. This is the primary key linking all workspace-specific configurations.`,
+      example: `T01EXAMPLE123`,
       type: String,
       required,
     }),

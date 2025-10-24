@@ -22,7 +22,8 @@ export function ApiTemplateDescription(options: PropOptions = {}) {
 
   return applyDecorators(
     ApiProperty({
-      description: `Description or purpose.`,
+      description: `Detailed description of the template's purpose, when to use it, and any special considerations. Helps administrators choose appropriate templates for specific notification scenarios.`,
+      example: `Alert template for payment processing failures requiring immediate attention`,
       type: String,
       required,
     }),

@@ -22,7 +22,8 @@ export function ApiTemplateName(options: PropOptions = {}) {
 
   return applyDecorators(
     ApiProperty({
-      description: `Human-readable template name.`,
+      description: `User-friendly template name displayed in admin interfaces and template selection menus. Should clearly describe the template's purpose and usage context.`,
+      example: `Payment Failure Alert`,
       type: String,
       required,
     }),

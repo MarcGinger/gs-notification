@@ -63,6 +63,7 @@ export class WorkspaceController {
     name: 'id',
     type: 'string',
     description: 'Workspace unique identifier',
+    example: 'T01EXAMPLE123',
   })
   @ApiOkResponse({
     description: 'Workspace details retrieved successfully',
@@ -144,6 +145,7 @@ export class WorkspaceController {
     name: 'id',
     type: 'string',
     description: 'Workspace unique identifier',
+    example: 'T01EXAMPLE123',
   })
   @ApiResponse({
     status: HttpStatus.OK,

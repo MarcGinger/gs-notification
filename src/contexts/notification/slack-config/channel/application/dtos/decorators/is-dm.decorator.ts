@@ -22,7 +22,8 @@ export function ApiChannelIsDm(options: PropOptions = {}) {
 
   return applyDecorators(
     ApiProperty({
-      description: `Whether direct message.`,
+      description: `Identifies direct message channels for one-on-one communication. DM channels require special handling and different permission scopes for bot access.`,
+      example: false,
       type: Boolean,
       required,
     }),

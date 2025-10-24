@@ -22,7 +22,8 @@ export function ApiAppConfigWorkspaceId(options: PropOptions = {}) {
 
   return applyDecorators(
     ApiProperty({
-      description: `Slack-provided workspace/team ID.`,
+      description: `Foreign key reference to the workspace these operational settings apply to. Allows per-workspace customization of retry logic and behavior.`,
+      example: `T01EXAMPLE123`,
       type: String,
       required,
     }),

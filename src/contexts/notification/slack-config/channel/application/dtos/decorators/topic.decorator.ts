@@ -22,7 +22,8 @@ export function ApiChannelTopic(options: PropOptions = {}) {
 
   return applyDecorators(
     ApiProperty({
-      description: `Channel topic (optional).`,
+      description: `Optional channel topic/description as set by channel administrators. Provides context about the channel's intended use and notification types.`,
+      example: `System notifications and alerts`,
       type: String,
       required,
     }),

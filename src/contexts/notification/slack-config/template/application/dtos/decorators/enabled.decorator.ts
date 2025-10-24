@@ -22,7 +22,8 @@ export function ApiTemplateEnabled(options: PropOptions = {}) {
 
   return applyDecorators(
     ApiProperty({
-      description: `Active status.`,
+      description: `Template availability toggle. Disabled templates cannot be used for new notifications but existing scheduled notifications will continue to use them.`,
+      example: true,
       type: Boolean,
       required,
     }),

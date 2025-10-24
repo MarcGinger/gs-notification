@@ -22,7 +22,8 @@ export function ApiWorkspaceDefaultChannelId(options: PropOptions = {}) {
 
   return applyDecorators(
     ApiProperty({
-      description: `Default posting channel.`,
+      description: `Fallback channel ID for notifications when no specific channel is configured or available. Must be a channel where the bot has posting permissions.`,
+      example: `C01EXAMPLE000`,
       type: String,
       required,
     }),

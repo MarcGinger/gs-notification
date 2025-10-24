@@ -21,7 +21,8 @@ export function ApiAppConfigRetryBackoffSeconds(options: PropOptions = {}) {
 
   return applyDecorators(
     ApiProperty({
-      description: `Backoff duration between retries.`,
+      description: `Initial delay in seconds between retry attempts. Actual delay may use exponential backoff strategy to avoid overwhelming Slack API rate limits.`,
+      example: 5,
       type: Number,
       required,
     }),

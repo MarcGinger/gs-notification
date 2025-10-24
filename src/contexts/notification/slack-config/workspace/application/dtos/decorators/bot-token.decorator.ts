@@ -22,7 +22,8 @@ export function ApiWorkspaceBotToken(options: PropOptions = {}) {
 
   return applyDecorators(
     ApiProperty({
-      description: `OAuth bot token (encrypted at rest).`,
+      description: `OAuth bot token with scope permissions for posting messages, reading channels, and accessing workspace information. Encrypted at rest using AES-256 encryption for security compliance.`,
+      example: `xoxb-EXAMPLE-EXAMPLE-EXAMPLETOKEN123456`,
       type: String,
       required,
     }),

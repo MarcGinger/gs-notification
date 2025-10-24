@@ -74,25 +74,28 @@ export class CreateAppConfigsTable0000000000002 implements MigrationInterface {
 
     // Add column comments for better documentation
     await queryRunner.query(`
-      COMMENT ON COLUMN "slack_config"."app_configs"."workspace_id" IS 'Slack-provided workspace/team ID.';
+      COMMENT ON COLUMN "slack_config"."app_configs"."id" IS 'Auto-incrementing primary key for app configuration records. Each workspace typically has one configuration record.';
     `);
     await queryRunner.query(`
-      COMMENT ON COLUMN "slack_config"."app_configs"."max_retry_attempts" IS 'Retry attempts on failure.';
+      COMMENT ON COLUMN "slack_config"."app_configs"."workspace_id" IS 'Foreign key reference to the workspace these operational settings apply to. Allows per-workspace customization of retry logic and behavior.';
     `);
     await queryRunner.query(`
-      COMMENT ON COLUMN "slack_config"."app_configs"."retry_backoff_seconds" IS 'Backoff duration between retries.';
+      COMMENT ON COLUMN "slack_config"."app_configs"."max_retry_attempts" IS 'Maximum number of retry attempts for failed message deliveries before marking as permanently failed. Higher values increase reliability but consume more resources.';
     `);
     await queryRunner.query(`
-      COMMENT ON COLUMN "slack_config"."app_configs"."default_locale" IS 'Default message locale.';
+      COMMENT ON COLUMN "slack_config"."app_configs"."retry_backoff_seconds" IS 'Initial delay in seconds between retry attempts. Actual delay may use exponential backoff strategy to avoid overwhelming Slack API rate limits.';
     `);
     await queryRunner.query(`
-      COMMENT ON COLUMN "slack_config"."app_configs"."logging_enabled" IS 'Enable message audit logging.';
+      COMMENT ON COLUMN "slack_config"."app_configs"."default_locale" IS 'Default language/locale for message content when user-specific locale is not available. Follows ISO 639-1 language codes combined with ISO 3166-1 country codes.';
     `);
     await queryRunner.query(`
-      COMMENT ON COLUMN "slack_config"."app_configs"."audit_channel_id" IS 'Channel for operational logs.';
+      COMMENT ON COLUMN "slack_config"."app_configs"."logging_enabled" IS 'Controls whether detailed message delivery logs are recorded for audit and debugging purposes. Essential for compliance and troubleshooting failed deliveries.';
     `);
     await queryRunner.query(`
-      COMMENT ON COLUMN "slack_config"."app_configs"."metadata" IS 'Miscellaneous configuration.';
+      COMMENT ON COLUMN "slack_config"."app_configs"."audit_channel_id" IS 'Optional dedicated channel for system operational logs, error reports, and delivery confirmations. Separate from business notification channels for administrative clarity.';
+    `);
+    await queryRunner.query(`
+      COMMENT ON COLUMN "slack_config"."app_configs"."metadata" IS 'Flexible JSON object for storing additional workspace-specific configuration options, feature flags, and custom settings that don't warrant dedicated columns.';
     `);
 
     await queryRunner.query(`

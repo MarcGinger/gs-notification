@@ -22,8 +22,9 @@ export function ApiTemplateSamplePayload(options: PropOptions = {}) {
 
   return applyDecorators(
     ApiProperty({
-      description: `Example data for testing.`,
-      example: '{ "key1": "value1", "key2": 123 }',
+      description: `Example data structure showing realistic values for all template variables. Used for template testing, preview generation, and developer documentation.`,
+      example:
+        '{"transactionId":"TXN-EXAMPLE123","amount":"$99.99","customerEmail":"example@domain.com","errorCode":"CARD_DECLINED"}',
       type: 'object',
       additionalProperties: true,
     }),

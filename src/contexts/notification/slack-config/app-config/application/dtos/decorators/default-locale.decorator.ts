@@ -22,7 +22,8 @@ export function ApiAppConfigDefaultLocale(options: PropOptions = {}) {
 
   return applyDecorators(
     ApiProperty({
-      description: `Default message locale.`,
+      description: `Default language/locale for message content when user-specific locale is not available. Follows ISO 639-1 language codes combined with ISO 3166-1 country codes.`,
+      example: `en_US`,
       type: String,
       required,
     }),

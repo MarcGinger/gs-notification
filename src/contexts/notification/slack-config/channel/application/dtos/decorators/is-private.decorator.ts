@@ -22,7 +22,8 @@ export function ApiChannelIsPrivate(options: PropOptions = {}) {
 
   return applyDecorators(
     ApiProperty({
-      description: `Whether private channel.`,
+      description: `Indicates whether the channel is private (invitation-only) or public. Affects message visibility and bot permission requirements for posting notifications.`,
+      example: false,
       type: Boolean,
       required,
     }),

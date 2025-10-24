@@ -63,6 +63,7 @@ export class TemplateController {
     name: 'code',
     type: 'string',
     description: 'Template unique identifier',
+    example: 'payment_failure_alert',
   })
   @ApiOkResponse({
     description: 'Template details retrieved successfully',
@@ -144,6 +145,7 @@ export class TemplateController {
     name: 'code',
     type: 'string',
     description: 'Template unique identifier',
+    example: 'payment_failure_alert',
   })
   @ApiResponse({
     status: HttpStatus.OK,

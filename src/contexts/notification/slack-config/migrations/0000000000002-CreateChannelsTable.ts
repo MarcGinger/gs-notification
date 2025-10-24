@@ -75,31 +75,31 @@ export class CreateChannelsTable0000000000002 implements MigrationInterface {
 
     // Add column comments for better documentation
     await queryRunner.query(`
-      COMMENT ON COLUMN "slack_config"."channels"."id" IS 'Slack channel ID.';
+      COMMENT ON COLUMN "slack_config"."channels"."id" IS 'Unique Slack channel identifier provided by Slack API. Used for all channel-specific operations including message posting and permissions validation.';
     `);
     await queryRunner.query(`
-      COMMENT ON COLUMN "slack_config"."channels"."name" IS 'Name, e.g., #approvals.';
+      COMMENT ON COLUMN "slack_config"."channels"."name" IS 'Human-readable channel name as displayed in Slack, including the # prefix for public channels. Used for display purposes and channel identification in logs.';
     `);
     await queryRunner.query(`
-      COMMENT ON COLUMN "slack_config"."channels"."workspace_id" IS 'Slack-provided workspace/team ID.';
+      COMMENT ON COLUMN "slack_config"."channels"."workspace_id" IS 'Foreign key reference to the workspace this channel belongs to. Establishes the parent-child relationship between workspace and channels for multi-tenant support.';
     `);
     await queryRunner.query(`
-      COMMENT ON COLUMN "slack_config"."channels"."is_private" IS 'Whether private channel.';
+      COMMENT ON COLUMN "slack_config"."channels"."is_private" IS 'Indicates whether the channel is private (invitation-only) or public. Affects message visibility and bot permission requirements for posting notifications.';
     `);
     await queryRunner.query(`
-      COMMENT ON COLUMN "slack_config"."channels"."is_dm" IS 'Whether direct message.';
+      COMMENT ON COLUMN "slack_config"."channels"."is_dm" IS 'Identifies direct message channels for one-on-one communication. DM channels require special handling and different permission scopes for bot access.';
     `);
     await queryRunner.query(`
-      COMMENT ON COLUMN "slack_config"."channels"."topic" IS 'Channel topic (optional).';
+      COMMENT ON COLUMN "slack_config"."channels"."topic" IS 'Optional channel topic/description as set by channel administrators. Provides context about the channel's intended use and notification types.';
     `);
     await queryRunner.query(`
-      COMMENT ON COLUMN "slack_config"."channels"."purpose" IS 'Channel purpose (optional).';
+      COMMENT ON COLUMN "slack_config"."channels"."purpose" IS 'Channel purpose statement describing its primary function and usage guidelines. Helps administrators understand notification routing decisions.';
     `);
     await queryRunner.query(`
-      COMMENT ON COLUMN "slack_config"."channels"."subscribed_events" IS 'List of events this channel listens to (e.g., ["product.approved","alert.error"]).';
+      COMMENT ON COLUMN "slack_config"."channels"."subscribed_events" IS 'Array of event types this channel subscribes to receive notifications for. Supports filtering and routing specific events to appropriate channels based on business rules.';
     `);
     await queryRunner.query(`
-      COMMENT ON COLUMN "slack_config"."channels"."enabled" IS 'Whether channel is available for posting.';
+      COMMENT ON COLUMN "slack_config"."channels"."enabled" IS 'Channel-level toggle for notification delivery. When disabled, notifications intended for this channel will be redirected to the workspace default channel.';
     `);
 
     await queryRunner.query(`

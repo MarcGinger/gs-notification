@@ -22,7 +22,8 @@ export function ApiChannelEnabled(options: PropOptions = {}) {
 
   return applyDecorators(
     ApiProperty({
-      description: `Whether channel is available for posting.`,
+      description: `Channel-level toggle for notification delivery. When disabled, notifications intended for this channel will be redirected to the workspace default channel.`,
+      example: true,
       type: Boolean,
       required,
     }),

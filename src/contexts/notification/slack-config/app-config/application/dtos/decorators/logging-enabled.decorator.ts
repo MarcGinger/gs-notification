@@ -22,7 +22,8 @@ export function ApiAppConfigLoggingEnabled(options: PropOptions = {}) {
 
   return applyDecorators(
     ApiProperty({
-      description: `Enable message audit logging.`,
+      description: `Controls whether detailed message delivery logs are recorded for audit and debugging purposes. Essential for compliance and troubleshooting failed deliveries.`,
+      example: true,
       type: Boolean,
       required,
     }),

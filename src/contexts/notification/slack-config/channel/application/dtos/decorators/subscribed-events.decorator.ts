@@ -22,8 +22,8 @@ export function ApiChannelSubscribedEvents(options: PropOptions = {}) {
 
   return applyDecorators(
     ApiProperty({
-      description: `List of events this channel listens to (e.g., ["product.approved","alert.error"]).`,
-      example: '{ "key1": "value1", "key2": 123 }',
+      description: `Array of event types this channel subscribes to receive notifications for. Supports filtering and routing specific events to appropriate channels based on business rules.`,
+      example: '["user.created", "payment.failed", "system.error"]',
       type: 'object',
       additionalProperties: true,
     }),

@@ -22,7 +22,8 @@ export function ApiChannelPurpose(options: PropOptions = {}) {
 
   return applyDecorators(
     ApiProperty({
-      description: `Channel purpose (optional).`,
+      description: `Channel purpose statement describing its primary function and usage guidelines. Helps administrators understand notification routing decisions.`,
+      example: `Automated notifications for production systems`,
       type: String,
       required,
     }),

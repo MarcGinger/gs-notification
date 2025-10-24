@@ -22,7 +22,8 @@ export function ApiWorkspaceEnabled(options: PropOptions = {}) {
 
   return applyDecorators(
     ApiProperty({
-      description: `Whether Slack integration is active.`,
+      description: `Global toggle for Slack integration functionality. When false, all notifications to this workspace are disabled, useful for maintenance or temporary suspension.`,
+      example: true,
       type: Boolean,
       required,
     }),

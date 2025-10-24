@@ -22,8 +22,9 @@ export function ApiAppConfigMetadata(options: PropOptions = {}) {
 
   return applyDecorators(
     ApiProperty({
-      description: `Miscellaneous configuration.`,
-      example: '{ "key1": "value1", "key2": 123 }',
+      description: `Flexible JSON object for storing additional workspace-specific configuration options, feature flags, and custom settings that don't warrant dedicated columns.`,
+      example:
+        '{"timezone":"America/New_York","businessHours":{"start":"09:00","end":"17:00"},"features":{"threadedReplies":true}}',
       type: 'object',
       additionalProperties: true,
     }),
