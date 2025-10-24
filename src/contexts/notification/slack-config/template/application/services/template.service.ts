@@ -36,7 +36,6 @@ import { TemplateAuthContext } from '../types/template-auth-context';
 import {
   ICreateTemplateUseCase,
   IUpdateTemplateUseCase,
-  IDeleteTemplateUseCase,
   IGetTemplateUseCase,
 } from '../use-cases/contracts';
 
@@ -51,7 +50,6 @@ export class TemplateApplicationService {
     private readonly templateAuthorizationService: TemplateAuthorizationService,
     private readonly createTemplateUseCase: ICreateTemplateUseCase,
     private readonly updateTemplateUseCase: IUpdateTemplateUseCase,
-    private readonly deleteTemplateUseCase: IDeleteTemplateUseCase,
     private readonly getTemplateUseCase: IGetTemplateUseCase,
     @Inject(CLOCK) private readonly clock: Clock,
     @Inject(APP_LOGGER) moduleLogger: Logger,
@@ -121,7 +119,7 @@ export class TemplateApplicationService {
    * Centralized auth → log → execute → catch pattern
    */
   private async authorizeThenExecute<T>(args: {
-    operation: 'create' | 'update' | 'delete' | 'read';
+    operation: 'create' | 'update' | 'read';
     user: IUserToken;
     code?: string;
     correlationIdPrefix: string;
@@ -295,58 +293,6 @@ export class TemplateApplicationService {
           }),
         }),
       logContext: { code: validatedcode },
-    });
-  }
-
-  /**
-   * Delete a template with authorization
-   */
-  async deleteTemplate(
-    user: IUserToken,
-    code: string,
-  ): Promise<Result<void, DomainError>> {
-    // Early input validation
-    const codeValidation = this.validateCode(code, 'delete');
-    if (!codeValidation.ok) {
-      return err(codeValidation.error);
-    }
-
-    const validatedcode = codeValidation.value;
-    const authContext = this.createAuthContext(user, 'delete');
-
-    return this.authorizeThenExecute<void>({
-      operation: 'delete',
-      user,
-      code: validatedcode,
-      correlationIdPrefix: 'template-delete',
-      doAuthorize: () =>
-        this.templateAuthorizationService.canDeleteTemplate(
-          user.sub,
-          validatedcode,
-          CorrelationUtil.generateForOperation('template-delete'),
-          authContext,
-        ),
-      doExecute: () => {
-        // Log high-risk operation before execution
-        Log.warn(
-          this.logger,
-          'Template deletion authorized - HIGH RISK OPERATION',
-          {
-            code: validatedcode,
-            userId: user.sub,
-            riskLevel: 'HIGH',
-            operation: 'delete_template',
-          },
-        );
-        return this.deleteTemplateUseCase.execute({
-          user,
-          code: validatedcode,
-          correlationId:
-            CorrelationUtil.generateForOperation('template-delete'),
-          authorizationReason: 'delete_template',
-        });
-      },
-      logContext: { code: validatedcode, riskLevel: 'HIGH' },
     });
   }
 

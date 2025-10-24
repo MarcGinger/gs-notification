@@ -36,7 +36,6 @@ import { ChannelAuthContext } from '../types/channel-auth-context';
 import {
   ICreateChannelUseCase,
   IUpdateChannelUseCase,
-  IDeleteChannelUseCase,
   IGetChannelUseCase,
 } from '../use-cases/contracts';
 
@@ -51,7 +50,6 @@ export class ChannelApplicationService {
     private readonly channelAuthorizationService: ChannelAuthorizationService,
     private readonly createChannelUseCase: ICreateChannelUseCase,
     private readonly updateChannelUseCase: IUpdateChannelUseCase,
-    private readonly deleteChannelUseCase: IDeleteChannelUseCase,
     private readonly getChannelUseCase: IGetChannelUseCase,
     @Inject(CLOCK) private readonly clock: Clock,
     @Inject(APP_LOGGER) moduleLogger: Logger,
@@ -121,7 +119,7 @@ export class ChannelApplicationService {
    * Centralized auth → log → execute → catch pattern
    */
   private async authorizeThenExecute<T>(args: {
-    operation: 'create' | 'update' | 'delete' | 'read';
+    operation: 'create' | 'update' | 'read';
     user: IUserToken;
     id?: string;
     correlationIdPrefix: string;
@@ -295,57 +293,6 @@ export class ChannelApplicationService {
           }),
         }),
       logContext: { id: validatedid },
-    });
-  }
-
-  /**
-   * Delete a channel with authorization
-   */
-  async deleteChannel(
-    user: IUserToken,
-    id: string,
-  ): Promise<Result<void, DomainError>> {
-    // Early input validation
-    const idValidation = this.validateId(id, 'delete');
-    if (!idValidation.ok) {
-      return err(idValidation.error);
-    }
-
-    const validatedid = idValidation.value;
-    const authContext = this.createAuthContext(user, 'delete');
-
-    return this.authorizeThenExecute<void>({
-      operation: 'delete',
-      user,
-      id: validatedid,
-      correlationIdPrefix: 'channel-delete',
-      doAuthorize: () =>
-        this.channelAuthorizationService.canDeleteChannel(
-          user.sub,
-          validatedid,
-          CorrelationUtil.generateForOperation('channel-delete'),
-          authContext,
-        ),
-      doExecute: () => {
-        // Log high-risk operation before execution
-        Log.warn(
-          this.logger,
-          'Channel deletion authorized - HIGH RISK OPERATION',
-          {
-            id: validatedid,
-            userId: user.sub,
-            riskLevel: 'HIGH',
-            operation: 'delete_channel',
-          },
-        );
-        return this.deleteChannelUseCase.execute({
-          user,
-          id: validatedid,
-          correlationId: CorrelationUtil.generateForOperation('channel-delete'),
-          authorizationReason: 'delete_channel',
-        });
-      },
-      logContext: { id: validatedid, riskLevel: 'HIGH' },
     });
   }
 

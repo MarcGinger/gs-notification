@@ -2,6 +2,8 @@
 // REMOVE THIS COMMENT TO STOP AUTOMATIC UPDATES TO THIS BLOCK
 
 import { Injectable, Inject } from '@nestjs/common';
+import { Redis } from 'ioredis';
+import { CacheMetricsCollector } from 'src/shared/infrastructure/projections/cache-optimization';
 import { APP_LOGGER, Log, componentLogger, Logger } from 'src/shared/logging';
 import { CorrelationUtil } from 'src/shared/utilities/correlation.util';
 import { Clock, CLOCK } from 'src/shared/infrastructure/time';
@@ -9,49 +11,127 @@ import {
   RepositoryLoggingUtil,
   RepositoryLoggingConfig,
   handleRepositoryError,
+  safeParseJSON,
+  safeParseJSONArray,
   RepositoryOptions,
 } from 'src/shared/infrastructure/repositories';
 import { Result, DomainError, err, ok } from 'src/shared/errors';
 import { Option } from 'src/shared/domain/types';
 import { ActorContext } from 'src/shared/application/context';
 import { RepositoryErrorFactory } from 'src/shared/domain/errors/repository.error';
-import { WorkspaceSnapshotProps } from '../../domain/props';
-import { WorkspaceId } from '../../domain/value-objects';
-import { IWorkspaceReader } from '../../application/ports';
-import { workspaceStore } from '../stores/workspace.store';
+import { SLACK_CONFIG_DI_TOKENS } from '../../../slack-config.constants';
+import { AppConfigSnapshotProps } from '../../domain/props';
+import { AppConfigId } from '../../domain/value-objects';
+import { IAppConfigReader } from '../../application/ports';
 
 /**
- * Workspace Reader Repository - In-Memory Implementation
+ * AppConfig Reader Repository - Redis Implementation
  *
- * Bounded Context: Notification/Workspace
- * Handles basic read operations for Workspace aggregates using in-memory projector
- * as the data source instead of SQL queries.
+ * Bounded Context: Notification/AppConfig
+ * Handles basic read operations for AppConfig aggregates using Redis projections
+ * as the data source with cluster-safe operations.
  *
  * Benefits:
- * - Zero external database dependencies
- * - Ultra-fast read operations (LRU cache)
- * - Perfect for testing, prototyping, and shadow validation
+ * - High-performance Redis backend
+ * - Cluster-safe operations with hash tags
+ * - Version hint optimization for cache efficiency
  * - Maintains same interface as SQL-based implementation
  * - Comprehensive logging and error handling
  *
- * @domain Notification Context - Workspace Reader Repository (In-Memory)
+ * @domain Notification Context - AppConfig Reader Repository (Redis)
  * @layer Infrastructure
- * @pattern Repository Pattern + In-Memory Projector
+ * @pattern Repository Pattern + Redis Projector
  */
 @Injectable()
-export class WorkspaceReaderRepository implements IWorkspaceReader {
+export class AppConfigReaderRepository implements IAppConfigReader {
   private readonly logger: Logger;
   private readonly loggingConfig: RepositoryLoggingConfig;
+  private readonly metricsCollector = new CacheMetricsCollector();
 
   constructor(
     @Inject(APP_LOGGER) baseLogger: Logger,
     @Inject(CLOCK) private readonly clock: Clock,
+    @Inject(SLACK_CONFIG_DI_TOKENS.IO_REDIS)
+    private readonly redis: Redis,
   ) {
     this.loggingConfig = {
       serviceName: 'SlackConfigService',
-      component: 'WorkspaceReaderRepository',
+      component: 'AppConfigReaderRepository',
     };
     this.logger = componentLogger(baseLogger, this.loggingConfig.component);
+
+    Log.info(
+      this.logger,
+      'AppConfigReaderRepository initialized with Redis backend',
+      {
+        component: this.loggingConfig.component,
+        redisStatus: this.redis.status,
+        clusterSafe: true,
+        cacheOptimized: true,
+      },
+    );
+  }
+
+  /**
+   * Generate cluster-safe Redis keys with hash tags for locality
+   * Uses same pattern as AppConfigProjector for consistency
+   */
+  private generateAppConfigKey(tenantId: string, id: number): string {
+    // ✅ Hash-tags ensure key routes to same Redis Cluster slot as projector
+    return `app-config-projector:{${tenantId}}:app-config:${id.toString()}`;
+  }
+
+  /**
+   * Parse Redis hash data into AppConfigSnapshotProps
+   */
+  private parseRedisHashToAppConfig(
+    hashData: Record<string, string>,
+  ): AppConfigSnapshotProps | null {
+    try {
+      if (!hashData || Object.keys(hashData).length === 0) {
+        return null;
+      }
+
+      // Check for soft deletion
+      if (hashData.deletedAt) {
+        return null;
+      }
+
+      // Parse array fields using safeParseJSONArray utility (following product-query.repository.ts pattern)
+
+      // Parse object fields using safeParseJSON utility (following product-query.repository.ts pattern)
+      const metadata = safeParseJSON<Record<string, unknown>>(
+        hashData.metadata,
+        'metadata',
+      );
+
+      // Extract basic fields directly from hash data (following product-query.repository.ts pattern)
+
+      return {
+        id: parseInt(hashData.id, 10),
+        workspaceId: hashData.workspaceId,
+        maxRetryAttempts: parseInt(hashData.maxRetryAttempts, 10),
+        retryBackoffSeconds: parseInt(hashData.retryBackoffSeconds, 10),
+        defaultLocale: hashData.defaultLocale,
+        loggingEnabled: hashData.loggingEnabled === 'true',
+        auditChannelId: hashData.auditChannelId || undefined,
+        metadata,
+        version: parseInt(hashData.version, 10),
+        createdAt: new Date(hashData.createdAt),
+        updatedAt: new Date(hashData.updatedAt),
+      };
+    } catch (error) {
+      Log.error(
+        this.logger,
+        'Failed to parse Redis hash data to AppConfigSnapshot',
+        {
+          method: 'parseRedisHashToAppConfig',
+          error: (error as Error).message,
+          id: hashData?.id,
+        },
+      );
+      return null;
+    }
   }
 
   /**
@@ -81,22 +161,22 @@ export class WorkspaceReaderRepository implements IWorkspaceReader {
   }
 
   /**
-   * Find a Workspace by its unique identifier
+   * Find a AppConfig by its unique identifier
    * @param actor - The authenticated user context
-   * @param id - The unique identifier of the Workspace
+   * @param id - The unique identifier of the AppConfig
    * @param options - Optional repository options
-   * @returns Result containing the Workspace snapshot or null if not found
+   * @returns Result containing the AppConfig snapshot or null if not found
    */
   async findById(
     actor: ActorContext,
-    id: WorkspaceId,
+    id: AppConfigId,
     options?: RepositoryOptions,
-  ): Promise<Result<Option<WorkspaceSnapshotProps>, DomainError>> {
+  ): Promise<Result<Option<AppConfigSnapshotProps>, DomainError>> {
     const operation = 'findById';
     const riskLevel = this.assessOperationRisk(operation);
     const correlationId =
       options?.correlationId ??
-      CorrelationUtil.generateForOperation('workspace-find-by-id');
+      CorrelationUtil.generateForOperation('app-config-find-by-id');
 
     const logContext = this.createLogContext(operation, correlationId, actor, {
       riskLevel,
@@ -104,7 +184,7 @@ export class WorkspaceReaderRepository implements IWorkspaceReader {
       customCorrelationId: !!options?.correlationId,
       source: options?.source,
       requestId: options?.requestId,
-      dataSource: 'in-memory-projector',
+      dataSource: 'redis-projector',
     });
 
     // Validate actor context with enhanced security logging
@@ -132,22 +212,27 @@ export class WorkspaceReaderRepository implements IWorkspaceReader {
       this.logger,
       operation,
       logContext,
-      { queryType: 'workspace_lookup', scope: 'in_memory_projection' },
+      { queryType: 'app-config_lookup', scope: 'redis_projection' },
     );
 
     try {
-      Log.debug(this.logger, 'Finding workspace by ID in shared store', {
+      // Generate cluster-safe Redis key
+      const redisKey = this.generateAppConfigKey(actor.tenantId, id.value);
+
+      Log.debug(this.logger, 'Finding app-config by ID in Redis', {
         ...logContext,
         queryDetails: {
-          scope: 'shared_workspace_store',
-          method: 'workspaceStore.get',
+          scope: 'redis_hash',
+          method: 'redis.hgetall',
+          key: redisKey,
+          clusterSafe: true,
         },
       });
 
-      // Get projection from shared workspace store
-      const projection = workspaceStore.get(actor.tenantId, id.value);
+      // Get app-config hash from Redis
+      const hashData = await this.redis.hgetall(redisKey);
 
-      if (!projection) {
+      if (!hashData || Object.keys(hashData).length === 0) {
         RepositoryLoggingUtil.logQueryMetrics(
           this.logger,
           operation,
@@ -157,23 +242,24 @@ export class WorkspaceReaderRepository implements IWorkspaceReader {
             dataQuality: 'empty',
           },
         );
-        return Promise.resolve(ok(Option.none()));
+        return ok(Option.none());
       }
 
-      // Map projection to WorkspaceSnapshot
-      const workspaceSnapshot: WorkspaceSnapshotProps = {
-        id: projection.id,
-        name: projection.name,
-        botToken: projection.botToken,
-        signingSecret: projection.signingSecret,
-        appId: projection.appId,
-        botUserId: projection.botUserId,
-        defaultChannelId: projection.defaultChannelId,
-        enabled: projection.enabled,
-        version: projection.version,
-        createdAt: projection.createdAt,
-        updatedAt: projection.updatedAt,
-      };
+      // Parse Redis hash to AppConfigSnapshot
+      const appConfigSnapshot = this.parseRedisHashToAppConfig(hashData);
+
+      if (!appConfigSnapshot) {
+        RepositoryLoggingUtil.logQueryMetrics(
+          this.logger,
+          operation,
+          logContext,
+          {
+            resultCount: 0,
+            dataQuality: 'error',
+          },
+        );
+        return ok(Option.none());
+      }
 
       // Log query metrics using shared utility
       RepositoryLoggingUtil.logQueryMetrics(
@@ -184,13 +270,13 @@ export class WorkspaceReaderRepository implements IWorkspaceReader {
           resultCount: 1,
           dataQuality: 'good',
           sampleData: {
-            id: workspaceSnapshot.id,
-            version: workspaceSnapshot.version,
+            id: appConfigSnapshot.id,
+            version: appConfigSnapshot.version,
           },
         },
       );
 
-      return Promise.resolve(ok(Option.some(workspaceSnapshot)));
+      return ok(Option.some(appConfigSnapshot));
     } catch (error) {
       // Log operation error using shared utility
       RepositoryLoggingUtil.logOperationError(
@@ -207,22 +293,22 @@ export class WorkspaceReaderRepository implements IWorkspaceReader {
   }
 
   /**
-   * Check if a workspace exists by ID (for write-path validation)
+   * Check if a app-config exists by ID (for write-path validation)
    * @param actor - The authenticated user context
-   * @param id - The unique identifier of the Workspace
+   * @param id - The unique identifier of the AppConfig
    * @param options - Optional repository options
    * @returns Result containing boolean indicating existence
    */
   async exists(
     actor: ActorContext,
-    id: WorkspaceId,
+    id: AppConfigId,
     options?: RepositoryOptions,
   ): Promise<Result<boolean, DomainError>> {
     const operation = 'exists';
     const riskLevel = this.assessOperationRisk(operation);
     const correlationId =
       options?.correlationId ??
-      CorrelationUtil.generateForOperation('workspace-exists-check');
+      CorrelationUtil.generateForOperation('app-config-exists-check');
 
     const logContext = this.createLogContext(operation, correlationId, actor, {
       riskLevel,
@@ -230,7 +316,7 @@ export class WorkspaceReaderRepository implements IWorkspaceReader {
       customCorrelationId: !!options?.correlationId,
       source: options?.source,
       requestId: options?.requestId,
-      dataSource: 'in-memory-projector',
+      dataSource: 'redis-projector',
     });
 
     // Validate actor context
@@ -246,21 +332,32 @@ export class WorkspaceReaderRepository implements IWorkspaceReader {
       this.logger,
       operation,
       logContext,
-      { queryType: 'existence_check', scope: 'in_memory_projection' },
+      { queryType: 'existence_check', scope: 'redis_projection' },
     );
 
     try {
-      Log.debug(this.logger, 'Checking workspace existence in shared store', {
+      // Generate cluster-safe Redis key
+      const redisKey = this.generateAppConfigKey(actor.tenantId!, id.value);
+
+      Log.debug(this.logger, 'Checking app-config existence in Redis', {
         ...logContext,
         queryDetails: {
-          scope: 'shared_workspace_store',
-          method: 'workspaceStore.has',
+          scope: 'redis_hash',
+          method: 'redis.exists',
+          key: redisKey,
           optimized: true,
         },
       });
 
-      // Check existence in shared workspace store
-      const exists = workspaceStore.has(actor.tenantId!, id.value);
+      // Check existence in Redis and verify not soft-deleted
+      const exists = await this.redis.exists(redisKey);
+      let isActive = false;
+
+      if (exists) {
+        // Additional check for soft deletion
+        const deletedAt = await this.redis.hget(redisKey, 'deletedAt');
+        isActive = !deletedAt;
+      }
 
       // Log query metrics using shared utility
       RepositoryLoggingUtil.logQueryMetrics(
@@ -268,13 +365,13 @@ export class WorkspaceReaderRepository implements IWorkspaceReader {
         operation,
         logContext,
         {
-          resultCount: exists ? 1 : 0,
+          resultCount: isActive ? 1 : 0,
           dataQuality: 'good',
-          sampleData: { exists, id: id.value },
+          sampleData: { exists: isActive, id: id.value },
         },
       );
 
-      return Promise.resolve(ok(exists));
+      return ok(isActive);
     } catch (error) {
       // Log operation error using shared utility
       RepositoryLoggingUtil.logOperationError(
@@ -291,22 +388,22 @@ export class WorkspaceReaderRepository implements IWorkspaceReader {
   }
 
   /**
-   * Get workspace version for optimistic concurrency control
+   * Get app-config version for optimistic concurrency control
    * @param actor - The authenticated user context
-   * @param id - The unique identifier of the Workspace
+   * @param id - The unique identifier of the AppConfig
    * @param options - Optional repository options
    * @returns Result containing version number or null if not found
    */
   async getVersion(
     actor: ActorContext,
-    id: WorkspaceId,
+    id: AppConfigId,
     options?: RepositoryOptions,
   ): Promise<Result<Option<number>, DomainError>> {
     const operation = 'getVersion';
     const riskLevel = this.assessOperationRisk(operation);
     const correlationId =
       options?.correlationId ??
-      CorrelationUtil.generateForOperation('workspace-get-version');
+      CorrelationUtil.generateForOperation('app-config-get-version');
 
     const logContext = this.createLogContext(operation, correlationId, actor, {
       riskLevel,
@@ -314,7 +411,7 @@ export class WorkspaceReaderRepository implements IWorkspaceReader {
       customCorrelationId: !!options?.correlationId,
       source: options?.source,
       requestId: options?.requestId,
-      dataSource: 'in-memory-projector',
+      dataSource: 'redis-projector',
     });
 
     // Validate actor context
@@ -330,23 +427,32 @@ export class WorkspaceReaderRepository implements IWorkspaceReader {
       this.logger,
       operation,
       logContext,
-      { queryType: 'version_lookup', scope: 'in_memory_projection' },
+      { queryType: 'version_lookup', scope: 'redis_projection' },
     );
 
     try {
-      Log.debug(this.logger, 'Getting workspace version from shared store', {
+      // Generate cluster-safe Redis key
+      const redisKey = this.generateAppConfigKey(actor.tenantId!, id.value);
+
+      Log.debug(this.logger, 'Getting app-config version from Redis', {
         ...logContext,
         queryDetails: {
-          scope: 'shared_workspace_store',
-          method: 'workspaceStore.get',
+          scope: 'redis_hash',
+          method: 'redis.hmget',
+          key: redisKey,
+          fields: ['version', 'deletedAt'],
           optimized: true,
         },
       });
 
-      // Get projection from shared workspace store
-      const projection = workspaceStore.get(actor.tenantId!, id.value);
+      // Get version and deletion status from Redis efficiently
+      const [versionStr, deletedAt] = await this.redis.hmget(
+        redisKey,
+        'version',
+        'deletedAt',
+      );
 
-      if (!projection || projection.deletedAt) {
+      if (!versionStr || deletedAt) {
         RepositoryLoggingUtil.logQueryMetrics(
           this.logger,
           operation,
@@ -356,10 +462,10 @@ export class WorkspaceReaderRepository implements IWorkspaceReader {
             dataQuality: 'empty',
           },
         );
-        return Promise.resolve(ok(Option.none()));
+        return ok(Option.none());
       }
 
-      const version = projection.version;
+      const version = parseInt(versionStr, 10);
 
       // Log query metrics using shared utility
       RepositoryLoggingUtil.logQueryMetrics(
@@ -373,7 +479,7 @@ export class WorkspaceReaderRepository implements IWorkspaceReader {
         },
       );
 
-      return Promise.resolve(ok(Option.some(version)));
+      return ok(Option.some(version));
     } catch (error) {
       // Log operation error using shared utility
       RepositoryLoggingUtil.logOperationError(
@@ -390,22 +496,22 @@ export class WorkspaceReaderRepository implements IWorkspaceReader {
   }
 
   /**
-   * Get minimal workspace data for write-path operations
+   * Get minimal app-config data for write-path operations
    * @param actor - The authenticated user context
-   * @param id - The unique identifier of the Workspace
+   * @param id - The unique identifier of the AppConfig
    * @param options - Optional repository options
-   * @returns Result containing minimal workspace data or null if not found
+   * @returns Result containing minimal app-config data or null if not found
    */
   async getMinimal(
     actor: ActorContext,
-    id: WorkspaceId,
+    id: AppConfigId,
     options?: RepositoryOptions,
-  ): Promise<Result<Option<{ id: string; version: number }>, DomainError>> {
+  ): Promise<Result<Option<{ id: number; version: number }>, DomainError>> {
     const operation = 'getMinimal';
     const riskLevel = this.assessOperationRisk(operation);
     const correlationId =
       options?.correlationId ??
-      CorrelationUtil.generateForOperation('workspace-get-minimal');
+      CorrelationUtil.generateForOperation('app-config-get-minimal');
 
     const logContext = this.createLogContext(operation, correlationId, actor, {
       riskLevel,
@@ -413,7 +519,7 @@ export class WorkspaceReaderRepository implements IWorkspaceReader {
       customCorrelationId: !!options?.correlationId,
       source: options?.source,
       requestId: options?.requestId,
-      dataSource: 'in-memory-projector',
+      dataSource: 'redis-projector',
     });
 
     // Validate actor context
@@ -429,27 +535,33 @@ export class WorkspaceReaderRepository implements IWorkspaceReader {
       this.logger,
       operation,
       logContext,
-      { queryType: 'minimal_lookup', scope: 'in_memory_projection' },
+      { queryType: 'minimal_lookup', scope: 'redis_projection' },
     );
 
     try {
-      Log.debug(
-        this.logger,
-        'Getting minimal workspace data from shared store',
-        {
-          ...logContext,
-          queryDetails: {
-            scope: 'shared_workspace_store',
-            method: 'workspaceStore.get',
-            optimized: true,
-          },
+      // Generate cluster-safe Redis key
+      const redisKey = this.generateAppConfigKey(actor.tenantId!, id.value);
+
+      Log.debug(this.logger, 'Getting minimal app-config data from Redis', {
+        ...logContext,
+        queryDetails: {
+          scope: 'redis_hash',
+          method: 'redis.hmget',
+          key: redisKey,
+          fields: ['id', 'version', 'deletedAt'],
+          optimized: true,
         },
+      });
+
+      // Get minimal fields from Redis efficiently
+      const [idStr, versionStr, deletedAt] = await this.redis.hmget(
+        redisKey,
+        'id',
+        'version',
+        'deletedAt',
       );
 
-      // Get projection from shared workspace store
-      const projection = workspaceStore.get(actor.tenantId!, id.value);
-
-      if (!projection || projection.deletedAt) {
+      if (!idStr || !versionStr || deletedAt) {
         RepositoryLoggingUtil.logQueryMetrics(
           this.logger,
           operation,
@@ -463,8 +575,8 @@ export class WorkspaceReaderRepository implements IWorkspaceReader {
       }
 
       const minimal = {
-        id: projection.id,
-        version: projection.version,
+        id: parseInt(idStr, 10),
+        version: parseInt(versionStr, 10),
       };
 
       // Log query metrics using shared utility
@@ -479,7 +591,7 @@ export class WorkspaceReaderRepository implements IWorkspaceReader {
         },
       );
 
-      return Promise.resolve(ok(Option.some(minimal)));
+      return ok(Option.some(minimal));
     } catch (error) {
       // Log operation error using shared utility
       RepositoryLoggingUtil.logOperationError(
@@ -491,7 +603,7 @@ export class WorkspaceReaderRepository implements IWorkspaceReader {
       );
 
       // Handle and return the classified error using shared utility
-      return Promise.resolve(handleRepositoryError(error));
+      return handleRepositoryError(error);
     }
   }
 }

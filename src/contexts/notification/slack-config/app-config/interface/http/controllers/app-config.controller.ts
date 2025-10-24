@@ -7,7 +7,6 @@ import {
   Post,
   Body,
   Patch,
-  Delete,
   HttpStatus,
   HttpCode,
   Param,
@@ -41,7 +40,6 @@ import {
   AppConfigReadResource,
   AppConfigCreateResource,
   AppConfigUpdateResource,
-  AppConfigDeleteResource,
 } from '../../app-config.resource';
 import { ApiCommonErrors } from 'src/shared/interfaces/http';
 
@@ -177,35 +175,6 @@ export class AppConfigController {
       updateAppConfigRequest,
     );
 
-    return result;
-  }
-
-  @Delete(':id')
-  @AppConfigDeleteResource()
-  @HttpCode(HttpStatus.NO_CONTENT)
-  @ApiOperation({
-    summary: 'Delete a App',
-    description:
-      'Soft-deletes a App (marks as deleted). Requires DELETE permission (HIGH risk, justification required).',
-  })
-  @ApiParam({
-    name: 'id',
-    type: 'number',
-    description: 'AppConfig unique identifier',
-    format: 'int64',
-  })
-  @ApiCommonErrors()
-  @ApiNoContentResponse({
-    description: 'AppConfig deleted successfully. No content returned.',
-  })
-  async remove(
-    @CurrentUser() user: IUserToken,
-    @Param('id', ParseIntPipe) id: number,
-  ): Promise<Result<void, DomainError>> {
-    const result = await this.appConfigApplicationService.deleteAppConfig(
-      user,
-      id,
-    );
     return result;
   }
 }

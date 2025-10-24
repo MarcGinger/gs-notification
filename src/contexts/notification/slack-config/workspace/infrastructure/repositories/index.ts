@@ -1,3 +1,3 @@
-export * from './workspace-memory-query.repository';
-export * from './workspace-memory-reader.repository';
-export * from './workspace-memory-writer.repository';
+export * from './workspace-kurrentdb-writer.repository';
+export * from './workspace-redis-query.repository';
+export * from './workspace-redis-reader.repository';

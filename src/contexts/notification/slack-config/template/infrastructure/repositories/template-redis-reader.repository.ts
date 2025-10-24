@@ -2,6 +2,8 @@
 // REMOVE THIS COMMENT TO STOP AUTOMATIC UPDATES TO THIS BLOCK
 
 import { Injectable, Inject } from '@nestjs/common';
+import { Redis } from 'ioredis';
+import { CacheMetricsCollector } from 'src/shared/infrastructure/projections/cache-optimization';
 import { APP_LOGGER, Log, componentLogger, Logger } from 'src/shared/logging';
 import { CorrelationUtil } from 'src/shared/utilities/correlation.util';
 import { Clock, CLOCK } from 'src/shared/infrastructure/time';
@@ -9,49 +11,140 @@ import {
   RepositoryLoggingUtil,
   RepositoryLoggingConfig,
   handleRepositoryError,
+  safeParseJSON,
+  safeParseJSONArray,
   RepositoryOptions,
 } from 'src/shared/infrastructure/repositories';
 import { Result, DomainError, err, ok } from 'src/shared/errors';
 import { Option } from 'src/shared/domain/types';
 import { ActorContext } from 'src/shared/application/context';
 import { RepositoryErrorFactory } from 'src/shared/domain/errors/repository.error';
-import { AppConfigSnapshotProps } from '../../domain/props';
-import { AppConfigId } from '../../domain/value-objects';
-import { IAppConfigReader } from '../../application/ports';
-import { appConfigStore } from '../stores/app-config.store';
+import { SLACK_CONFIG_DI_TOKENS } from '../../../slack-config.constants';
+import { TemplateSnapshotProps } from '../../domain/props';
+import { TemplateCode } from '../../domain/value-objects';
+import { ITemplateReader } from '../../application/ports';
 
 /**
- * AppConfig Reader Repository - In-Memory Implementation
+ * Template Reader Repository - Redis Implementation
  *
- * Bounded Context: Notification/AppConfig
- * Handles basic read operations for AppConfig aggregates using in-memory projector
- * as the data source instead of SQL queries.
+ * Bounded Context: Notification/Template
+ * Handles basic read operations for Template aggregates using Redis projections
+ * as the data source with cluster-safe operations.
  *
  * Benefits:
- * - Zero external database dependencies
- * - Ultra-fast read operations (LRU cache)
- * - Perfect for testing, prototyping, and shadow validation
+ * - High-performance Redis backend
+ * - Cluster-safe operations with hash tags
+ * - Version hint optimization for cache efficiency
  * - Maintains same interface as SQL-based implementation
  * - Comprehensive logging and error handling
  *
- * @domain Notification Context - AppConfig Reader Repository (In-Memory)
+ * @domain Notification Context - Template Reader Repository (Redis)
  * @layer Infrastructure
- * @pattern Repository Pattern + In-Memory Projector
+ * @pattern Repository Pattern + Redis Projector
  */
 @Injectable()
-export class AppConfigReaderRepository implements IAppConfigReader {
+export class TemplateReaderRepository implements ITemplateReader {
   private readonly logger: Logger;
   private readonly loggingConfig: RepositoryLoggingConfig;
+  private readonly metricsCollector = new CacheMetricsCollector();
 
   constructor(
     @Inject(APP_LOGGER) baseLogger: Logger,
     @Inject(CLOCK) private readonly clock: Clock,
+    @Inject(SLACK_CONFIG_DI_TOKENS.IO_REDIS)
+    private readonly redis: Redis,
   ) {
     this.loggingConfig = {
       serviceName: 'SlackConfigService',
-      component: 'AppConfigReaderRepository',
+      component: 'TemplateReaderRepository',
     };
     this.logger = componentLogger(baseLogger, this.loggingConfig.component);
+
+    Log.info(
+      this.logger,
+      'TemplateReaderRepository initialized with Redis backend',
+      {
+        component: this.loggingConfig.component,
+        redisStatus: this.redis.status,
+        clusterSafe: true,
+        cacheOptimized: true,
+      },
+    );
+  }
+
+  /**
+   * Generate cluster-safe Redis keys with hash tags for locality
+   * Uses same pattern as TemplateProjector for consistency
+   */
+  private generateTemplateKey(tenantId: string, code: string): string {
+    // ✅ Hash-tags ensure key routes to same Redis Cluster slot as projector
+    return `template-projector:{${tenantId}}:template:${code}`;
+  }
+
+  /**
+   * Parse Redis hash data into TemplateSnapshotProps
+   */
+  private parseRedisHashToTemplate(
+    hashData: Record<string, string>,
+  ): TemplateSnapshotProps | null {
+    try {
+      if (!hashData || Object.keys(hashData).length === 0) {
+        return null;
+      }
+
+      // Check for soft deletion
+      if (hashData.deletedAt) {
+        return null;
+      }
+
+      // Parse array fields using safeParseJSONArray utility (following product-query.repository.ts pattern)
+      const workspaceId = safeParseJSONArray(
+        hashData.workspaceId,
+        'workspaceId',
+        (x): x is string => typeof x === 'string',
+      );
+
+      // Parse object fields using safeParseJSON utility (following product-query.repository.ts pattern)
+      const contentBlocks = safeParseJSON<Record<string, unknown>>(
+        hashData.contentBlocks,
+        'contentBlocks',
+      );
+      const variables = safeParseJSON<Record<string, unknown>>(
+        hashData.variables,
+        'variables',
+      );
+      const samplePayload = safeParseJSON<Record<string, unknown>>(
+        hashData.samplePayload,
+        'samplePayload',
+      );
+
+      // Extract basic fields directly from hash data (following product-query.repository.ts pattern)
+
+      return {
+        code: hashData.code,
+        workspaceId,
+        name: hashData.name,
+        description: hashData.description || undefined,
+        contentBlocks,
+        variables,
+        samplePayload,
+        enabled: hashData.enabled === 'true',
+        version: parseInt(hashData.version, 10),
+        createdAt: new Date(hashData.createdAt),
+        updatedAt: new Date(hashData.updatedAt),
+      };
+    } catch (error) {
+      Log.error(
+        this.logger,
+        'Failed to parse Redis hash data to TemplateSnapshot',
+        {
+          method: 'parseRedisHashToTemplate',
+          error: (error as Error).message,
+          code: hashData?.code,
+        },
+      );
+      return null;
+    }
   }
 
   /**
@@ -81,30 +174,30 @@ export class AppConfigReaderRepository implements IAppConfigReader {
   }
 
   /**
-   * Find a AppConfig by its unique identifier
+   * Find a Template by its unique identifier
    * @param actor - The authenticated user context
-   * @param id - The unique identifier of the AppConfig
+   * @param code - The unique identifier of the Template
    * @param options - Optional repository options
-   * @returns Result containing the AppConfig snapshot or null if not found
+   * @returns Result containing the Template snapshot or null if not found
    */
   async findById(
     actor: ActorContext,
-    id: AppConfigId,
+    code: TemplateCode,
     options?: RepositoryOptions,
-  ): Promise<Result<Option<AppConfigSnapshotProps>, DomainError>> {
+  ): Promise<Result<Option<TemplateSnapshotProps>, DomainError>> {
     const operation = 'findById';
     const riskLevel = this.assessOperationRisk(operation);
     const correlationId =
       options?.correlationId ??
-      CorrelationUtil.generateForOperation('app-config-find-by-id');
+      CorrelationUtil.generateForOperation('template-find-by-id');
 
     const logContext = this.createLogContext(operation, correlationId, actor, {
       riskLevel,
-      targetId: id.value,
+      targetCode: code.value,
       customCorrelationId: !!options?.correlationId,
       source: options?.source,
       requestId: options?.requestId,
-      dataSource: 'in-memory-projector',
+      dataSource: 'redis-projector',
     });
 
     // Validate actor context with enhanced security logging
@@ -132,22 +225,27 @@ export class AppConfigReaderRepository implements IAppConfigReader {
       this.logger,
       operation,
       logContext,
-      { queryType: 'app-config_lookup', scope: 'in_memory_projection' },
+      { queryType: 'template_lookup', scope: 'redis_projection' },
     );
 
     try {
-      Log.debug(this.logger, 'Finding app-config by ID in shared store', {
+      // Generate cluster-safe Redis key
+      const redisKey = this.generateTemplateKey(actor.tenantId, code.value);
+
+      Log.debug(this.logger, 'Finding template by ID in Redis', {
         ...logContext,
         queryDetails: {
-          scope: 'shared_app_config_store',
-          method: 'appConfigStore.get',
+          scope: 'redis_hash',
+          method: 'redis.hgetall',
+          key: redisKey,
+          clusterSafe: true,
         },
       });
 
-      // Get projection from shared app-config store
-      const projection = appConfigStore.get(actor.tenantId, id.toString());
+      // Get template hash from Redis
+      const hashData = await this.redis.hgetall(redisKey);
 
-      if (!projection) {
+      if (!hashData || Object.keys(hashData).length === 0) {
         RepositoryLoggingUtil.logQueryMetrics(
           this.logger,
           operation,
@@ -157,23 +255,24 @@ export class AppConfigReaderRepository implements IAppConfigReader {
             dataQuality: 'empty',
           },
         );
-        return Promise.resolve(ok(Option.none()));
+        return ok(Option.none());
       }
 
-      // Map projection to AppConfigSnapshot
-      const appConfigSnapshot: AppConfigSnapshotProps = {
-        id: projection.id,
-        workspaceId: projection.workspaceId,
-        maxRetryAttempts: projection.maxRetryAttempts,
-        retryBackoffSeconds: projection.retryBackoffSeconds,
-        defaultLocale: projection.defaultLocale,
-        loggingEnabled: projection.loggingEnabled,
-        auditChannelId: projection.auditChannelId,
-        metadata: projection.metadata,
-        version: projection.version,
-        createdAt: projection.createdAt,
-        updatedAt: projection.updatedAt,
-      };
+      // Parse Redis hash to TemplateSnapshot
+      const templateSnapshot = this.parseRedisHashToTemplate(hashData);
+
+      if (!templateSnapshot) {
+        RepositoryLoggingUtil.logQueryMetrics(
+          this.logger,
+          operation,
+          logContext,
+          {
+            resultCount: 0,
+            dataQuality: 'error',
+          },
+        );
+        return ok(Option.none());
+      }
 
       // Log query metrics using shared utility
       RepositoryLoggingUtil.logQueryMetrics(
@@ -184,13 +283,13 @@ export class AppConfigReaderRepository implements IAppConfigReader {
           resultCount: 1,
           dataQuality: 'good',
           sampleData: {
-            id: appConfigSnapshot.id,
-            version: appConfigSnapshot.version,
+            code: templateSnapshot.code,
+            version: templateSnapshot.version,
           },
         },
       );
 
-      return Promise.resolve(ok(Option.some(appConfigSnapshot)));
+      return ok(Option.some(templateSnapshot));
     } catch (error) {
       // Log operation error using shared utility
       RepositoryLoggingUtil.logOperationError(
@@ -207,30 +306,30 @@ export class AppConfigReaderRepository implements IAppConfigReader {
   }
 
   /**
-   * Check if a app-config exists by ID (for write-path validation)
+   * Check if a template exists by ID (for write-path validation)
    * @param actor - The authenticated user context
-   * @param id - The unique identifier of the AppConfig
+   * @param code - The unique identifier of the Template
    * @param options - Optional repository options
    * @returns Result containing boolean indicating existence
    */
   async exists(
     actor: ActorContext,
-    id: AppConfigId,
+    code: TemplateCode,
     options?: RepositoryOptions,
   ): Promise<Result<boolean, DomainError>> {
     const operation = 'exists';
     const riskLevel = this.assessOperationRisk(operation);
     const correlationId =
       options?.correlationId ??
-      CorrelationUtil.generateForOperation('app-config-exists-check');
+      CorrelationUtil.generateForOperation('template-exists-check');
 
     const logContext = this.createLogContext(operation, correlationId, actor, {
       riskLevel,
-      targetId: id.value,
+      targetCode: code.value,
       customCorrelationId: !!options?.correlationId,
       source: options?.source,
       requestId: options?.requestId,
-      dataSource: 'in-memory-projector',
+      dataSource: 'redis-projector',
     });
 
     // Validate actor context
@@ -246,21 +345,32 @@ export class AppConfigReaderRepository implements IAppConfigReader {
       this.logger,
       operation,
       logContext,
-      { queryType: 'existence_check', scope: 'in_memory_projection' },
+      { queryType: 'existence_check', scope: 'redis_projection' },
     );
 
     try {
-      Log.debug(this.logger, 'Checking app-config existence in shared store', {
+      // Generate cluster-safe Redis key
+      const redisKey = this.generateTemplateKey(actor.tenantId!, code.value);
+
+      Log.debug(this.logger, 'Checking template existence in Redis', {
         ...logContext,
         queryDetails: {
-          scope: 'shared_app_config_store',
-          method: 'appConfigStore.has',
+          scope: 'redis_hash',
+          method: 'redis.exists',
+          key: redisKey,
           optimized: true,
         },
       });
 
-      // Check existence in shared app-config store
-      const exists = appConfigStore.has(actor.tenantId!, id.toString());
+      // Check existence in Redis and verify not soft-deleted
+      const exists = await this.redis.exists(redisKey);
+      let isActive = false;
+
+      if (exists) {
+        // Additional check for soft deletion
+        const deletedAt = await this.redis.hget(redisKey, 'deletedAt');
+        isActive = !deletedAt;
+      }
 
       // Log query metrics using shared utility
       RepositoryLoggingUtil.logQueryMetrics(
@@ -268,13 +378,13 @@ export class AppConfigReaderRepository implements IAppConfigReader {
         operation,
         logContext,
         {
-          resultCount: exists ? 1 : 0,
+          resultCount: isActive ? 1 : 0,
           dataQuality: 'good',
-          sampleData: { exists, id: id.toString() },
+          sampleData: { exists: isActive, code: code.value },
         },
       );
 
-      return Promise.resolve(ok(exists));
+      return ok(isActive);
     } catch (error) {
       // Log operation error using shared utility
       RepositoryLoggingUtil.logOperationError(
@@ -291,30 +401,30 @@ export class AppConfigReaderRepository implements IAppConfigReader {
   }
 
   /**
-   * Get app-config version for optimistic concurrency control
+   * Get template version for optimistic concurrency control
    * @param actor - The authenticated user context
-   * @param id - The unique identifier of the AppConfig
+   * @param code - The unique identifier of the Template
    * @param options - Optional repository options
    * @returns Result containing version number or null if not found
    */
   async getVersion(
     actor: ActorContext,
-    id: AppConfigId,
+    code: TemplateCode,
     options?: RepositoryOptions,
   ): Promise<Result<Option<number>, DomainError>> {
     const operation = 'getVersion';
     const riskLevel = this.assessOperationRisk(operation);
     const correlationId =
       options?.correlationId ??
-      CorrelationUtil.generateForOperation('app-config-get-version');
+      CorrelationUtil.generateForOperation('template-get-version');
 
     const logContext = this.createLogContext(operation, correlationId, actor, {
       riskLevel,
-      targetId: id.value,
+      targetCode: code.value,
       customCorrelationId: !!options?.correlationId,
       source: options?.source,
       requestId: options?.requestId,
-      dataSource: 'in-memory-projector',
+      dataSource: 'redis-projector',
     });
 
     // Validate actor context
@@ -330,23 +440,32 @@ export class AppConfigReaderRepository implements IAppConfigReader {
       this.logger,
       operation,
       logContext,
-      { queryType: 'version_lookup', scope: 'in_memory_projection' },
+      { queryType: 'version_lookup', scope: 'redis_projection' },
     );
 
     try {
-      Log.debug(this.logger, 'Getting app-config version from shared store', {
+      // Generate cluster-safe Redis key
+      const redisKey = this.generateTemplateKey(actor.tenantId!, code.value);
+
+      Log.debug(this.logger, 'Getting template version from Redis', {
         ...logContext,
         queryDetails: {
-          scope: 'shared_app_config_store',
-          method: 'appConfigStore.get',
+          scope: 'redis_hash',
+          method: 'redis.hmget',
+          key: redisKey,
+          fields: ['version', 'deletedAt'],
           optimized: true,
         },
       });
 
-      // Get projection from shared app-config store
-      const projection = appConfigStore.get(actor.tenantId!, id.toString());
+      // Get version and deletion status from Redis efficiently
+      const [versionStr, deletedAt] = await this.redis.hmget(
+        redisKey,
+        'version',
+        'deletedAt',
+      );
 
-      if (!projection || projection.deletedAt) {
+      if (!versionStr || deletedAt) {
         RepositoryLoggingUtil.logQueryMetrics(
           this.logger,
           operation,
@@ -356,10 +475,10 @@ export class AppConfigReaderRepository implements IAppConfigReader {
             dataQuality: 'empty',
           },
         );
-        return Promise.resolve(ok(Option.none()));
+        return ok(Option.none());
       }
 
-      const version = projection.version;
+      const version = parseInt(versionStr, 10);
 
       // Log query metrics using shared utility
       RepositoryLoggingUtil.logQueryMetrics(
@@ -369,11 +488,11 @@ export class AppConfigReaderRepository implements IAppConfigReader {
         {
           resultCount: 1,
           dataQuality: 'good',
-          sampleData: { id: id.value, version },
+          sampleData: { code: code.value, version },
         },
       );
 
-      return Promise.resolve(ok(Option.some(version)));
+      return ok(Option.some(version));
     } catch (error) {
       // Log operation error using shared utility
       RepositoryLoggingUtil.logOperationError(
@@ -390,30 +509,30 @@ export class AppConfigReaderRepository implements IAppConfigReader {
   }
 
   /**
-   * Get minimal app-config data for write-path operations
+   * Get minimal template data for write-path operations
    * @param actor - The authenticated user context
-   * @param id - The unique identifier of the AppConfig
+   * @param code - The unique identifier of the Template
    * @param options - Optional repository options
-   * @returns Result containing minimal app-config data or null if not found
+   * @returns Result containing minimal template data or null if not found
    */
   async getMinimal(
     actor: ActorContext,
-    id: AppConfigId,
+    code: TemplateCode,
     options?: RepositoryOptions,
-  ): Promise<Result<Option<{ id: number; version: number }>, DomainError>> {
+  ): Promise<Result<Option<{ code: string; version: number }>, DomainError>> {
     const operation = 'getMinimal';
     const riskLevel = this.assessOperationRisk(operation);
     const correlationId =
       options?.correlationId ??
-      CorrelationUtil.generateForOperation('app-config-get-minimal');
+      CorrelationUtil.generateForOperation('template-get-minimal');
 
     const logContext = this.createLogContext(operation, correlationId, actor, {
       riskLevel,
-      targetId: id.value,
+      targetCode: code.value,
       customCorrelationId: !!options?.correlationId,
       source: options?.source,
       requestId: options?.requestId,
-      dataSource: 'in-memory-projector',
+      dataSource: 'redis-projector',
     });
 
     // Validate actor context
@@ -429,27 +548,33 @@ export class AppConfigReaderRepository implements IAppConfigReader {
       this.logger,
       operation,
       logContext,
-      { queryType: 'minimal_lookup', scope: 'in_memory_projection' },
+      { queryType: 'minimal_lookup', scope: 'redis_projection' },
     );
 
     try {
-      Log.debug(
-        this.logger,
-        'Getting minimal app-config data from shared store',
-        {
-          ...logContext,
-          queryDetails: {
-            scope: 'shared_app_config_store',
-            method: 'appConfigStore.get',
-            optimized: true,
-          },
+      // Generate cluster-safe Redis key
+      const redisKey = this.generateTemplateKey(actor.tenantId!, code.value);
+
+      Log.debug(this.logger, 'Getting minimal template data from Redis', {
+        ...logContext,
+        queryDetails: {
+          scope: 'redis_hash',
+          method: 'redis.hmget',
+          key: redisKey,
+          fields: ['code', 'version', 'deletedAt'],
+          optimized: true,
         },
+      });
+
+      // Get minimal fields from Redis efficiently
+      const [codeStr, versionStr, deletedAt] = await this.redis.hmget(
+        redisKey,
+        'code',
+        'version',
+        'deletedAt',
       );
 
-      // Get projection from shared app-config store
-      const projection = appConfigStore.get(actor.tenantId!, id.toString());
-
-      if (!projection || projection.deletedAt) {
+      if (!codeStr || !versionStr || deletedAt) {
         RepositoryLoggingUtil.logQueryMetrics(
           this.logger,
           operation,
@@ -463,8 +588,8 @@ export class AppConfigReaderRepository implements IAppConfigReader {
       }
 
       const minimal = {
-        id: projection.id,
-        version: projection.version,
+        code: codeStr,
+        version: parseInt(versionStr, 10),
       };
 
       // Log query metrics using shared utility
@@ -479,7 +604,7 @@ export class AppConfigReaderRepository implements IAppConfigReader {
         },
       );
 
-      return Promise.resolve(ok(Option.some(minimal)));
+      return ok(Option.some(minimal));
     } catch (error) {
       // Log operation error using shared utility
       RepositoryLoggingUtil.logOperationError(
@@ -491,7 +616,7 @@ export class AppConfigReaderRepository implements IAppConfigReader {
       );
 
       // Handle and return the classified error using shared utility
-      return Promise.resolve(handleRepositoryError(error));
+      return handleRepositoryError(error);
     }
   }
 }

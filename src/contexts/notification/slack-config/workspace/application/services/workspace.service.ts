@@ -36,7 +36,6 @@ import { WorkspaceAuthContext } from '../types/workspace-auth-context';
 import {
   ICreateWorkspaceUseCase,
   IUpdateWorkspaceUseCase,
-  IDeleteWorkspaceUseCase,
   IGetWorkspaceUseCase,
 } from '../use-cases/contracts';
 
@@ -51,7 +50,6 @@ export class WorkspaceApplicationService {
     private readonly workspaceAuthorizationService: WorkspaceAuthorizationService,
     private readonly createWorkspaceUseCase: ICreateWorkspaceUseCase,
     private readonly updateWorkspaceUseCase: IUpdateWorkspaceUseCase,
-    private readonly deleteWorkspaceUseCase: IDeleteWorkspaceUseCase,
     private readonly getWorkspaceUseCase: IGetWorkspaceUseCase,
     @Inject(CLOCK) private readonly clock: Clock,
     @Inject(APP_LOGGER) moduleLogger: Logger,
@@ -121,7 +119,7 @@ export class WorkspaceApplicationService {
    * Centralized auth → log → execute → catch pattern
    */
   private async authorizeThenExecute<T>(args: {
-    operation: 'create' | 'update' | 'delete' | 'read';
+    operation: 'create' | 'update' | 'read';
     user: IUserToken;
     id?: string;
     correlationIdPrefix: string;
@@ -295,58 +293,6 @@ export class WorkspaceApplicationService {
           }),
         }),
       logContext: { id: validatedid },
-    });
-  }
-
-  /**
-   * Delete a workspace with authorization
-   */
-  async deleteWorkspace(
-    user: IUserToken,
-    id: string,
-  ): Promise<Result<void, DomainError>> {
-    // Early input validation
-    const idValidation = this.validateId(id, 'delete');
-    if (!idValidation.ok) {
-      return err(idValidation.error);
-    }
-
-    const validatedid = idValidation.value;
-    const authContext = this.createAuthContext(user, 'delete');
-
-    return this.authorizeThenExecute<void>({
-      operation: 'delete',
-      user,
-      id: validatedid,
-      correlationIdPrefix: 'workspace-delete',
-      doAuthorize: () =>
-        this.workspaceAuthorizationService.canDeleteWorkspace(
-          user.sub,
-          validatedid,
-          CorrelationUtil.generateForOperation('workspace-delete'),
-          authContext,
-        ),
-      doExecute: () => {
-        // Log high-risk operation before execution
-        Log.warn(
-          this.logger,
-          'Workspace deletion authorized - HIGH RISK OPERATION',
-          {
-            id: validatedid,
-            userId: user.sub,
-            riskLevel: 'HIGH',
-            operation: 'delete_workspace',
-          },
-        );
-        return this.deleteWorkspaceUseCase.execute({
-          user,
-          id: validatedid,
-          correlationId:
-            CorrelationUtil.generateForOperation('workspace-delete'),
-          authorizationReason: 'delete_workspace',
-        });
-      },
-      logContext: { id: validatedid, riskLevel: 'HIGH' },
     });
   }
 

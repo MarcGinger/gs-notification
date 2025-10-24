@@ -7,7 +7,6 @@ import {
   Post,
   Body,
   Patch,
-  Delete,
   HttpStatus,
   HttpCode,
   Param,
@@ -40,7 +39,6 @@ import {
   ChannelReadResource,
   ChannelCreateResource,
   ChannelUpdateResource,
-  ChannelDeleteResource,
 } from '../../channel.resource';
 import { ApiCommonErrors } from 'src/shared/interfaces/http';
 
@@ -174,31 +172,6 @@ export class ChannelController {
       updateChannelRequest,
     );
 
-    return result;
-  }
-
-  @Delete(':id')
-  @ChannelDeleteResource()
-  @HttpCode(HttpStatus.NO_CONTENT)
-  @ApiOperation({
-    summary: 'Delete a Channel',
-    description:
-      'Soft-deletes a Channel (marks as deleted). Requires DELETE permission (HIGH risk, justification required).',
-  })
-  @ApiParam({
-    name: 'id',
-    type: 'string',
-    description: 'Channel unique identifier',
-  })
-  @ApiCommonErrors()
-  @ApiNoContentResponse({
-    description: 'Channel deleted successfully. No content returned.',
-  })
-  async remove(
-    @CurrentUser() user: IUserToken,
-    @Param('id') id: string,
-  ): Promise<Result<void, DomainError>> {
-    const result = await this.channelApplicationService.deleteChannel(user, id);
     return result;
   }
 }

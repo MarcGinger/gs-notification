@@ -1,1 +1,1 @@
-export * from './template-memory.projector';
+export * from './template-redis.projector';

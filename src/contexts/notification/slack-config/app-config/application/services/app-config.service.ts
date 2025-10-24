@@ -36,7 +36,6 @@ import { AppConfigAuthContext } from '../types/app-config-auth-context';
 import {
   ICreateAppConfigUseCase,
   IUpdateAppConfigUseCase,
-  IDeleteAppConfigUseCase,
   IGetAppConfigUseCase,
 } from '../use-cases/contracts';
 
@@ -51,7 +50,6 @@ export class AppConfigApplicationService {
     private readonly appConfigAuthorizationService: AppConfigAuthorizationService,
     private readonly createAppConfigUseCase: ICreateAppConfigUseCase,
     private readonly updateAppConfigUseCase: IUpdateAppConfigUseCase,
-    private readonly deleteAppConfigUseCase: IDeleteAppConfigUseCase,
     private readonly getAppConfigUseCase: IGetAppConfigUseCase,
     @Inject(CLOCK) private readonly clock: Clock,
     @Inject(APP_LOGGER) moduleLogger: Logger,
@@ -111,7 +109,7 @@ export class AppConfigApplicationService {
    * Centralized auth → log → execute → catch pattern
    */
   private async authorizeThenExecute<T>(args: {
-    operation: 'create' | 'update' | 'delete' | 'read';
+    operation: 'create' | 'update' | 'read';
     user: IUserToken;
     id?: number;
     correlationIdPrefix: string;
@@ -285,58 +283,6 @@ export class AppConfigApplicationService {
           }),
         }),
       logContext: { id: validatedid },
-    });
-  }
-
-  /**
-   * Delete a appConfig with authorization
-   */
-  async deleteAppConfig(
-    user: IUserToken,
-    id: number,
-  ): Promise<Result<void, DomainError>> {
-    // Early input validation
-    const idValidation = this.validateId(id, 'delete');
-    if (!idValidation.ok) {
-      return err(idValidation.error);
-    }
-
-    const validatedid = idValidation.value;
-    const authContext = this.createAuthContext(user, 'delete');
-
-    return this.authorizeThenExecute<void>({
-      operation: 'delete',
-      user,
-      id: validatedid,
-      correlationIdPrefix: 'app-config-delete',
-      doAuthorize: () =>
-        this.appConfigAuthorizationService.canDeleteAppConfig(
-          user.sub,
-          String(validatedid),
-          CorrelationUtil.generateForOperation('app-config-delete'),
-          authContext,
-        ),
-      doExecute: () => {
-        // Log high-risk operation before execution
-        Log.warn(
-          this.logger,
-          'AppConfig deletion authorized - HIGH RISK OPERATION',
-          {
-            id: validatedid,
-            userId: user.sub,
-            riskLevel: 'HIGH',
-            operation: 'delete_app_config',
-          },
-        );
-        return this.deleteAppConfigUseCase.execute({
-          user,
-          id: validatedid,
-          correlationId:
-            CorrelationUtil.generateForOperation('app-config-delete'),
-          authorizationReason: 'delete_app_config',
-        });
-      },
-      logContext: { id: validatedid, riskLevel: 'HIGH' },
     });
   }
 

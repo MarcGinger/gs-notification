@@ -7,7 +7,6 @@ import {
   Post,
   Body,
   Patch,
-  Delete,
   HttpStatus,
   HttpCode,
   Param,
@@ -40,7 +39,6 @@ import {
   WorkspaceReadResource,
   WorkspaceCreateResource,
   WorkspaceUpdateResource,
-  WorkspaceDeleteResource,
 } from '../../workspace.resource';
 import { ApiCommonErrors } from 'src/shared/interfaces/http';
 
@@ -174,34 +172,6 @@ export class WorkspaceController {
       updateWorkspaceRequest,
     );
 
-    return result;
-  }
-
-  @Delete(':id')
-  @WorkspaceDeleteResource()
-  @HttpCode(HttpStatus.NO_CONTENT)
-  @ApiOperation({
-    summary: 'Delete a Workspace',
-    description:
-      'Soft-deletes a Workspace (marks as deleted). Requires DELETE permission (HIGH risk, justification required).',
-  })
-  @ApiParam({
-    name: 'id',
-    type: 'string',
-    description: 'Workspace unique identifier',
-  })
-  @ApiCommonErrors()
-  @ApiNoContentResponse({
-    description: 'Workspace deleted successfully. No content returned.',
-  })
-  async remove(
-    @CurrentUser() user: IUserToken,
-    @Param('id') id: string,
-  ): Promise<Result<void, DomainError>> {
-    const result = await this.workspaceApplicationService.deleteWorkspace(
-      user,
-      id,
-    );
     return result;
   }
 }

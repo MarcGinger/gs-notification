@@ -15,8 +15,6 @@ import {
   CreateChannelUseCase,
   IUpdateChannelUseCase,
   UpdateChannelUseCase,
-  IDeleteChannelUseCase,
-  DeleteChannelUseCase,
   IGetChannelUseCase,
   GetChannelUseCase,
 } from './application/use-cases';
@@ -76,10 +74,6 @@ import {
     {
       provide: IUpdateChannelUseCase,
       useClass: UpdateChannelUseCase,
-    },
-    {
-      provide: IDeleteChannelUseCase,
-      useClass: DeleteChannelUseCase,
     },
     {
       provide: IGetChannelUseCase,

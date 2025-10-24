@@ -1,1 +1,1 @@
-export * from './workspace-memory.projector';
+export * from './workspace-redis.projector';

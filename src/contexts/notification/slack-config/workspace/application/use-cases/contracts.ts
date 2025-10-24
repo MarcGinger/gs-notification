@@ -46,15 +46,6 @@ export abstract class IUpsertWorkspaceUseCase {
   }): Promise<Result<DetailWorkspaceResponse, DomainError>>;
 }
 
-export abstract class IDeleteWorkspaceUseCase {
-  abstract execute(params: {
-    user: IUserToken;
-    id: string;
-    correlationId: string;
-    authorizationReason: string;
-  }): Promise<Result<void, DomainError>>;
-}
-
 export abstract class IGetWorkspaceUseCase {
   abstract execute(params: {
     user: IUserToken;

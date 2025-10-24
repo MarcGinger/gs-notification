@@ -7,7 +7,6 @@ import {
   Post,
   Body,
   Patch,
-  Delete,
   HttpStatus,
   HttpCode,
   Param,
@@ -40,7 +39,6 @@ import {
   TemplateReadResource,
   TemplateCreateResource,
   TemplateUpdateResource,
-  TemplateDeleteResource,
 } from '../../template.resource';
 import { ApiCommonErrors } from 'src/shared/interfaces/http';
 
@@ -174,34 +172,6 @@ export class TemplateController {
       updateTemplateRequest,
     );
 
-    return result;
-  }
-
-  @Delete(':code')
-  @TemplateDeleteResource()
-  @HttpCode(HttpStatus.NO_CONTENT)
-  @ApiOperation({
-    summary: 'Delete a Template',
-    description:
-      'Soft-deletes a Template (marks as deleted). Requires DELETE permission (HIGH risk, justification required).',
-  })
-  @ApiParam({
-    name: 'code',
-    type: 'string',
-    description: 'Template unique identifier',
-  })
-  @ApiCommonErrors()
-  @ApiNoContentResponse({
-    description: 'Template deleted successfully. No content returned.',
-  })
-  async remove(
-    @CurrentUser() user: IUserToken,
-    @Param('code') code: string,
-  ): Promise<Result<void, DomainError>> {
-    const result = await this.templateApplicationService.deleteTemplate(
-      user,
-      code,
-    );
     return result;
   }
 }

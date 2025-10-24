@@ -2,6 +2,8 @@
 // REMOVE THIS COMMENT TO STOP AUTOMATIC UPDATES TO THIS BLOCK
 
 import { Injectable, Inject } from '@nestjs/common';
+import { Redis } from 'ioredis';
+import { CacheMetricsCollector } from 'src/shared/infrastructure/projections/cache-optimization';
 import { APP_LOGGER, Log, componentLogger, Logger } from 'src/shared/logging';
 import { CorrelationUtil } from 'src/shared/utilities/correlation.util';
 import { Clock, CLOCK } from 'src/shared/infrastructure/time';
@@ -9,49 +11,133 @@ import {
   RepositoryLoggingUtil,
   RepositoryLoggingConfig,
   handleRepositoryError,
+  safeParseJSON,
+  safeParseJSONArray,
   RepositoryOptions,
 } from 'src/shared/infrastructure/repositories';
 import { Result, DomainError, err, ok } from 'src/shared/errors';
 import { Option } from 'src/shared/domain/types';
 import { ActorContext } from 'src/shared/application/context';
 import { RepositoryErrorFactory } from 'src/shared/domain/errors/repository.error';
-import { TemplateSnapshotProps } from '../../domain/props';
-import { TemplateCode } from '../../domain/value-objects';
-import { ITemplateReader } from '../../application/ports';
-import { templateStore } from '../stores/template.store';
+import { SLACK_CONFIG_DI_TOKENS } from '../../../slack-config.constants';
+import { ChannelSnapshotProps } from '../../domain/props';
+import { ChannelId } from '../../domain/value-objects';
+import { IChannelReader } from '../../application/ports';
 
 /**
- * Template Reader Repository - In-Memory Implementation
+ * Channel Reader Repository - Redis Implementation
  *
- * Bounded Context: Notification/Template
- * Handles basic read operations for Template aggregates using in-memory projector
- * as the data source instead of SQL queries.
+ * Bounded Context: Notification/Channel
+ * Handles basic read operations for Channel aggregates using Redis projections
+ * as the data source with cluster-safe operations.
  *
  * Benefits:
- * - Zero external database dependencies
- * - Ultra-fast read operations (LRU cache)
- * - Perfect for testing, prototyping, and shadow validation
+ * - High-performance Redis backend
+ * - Cluster-safe operations with hash tags
+ * - Version hint optimization for cache efficiency
  * - Maintains same interface as SQL-based implementation
  * - Comprehensive logging and error handling
  *
- * @domain Notification Context - Template Reader Repository (In-Memory)
+ * @domain Notification Context - Channel Reader Repository (Redis)
  * @layer Infrastructure
- * @pattern Repository Pattern + In-Memory Projector
+ * @pattern Repository Pattern + Redis Projector
  */
 @Injectable()
-export class TemplateReaderRepository implements ITemplateReader {
+export class ChannelReaderRepository implements IChannelReader {
   private readonly logger: Logger;
   private readonly loggingConfig: RepositoryLoggingConfig;
+  private readonly metricsCollector = new CacheMetricsCollector();
 
   constructor(
     @Inject(APP_LOGGER) baseLogger: Logger,
     @Inject(CLOCK) private readonly clock: Clock,
+    @Inject(SLACK_CONFIG_DI_TOKENS.IO_REDIS)
+    private readonly redis: Redis,
   ) {
     this.loggingConfig = {
       serviceName: 'SlackConfigService',
-      component: 'TemplateReaderRepository',
+      component: 'ChannelReaderRepository',
     };
     this.logger = componentLogger(baseLogger, this.loggingConfig.component);
+
+    Log.info(
+      this.logger,
+      'ChannelReaderRepository initialized with Redis backend',
+      {
+        component: this.loggingConfig.component,
+        redisStatus: this.redis.status,
+        clusterSafe: true,
+        cacheOptimized: true,
+      },
+    );
+  }
+
+  /**
+   * Generate cluster-safe Redis keys with hash tags for locality
+   * Uses same pattern as ChannelProjector for consistency
+   */
+  private generateChannelKey(tenantId: string, id: string): string {
+    // ✅ Hash-tags ensure key routes to same Redis Cluster slot as projector
+    return `channel-projector:{${tenantId}}:channel:${id}`;
+  }
+
+  /**
+   * Parse Redis hash data into ChannelSnapshotProps
+   */
+  private parseRedisHashToChannel(
+    hashData: Record<string, string>,
+  ): ChannelSnapshotProps | null {
+    try {
+      if (!hashData || Object.keys(hashData).length === 0) {
+        return null;
+      }
+
+      // Check for soft deletion
+      if (hashData.deletedAt) {
+        return null;
+      }
+
+      // Parse array fields using safeParseJSONArray utility (following product-query.repository.ts pattern)
+      const workspaceId = safeParseJSONArray(
+        hashData.workspaceId,
+        'workspaceId',
+        (x): x is string => typeof x === 'string',
+      );
+
+      // Parse object fields using safeParseJSON utility (following product-query.repository.ts pattern)
+      const subscribedEvents = safeParseJSON<Record<string, unknown>>(
+        hashData.subscribedEvents,
+        'subscribedEvents',
+      );
+
+      // Extract basic fields directly from hash data (following product-query.repository.ts pattern)
+
+      return {
+        id: hashData.id,
+        name: hashData.name,
+        workspaceId,
+        isPrivate: hashData.isPrivate === 'true',
+        isDm: hashData.isDm === 'true',
+        topic: hashData.topic || undefined,
+        purpose: hashData.purpose || undefined,
+        subscribedEvents,
+        enabled: hashData.enabled === 'true',
+        version: parseInt(hashData.version, 10),
+        createdAt: new Date(hashData.createdAt),
+        updatedAt: new Date(hashData.updatedAt),
+      };
+    } catch (error) {
+      Log.error(
+        this.logger,
+        'Failed to parse Redis hash data to ChannelSnapshot',
+        {
+          method: 'parseRedisHashToChannel',
+          error: (error as Error).message,
+          id: hashData?.id,
+        },
+      );
+      return null;
+    }
   }
 
   /**
@@ -81,30 +167,30 @@ export class TemplateReaderRepository implements ITemplateReader {
   }
 
   /**
-   * Find a Template by its unique identifier
+   * Find a Channel by its unique identifier
    * @param actor - The authenticated user context
-   * @param code - The unique identifier of the Template
+   * @param id - The unique identifier of the Channel
    * @param options - Optional repository options
-   * @returns Result containing the Template snapshot or null if not found
+   * @returns Result containing the Channel snapshot or null if not found
    */
   async findById(
     actor: ActorContext,
-    code: TemplateCode,
+    id: ChannelId,
     options?: RepositoryOptions,
-  ): Promise<Result<Option<TemplateSnapshotProps>, DomainError>> {
+  ): Promise<Result<Option<ChannelSnapshotProps>, DomainError>> {
     const operation = 'findById';
     const riskLevel = this.assessOperationRisk(operation);
     const correlationId =
       options?.correlationId ??
-      CorrelationUtil.generateForOperation('template-find-by-id');
+      CorrelationUtil.generateForOperation('channel-find-by-id');
 
     const logContext = this.createLogContext(operation, correlationId, actor, {
       riskLevel,
-      targetCode: code.value,
+      targetId: id.value,
       customCorrelationId: !!options?.correlationId,
       source: options?.source,
       requestId: options?.requestId,
-      dataSource: 'in-memory-projector',
+      dataSource: 'redis-projector',
     });
 
     // Validate actor context with enhanced security logging
@@ -132,22 +218,27 @@ export class TemplateReaderRepository implements ITemplateReader {
       this.logger,
       operation,
       logContext,
-      { queryType: 'template_lookup', scope: 'in_memory_projection' },
+      { queryType: 'channel_lookup', scope: 'redis_projection' },
     );
 
     try {
-      Log.debug(this.logger, 'Finding template by ID in shared store', {
+      // Generate cluster-safe Redis key
+      const redisKey = this.generateChannelKey(actor.tenantId, id.value);
+
+      Log.debug(this.logger, 'Finding channel by ID in Redis', {
         ...logContext,
         queryDetails: {
-          scope: 'shared_template_store',
-          method: 'templateStore.get',
+          scope: 'redis_hash',
+          method: 'redis.hgetall',
+          key: redisKey,
+          clusterSafe: true,
         },
       });
 
-      // Get projection from shared template store
-      const projection = templateStore.get(actor.tenantId, code.value);
+      // Get channel hash from Redis
+      const hashData = await this.redis.hgetall(redisKey);
 
-      if (!projection) {
+      if (!hashData || Object.keys(hashData).length === 0) {
         RepositoryLoggingUtil.logQueryMetrics(
           this.logger,
           operation,
@@ -157,35 +248,24 @@ export class TemplateReaderRepository implements ITemplateReader {
             dataQuality: 'empty',
           },
         );
-        return Promise.resolve(ok(Option.none()));
+        return ok(Option.none());
       }
 
-      // Validate that we have all required fields
-      if (!projection.contentBlocks) {
-        return Promise.resolve(
-          err(
-            RepositoryErrorFactory.validationError(
-              'contentBlocks',
-              'Missing required contentBlocks configuration in projection',
-            ),
-          ),
+      // Parse Redis hash to ChannelSnapshot
+      const channelSnapshot = this.parseRedisHashToChannel(hashData);
+
+      if (!channelSnapshot) {
+        RepositoryLoggingUtil.logQueryMetrics(
+          this.logger,
+          operation,
+          logContext,
+          {
+            resultCount: 0,
+            dataQuality: 'error',
+          },
         );
+        return ok(Option.none());
       }
-
-      // Map projection to TemplateSnapshot
-      const templateSnapshot: TemplateSnapshotProps = {
-        code: projection.code,
-        workspaceId: projection.workspaceId,
-        name: projection.name,
-        description: projection.description,
-        contentBlocks: projection.contentBlocks,
-        variables: projection.variables,
-        samplePayload: projection.samplePayload,
-        enabled: projection.enabled,
-        version: projection.version,
-        createdAt: projection.createdAt,
-        updatedAt: projection.updatedAt,
-      };
 
       // Log query metrics using shared utility
       RepositoryLoggingUtil.logQueryMetrics(
@@ -196,13 +276,13 @@ export class TemplateReaderRepository implements ITemplateReader {
           resultCount: 1,
           dataQuality: 'good',
           sampleData: {
-            code: templateSnapshot.code,
-            version: templateSnapshot.version,
+            id: channelSnapshot.id,
+            version: channelSnapshot.version,
           },
         },
       );
 
-      return Promise.resolve(ok(Option.some(templateSnapshot)));
+      return ok(Option.some(channelSnapshot));
     } catch (error) {
       // Log operation error using shared utility
       RepositoryLoggingUtil.logOperationError(
@@ -219,30 +299,30 @@ export class TemplateReaderRepository implements ITemplateReader {
   }
 
   /**
-   * Check if a template exists by ID (for write-path validation)
+   * Check if a channel exists by ID (for write-path validation)
    * @param actor - The authenticated user context
-   * @param code - The unique identifier of the Template
+   * @param id - The unique identifier of the Channel
    * @param options - Optional repository options
    * @returns Result containing boolean indicating existence
    */
   async exists(
     actor: ActorContext,
-    code: TemplateCode,
+    id: ChannelId,
     options?: RepositoryOptions,
   ): Promise<Result<boolean, DomainError>> {
     const operation = 'exists';
     const riskLevel = this.assessOperationRisk(operation);
     const correlationId =
       options?.correlationId ??
-      CorrelationUtil.generateForOperation('template-exists-check');
+      CorrelationUtil.generateForOperation('channel-exists-check');
 
     const logContext = this.createLogContext(operation, correlationId, actor, {
       riskLevel,
-      targetCode: code.value,
+      targetId: id.value,
       customCorrelationId: !!options?.correlationId,
       source: options?.source,
       requestId: options?.requestId,
-      dataSource: 'in-memory-projector',
+      dataSource: 'redis-projector',
     });
 
     // Validate actor context
@@ -258,21 +338,32 @@ export class TemplateReaderRepository implements ITemplateReader {
       this.logger,
       operation,
       logContext,
-      { queryType: 'existence_check', scope: 'in_memory_projection' },
+      { queryType: 'existence_check', scope: 'redis_projection' },
     );
 
     try {
-      Log.debug(this.logger, 'Checking template existence in shared store', {
+      // Generate cluster-safe Redis key
+      const redisKey = this.generateChannelKey(actor.tenantId!, id.value);
+
+      Log.debug(this.logger, 'Checking channel existence in Redis', {
         ...logContext,
         queryDetails: {
-          scope: 'shared_template_store',
-          method: 'templateStore.has',
+          scope: 'redis_hash',
+          method: 'redis.exists',
+          key: redisKey,
           optimized: true,
         },
       });
 
-      // Check existence in shared template store
-      const exists = templateStore.has(actor.tenantId!, code.value);
+      // Check existence in Redis and verify not soft-deleted
+      const exists = await this.redis.exists(redisKey);
+      let isActive = false;
+
+      if (exists) {
+        // Additional check for soft deletion
+        const deletedAt = await this.redis.hget(redisKey, 'deletedAt');
+        isActive = !deletedAt;
+      }
 
       // Log query metrics using shared utility
       RepositoryLoggingUtil.logQueryMetrics(
@@ -280,13 +371,13 @@ export class TemplateReaderRepository implements ITemplateReader {
         operation,
         logContext,
         {
-          resultCount: exists ? 1 : 0,
+          resultCount: isActive ? 1 : 0,
           dataQuality: 'good',
-          sampleData: { exists, code: code.value },
+          sampleData: { exists: isActive, id: id.value },
         },
       );
 
-      return Promise.resolve(ok(exists));
+      return ok(isActive);
     } catch (error) {
       // Log operation error using shared utility
       RepositoryLoggingUtil.logOperationError(
@@ -303,30 +394,30 @@ export class TemplateReaderRepository implements ITemplateReader {
   }
 
   /**
-   * Get template version for optimistic concurrency control
+   * Get channel version for optimistic concurrency control
    * @param actor - The authenticated user context
-   * @param code - The unique identifier of the Template
+   * @param id - The unique identifier of the Channel
    * @param options - Optional repository options
    * @returns Result containing version number or null if not found
    */
   async getVersion(
     actor: ActorContext,
-    code: TemplateCode,
+    id: ChannelId,
     options?: RepositoryOptions,
   ): Promise<Result<Option<number>, DomainError>> {
     const operation = 'getVersion';
     const riskLevel = this.assessOperationRisk(operation);
     const correlationId =
       options?.correlationId ??
-      CorrelationUtil.generateForOperation('template-get-version');
+      CorrelationUtil.generateForOperation('channel-get-version');
 
     const logContext = this.createLogContext(operation, correlationId, actor, {
       riskLevel,
-      targetCode: code.value,
+      targetId: id.value,
       customCorrelationId: !!options?.correlationId,
       source: options?.source,
       requestId: options?.requestId,
-      dataSource: 'in-memory-projector',
+      dataSource: 'redis-projector',
     });
 
     // Validate actor context
@@ -342,23 +433,32 @@ export class TemplateReaderRepository implements ITemplateReader {
       this.logger,
       operation,
       logContext,
-      { queryType: 'version_lookup', scope: 'in_memory_projection' },
+      { queryType: 'version_lookup', scope: 'redis_projection' },
     );
 
     try {
-      Log.debug(this.logger, 'Getting template version from shared store', {
+      // Generate cluster-safe Redis key
+      const redisKey = this.generateChannelKey(actor.tenantId!, id.value);
+
+      Log.debug(this.logger, 'Getting channel version from Redis', {
         ...logContext,
         queryDetails: {
-          scope: 'shared_template_store',
-          method: 'templateStore.get',
+          scope: 'redis_hash',
+          method: 'redis.hmget',
+          key: redisKey,
+          fields: ['version', 'deletedAt'],
           optimized: true,
         },
       });
 
-      // Get projection from shared template store
-      const projection = templateStore.get(actor.tenantId!, code.value);
+      // Get version and deletion status from Redis efficiently
+      const [versionStr, deletedAt] = await this.redis.hmget(
+        redisKey,
+        'version',
+        'deletedAt',
+      );
 
-      if (!projection || projection.deletedAt) {
+      if (!versionStr || deletedAt) {
         RepositoryLoggingUtil.logQueryMetrics(
           this.logger,
           operation,
@@ -368,10 +468,10 @@ export class TemplateReaderRepository implements ITemplateReader {
             dataQuality: 'empty',
           },
         );
-        return Promise.resolve(ok(Option.none()));
+        return ok(Option.none());
       }
 
-      const version = projection.version;
+      const version = parseInt(versionStr, 10);
 
       // Log query metrics using shared utility
       RepositoryLoggingUtil.logQueryMetrics(
@@ -381,11 +481,11 @@ export class TemplateReaderRepository implements ITemplateReader {
         {
           resultCount: 1,
           dataQuality: 'good',
-          sampleData: { code: code.value, version },
+          sampleData: { id: id.value, version },
         },
       );
 
-      return Promise.resolve(ok(Option.some(version)));
+      return ok(Option.some(version));
     } catch (error) {
       // Log operation error using shared utility
       RepositoryLoggingUtil.logOperationError(
@@ -402,30 +502,30 @@ export class TemplateReaderRepository implements ITemplateReader {
   }
 
   /**
-   * Get minimal template data for write-path operations
+   * Get minimal channel data for write-path operations
    * @param actor - The authenticated user context
-   * @param code - The unique identifier of the Template
+   * @param id - The unique identifier of the Channel
    * @param options - Optional repository options
-   * @returns Result containing minimal template data or null if not found
+   * @returns Result containing minimal channel data or null if not found
    */
   async getMinimal(
     actor: ActorContext,
-    code: TemplateCode,
+    id: ChannelId,
     options?: RepositoryOptions,
-  ): Promise<Result<Option<{ code: string; version: number }>, DomainError>> {
+  ): Promise<Result<Option<{ id: string; version: number }>, DomainError>> {
     const operation = 'getMinimal';
     const riskLevel = this.assessOperationRisk(operation);
     const correlationId =
       options?.correlationId ??
-      CorrelationUtil.generateForOperation('template-get-minimal');
+      CorrelationUtil.generateForOperation('channel-get-minimal');
 
     const logContext = this.createLogContext(operation, correlationId, actor, {
       riskLevel,
-      targetCode: code.value,
+      targetId: id.value,
       customCorrelationId: !!options?.correlationId,
       source: options?.source,
       requestId: options?.requestId,
-      dataSource: 'in-memory-projector',
+      dataSource: 'redis-projector',
     });
 
     // Validate actor context
@@ -441,27 +541,33 @@ export class TemplateReaderRepository implements ITemplateReader {
       this.logger,
       operation,
       logContext,
-      { queryType: 'minimal_lookup', scope: 'in_memory_projection' },
+      { queryType: 'minimal_lookup', scope: 'redis_projection' },
     );
 
     try {
-      Log.debug(
-        this.logger,
-        'Getting minimal template data from shared store',
-        {
-          ...logContext,
-          queryDetails: {
-            scope: 'shared_template_store',
-            method: 'templateStore.get',
-            optimized: true,
-          },
+      // Generate cluster-safe Redis key
+      const redisKey = this.generateChannelKey(actor.tenantId!, id.value);
+
+      Log.debug(this.logger, 'Getting minimal channel data from Redis', {
+        ...logContext,
+        queryDetails: {
+          scope: 'redis_hash',
+          method: 'redis.hmget',
+          key: redisKey,
+          fields: ['id', 'version', 'deletedAt'],
+          optimized: true,
         },
+      });
+
+      // Get minimal fields from Redis efficiently
+      const [idStr, versionStr, deletedAt] = await this.redis.hmget(
+        redisKey,
+        'id',
+        'version',
+        'deletedAt',
       );
 
-      // Get projection from shared template store
-      const projection = templateStore.get(actor.tenantId!, code.value);
-
-      if (!projection || projection.deletedAt) {
+      if (!idStr || !versionStr || deletedAt) {
         RepositoryLoggingUtil.logQueryMetrics(
           this.logger,
           operation,
@@ -475,8 +581,8 @@ export class TemplateReaderRepository implements ITemplateReader {
       }
 
       const minimal = {
-        code: projection.code,
-        version: projection.version,
+        id: idStr,
+        version: parseInt(versionStr, 10),
       };
 
       // Log query metrics using shared utility
@@ -491,7 +597,7 @@ export class TemplateReaderRepository implements ITemplateReader {
         },
       );
 
-      return Promise.resolve(ok(Option.some(minimal)));
+      return ok(Option.some(minimal));
     } catch (error) {
       // Log operation error using shared utility
       RepositoryLoggingUtil.logOperationError(
@@ -503,7 +609,7 @@ export class TemplateReaderRepository implements ITemplateReader {
       );
 
       // Handle and return the classified error using shared utility
-      return Promise.resolve(handleRepositoryError(error));
+      return handleRepositoryError(error);
     }
   }
 }

@@ -1,1 +1,1 @@
-export * from './channel-memory.projector';
+export * from './channel-redis.projector';

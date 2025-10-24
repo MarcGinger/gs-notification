@@ -14,8 +14,6 @@ import {
   CreateWorkspaceUseCase,
   IUpdateWorkspaceUseCase,
   UpdateWorkspaceUseCase,
-  IDeleteWorkspaceUseCase,
-  DeleteWorkspaceUseCase,
   IGetWorkspaceUseCase,
   GetWorkspaceUseCase,
 } from './application/use-cases';
@@ -66,10 +64,6 @@ import {
     {
       provide: IUpdateWorkspaceUseCase,
       useClass: UpdateWorkspaceUseCase,
-    },
-    {
-      provide: IDeleteWorkspaceUseCase,
-      useClass: DeleteWorkspaceUseCase,
     },
     {
       provide: IGetWorkspaceUseCase,

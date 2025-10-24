@@ -15,8 +15,6 @@ import {
   CreateTemplateUseCase,
   IUpdateTemplateUseCase,
   UpdateTemplateUseCase,
-  IDeleteTemplateUseCase,
-  DeleteTemplateUseCase,
   IGetTemplateUseCase,
   GetTemplateUseCase,
 } from './application/use-cases';
@@ -76,10 +74,6 @@ import {
     {
       provide: IUpdateTemplateUseCase,
       useClass: UpdateTemplateUseCase,
-    },
-    {
-      provide: IDeleteTemplateUseCase,
-      useClass: DeleteTemplateUseCase,
     },
     {
       provide: IGetTemplateUseCase,

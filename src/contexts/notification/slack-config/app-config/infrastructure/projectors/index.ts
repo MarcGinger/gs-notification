@@ -1,1 +1,1 @@
-export * from './app-config-memory.projector';
+export * from './app-config-redis.projector';

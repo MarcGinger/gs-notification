@@ -46,15 +46,6 @@ export abstract class IUpsertAppConfigUseCase {
   }): Promise<Result<DetailAppConfigResponse, DomainError>>;
 }
 
-export abstract class IDeleteAppConfigUseCase {
-  abstract execute(params: {
-    user: IUserToken;
-    id: number;
-    correlationId: string;
-    authorizationReason: string;
-  }): Promise<Result<void, DomainError>>;
-}
-
 export abstract class IGetAppConfigUseCase {
   abstract execute(params: {
     user: IUserToken;

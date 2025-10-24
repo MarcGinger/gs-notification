@@ -2,6 +2,8 @@
 // REMOVE THIS COMMENT TO STOP AUTOMATIC UPDATES TO THIS BLOCK
 
 import { Injectable, Inject } from '@nestjs/common';
+import { Redis } from 'ioredis';
+import { CacheMetricsCollector } from 'src/shared/infrastructure/projections/cache-optimization';
 import { APP_LOGGER, Log, componentLogger, Logger } from 'src/shared/logging';
 import { CorrelationUtil } from 'src/shared/utilities/correlation.util';
 import { Clock, CLOCK } from 'src/shared/infrastructure/time';
@@ -9,49 +11,123 @@ import {
   RepositoryLoggingUtil,
   RepositoryLoggingConfig,
   handleRepositoryError,
+  safeParseJSON,
+  safeParseJSONArray,
   RepositoryOptions,
 } from 'src/shared/infrastructure/repositories';
 import { Result, DomainError, err, ok } from 'src/shared/errors';
 import { Option } from 'src/shared/domain/types';
 import { ActorContext } from 'src/shared/application/context';
 import { RepositoryErrorFactory } from 'src/shared/domain/errors/repository.error';
-import { ChannelSnapshotProps } from '../../domain/props';
-import { ChannelId } from '../../domain/value-objects';
-import { IChannelReader } from '../../application/ports';
-import { channelStore } from '../stores/channel.store';
+import { SLACK_CONFIG_DI_TOKENS } from '../../../slack-config.constants';
+import { WorkspaceSnapshotProps } from '../../domain/props';
+import { WorkspaceId } from '../../domain/value-objects';
+import { IWorkspaceReader } from '../../application/ports';
 
 /**
- * Channel Reader Repository - In-Memory Implementation
+ * Workspace Reader Repository - Redis Implementation
  *
- * Bounded Context: Notification/Channel
- * Handles basic read operations for Channel aggregates using in-memory projector
- * as the data source instead of SQL queries.
+ * Bounded Context: Notification/Workspace
+ * Handles basic read operations for Workspace aggregates using Redis projections
+ * as the data source with cluster-safe operations.
  *
  * Benefits:
- * - Zero external database dependencies
- * - Ultra-fast read operations (LRU cache)
- * - Perfect for testing, prototyping, and shadow validation
+ * - High-performance Redis backend
+ * - Cluster-safe operations with hash tags
+ * - Version hint optimization for cache efficiency
  * - Maintains same interface as SQL-based implementation
  * - Comprehensive logging and error handling
  *
- * @domain Notification Context - Channel Reader Repository (In-Memory)
+ * @domain Notification Context - Workspace Reader Repository (Redis)
  * @layer Infrastructure
- * @pattern Repository Pattern + In-Memory Projector
+ * @pattern Repository Pattern + Redis Projector
  */
 @Injectable()
-export class ChannelReaderRepository implements IChannelReader {
+export class WorkspaceReaderRepository implements IWorkspaceReader {
   private readonly logger: Logger;
   private readonly loggingConfig: RepositoryLoggingConfig;
+  private readonly metricsCollector = new CacheMetricsCollector();
 
   constructor(
     @Inject(APP_LOGGER) baseLogger: Logger,
     @Inject(CLOCK) private readonly clock: Clock,
+    @Inject(SLACK_CONFIG_DI_TOKENS.IO_REDIS)
+    private readonly redis: Redis,
   ) {
     this.loggingConfig = {
       serviceName: 'SlackConfigService',
-      component: 'ChannelReaderRepository',
+      component: 'WorkspaceReaderRepository',
     };
     this.logger = componentLogger(baseLogger, this.loggingConfig.component);
+
+    Log.info(
+      this.logger,
+      'WorkspaceReaderRepository initialized with Redis backend',
+      {
+        component: this.loggingConfig.component,
+        redisStatus: this.redis.status,
+        clusterSafe: true,
+        cacheOptimized: true,
+      },
+    );
+  }
+
+  /**
+   * Generate cluster-safe Redis keys with hash tags for locality
+   * Uses same pattern as WorkspaceProjector for consistency
+   */
+  private generateWorkspaceKey(tenantId: string, id: string): string {
+    // ✅ Hash-tags ensure key routes to same Redis Cluster slot as projector
+    return `workspace-projector:{${tenantId}}:workspace:${id}`;
+  }
+
+  /**
+   * Parse Redis hash data into WorkspaceSnapshotProps
+   */
+  private parseRedisHashToWorkspace(
+    hashData: Record<string, string>,
+  ): WorkspaceSnapshotProps | null {
+    try {
+      if (!hashData || Object.keys(hashData).length === 0) {
+        return null;
+      }
+
+      // Check for soft deletion
+      if (hashData.deletedAt) {
+        return null;
+      }
+
+      // Parse array fields using safeParseJSONArray utility (following product-query.repository.ts pattern)
+
+      // Parse object fields using safeParseJSON utility (following product-query.repository.ts pattern)
+
+      // Extract basic fields directly from hash data (following product-query.repository.ts pattern)
+
+      return {
+        id: hashData.id,
+        name: hashData.name,
+        botToken: hashData.botToken || undefined,
+        signingSecret: hashData.signingSecret || undefined,
+        appId: hashData.appId || undefined,
+        botUserId: hashData.botUserId || undefined,
+        defaultChannelId: hashData.defaultChannelId || undefined,
+        enabled: hashData.enabled === 'true',
+        version: parseInt(hashData.version, 10),
+        createdAt: new Date(hashData.createdAt),
+        updatedAt: new Date(hashData.updatedAt),
+      };
+    } catch (error) {
+      Log.error(
+        this.logger,
+        'Failed to parse Redis hash data to WorkspaceSnapshot',
+        {
+          method: 'parseRedisHashToWorkspace',
+          error: (error as Error).message,
+          id: hashData?.id,
+        },
+      );
+      return null;
+    }
   }
 
   /**
@@ -81,22 +157,22 @@ export class ChannelReaderRepository implements IChannelReader {
   }
 
   /**
-   * Find a Channel by its unique identifier
+   * Find a Workspace by its unique identifier
    * @param actor - The authenticated user context
-   * @param id - The unique identifier of the Channel
+   * @param id - The unique identifier of the Workspace
    * @param options - Optional repository options
-   * @returns Result containing the Channel snapshot or null if not found
+   * @returns Result containing the Workspace snapshot or null if not found
    */
   async findById(
     actor: ActorContext,
-    id: ChannelId,
+    id: WorkspaceId,
     options?: RepositoryOptions,
-  ): Promise<Result<Option<ChannelSnapshotProps>, DomainError>> {
+  ): Promise<Result<Option<WorkspaceSnapshotProps>, DomainError>> {
     const operation = 'findById';
     const riskLevel = this.assessOperationRisk(operation);
     const correlationId =
       options?.correlationId ??
-      CorrelationUtil.generateForOperation('channel-find-by-id');
+      CorrelationUtil.generateForOperation('workspace-find-by-id');
 
     const logContext = this.createLogContext(operation, correlationId, actor, {
       riskLevel,
@@ -104,7 +180,7 @@ export class ChannelReaderRepository implements IChannelReader {
       customCorrelationId: !!options?.correlationId,
       source: options?.source,
       requestId: options?.requestId,
-      dataSource: 'in-memory-projector',
+      dataSource: 'redis-projector',
     });
 
     // Validate actor context with enhanced security logging
@@ -132,22 +208,27 @@ export class ChannelReaderRepository implements IChannelReader {
       this.logger,
       operation,
       logContext,
-      { queryType: 'channel_lookup', scope: 'in_memory_projection' },
+      { queryType: 'workspace_lookup', scope: 'redis_projection' },
     );
 
     try {
-      Log.debug(this.logger, 'Finding channel by ID in shared store', {
+      // Generate cluster-safe Redis key
+      const redisKey = this.generateWorkspaceKey(actor.tenantId, id.value);
+
+      Log.debug(this.logger, 'Finding workspace by ID in Redis', {
         ...logContext,
         queryDetails: {
-          scope: 'shared_channel_store',
-          method: 'channelStore.get',
+          scope: 'redis_hash',
+          method: 'redis.hgetall',
+          key: redisKey,
+          clusterSafe: true,
         },
       });
 
-      // Get projection from shared channel store
-      const projection = channelStore.get(actor.tenantId, id.value);
+      // Get workspace hash from Redis
+      const hashData = await this.redis.hgetall(redisKey);
 
-      if (!projection) {
+      if (!hashData || Object.keys(hashData).length === 0) {
         RepositoryLoggingUtil.logQueryMetrics(
           this.logger,
           operation,
@@ -157,24 +238,24 @@ export class ChannelReaderRepository implements IChannelReader {
             dataQuality: 'empty',
           },
         );
-        return Promise.resolve(ok(Option.none()));
+        return ok(Option.none());
       }
 
-      // Map projection to ChannelSnapshot
-      const channelSnapshot: ChannelSnapshotProps = {
-        id: projection.id,
-        name: projection.name,
-        workspaceId: projection.workspaceId,
-        isPrivate: projection.isPrivate,
-        isDm: projection.isDm,
-        topic: projection.topic,
-        purpose: projection.purpose,
-        subscribedEvents: projection.subscribedEvents,
-        enabled: projection.enabled,
-        version: projection.version,
-        createdAt: projection.createdAt,
-        updatedAt: projection.updatedAt,
-      };
+      // Parse Redis hash to WorkspaceSnapshot
+      const workspaceSnapshot = this.parseRedisHashToWorkspace(hashData);
+
+      if (!workspaceSnapshot) {
+        RepositoryLoggingUtil.logQueryMetrics(
+          this.logger,
+          operation,
+          logContext,
+          {
+            resultCount: 0,
+            dataQuality: 'error',
+          },
+        );
+        return ok(Option.none());
+      }
 
       // Log query metrics using shared utility
       RepositoryLoggingUtil.logQueryMetrics(
@@ -185,13 +266,13 @@ export class ChannelReaderRepository implements IChannelReader {
           resultCount: 1,
           dataQuality: 'good',
           sampleData: {
-            id: channelSnapshot.id,
-            version: channelSnapshot.version,
+            id: workspaceSnapshot.id,
+            version: workspaceSnapshot.version,
           },
         },
       );
 
-      return Promise.resolve(ok(Option.some(channelSnapshot)));
+      return ok(Option.some(workspaceSnapshot));
     } catch (error) {
       // Log operation error using shared utility
       RepositoryLoggingUtil.logOperationError(
@@ -208,22 +289,22 @@ export class ChannelReaderRepository implements IChannelReader {
   }
 
   /**
-   * Check if a channel exists by ID (for write-path validation)
+   * Check if a workspace exists by ID (for write-path validation)
    * @param actor - The authenticated user context
-   * @param id - The unique identifier of the Channel
+   * @param id - The unique identifier of the Workspace
    * @param options - Optional repository options
    * @returns Result containing boolean indicating existence
    */
   async exists(
     actor: ActorContext,
-    id: ChannelId,
+    id: WorkspaceId,
     options?: RepositoryOptions,
   ): Promise<Result<boolean, DomainError>> {
     const operation = 'exists';
     const riskLevel = this.assessOperationRisk(operation);
     const correlationId =
       options?.correlationId ??
-      CorrelationUtil.generateForOperation('channel-exists-check');
+      CorrelationUtil.generateForOperation('workspace-exists-check');
 
     const logContext = this.createLogContext(operation, correlationId, actor, {
       riskLevel,
@@ -231,7 +312,7 @@ export class ChannelReaderRepository implements IChannelReader {
       customCorrelationId: !!options?.correlationId,
       source: options?.source,
       requestId: options?.requestId,
-      dataSource: 'in-memory-projector',
+      dataSource: 'redis-projector',
     });
 
     // Validate actor context
@@ -247,21 +328,32 @@ export class ChannelReaderRepository implements IChannelReader {
       this.logger,
       operation,
       logContext,
-      { queryType: 'existence_check', scope: 'in_memory_projection' },
+      { queryType: 'existence_check', scope: 'redis_projection' },
     );
 
     try {
-      Log.debug(this.logger, 'Checking channel existence in shared store', {
+      // Generate cluster-safe Redis key
+      const redisKey = this.generateWorkspaceKey(actor.tenantId!, id.value);
+
+      Log.debug(this.logger, 'Checking workspace existence in Redis', {
         ...logContext,
         queryDetails: {
-          scope: 'shared_channel_store',
-          method: 'channelStore.has',
+          scope: 'redis_hash',
+          method: 'redis.exists',
+          key: redisKey,
           optimized: true,
         },
       });
 
-      // Check existence in shared channel store
-      const exists = channelStore.has(actor.tenantId!, id.value);
+      // Check existence in Redis and verify not soft-deleted
+      const exists = await this.redis.exists(redisKey);
+      let isActive = false;
+
+      if (exists) {
+        // Additional check for soft deletion
+        const deletedAt = await this.redis.hget(redisKey, 'deletedAt');
+        isActive = !deletedAt;
+      }
 
       // Log query metrics using shared utility
       RepositoryLoggingUtil.logQueryMetrics(
@@ -269,13 +361,13 @@ export class ChannelReaderRepository implements IChannelReader {
         operation,
         logContext,
         {
-          resultCount: exists ? 1 : 0,
+          resultCount: isActive ? 1 : 0,
           dataQuality: 'good',
-          sampleData: { exists, id: id.value },
+          sampleData: { exists: isActive, id: id.value },
         },
       );
 
-      return Promise.resolve(ok(exists));
+      return ok(isActive);
     } catch (error) {
       // Log operation error using shared utility
       RepositoryLoggingUtil.logOperationError(
@@ -292,22 +384,22 @@ export class ChannelReaderRepository implements IChannelReader {
   }
 
   /**
-   * Get channel version for optimistic concurrency control
+   * Get workspace version for optimistic concurrency control
    * @param actor - The authenticated user context
-   * @param id - The unique identifier of the Channel
+   * @param id - The unique identifier of the Workspace
    * @param options - Optional repository options
    * @returns Result containing version number or null if not found
    */
   async getVersion(
     actor: ActorContext,
-    id: ChannelId,
+    id: WorkspaceId,
     options?: RepositoryOptions,
   ): Promise<Result<Option<number>, DomainError>> {
     const operation = 'getVersion';
     const riskLevel = this.assessOperationRisk(operation);
     const correlationId =
       options?.correlationId ??
-      CorrelationUtil.generateForOperation('channel-get-version');
+      CorrelationUtil.generateForOperation('workspace-get-version');
 
     const logContext = this.createLogContext(operation, correlationId, actor, {
       riskLevel,
@@ -315,7 +407,7 @@ export class ChannelReaderRepository implements IChannelReader {
       customCorrelationId: !!options?.correlationId,
       source: options?.source,
       requestId: options?.requestId,
-      dataSource: 'in-memory-projector',
+      dataSource: 'redis-projector',
     });
 
     // Validate actor context
@@ -331,23 +423,32 @@ export class ChannelReaderRepository implements IChannelReader {
       this.logger,
       operation,
       logContext,
-      { queryType: 'version_lookup', scope: 'in_memory_projection' },
+      { queryType: 'version_lookup', scope: 'redis_projection' },
     );
 
     try {
-      Log.debug(this.logger, 'Getting channel version from shared store', {
+      // Generate cluster-safe Redis key
+      const redisKey = this.generateWorkspaceKey(actor.tenantId!, id.value);
+
+      Log.debug(this.logger, 'Getting workspace version from Redis', {
         ...logContext,
         queryDetails: {
-          scope: 'shared_channel_store',
-          method: 'channelStore.get',
+          scope: 'redis_hash',
+          method: 'redis.hmget',
+          key: redisKey,
+          fields: ['version', 'deletedAt'],
           optimized: true,
         },
       });
 
-      // Get projection from shared channel store
-      const projection = channelStore.get(actor.tenantId!, id.value);
+      // Get version and deletion status from Redis efficiently
+      const [versionStr, deletedAt] = await this.redis.hmget(
+        redisKey,
+        'version',
+        'deletedAt',
+      );
 
-      if (!projection || projection.deletedAt) {
+      if (!versionStr || deletedAt) {
         RepositoryLoggingUtil.logQueryMetrics(
           this.logger,
           operation,
@@ -357,10 +458,10 @@ export class ChannelReaderRepository implements IChannelReader {
             dataQuality: 'empty',
           },
         );
-        return Promise.resolve(ok(Option.none()));
+        return ok(Option.none());
       }
 
-      const version = projection.version;
+      const version = parseInt(versionStr, 10);
 
       // Log query metrics using shared utility
       RepositoryLoggingUtil.logQueryMetrics(
@@ -374,7 +475,7 @@ export class ChannelReaderRepository implements IChannelReader {
         },
       );
 
-      return Promise.resolve(ok(Option.some(version)));
+      return ok(Option.some(version));
     } catch (error) {
       // Log operation error using shared utility
       RepositoryLoggingUtil.logOperationError(
@@ -391,22 +492,22 @@ export class ChannelReaderRepository implements IChannelReader {
   }
 
   /**
-   * Get minimal channel data for write-path operations
+   * Get minimal workspace data for write-path operations
    * @param actor - The authenticated user context
-   * @param id - The unique identifier of the Channel
+   * @param id - The unique identifier of the Workspace
    * @param options - Optional repository options
-   * @returns Result containing minimal channel data or null if not found
+   * @returns Result containing minimal workspace data or null if not found
    */
   async getMinimal(
     actor: ActorContext,
-    id: ChannelId,
+    id: WorkspaceId,
     options?: RepositoryOptions,
   ): Promise<Result<Option<{ id: string; version: number }>, DomainError>> {
     const operation = 'getMinimal';
     const riskLevel = this.assessOperationRisk(operation);
     const correlationId =
       options?.correlationId ??
-      CorrelationUtil.generateForOperation('channel-get-minimal');
+      CorrelationUtil.generateForOperation('workspace-get-minimal');
 
     const logContext = this.createLogContext(operation, correlationId, actor, {
       riskLevel,
@@ -414,7 +515,7 @@ export class ChannelReaderRepository implements IChannelReader {
       customCorrelationId: !!options?.correlationId,
       source: options?.source,
       requestId: options?.requestId,
-      dataSource: 'in-memory-projector',
+      dataSource: 'redis-projector',
     });
 
     // Validate actor context
@@ -430,23 +531,33 @@ export class ChannelReaderRepository implements IChannelReader {
       this.logger,
       operation,
       logContext,
-      { queryType: 'minimal_lookup', scope: 'in_memory_projection' },
+      { queryType: 'minimal_lookup', scope: 'redis_projection' },
     );
 
     try {
-      Log.debug(this.logger, 'Getting minimal channel data from shared store', {
+      // Generate cluster-safe Redis key
+      const redisKey = this.generateWorkspaceKey(actor.tenantId!, id.value);
+
+      Log.debug(this.logger, 'Getting minimal workspace data from Redis', {
         ...logContext,
         queryDetails: {
-          scope: 'shared_channel_store',
-          method: 'channelStore.get',
+          scope: 'redis_hash',
+          method: 'redis.hmget',
+          key: redisKey,
+          fields: ['id', 'version', 'deletedAt'],
           optimized: true,
         },
       });
 
-      // Get projection from shared channel store
-      const projection = channelStore.get(actor.tenantId!, id.value);
+      // Get minimal fields from Redis efficiently
+      const [idStr, versionStr, deletedAt] = await this.redis.hmget(
+        redisKey,
+        'id',
+        'version',
+        'deletedAt',
+      );
 
-      if (!projection || projection.deletedAt) {
+      if (!idStr || !versionStr || deletedAt) {
         RepositoryLoggingUtil.logQueryMetrics(
           this.logger,
           operation,
@@ -460,8 +571,8 @@ export class ChannelReaderRepository implements IChannelReader {
       }
 
       const minimal = {
-        id: projection.id,
-        version: projection.version,
+        id: idStr,
+        version: parseInt(versionStr, 10),
       };
 
       // Log query metrics using shared utility
@@ -476,7 +587,7 @@ export class ChannelReaderRepository implements IChannelReader {
         },
       );
 
-      return Promise.resolve(ok(Option.some(minimal)));
+      return ok(Option.some(minimal));
     } catch (error) {
       // Log operation error using shared utility
       RepositoryLoggingUtil.logOperationError(
@@ -488,7 +599,7 @@ export class ChannelReaderRepository implements IChannelReader {
       );
 
       // Handle and return the classified error using shared utility
-      return Promise.resolve(handleRepositoryError(error));
+      return handleRepositoryError(error);
     }
   }
 }

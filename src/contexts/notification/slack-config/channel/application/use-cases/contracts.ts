@@ -46,15 +46,6 @@ export abstract class IUpsertChannelUseCase {
   }): Promise<Result<DetailChannelResponse, DomainError>>;
 }
 
-export abstract class IDeleteChannelUseCase {
-  abstract execute(params: {
-    user: IUserToken;
-    id: string;
-    correlationId: string;
-    authorizationReason: string;
-  }): Promise<Result<void, DomainError>>;
-}
-
 export abstract class IGetChannelUseCase {
   abstract execute(params: {
     user: IUserToken;

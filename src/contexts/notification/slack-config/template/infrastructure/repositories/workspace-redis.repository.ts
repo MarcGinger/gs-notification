@@ -2,51 +2,126 @@
 // REMOVE THIS COMMENT TO STOP AUTOMATIC UPDATES TO THIS BLOCK
 
 import { Injectable, Inject } from '@nestjs/common';
+import { Redis } from 'ioredis';
+import { CacheMetricsCollector } from 'src/shared/infrastructure/projections/cache-optimization';
 import { APP_LOGGER, Log, componentLogger, Logger } from 'src/shared/logging';
 import { CorrelationUtil } from 'src/shared/utilities/correlation.util';
 import { Clock, CLOCK } from 'src/shared/infrastructure/time';
 import {
   RepositoryLoggingUtil,
   RepositoryLoggingConfig,
+  handleRepositoryError,
+  safeParseJSON,
   RepositoryOptions,
 } from 'src/shared/infrastructure/repositories';
 import { Result, DomainError, err, ok } from 'src/shared/errors';
 import { ActorContext } from 'src/shared/application/context';
 import { RepositoryErrorFactory } from 'src/shared/domain/errors/repository.error';
-
+import { SLACK_CONFIG_DI_TOKENS } from '../../../slack-config.constants';
 import {
   IWorkspaceReader,
   WorkspaceReference,
   WorkspaceValidationResult,
 } from '../../application/ports';
 import { Option } from 'src/shared/domain/types';
-import { workspaceStore } from '../stores/workspace.store';
 
 /**
- * Workspace Reader Repository - Cross-Context Reference Implementation
+ * Workspace Reader Repository - Redis Implementation
  *
  * Bounded Context: Notification/Channel
- * Handles workspace reference data lookups for FK validation in the Channel context.
- * Reads from the workspace projection tables to validate workspace references.
+ * Handles workspace reference data lookups for FK validation in the Channel context using Redis projections
+ * as the data source with cluster-safe operations.
  *
- * @domain Notification Context - Channel Workspace Reader Repository
+ * Benefits:
+ * - High-performance Redis backend
+ * - Cluster-safe operations with hash tags
+ * - Version hint optimization for cache efficiency
+ * - Maintains same interface as SQL-based implementation
+ * - Comprehensive logging and error handling
+ *
+ * @domain Notification Context - Channel Workspace Reader Repository (Redis)
  * @layer Infrastructure
- * @pattern Cross-Context Reference Reader
+ * @pattern Cross-Context Reference Reader + Redis Projector
  */
 @Injectable()
 export class WorkspaceReaderRepository implements IWorkspaceReader {
   private readonly logger: Logger;
   private readonly loggingConfig: RepositoryLoggingConfig;
+  private readonly metricsCollector = new CacheMetricsCollector();
 
   constructor(
     @Inject(APP_LOGGER) baseLogger: Logger,
     @Inject(CLOCK) private readonly clock: Clock,
+    @Inject(SLACK_CONFIG_DI_TOKENS.IO_REDIS)
+    private readonly redis: Redis,
   ) {
     this.loggingConfig = {
       serviceName: 'ChannelConfigService',
       component: 'WorkspaceReaderRepository',
     };
     this.logger = componentLogger(baseLogger, this.loggingConfig.component);
+
+    Log.info(
+      this.logger,
+      'WorkspaceReaderRepository initialized with Redis backend',
+      {
+        component: this.loggingConfig.component,
+        redisStatus: this.redis.status,
+        clusterSafe: true,
+        cacheOptimized: true,
+      },
+    );
+  }
+
+  /**
+   * Generate cluster-safe Redis keys with hash tags for locality
+   * Uses same pattern as WorkspaceProjector for consistency
+   */
+  private generateWorkspaceKey(tenantId: string, id: string): string {
+    // ✅ Hash-tags ensure key routes to same Redis Cluster slot as projector
+    return `workspace-projector:{${tenantId}}:workspace:${id}`;
+  }
+
+  /**
+   * Parse Redis hash data into WorkspaceReference
+   */
+  private parseRedisHashToWorkspace(
+    hashData: Record<string, string>,
+  ): WorkspaceReference | null {
+    try {
+      if (!hashData || Object.keys(hashData).length === 0) {
+        return null;
+      }
+
+      // Check for soft deletion
+      if (hashData.deletedAt) {
+        return null;
+      }
+
+      // Parse JSON fields using safeParseJSON utility (following product-query.repository.ts pattern)
+      // Extract fields directly from hash data (following product-query.repository.ts pattern)
+      return {
+        id: hashData.id,
+        name: hashData.name,
+        botToken: hashData.botToken || undefined,
+        signingSecret: hashData.signingSecret || undefined,
+        appId: hashData.appId || undefined,
+        botUserId: hashData.botUserId || undefined,
+        defaultChannelId: hashData.defaultChannelId || undefined,
+        enabled: hashData.enabled === 'true',
+      };
+    } catch (error) {
+      Log.error(
+        this.logger,
+        'Failed to parse Redis hash data to WorkspaceReference',
+        {
+          method: 'parseRedisHashToWorkspace',
+          error: (error as Error).message,
+          id: hashData?.id,
+        },
+      );
+      return null;
+    }
   }
 
   /**
@@ -96,7 +171,7 @@ export class WorkspaceReaderRepository implements IWorkspaceReader {
       customCorrelationId: !!options?.correlationId,
       source: options?.source,
       requestId: options?.requestId,
-      dataSource: 'in-memory-projector',
+      dataSource: 'redis-projector',
     });
 
     // Validate actor context with enhanced security logging
@@ -105,17 +180,12 @@ export class WorkspaceReaderRepository implements IWorkspaceReader {
       actor,
       logContext,
     );
-    if (!validation.ok) return Promise.resolve(err(validation.error));
+    if (!validation.ok) return err(validation.error);
 
     // Guard tenant explicitly
     if (!actor.tenantId) {
-      return Promise.resolve(
-        err(
-          RepositoryErrorFactory.validationError(
-            'tenantId',
-            'Missing tenant id',
-          ),
-        ),
+      return err(
+        RepositoryErrorFactory.validationError('tenantId', 'Missing tenant id'),
       );
     }
 
@@ -124,28 +194,45 @@ export class WorkspaceReaderRepository implements IWorkspaceReader {
       this.logger,
       operation,
       logContext,
-      { queryType: 'reference_lookup' },
+      { queryType: 'reference_lookup', scope: 'redis_projection' },
     );
 
     try {
-      Log.debug(this.logger, 'Finding valid workspace ids in shared store', {
+      Log.debug(this.logger, 'Finding valid workspace ids in Redis', {
         ...logContext,
         queryDetails: {
-          scope: 'shared_workspace_store',
-          method: 'workspaceStore.getAllValues',
+          scope: 'redis_keys',
+          method: 'redis.scan',
+          pattern: `workspace-projector:{${actor.tenantId}}:workspace:*`,
+          clusterSafe: true,
         },
       });
 
-      // Get all workspace projections from shared workspace store
-      const allEntries = workspaceStore.getAll();
+      // Use Redis SCAN to find all workspace keys for the tenant
+      const pattern = `workspace-projector:{${actor.tenantId}}:workspace:*`;
+      const ids: string[] = [];
+      const scanIterator = this.redis.scanStream({
+        match: pattern,
+        count: 100,
+      });
 
-      // Filter entries for this tenant and extract id values from workspaces
-      const ids: string[] = allEntries
-        .filter(([key]) => key.startsWith(`${actor.tenantId}:`))
-        .map(([, workspace]) => workspace)
-        .map((workspace) => workspace.id)
-        .sort((a, b) => a.localeCompare(b));
+      for await (const keys of scanIterator) {
+        for (const key of keys as string[]) {
+          // Extract id from key pattern: workspace-projector:{tenantId}:workspace:{ id }
+          const keyParts = key.split(':');
+          if (keyParts.length === 4) {
+            const id = keyParts[3];
+            // Check if channel is not soft-deleted
+            const deletedAt = await this.redis.hget(key, 'deletedAt');
+            if (!deletedAt) {
+              ids.push(id);
+            }
+          }
+        }
+      }
 
+      // Sort the codes for consistent ordering
+      ids.sort((a, b) => a.localeCompare(b));
       // Log query metrics using shared utility
       RepositoryLoggingUtil.logQueryMetrics(
         this.logger,
@@ -158,22 +245,19 @@ export class WorkspaceReaderRepository implements IWorkspaceReader {
         },
       );
 
-      return Promise.resolve(ok(ids));
+      return ok(ids);
     } catch (error) {
-      const e = error as Error;
-
       // Log operation error using shared utility
       RepositoryLoggingUtil.logOperationError(
         this.logger,
         operation,
         logContext,
-        e,
+        error as Error,
         'HIGH',
       );
 
-      return Promise.resolve(
-        err(RepositoryErrorFactory.connectionError(e.message)),
-      );
+      // Handle and return the classified error using shared utility
+      return handleRepositoryError(error);
     }
   }
 
@@ -201,7 +285,7 @@ export class WorkspaceReaderRepository implements IWorkspaceReader {
       customCorrelationId: !!options?.correlationId,
       source: options?.source,
       requestId: options?.requestId,
-      dataSource: 'in-memory-projector',
+      dataSource: 'redis-projector',
     });
 
     try {
@@ -212,17 +296,14 @@ export class WorkspaceReaderRepository implements IWorkspaceReader {
         logContext,
       );
 
-      if (!actorValidation.ok)
-        return Promise.resolve(err(actorValidation.error));
+      if (!actorValidation.ok) return err(actorValidation.error);
 
       // Guard tenant explicitly
       if (!actor.tenantId) {
-        return Promise.resolve(
-          err(
-            RepositoryErrorFactory.validationError(
-              'tenantId',
-              'Missing tenant id',
-            ),
+        return err(
+          RepositoryErrorFactory.validationError(
+            'tenantId',
+            'Missing tenant id',
           ),
         );
       }
@@ -234,12 +315,10 @@ export class WorkspaceReaderRepository implements IWorkspaceReader {
           validationError: 'INVALID_WORKSPACE_ID',
           inputValidation: 'failed',
         });
-        return Promise.resolve(
-          err(
-            RepositoryErrorFactory.validationError(
-              'Workspace id is required',
-              'INVALID_WORKSPACE_ID',
-            ),
+        return err(
+          RepositoryErrorFactory.validationError(
+            'Workspace id is required',
+            'INVALID_WORKSPACE_ID',
           ),
         );
       }
@@ -254,10 +333,11 @@ export class WorkspaceReaderRepository implements IWorkspaceReader {
         },
       );
 
-      // Fetch from in-memory store using tenant and identifier
-      const projection = workspaceStore.get(actor.tenantId, id.toString());
+      // Fetch from Redis using cluster-safe key
+      const redisKey = this.generateWorkspaceKey(actor.tenantId, id);
+      const hashData = await this.redis.hgetall(redisKey);
 
-      if (!projection) {
+      if (!hashData || Object.keys(hashData).length === 0) {
         RepositoryLoggingUtil.logQueryMetrics(
           this.logger,
           'Workspace lookup',
@@ -267,20 +347,13 @@ export class WorkspaceReaderRepository implements IWorkspaceReader {
             dataQuality: 'empty',
           },
         );
-        return Promise.resolve(ok(Option.none()));
+        return ok(Option.none());
       }
 
-      // Map projection to WorkspaceReference
-      const workspace: WorkspaceReference = {
-        id: projection.id,
-        name: projection.name,
-        botToken: projection.botToken,
-        signingSecret: projection.signingSecret,
-        appId: projection.appId,
-        botUserId: projection.botUserId,
-        defaultChannelId: projection.defaultChannelId,
-        enabled: projection.enabled,
-      };
+      const workspace = this.parseRedisHashToWorkspace(hashData);
+      if (!workspace) {
+        return ok(Option.none());
+      }
 
       RepositoryLoggingUtil.logQueryMetrics(
         this.logger,
@@ -297,21 +370,18 @@ export class WorkspaceReaderRepository implements IWorkspaceReader {
         },
       );
 
-      return Promise.resolve(ok(Option.some(workspace)));
+      return ok(Option.some(workspace));
     } catch (error) {
-      const e = error as Error;
-
       RepositoryLoggingUtil.logOperationError(
         this.logger,
         'Workspace lookup',
         logContext,
-        e,
+        error as Error,
         'HIGH',
       );
 
-      return Promise.resolve(
-        err(RepositoryErrorFactory.connectionError(e.message)),
-      );
+      // Handle and return the classified error using shared utility
+      return handleRepositoryError(error);
     }
   }
 
@@ -335,7 +405,7 @@ export class WorkspaceReaderRepository implements IWorkspaceReader {
 
     // Early return for empty requests
     if (ids.length === 0) {
-      return Promise.resolve(ok({ found: [], missing: [] }));
+      return ok({ found: [], missing: [] });
     }
 
     const logContext = this.createLogContext(operation, correlationId, actor, {
@@ -344,7 +414,7 @@ export class WorkspaceReaderRepository implements IWorkspaceReader {
       customCorrelationId: !!options?.correlationId,
       source: options?.source,
       requestId: options?.requestId,
-      dataSource: 'in-memory-projector',
+      dataSource: 'redis-projector',
     });
 
     // Validate actor context with enhanced security logging
@@ -354,7 +424,7 @@ export class WorkspaceReaderRepository implements IWorkspaceReader {
       logContext,
     );
     if (!validation.ok) {
-      return Promise.resolve(validation);
+      return validation;
     }
 
     // Log successful authorization
@@ -364,41 +434,37 @@ export class WorkspaceReaderRepository implements IWorkspaceReader {
       logContext,
       {
         queryType: 'fk_validation',
-        scope: 'workspace_references',
+        scope: 'redis_projection',
         requestedIds: ids.length <= 10 ? ids : ids.slice(0, 10),
       },
     );
 
     try {
-      Log.debug(this.logger, 'Finding workspaces by ids in shared store', {
+      Log.debug(this.logger, 'Finding workspaces by ids in Redis', {
         ...logContext,
         queryDetails: {
-          scope: 'shared_workspace_store',
-          method: 'workspaceStore.get',
+          scope: 'redis_hash',
+          method: 'redis.hmget',
           requestedIds:
             ids.length <= 5
               ? ids
               : `${ids.slice(0, 5).join(', ')}... (${ids.length} total)`,
+          clusterSafe: true,
         },
       });
 
-      // Get workspace projections from shared workspace store by individual id lookups
       const found: WorkspaceReference[] = [];
+
+      // Fetch each workspace by its id from Redis
       for (const id of ids) {
-        const projection = workspaceStore.get(actor.tenantId!, id.toString());
-        if (projection) {
-          // Map projection to WorkspaceReference
-          const workspaceReference: WorkspaceReference = {
-            id: projection.id,
-            name: projection.name,
-            botToken: projection.botToken,
-            signingSecret: projection.signingSecret,
-            appId: projection.appId,
-            botUserId: projection.botUserId,
-            defaultChannelId: projection.defaultChannelId,
-            enabled: projection.enabled,
-          };
-          found.push(workspaceReference);
+        const redisKey = this.generateWorkspaceKey(actor.tenantId!, id);
+        const hashData = await this.redis.hgetall(redisKey);
+
+        if (hashData && Object.keys(hashData).length > 0) {
+          const workspaceReference = this.parseRedisHashToWorkspace(hashData);
+          if (workspaceReference) {
+            found.push(workspaceReference);
+          }
         }
       }
 
@@ -424,22 +490,19 @@ export class WorkspaceReaderRepository implements IWorkspaceReader {
         },
       );
 
-      return Promise.resolve(ok({ found, missing }));
+      return ok({ found, missing });
     } catch (error) {
-      const e = error as Error;
-
       // Log operation error using shared utility
       RepositoryLoggingUtil.logOperationError(
         this.logger,
         operation,
         logContext,
-        e,
+        error as Error,
         'HIGH',
       );
 
-      return Promise.resolve(
-        err(RepositoryErrorFactory.connectionError(e.message)),
-      );
+      // Handle and return the classified error using shared utility
+      return handleRepositoryError(error);
     }
   }
 }

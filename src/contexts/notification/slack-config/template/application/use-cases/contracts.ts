@@ -46,15 +46,6 @@ export abstract class IUpsertTemplateUseCase {
   }): Promise<Result<DetailTemplateResponse, DomainError>>;
 }
 
-export abstract class IDeleteTemplateUseCase {
-  abstract execute(params: {
-    user: IUserToken;
-    code: string;
-    correlationId: string;
-    authorizationReason: string;
-  }): Promise<Result<void, DomainError>>;
-}
-
 export abstract class IGetTemplateUseCase {
   abstract execute(params: {
     user: IUserToken;

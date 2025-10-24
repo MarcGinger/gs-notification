@@ -15,8 +15,6 @@ import {
   CreateAppConfigUseCase,
   IUpdateAppConfigUseCase,
   UpdateAppConfigUseCase,
-  IDeleteAppConfigUseCase,
-  DeleteAppConfigUseCase,
   IGetAppConfigUseCase,
   GetAppConfigUseCase,
 } from './application/use-cases';
@@ -76,10 +74,6 @@ import {
     {
       provide: IUpdateAppConfigUseCase,
       useClass: UpdateAppConfigUseCase,
-    },
-    {
-      provide: IDeleteAppConfigUseCase,
-      useClass: DeleteAppConfigUseCase,
     },
     {
       provide: IGetAppConfigUseCase,
