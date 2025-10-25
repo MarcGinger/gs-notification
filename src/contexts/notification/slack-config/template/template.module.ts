@@ -11,10 +11,8 @@ import {
   TemplateForeignKeyValidatorService,
 } from './application/services';
 import {
-  ICreateTemplateUseCase,
-  CreateTemplateUseCase,
-  IUpdateTemplateUseCase,
-  UpdateTemplateUseCase,
+  IUpsertTemplateUseCase,
+  UpsertTemplateUseCase,
   IGetTemplateUseCase,
   GetTemplateUseCase,
 } from './application/use-cases';
@@ -68,12 +66,8 @@ import {
 
     // Use case implementations
     {
-      provide: ICreateTemplateUseCase,
-      useClass: CreateTemplateUseCase,
-    },
-    {
-      provide: IUpdateTemplateUseCase,
-      useClass: UpdateTemplateUseCase,
+      provide: IUpsertTemplateUseCase,
+      useClass: UpsertTemplateUseCase,
     },
     {
       provide: IGetTemplateUseCase,

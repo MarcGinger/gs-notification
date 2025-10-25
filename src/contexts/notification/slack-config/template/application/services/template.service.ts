@@ -34,8 +34,7 @@ import { TemplateAuthContext } from '../types/template-auth-context';
 
 // Use case contracts
 import {
-  ICreateTemplateUseCase,
-  IUpdateTemplateUseCase,
+  IUpsertTemplateUseCase,
   IGetTemplateUseCase,
 } from '../use-cases/contracts';
 
@@ -48,8 +47,7 @@ export class TemplateApplicationService {
 
   constructor(
     private readonly templateAuthorizationService: TemplateAuthorizationService,
-    private readonly createTemplateUseCase: ICreateTemplateUseCase,
-    private readonly updateTemplateUseCase: IUpdateTemplateUseCase,
+    private readonly upsertTemplateUseCase: IUpsertTemplateUseCase,
     private readonly getTemplateUseCase: IGetTemplateUseCase,
     @Inject(CLOCK) private readonly clock: Clock,
     @Inject(APP_LOGGER) moduleLogger: Logger,
@@ -213,8 +211,9 @@ export class TemplateApplicationService {
           authContext,
         ),
       doExecute: () =>
-        this.createTemplateUseCase.execute({
+        this.upsertTemplateUseCase.execute({
           user,
+          code: props.code,
           props,
           correlationId,
           authorizationReason: 'create_template',
@@ -282,7 +281,7 @@ export class TemplateApplicationService {
           authContext,
         ),
       doExecute: () =>
-        this.updateTemplateUseCase.execute({
+        this.upsertTemplateUseCase.execute({
           user,
           code: validatedcode,
           props,

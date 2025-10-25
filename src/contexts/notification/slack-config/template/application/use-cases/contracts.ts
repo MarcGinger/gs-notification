@@ -10,31 +10,8 @@
 
 import { Result, DomainError } from 'src/shared/errors';
 import type { IUserToken } from 'src/shared/security';
-import type {
-  CreateTemplateProps,
-  UpdateTemplateProps,
-  UpsertTemplateProps,
-} from '../../domain/props';
+import type { UpsertTemplateProps } from '../../domain/props';
 import type { DetailTemplateResponse } from '../dtos';
-
-export abstract class ICreateTemplateUseCase {
-  abstract execute(params: {
-    user: IUserToken;
-    props: CreateTemplateProps;
-    correlationId: string;
-    authorizationReason: string;
-  }): Promise<Result<DetailTemplateResponse, DomainError>>;
-}
-
-export abstract class IUpdateTemplateUseCase {
-  abstract execute(params: {
-    user: IUserToken;
-    code: string;
-    props: UpdateTemplateProps;
-    correlationId: string;
-    authorizationReason: string;
-  }): Promise<Result<DetailTemplateResponse, DomainError>>;
-}
 
 export abstract class IUpsertTemplateUseCase {
   abstract execute(params: {

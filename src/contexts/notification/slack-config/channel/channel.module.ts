@@ -11,10 +11,8 @@ import {
   ChannelForeignKeyValidatorService,
 } from './application/services';
 import {
-  ICreateChannelUseCase,
-  CreateChannelUseCase,
-  IUpdateChannelUseCase,
-  UpdateChannelUseCase,
+  IUpsertChannelUseCase,
+  UpsertChannelUseCase,
   IGetChannelUseCase,
   GetChannelUseCase,
 } from './application/use-cases';
@@ -68,12 +66,8 @@ import {
 
     // Use case implementations
     {
-      provide: ICreateChannelUseCase,
-      useClass: CreateChannelUseCase,
-    },
-    {
-      provide: IUpdateChannelUseCase,
-      useClass: UpdateChannelUseCase,
+      provide: IUpsertChannelUseCase,
+      useClass: UpsertChannelUseCase,
     },
     {
       provide: IGetChannelUseCase,

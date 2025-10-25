@@ -6,7 +6,7 @@ import {
   Get,
   Post,
   Body,
-  Patch,
+  Put,
   HttpStatus,
   HttpCode,
   Param,
@@ -134,7 +134,7 @@ export class ChannelController {
     return result;
   }
 
-  @Patch(':id')
+  @Put(':id')
   @ChannelUpdateResource()
   @ApiOperation({
     summary: 'Update a Channel',

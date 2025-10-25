@@ -6,48 +6,48 @@ import { Inject } from '@nestjs/common';
 import { Result, DomainError } from 'src/shared/errors';
 import { APP_LOGGER, componentLogger, Logger } from 'src/shared/logging';
 import { CommandHandlerUtil } from 'src/shared/application';
-import { DetailTemplateResponse } from '../dtos';
-import { UpdateTemplateUseCase } from '../use-cases';
-import { UpdateTemplateCommand } from '../commands';
+import { DetailAppConfigResponse } from '../dtos';
+import { UpsertAppConfigUseCase } from '../use-cases';
+import { UpsertAppConfigCommand } from '../commands';
 
 /**
- * Enhanced Update Template Handler with security context support
+ * Enhanced Upsert AppConfig Handler with security context support
  */
-@CommandHandler(UpdateTemplateCommand)
-export class UpdateTemplateHandler
-  implements ICommandHandler<UpdateTemplateCommand>
+@CommandHandler(UpsertAppConfigCommand)
+export class UpsertAppConfigHandler
+  implements ICommandHandler<UpsertAppConfigCommand>
 {
   private readonly logger: Logger;
 
   constructor(
-    @Inject(UpdateTemplateUseCase)
-    private readonly updateTemplateUseCase: UpdateTemplateUseCase,
+    @Inject(UpsertAppConfigUseCase)
+    private readonly upsertAppConfigUseCase: UpsertAppConfigUseCase,
     @Inject(APP_LOGGER) moduleLogger: Logger,
   ) {
-    this.logger = componentLogger(moduleLogger, 'UpdateTemplateHandler');
+    this.logger = componentLogger(moduleLogger, 'UpsertAppConfigHandler');
   }
 
   /**
-   * Executes the update template command with enhanced security and validation
+   * Executes the upsert appConfig command with enhanced security and validation
    */
   async execute(
-    command: UpdateTemplateCommand,
-  ): Promise<Result<DetailTemplateResponse, DomainError>> {
-    const commandName = 'UpdateTemplateCommand';
+    command: UpsertAppConfigCommand,
+  ): Promise<Result<DetailAppConfigResponse, DomainError>> {
+    const commandName = 'UpsertAppConfigCommand';
 
     // Log command execution start
     CommandHandlerUtil.logCommandStart(this.logger, commandName, command, {
       application: 'slack-config',
-      component: 'UpdateTemplateHandler',
-      extractCommandData: (cmd: UpdateTemplateCommand) => ({
+      component: 'UpsertAppConfigHandler',
+      extractCommandData: (cmd: UpsertAppConfigCommand) => ({
         propsKeys: Object.keys(cmd.props || {}),
       }),
     });
 
     // Transform command to use case parameters
-    const result = await this.updateTemplateUseCase.execute({
+    const result = await this.upsertAppConfigUseCase.execute({
       user: command.user,
-      code: command.code,
+      id: command.id,
       props: command.props,
       correlationId: command.correlationId,
       authorizationReason: 'CQRS Command Handler',
@@ -62,7 +62,7 @@ export class UpdateTemplateHandler
         result.value,
         {
           application: 'slack-config',
-          component: 'UpdateTemplateHandler',
+          component: 'UpsertAppConfigHandler',
         },
       );
     } else {
@@ -74,8 +74,8 @@ export class UpdateTemplateHandler
         command,
         {
           application: 'slack-config',
-          component: 'UpdateTemplateHandler',
-          extractErrorContext: (cmd: UpdateTemplateCommand) => ({
+          component: 'UpsertAppConfigHandler',
+          extractErrorContext: (cmd: UpsertAppConfigCommand) => ({
             inputStructure: {
               hasProps: !!cmd.props,
               propsKeys: cmd.props ? Object.keys(cmd.props) : [],

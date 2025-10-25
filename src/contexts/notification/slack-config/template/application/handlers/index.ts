@@ -1,3 +1,2 @@
-export * from './create-template.handler';
 export * from './get-template.handler';
-export * from './update-template.handler';
+export * from './upsert-template.handler';

@@ -6,7 +6,7 @@ import {
   Get,
   Post,
   Body,
-  Patch,
+  Put,
   HttpStatus,
   HttpCode,
   Param,
@@ -136,7 +136,7 @@ export class AppConfigController {
     return result;
   }
 
-  @Patch(':id')
+  @Put(':id')
   @AppConfigUpdateResource()
   @ApiOperation({
     summary: 'Update a App',

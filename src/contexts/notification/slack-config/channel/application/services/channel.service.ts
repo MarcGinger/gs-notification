@@ -34,8 +34,7 @@ import { ChannelAuthContext } from '../types/channel-auth-context';
 
 // Use case contracts
 import {
-  ICreateChannelUseCase,
-  IUpdateChannelUseCase,
+  IUpsertChannelUseCase,
   IGetChannelUseCase,
 } from '../use-cases/contracts';
 
@@ -48,8 +47,7 @@ export class ChannelApplicationService {
 
   constructor(
     private readonly channelAuthorizationService: ChannelAuthorizationService,
-    private readonly createChannelUseCase: ICreateChannelUseCase,
-    private readonly updateChannelUseCase: IUpdateChannelUseCase,
+    private readonly upsertChannelUseCase: IUpsertChannelUseCase,
     private readonly getChannelUseCase: IGetChannelUseCase,
     @Inject(CLOCK) private readonly clock: Clock,
     @Inject(APP_LOGGER) moduleLogger: Logger,
@@ -213,8 +211,9 @@ export class ChannelApplicationService {
           authContext,
         ),
       doExecute: () =>
-        this.createChannelUseCase.execute({
+        this.upsertChannelUseCase.execute({
           user,
+          id: props.id,
           props,
           correlationId,
           authorizationReason: 'create_channel',
@@ -282,7 +281,7 @@ export class ChannelApplicationService {
           authContext,
         ),
       doExecute: () =>
-        this.updateChannelUseCase.execute({
+        this.upsertChannelUseCase.execute({
           user,
           id: validatedid,
           props,

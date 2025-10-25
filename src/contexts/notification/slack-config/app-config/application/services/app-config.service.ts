@@ -34,8 +34,7 @@ import { AppConfigAuthContext } from '../types/app-config-auth-context';
 
 // Use case contracts
 import {
-  ICreateAppConfigUseCase,
-  IUpdateAppConfigUseCase,
+  IUpsertAppConfigUseCase,
   IGetAppConfigUseCase,
 } from '../use-cases/contracts';
 
@@ -48,8 +47,7 @@ export class AppConfigApplicationService {
 
   constructor(
     private readonly appConfigAuthorizationService: AppConfigAuthorizationService,
-    private readonly createAppConfigUseCase: ICreateAppConfigUseCase,
-    private readonly updateAppConfigUseCase: IUpdateAppConfigUseCase,
+    private readonly upsertAppConfigUseCase: IUpsertAppConfigUseCase,
     private readonly getAppConfigUseCase: IGetAppConfigUseCase,
     @Inject(CLOCK) private readonly clock: Clock,
     @Inject(APP_LOGGER) moduleLogger: Logger,
@@ -203,8 +201,9 @@ export class AppConfigApplicationService {
           authContext,
         ),
       doExecute: () =>
-        this.createAppConfigUseCase.execute({
+        this.upsertAppConfigUseCase.execute({
           user,
+          id: props.id,
           props,
           correlationId,
           authorizationReason: 'create_app_config',
@@ -272,7 +271,7 @@ export class AppConfigApplicationService {
           authContext,
         ),
       doExecute: () =>
-        this.updateAppConfigUseCase.execute({
+        this.upsertAppConfigUseCase.execute({
           user,
           id: validatedid,
           props,

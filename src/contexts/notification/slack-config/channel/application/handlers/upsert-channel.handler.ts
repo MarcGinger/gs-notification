@@ -7,45 +7,45 @@ import { Result, DomainError } from 'src/shared/errors';
 import { APP_LOGGER, componentLogger, Logger } from 'src/shared/logging';
 import { CommandHandlerUtil } from 'src/shared/application';
 import { DetailChannelResponse } from '../dtos';
-import { UpdateChannelUseCase } from '../use-cases';
-import { UpdateChannelCommand } from '../commands';
+import { UpsertChannelUseCase } from '../use-cases';
+import { UpsertChannelCommand } from '../commands';
 
 /**
- * Enhanced Update Channel Handler with security context support
+ * Enhanced Upsert Channel Handler with security context support
  */
-@CommandHandler(UpdateChannelCommand)
-export class UpdateChannelHandler
-  implements ICommandHandler<UpdateChannelCommand>
+@CommandHandler(UpsertChannelCommand)
+export class UpsertChannelHandler
+  implements ICommandHandler<UpsertChannelCommand>
 {
   private readonly logger: Logger;
 
   constructor(
-    @Inject(UpdateChannelUseCase)
-    private readonly updateChannelUseCase: UpdateChannelUseCase,
+    @Inject(UpsertChannelUseCase)
+    private readonly upsertChannelUseCase: UpsertChannelUseCase,
     @Inject(APP_LOGGER) moduleLogger: Logger,
   ) {
-    this.logger = componentLogger(moduleLogger, 'UpdateChannelHandler');
+    this.logger = componentLogger(moduleLogger, 'UpsertChannelHandler');
   }
 
   /**
-   * Executes the update channel command with enhanced security and validation
+   * Executes the upsert channel command with enhanced security and validation
    */
   async execute(
-    command: UpdateChannelCommand,
+    command: UpsertChannelCommand,
   ): Promise<Result<DetailChannelResponse, DomainError>> {
-    const commandName = 'UpdateChannelCommand';
+    const commandName = 'UpsertChannelCommand';
 
     // Log command execution start
     CommandHandlerUtil.logCommandStart(this.logger, commandName, command, {
       application: 'slack-config',
-      component: 'UpdateChannelHandler',
-      extractCommandData: (cmd: UpdateChannelCommand) => ({
+      component: 'UpsertChannelHandler',
+      extractCommandData: (cmd: UpsertChannelCommand) => ({
         propsKeys: Object.keys(cmd.props || {}),
       }),
     });
 
     // Transform command to use case parameters
-    const result = await this.updateChannelUseCase.execute({
+    const result = await this.upsertChannelUseCase.execute({
       user: command.user,
       id: command.id,
       props: command.props,
@@ -62,7 +62,7 @@ export class UpdateChannelHandler
         result.value,
         {
           application: 'slack-config',
-          component: 'UpdateChannelHandler',
+          component: 'UpsertChannelHandler',
         },
       );
     } else {
@@ -74,8 +74,8 @@ export class UpdateChannelHandler
         command,
         {
           application: 'slack-config',
-          component: 'UpdateChannelHandler',
-          extractErrorContext: (cmd: UpdateChannelCommand) => ({
+          component: 'UpsertChannelHandler',
+          extractErrorContext: (cmd: UpsertChannelCommand) => ({
             inputStructure: {
               hasProps: !!cmd.props,
               propsKeys: cmd.props ? Object.keys(cmd.props) : [],

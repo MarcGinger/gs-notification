@@ -6,7 +6,7 @@ import {
   Get,
   Post,
   Body,
-  Patch,
+  Put,
   HttpStatus,
   HttpCode,
   Param,
@@ -134,7 +134,7 @@ export class TemplateController {
     return result;
   }
 
-  @Patch(':code')
+  @Put(':code')
   @TemplateUpdateResource()
   @ApiOperation({
     summary: 'Update a Template',

@@ -21,14 +21,14 @@ export class UpsertWorkspaceHandler
 
   constructor(
     @Inject(UpsertWorkspaceUseCase)
-    private readonly UpsertWorkspaceUseCase: UpsertWorkspaceUseCase,
+    private readonly upsertWorkspaceUseCase: UpsertWorkspaceUseCase,
     @Inject(APP_LOGGER) moduleLogger: Logger,
   ) {
     this.logger = componentLogger(moduleLogger, 'UpsertWorkspaceHandler');
   }
 
   /**
-   * Executes the Upsert workspace command with enhanced security and validation
+   * Executes the upsert workspace command with enhanced security and validation
    */
   async execute(
     command: UpsertWorkspaceCommand,
@@ -45,7 +45,7 @@ export class UpsertWorkspaceHandler
     });
 
     // Transform command to use case parameters
-    const result = await this.UpsertWorkspaceUseCase.execute({
+    const result = await this.upsertWorkspaceUseCase.execute({
       user: command.user,
       id: command.id,
       props: command.props,

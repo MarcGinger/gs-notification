@@ -7,46 +7,47 @@ import { Result, DomainError } from 'src/shared/errors';
 import { APP_LOGGER, componentLogger, Logger } from 'src/shared/logging';
 import { CommandHandlerUtil } from 'src/shared/application';
 import { DetailTemplateResponse } from '../dtos';
-import { CreateTemplateUseCase } from '../use-cases';
-import { CreateTemplateCommand } from '../commands';
+import { UpsertTemplateUseCase } from '../use-cases';
+import { UpsertTemplateCommand } from '../commands';
 
 /**
- * Enhanced Create Template Handler with security context support
+ * Enhanced Upsert Template Handler with security context support
  */
-@CommandHandler(CreateTemplateCommand)
-export class CreateTemplateHandler
-  implements ICommandHandler<CreateTemplateCommand>
+@CommandHandler(UpsertTemplateCommand)
+export class UpsertTemplateHandler
+  implements ICommandHandler<UpsertTemplateCommand>
 {
   private readonly logger: Logger;
 
   constructor(
-    @Inject(CreateTemplateUseCase)
-    private readonly createTemplateUseCase: CreateTemplateUseCase,
+    @Inject(UpsertTemplateUseCase)
+    private readonly upsertTemplateUseCase: UpsertTemplateUseCase,
     @Inject(APP_LOGGER) moduleLogger: Logger,
   ) {
-    this.logger = componentLogger(moduleLogger, 'CreateTemplateHandler');
+    this.logger = componentLogger(moduleLogger, 'UpsertTemplateHandler');
   }
 
   /**
-   * Executes the create template command with enhanced security and validation
+   * Executes the upsert template command with enhanced security and validation
    */
   async execute(
-    command: CreateTemplateCommand,
+    command: UpsertTemplateCommand,
   ): Promise<Result<DetailTemplateResponse, DomainError>> {
-    const commandName = 'CreateTemplateCommand';
+    const commandName = 'UpsertTemplateCommand';
 
     // Log command execution start
     CommandHandlerUtil.logCommandStart(this.logger, commandName, command, {
       application: 'slack-config',
-      component: 'CreateTemplateHandler',
-      extractCommandData: (cmd: CreateTemplateCommand) => ({
+      component: 'UpsertTemplateHandler',
+      extractCommandData: (cmd: UpsertTemplateCommand) => ({
         propsKeys: Object.keys(cmd.props || {}),
       }),
     });
 
-    // Delegate to use case with full command context
-    const result = await this.createTemplateUseCase.execute({
+    // Transform command to use case parameters
+    const result = await this.upsertTemplateUseCase.execute({
       user: command.user,
+      code: command.code,
       props: command.props,
       correlationId: command.correlationId,
       authorizationReason: 'CQRS Command Handler',
@@ -61,7 +62,7 @@ export class CreateTemplateHandler
         result.value,
         {
           application: 'slack-config',
-          component: 'CreateTemplateHandler',
+          component: 'UpsertTemplateHandler',
         },
       );
     } else {
@@ -73,8 +74,8 @@ export class CreateTemplateHandler
         command,
         {
           application: 'slack-config',
-          component: 'CreateTemplateHandler',
-          extractErrorContext: (cmd: CreateTemplateCommand) => ({
+          component: 'UpsertTemplateHandler',
+          extractErrorContext: (cmd: UpsertTemplateCommand) => ({
             inputStructure: {
               hasProps: !!cmd.props,
               propsKeys: cmd.props ? Object.keys(cmd.props) : [],

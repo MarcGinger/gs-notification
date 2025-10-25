@@ -11,10 +11,8 @@ import {
   AppConfigForeignKeyValidatorService,
 } from './application/services';
 import {
-  ICreateAppConfigUseCase,
-  CreateAppConfigUseCase,
-  IUpdateAppConfigUseCase,
-  UpdateAppConfigUseCase,
+  IUpsertAppConfigUseCase,
+  UpsertAppConfigUseCase,
   IGetAppConfigUseCase,
   GetAppConfigUseCase,
 } from './application/use-cases';
@@ -68,12 +66,8 @@ import {
 
     // Use case implementations
     {
-      provide: ICreateAppConfigUseCase,
-      useClass: CreateAppConfigUseCase,
-    },
-    {
-      provide: IUpdateAppConfigUseCase,
-      useClass: UpdateAppConfigUseCase,
+      provide: IUpsertAppConfigUseCase,
+      useClass: UpsertAppConfigUseCase,
     },
     {
       provide: IGetAppConfigUseCase,

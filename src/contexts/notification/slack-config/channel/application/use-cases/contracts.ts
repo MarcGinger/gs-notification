@@ -10,31 +10,8 @@
 
 import { Result, DomainError } from 'src/shared/errors';
 import type { IUserToken } from 'src/shared/security';
-import type {
-  CreateChannelProps,
-  UpdateChannelProps,
-  UpsertChannelProps,
-} from '../../domain/props';
+import type { UpsertChannelProps } from '../../domain/props';
 import type { DetailChannelResponse } from '../dtos';
-
-export abstract class ICreateChannelUseCase {
-  abstract execute(params: {
-    user: IUserToken;
-    props: CreateChannelProps;
-    correlationId: string;
-    authorizationReason: string;
-  }): Promise<Result<DetailChannelResponse, DomainError>>;
-}
-
-export abstract class IUpdateChannelUseCase {
-  abstract execute(params: {
-    user: IUserToken;
-    id: string;
-    props: UpdateChannelProps;
-    correlationId: string;
-    authorizationReason: string;
-  }): Promise<Result<DetailChannelResponse, DomainError>>;
-}
 
 export abstract class IUpsertChannelUseCase {
   abstract execute(params: {
