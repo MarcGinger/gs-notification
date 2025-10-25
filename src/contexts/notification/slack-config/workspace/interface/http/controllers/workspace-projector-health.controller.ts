@@ -59,7 +59,7 @@ export class WorkspaceProjectorHealthController {
         isHealthy: false,
         isRunning: false,
         projectorName: WorkspaceProjectionKeys.PROJECTOR_NAME,
-        subscriptionGroup: 'workspace-projection',
+        subscriptionGroup: WorkspaceProjectionKeys.SUBSCRIPTION_GROUP,
         eventsProcessed: 0,
         lastProcessedAt: null,
         lastError: e.message,

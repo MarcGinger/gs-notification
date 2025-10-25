@@ -20,6 +20,7 @@ import { ActorContext } from 'src/shared/application/context';
 import { RepositoryErrorFactory } from 'src/shared/domain/errors/repository.error';
 import { CacheMetricsCollector } from 'src/shared/infrastructure/projections/cache-optimization';
 import { SLACK_CONFIG_DI_TOKENS } from '../../../slack-config.constants';
+import { ChannelProjectionKeys } from '../../channel-projection-keys';
 import { DetailChannelResponse } from '../../application/dtos';
 import { IChannelQuery } from '../../application/ports';
 
@@ -225,19 +226,19 @@ export class ChannelQueryRepository implements IChannelQuery {
   }
 
   /**
-   * Generate cluster-safe Redis keys with hash tags for locality
-   * Uses same pattern as ChannelProjector for consistency
+   * Generate cluster-safe Redis keys using centralized ChannelProjectionKeys
+   * Ensures consistency with projector key patterns
    */
   private generateChannelKey(tenantId: string, id: string): string {
-    // ✅ Hash-tags ensure key routes to same Redis Cluster slot as projector
-    return `channel-projector:{${tenantId}}:channel:${id}`;
+    // ✅ Use centralized key generation for consistency
+    return ChannelProjectionKeys.getRedisChannelKey(tenantId, id);
   }
 
   /**
-   * Generate tenant index key for pagination and sorting
+   * Generate tenant index key for pagination and sorting using centralized keys
    */
   private generateTenantIndexKey(tenantId: string): string {
-    return `channel-projector:{${tenantId}}:channel-index`;
+    return ChannelProjectionKeys.getRedisTenantIndexKey(tenantId);
   }
 
   /**

@@ -113,7 +113,7 @@ export class ChannelProjector
     private readonly cache: CacheService,
   ) {
     super(
-      'channel-projector',
+      ChannelProjectionKeys.PROJECTOR_NAME,
       'channel-projection',
       baseLogger,
       checkpointStore,
@@ -283,10 +283,12 @@ export class ChannelProjector
         params as unknown as Record<string, unknown>,
       );
 
-      // ✅ Generate cluster-safe keys with hash tags for Redis cluster locality
-      const entityKey =
-        'channel-projector:{' + tenant + '}:channel:' + params.id;
-      const indexKey = 'channel-projector:{' + tenant + '}:channel-index';
+      // ✅ Generate cluster-safe keys using centralized ChannelProjectionKeys
+      const entityKey = ChannelProjectionKeys.getRedisChannelKey(
+        tenant,
+        params.id,
+      );
+      const indexKey = ChannelProjectionKeys.getRedisTenantIndexKey(tenant);
 
       // ✅ Validate hash-tag consistency for cluster safety
       RedisClusterUtils.validateHashTagConsistency(entityKey, indexKey);
@@ -448,9 +450,23 @@ export class ChannelProjector
       const channelSnapshot =
         ChannelFieldValidatorUtil.createChannelSnapshotFromEventData(eventData);
 
+      // Override envelope fields with actual event envelope data
+      // The version, createdAt, updatedAt should come from event envelope, not payload
+      const eventTimestamp =
+        event.metadata?.occurredAt instanceof Date
+          ? event.metadata.occurredAt
+          : new Date();
+
+      const eventEnvelope = {
+        version: event.revision, // Use event revision as version
+        createdAt: eventTimestamp, // Use event timestamp
+        updatedAt: eventTimestamp, // Use event timestamp
+      };
+
       // Add projector-specific fields for Redis storage
       return {
         ...channelSnapshot,
+        ...eventEnvelope, // Override with correct envelope data
         tenantId,
         deletedAt: null, // Projector handles soft deletes
         lastStreamRevision: event.revision.toString(),

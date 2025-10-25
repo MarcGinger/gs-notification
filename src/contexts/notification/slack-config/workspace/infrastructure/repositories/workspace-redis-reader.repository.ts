@@ -20,10 +20,10 @@ import { Option } from 'src/shared/domain/types';
 import { ActorContext } from 'src/shared/application/context';
 import { RepositoryErrorFactory } from 'src/shared/domain/errors/repository.error';
 import { SLACK_CONFIG_DI_TOKENS } from '../../../slack-config.constants';
+import { WorkspaceProjectionKeys } from '../../workspace-projection-keys';
 import { WorkspaceSnapshotProps } from '../../domain/props';
 import { WorkspaceId } from '../../domain/value-objects';
 import { IWorkspaceReader } from '../../application/ports';
-import { WorkspaceProjectionKeys } from '../../workspace-projection-keys';
 
 /**
  * Workspace Reader Repository - Redis Implementation

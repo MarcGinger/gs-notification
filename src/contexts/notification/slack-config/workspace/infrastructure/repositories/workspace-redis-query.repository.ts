@@ -20,9 +20,9 @@ import { ActorContext } from 'src/shared/application/context';
 import { RepositoryErrorFactory } from 'src/shared/domain/errors/repository.error';
 import { CacheMetricsCollector } from 'src/shared/infrastructure/projections/cache-optimization';
 import { SLACK_CONFIG_DI_TOKENS } from '../../../slack-config.constants';
+import { WorkspaceProjectionKeys } from '../../workspace-projection-keys';
 import { DetailWorkspaceResponse } from '../../application/dtos';
 import { IWorkspaceQuery } from '../../application/ports';
-import { WorkspaceProjectionKeys } from '../../workspace-projection-keys';
 
 /**
  * Internal workspace data structure for Redis operations

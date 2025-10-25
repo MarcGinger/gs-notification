@@ -20,6 +20,7 @@ import { ActorContext } from 'src/shared/application/context';
 import { RepositoryErrorFactory } from 'src/shared/domain/errors/repository.error';
 import { CacheMetricsCollector } from 'src/shared/infrastructure/projections/cache-optimization';
 import { SLACK_CONFIG_DI_TOKENS } from '../../../slack-config.constants';
+import { TemplateProjectionKeys } from '../../template-projection-keys';
 import { DetailTemplateResponse } from '../../application/dtos';
 import { ITemplateQuery } from '../../application/ports';
 
@@ -224,19 +225,19 @@ export class TemplateQueryRepository implements ITemplateQuery {
   }
 
   /**
-   * Generate cluster-safe Redis keys with hash tags for locality
-   * Uses same pattern as TemplateProjector for consistency
+   * Generate cluster-safe Redis keys using centralized TemplateProjectionKeys
+   * Ensures consistency with projector key patterns
    */
-  private generateTemplateKey(tenantId: string, code: string): string {
-    // ✅ Hash-tags ensure key routes to same Redis Cluster slot as projector
-    return `template-projector:{${tenantId}}:template:${code}`;
+  private generateTemplateKey(tenantId: string, id: string): string {
+    // ✅ Use centralized key generation for consistency
+    return TemplateProjectionKeys.getRedisTemplateKey(tenantId, id);
   }
 
   /**
-   * Generate tenant index key for pagination and sorting
+   * Generate tenant index key for pagination and sorting using centralized keys
    */
   private generateTenantIndexKey(tenantId: string): string {
-    return `template-projector:{${tenantId}}:template-index`;
+    return TemplateProjectionKeys.getRedisTenantIndexKey(tenantId);
   }
 
   /**

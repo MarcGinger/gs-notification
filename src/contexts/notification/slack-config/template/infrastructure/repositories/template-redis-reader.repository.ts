@@ -20,6 +20,7 @@ import { Option } from 'src/shared/domain/types';
 import { ActorContext } from 'src/shared/application/context';
 import { RepositoryErrorFactory } from 'src/shared/domain/errors/repository.error';
 import { SLACK_CONFIG_DI_TOKENS } from '../../../slack-config.constants';
+import { TemplateProjectionKeys } from '../../template-projection-keys';
 import { TemplateSnapshotProps } from '../../domain/props';
 import { TemplateCode } from '../../domain/value-objects';
 import { ITemplateReader } from '../../application/ports';
@@ -73,12 +74,12 @@ export class TemplateReaderRepository implements ITemplateReader {
   }
 
   /**
-   * Generate cluster-safe Redis keys with hash tags for locality
-   * Uses same pattern as TemplateProjector for consistency
+   * Generate cluster-safe Redis keys using centralized TemplateProjectionKeys
+   * Ensures consistency with projector key patterns
    */
-  private generateTemplateKey(tenantId: string, code: string): string {
-    // ✅ Hash-tags ensure key routes to same Redis Cluster slot as projector
-    return `template-projector:{${tenantId}}:template:${code}`;
+  private generateTemplateKey(tenantId: string, id: string): string {
+    // ✅ Use centralized key generation for consistency
+    return TemplateProjectionKeys.getRedisTemplateKey(tenantId, id);
   }
 
   /**

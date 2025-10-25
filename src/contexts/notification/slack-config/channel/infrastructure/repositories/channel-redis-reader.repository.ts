@@ -20,6 +20,7 @@ import { Option } from 'src/shared/domain/types';
 import { ActorContext } from 'src/shared/application/context';
 import { RepositoryErrorFactory } from 'src/shared/domain/errors/repository.error';
 import { SLACK_CONFIG_DI_TOKENS } from '../../../slack-config.constants';
+import { ChannelProjectionKeys } from '../../channel-projection-keys';
 import { ChannelSnapshotProps } from '../../domain/props';
 import { ChannelId } from '../../domain/value-objects';
 import { IChannelReader } from '../../application/ports';
@@ -73,12 +74,12 @@ export class ChannelReaderRepository implements IChannelReader {
   }
 
   /**
-   * Generate cluster-safe Redis keys with hash tags for locality
-   * Uses same pattern as ChannelProjector for consistency
+   * Generate cluster-safe Redis keys using centralized ChannelProjectionKeys
+   * Ensures consistency with projector key patterns
    */
   private generateChannelKey(tenantId: string, id: string): string {
-    // ✅ Hash-tags ensure key routes to same Redis Cluster slot as projector
-    return `channel-projector:{${tenantId}}:channel:${id}`;
+    // ✅ Use centralized key generation for consistency
+    return ChannelProjectionKeys.getRedisChannelKey(tenantId, id);
   }
 
   /**

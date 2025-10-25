@@ -7,6 +7,7 @@
 import { Controller, Get, Inject } from '@nestjs/common';
 import { APP_LOGGER, Log, componentLogger, Logger } from 'src/shared/logging';
 import { AppConfigProjector } from '../../../infrastructure/projectors';
+import { AppConfigProjectionKeys } from '../../../app-config-projection-keys';
 
 @Controller('health/projectors')
 export class AppConfigProjectorHealthController {
@@ -57,7 +58,7 @@ export class AppConfigProjectorHealthController {
       return {
         isHealthy: false,
         isRunning: false,
-        projectorName: 'app-config-projector',
+        projectorName: AppConfigProjectionKeys.PROJECTOR_NAME,
         subscriptionGroup: 'app-config-projection',
         eventsProcessed: 0,
         lastProcessedAt: null,

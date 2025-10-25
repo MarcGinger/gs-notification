@@ -20,6 +20,7 @@ import { Option } from 'src/shared/domain/types';
 import { ActorContext } from 'src/shared/application/context';
 import { RepositoryErrorFactory } from 'src/shared/domain/errors/repository.error';
 import { SLACK_CONFIG_DI_TOKENS } from '../../../slack-config.constants';
+import { AppConfigProjectionKeys } from '../../app-config-projection-keys';
 import { AppConfigSnapshotProps } from '../../domain/props';
 import { AppConfigId } from '../../domain/value-objects';
 import { IAppConfigReader } from '../../application/ports';
@@ -73,12 +74,12 @@ export class AppConfigReaderRepository implements IAppConfigReader {
   }
 
   /**
-   * Generate cluster-safe Redis keys with hash tags for locality
-   * Uses same pattern as AppConfigProjector for consistency
+   * Generate cluster-safe Redis keys using centralized AppConfigProjectionKeys
+   * Ensures consistency with projector key patterns
    */
-  private generateAppConfigKey(tenantId: string, id: number): string {
-    // ✅ Hash-tags ensure key routes to same Redis Cluster slot as projector
-    return `app-config-projector:{${tenantId}}:app-config:${id.toString()}`;
+  private generateAppConfigKey(tenantId: string, id: string): string {
+    // ✅ Use centralized key generation for consistency
+    return AppConfigProjectionKeys.getRedisAppConfigKey(tenantId, id);
   }
 
   /**

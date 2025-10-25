@@ -7,6 +7,7 @@
 import { Controller, Get, Inject } from '@nestjs/common';
 import { APP_LOGGER, Log, componentLogger, Logger } from 'src/shared/logging';
 import { TemplateProjector } from '../../../infrastructure/projectors';
+import { TemplateProjectionKeys } from '../../../template-projection-keys';
 
 @Controller('health/projectors')
 export class TemplateProjectorHealthController {
@@ -57,7 +58,7 @@ export class TemplateProjectorHealthController {
       return {
         isHealthy: false,
         isRunning: false,
-        projectorName: 'template-projector',
+        projectorName: TemplateProjectionKeys.PROJECTOR_NAME,
         subscriptionGroup: 'template-projection',
         eventsProcessed: 0,
         lastProcessedAt: null,

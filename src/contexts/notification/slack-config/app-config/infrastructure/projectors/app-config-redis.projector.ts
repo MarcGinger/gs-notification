@@ -113,7 +113,7 @@ export class AppConfigProjector
     private readonly cache: CacheService,
   ) {
     super(
-      'app-config-projector',
+      AppConfigProjectionKeys.PROJECTOR_NAME,
       'app-config-projection',
       baseLogger,
       checkpointStore,
@@ -283,10 +283,12 @@ export class AppConfigProjector
         params as unknown as Record<string, unknown>,
       );
 
-      // ✅ Generate cluster-safe keys with hash tags for Redis cluster locality
-      const entityKey =
-        'app-config-projector:{' + tenant + '}:app-config:' + params.id;
-      const indexKey = 'app-config-projector:{' + tenant + '}:app-config-index';
+      // ✅ Generate cluster-safe keys using centralized AppConfigProjectionKeys
+      const entityKey = AppConfigProjectionKeys.getRedisAppConfigKey(
+        tenant,
+        params.id,
+      );
+      const indexKey = AppConfigProjectionKeys.getRedisTenantIndexKey(tenant);
 
       // ✅ Validate hash-tag consistency for cluster safety
       RedisClusterUtils.validateHashTagConsistency(entityKey, indexKey);
@@ -450,9 +452,23 @@ export class AppConfigProjector
           eventData,
         );
 
+      // Override envelope fields with actual event envelope data
+      // The version, createdAt, updatedAt should come from event envelope, not payload
+      const eventTimestamp =
+        event.metadata?.occurredAt instanceof Date
+          ? event.metadata.occurredAt
+          : new Date();
+
+      const eventEnvelope = {
+        version: event.revision, // Use event revision as version
+        createdAt: eventTimestamp, // Use event timestamp
+        updatedAt: eventTimestamp, // Use event timestamp
+      };
+
       // Add projector-specific fields for Redis storage
       return {
         ...appConfigSnapshot,
+        ...eventEnvelope, // Override with correct envelope data
         tenantId,
         deletedAt: null, // Projector handles soft deletes
         lastStreamRevision: event.revision.toString(),

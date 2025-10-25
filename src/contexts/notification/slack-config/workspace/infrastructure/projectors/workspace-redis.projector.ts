@@ -114,7 +114,7 @@ export class WorkspaceProjector
   ) {
     super(
       WorkspaceProjectionKeys.PROJECTOR_NAME,
-      'workspace-projection',
+      WorkspaceProjectionKeys.SUBSCRIPTION_GROUP,
       baseLogger,
       checkpointStore,
     );

@@ -83,44 +83,45 @@ export class ChannelProjectionKeys {
   }
 
   // Redis projection key patterns
-  static readonly REDIS_KEY_PREFIX = 'channel:projection';
-  static readonly REDIS_INDEX_PREFIX = 'channel:index';
+  static readonly REDIS_KEY_PREFIX = 'notification:channel-projector';
+  static readonly REDIS_INDEX_PREFIX = 'notification:channel-index';
+  static readonly PROJECTOR_NAME = 'channel-projector';
 
   /**
-   * Get Redis key for channel projection
-   * Format: channel:projection:{tenantId}:{code}
+   * Get Redis key for channel projection with cluster-safe hash tags
+   * Format: notification:channel-projector:{tenantId}:channel:{code}
    */
   static getRedisChannelKey(tenantId: string, code: string): string {
-    return `${this.REDIS_KEY_PREFIX}:${tenantId}:${code}`;
+    return `${this.REDIS_KEY_PREFIX}:{${tenantId}}:channel:${code}`;
   }
 
   /**
-   * Get Redis key for tenant-based channel index
-   * Format: channel:index:by_tenant:{tenantId}
+   * Get Redis key for tenant-based channel index with cluster-safe hash tags
+   * Format: notification:channel-projector:{tenantId}:channel-index
    */
   static getRedisTenantIndexKey(tenantId: string): string {
-    return `${this.REDIS_INDEX_PREFIX}:by_tenant:${tenantId}`;
+    return `${this.REDIS_KEY_PREFIX}:{${tenantId}}:channel-index`;
   }
 
   /**
-   * Get Redis key for category-based channel index
-   * Format: channel:index:by_category:{tenantId}:{category}
+   * Get Redis key for category-based channel index with cluster-safe hash tags
+   * Format: notification:channel-index:{tenantId}:by_category:{category}
    */
   static getRedisCategoryIndexKey(tenantId: string, category: string): string {
-    return `${this.REDIS_INDEX_PREFIX}:by_category:${tenantId}:${category}`;
+    return `${this.REDIS_INDEX_PREFIX}:{${tenantId}}:by_category:${category}`;
   }
 
   /**
    * Get Redis key pattern for all channels in a tenant
-   * Format: channel:projection:{tenantId}:*
+   * Format: notification:channel-projector:{tenantId}:channel:*
    */
   static getRedisTenantChannelPattern(tenantId: string): string {
-    return `${this.REDIS_KEY_PREFIX}:${tenantId}:*`;
+    return `${this.REDIS_KEY_PREFIX}:{${tenantId}}:channel:*`;
   }
 
   /**
    * Get Redis key pattern for all channel projections
-   * Format: channel:projection:*
+   * Format: notification:channel-projector:*
    */
   static getRedisAllChannelsPattern(): string {
     return `${this.REDIS_KEY_PREFIX}:*`;

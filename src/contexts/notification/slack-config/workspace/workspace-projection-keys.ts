@@ -86,6 +86,7 @@ export class WorkspaceProjectionKeys {
   static readonly REDIS_KEY_PREFIX = 'notification:workspace-projector';
   static readonly REDIS_INDEX_PREFIX = 'notification:workspace-index';
   static readonly PROJECTOR_NAME = 'workspace-projector';
+  static readonly SUBSCRIPTION_GROUP = 'workspace-projection';
 
   /**
    * Get Redis key for workspace projection with cluster-safe hash tags

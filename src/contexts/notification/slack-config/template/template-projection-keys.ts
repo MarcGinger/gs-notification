@@ -83,44 +83,45 @@ export class TemplateProjectionKeys {
   }
 
   // Redis projection key patterns
-  static readonly REDIS_KEY_PREFIX = 'template:projection';
-  static readonly REDIS_INDEX_PREFIX = 'template:index';
+  static readonly REDIS_KEY_PREFIX = 'notification:template-projector';
+  static readonly REDIS_INDEX_PREFIX = 'notification:template-index';
+  static readonly PROJECTOR_NAME = 'template-projector';
 
   /**
-   * Get Redis key for template projection
-   * Format: template:projection:{tenantId}:{code}
+   * Get Redis key for template projection with cluster-safe hash tags
+   * Format: notification:template-projector:{tenantId}:template:{code}
    */
   static getRedisTemplateKey(tenantId: string, code: string): string {
-    return `${this.REDIS_KEY_PREFIX}:${tenantId}:${code}`;
+    return `${this.REDIS_KEY_PREFIX}:{${tenantId}}:template:${code}`;
   }
 
   /**
-   * Get Redis key for tenant-based template index
-   * Format: template:index:by_tenant:{tenantId}
+   * Get Redis key for tenant-based template index with cluster-safe hash tags
+   * Format: notification:template-projector:{tenantId}:template-index
    */
   static getRedisTenantIndexKey(tenantId: string): string {
-    return `${this.REDIS_INDEX_PREFIX}:by_tenant:${tenantId}`;
+    return `${this.REDIS_KEY_PREFIX}:{${tenantId}}:template-index`;
   }
 
   /**
-   * Get Redis key for category-based template index
-   * Format: template:index:by_category:{tenantId}:{category}
+   * Get Redis key for category-based template index with cluster-safe hash tags
+   * Format: notification:template-index:{tenantId}:by_category:{category}
    */
   static getRedisCategoryIndexKey(tenantId: string, category: string): string {
-    return `${this.REDIS_INDEX_PREFIX}:by_category:${tenantId}:${category}`;
+    return `${this.REDIS_INDEX_PREFIX}:{${tenantId}}:by_category:${category}`;
   }
 
   /**
    * Get Redis key pattern for all templates in a tenant
-   * Format: template:projection:{tenantId}:*
+   * Format: notification:template-projector:{tenantId}:template:*
    */
   static getRedisTenantTemplatePattern(tenantId: string): string {
-    return `${this.REDIS_KEY_PREFIX}:${tenantId}:*`;
+    return `${this.REDIS_KEY_PREFIX}:{${tenantId}}:template:*`;
   }
 
   /**
    * Get Redis key pattern for all template projections
-   * Format: template:projection:*
+   * Format: notification:template-projector:*
    */
   static getRedisAllTemplatesPattern(): string {
     return `${this.REDIS_KEY_PREFIX}:*`;

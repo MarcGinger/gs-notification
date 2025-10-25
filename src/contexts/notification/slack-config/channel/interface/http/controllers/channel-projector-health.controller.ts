@@ -7,6 +7,7 @@
 import { Controller, Get, Inject } from '@nestjs/common';
 import { APP_LOGGER, Log, componentLogger, Logger } from 'src/shared/logging';
 import { ChannelProjector } from '../../../infrastructure/projectors';
+import { ChannelProjectionKeys } from '../../../channel-projection-keys';
 
 @Controller('health/projectors')
 export class ChannelProjectorHealthController {
@@ -57,7 +58,7 @@ export class ChannelProjectorHealthController {
       return {
         isHealthy: false,
         isRunning: false,
-        projectorName: 'channel-projector',
+        projectorName: ChannelProjectionKeys.PROJECTOR_NAME,
         subscriptionGroup: 'channel-projection',
         eventsProcessed: 0,
         lastProcessedAt: null,

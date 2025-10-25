@@ -113,7 +113,7 @@ export class TemplateProjector
     private readonly cache: CacheService,
   ) {
     super(
-      'template-projector',
+      TemplateProjectionKeys.PROJECTOR_NAME,
       'template-projection',
       baseLogger,
       checkpointStore,
@@ -283,10 +283,12 @@ export class TemplateProjector
         params as unknown as Record<string, unknown>,
       );
 
-      // ✅ Generate cluster-safe keys with hash tags for Redis cluster locality
-      const entityKey =
-        'template-projector:{' + tenant + '}:template:' + params.code;
-      const indexKey = 'template-projector:{' + tenant + '}:template-index';
+      // ✅ Generate cluster-safe keys using centralized TemplateProjectionKeys
+      const entityKey = TemplateProjectionKeys.getRedisTemplateKey(
+        tenant,
+        params.code,
+      );
+      const indexKey = TemplateProjectionKeys.getRedisTenantIndexKey(tenant);
 
       // ✅ Validate hash-tag consistency for cluster safety
       RedisClusterUtils.validateHashTagConsistency(entityKey, indexKey);
@@ -450,9 +452,23 @@ export class TemplateProjector
           eventData,
         );
 
+      // Override envelope fields with actual event envelope data
+      // The version, createdAt, updatedAt should come from event envelope, not payload
+      const eventTimestamp =
+        event.metadata?.occurredAt instanceof Date
+          ? event.metadata.occurredAt
+          : new Date();
+
+      const eventEnvelope = {
+        version: event.revision, // Use event revision as version
+        createdAt: eventTimestamp, // Use event timestamp
+        updatedAt: eventTimestamp, // Use event timestamp
+      };
+
       // Add projector-specific fields for Redis storage
       return {
         ...templateSnapshot,
+        ...eventEnvelope, // Override with correct envelope data
         tenantId,
         deletedAt: null, // Projector handles soft deletes
         lastStreamRevision: event.revision.toString(),

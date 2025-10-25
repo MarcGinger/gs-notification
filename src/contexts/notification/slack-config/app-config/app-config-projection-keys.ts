@@ -83,44 +83,45 @@ export class AppConfigProjectionKeys {
   }
 
   // Redis projection key patterns
-  static readonly REDIS_KEY_PREFIX = 'app-config:projection';
-  static readonly REDIS_INDEX_PREFIX = 'app-config:index';
+  static readonly REDIS_KEY_PREFIX = 'notification:app-config-projector';
+  static readonly REDIS_INDEX_PREFIX = 'notification:app-config-index';
+  static readonly PROJECTOR_NAME = 'app-config-projector';
 
   /**
-   * Get Redis key for app-config projection
-   * Format: app-config:projection:{tenantId}:{code}
+   * Get Redis key for app-config projection with cluster-safe hash tags
+   * Format: notification:app-config-projector:{tenantId}:app-config:{code}
    */
   static getRedisAppConfigKey(tenantId: string, code: string): string {
-    return `${this.REDIS_KEY_PREFIX}:${tenantId}:${code}`;
+    return `${this.REDIS_KEY_PREFIX}:{${tenantId}}:app-config:${code}`;
   }
 
   /**
-   * Get Redis key for tenant-based app-config index
-   * Format: app-config:index:by_tenant:{tenantId}
+   * Get Redis key for tenant-based app-config index with cluster-safe hash tags
+   * Format: notification:app-config-projector:{tenantId}:app-config-index
    */
   static getRedisTenantIndexKey(tenantId: string): string {
-    return `${this.REDIS_INDEX_PREFIX}:by_tenant:${tenantId}`;
+    return `${this.REDIS_KEY_PREFIX}:{${tenantId}}:app-config-index`;
   }
 
   /**
-   * Get Redis key for category-based app-config index
-   * Format: app-config:index:by_category:{tenantId}:{category}
+   * Get Redis key for category-based app-config index with cluster-safe hash tags
+   * Format: notification:app-config-index:{tenantId}:by_category:{category}
    */
   static getRedisCategoryIndexKey(tenantId: string, category: string): string {
-    return `${this.REDIS_INDEX_PREFIX}:by_category:${tenantId}:${category}`;
+    return `${this.REDIS_INDEX_PREFIX}:{${tenantId}}:by_category:${category}`;
   }
 
   /**
    * Get Redis key pattern for all app-configs in a tenant
-   * Format: app-config:projection:{tenantId}:*
+   * Format: notification:app-config-projector:{tenantId}:app-config:*
    */
   static getRedisTenantAppConfigPattern(tenantId: string): string {
-    return `${this.REDIS_KEY_PREFIX}:${tenantId}:*`;
+    return `${this.REDIS_KEY_PREFIX}:{${tenantId}}:app-config:*`;
   }
 
   /**
    * Get Redis key pattern for all app-config projections
-   * Format: app-config:projection:*
+   * Format: notification:app-config-projector:*
    */
   static getRedisAllAppConfigsPattern(): string {
     return `${this.REDIS_KEY_PREFIX}:*`;

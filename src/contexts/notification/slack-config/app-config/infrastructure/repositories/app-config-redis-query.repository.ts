@@ -20,6 +20,7 @@ import { ActorContext } from 'src/shared/application/context';
 import { RepositoryErrorFactory } from 'src/shared/domain/errors/repository.error';
 import { CacheMetricsCollector } from 'src/shared/infrastructure/projections/cache-optimization';
 import { SLACK_CONFIG_DI_TOKENS } from '../../../slack-config.constants';
+import { AppConfigProjectionKeys } from '../../app-config-projection-keys';
 import { DetailAppConfigResponse } from '../../application/dtos';
 import { IAppConfigQuery } from '../../application/ports';
 
@@ -226,19 +227,19 @@ export class AppConfigQueryRepository implements IAppConfigQuery {
   }
 
   /**
-   * Generate cluster-safe Redis keys with hash tags for locality
-   * Uses same pattern as AppConfigProjector for consistency
+   * Generate cluster-safe Redis keys using centralized AppConfigProjectionKeys
+   * Ensures consistency with projector key patterns
    */
   private generateAppConfigKey(tenantId: string, id: string): string {
-    // ✅ Hash-tags ensure key routes to same Redis Cluster slot as projector
-    return `app-config-projector:{${tenantId}}:app-config:${id}`;
+    // ✅ Use centralized key generation for consistency
+    return AppConfigProjectionKeys.getRedisAppConfigKey(tenantId, id);
   }
 
   /**
-   * Generate tenant index key for pagination and sorting
+   * Generate tenant index key for pagination and sorting using centralized keys
    */
   private generateTenantIndexKey(tenantId: string): string {
-    return `app-config-projector:{${tenantId}}:app-config-index`;
+    return AppConfigProjectionKeys.getRedisTenantIndexKey(tenantId);
   }
 
   /**
