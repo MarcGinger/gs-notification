@@ -9,6 +9,8 @@
 export interface WorkspaceUpdatedEventPayload {
   id: string;
   name: string;
+  botToken?: string;
+  signingSecret?: string;
   appId?: string;
   botUserId?: string;
   defaultChannelId?: string;
@@ -38,6 +40,14 @@ export class WorkspaceUpdatedEvent {
 
   get name(): string {
     return this.payload.name;
+  }
+
+  get botToken(): string | undefined {
+    return this.payload.botToken;
+  }
+
+  get signingSecret(): string | undefined {
+    return this.payload.signingSecret;
   }
 
   get appId(): string | undefined {

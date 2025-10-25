@@ -8,7 +8,9 @@ import { deepEqual } from '../../utilities/deep-equal';
  * @param fieldName - The name of the field being compared
  * @param changeSet - The change set object to update
  * @returns void - Updates the changeSet in place
+ * TODO REMOVE
  */
+
 export function compareField<T>(
   before: T,
   after: T,
@@ -31,6 +33,7 @@ export function compareField<T>(
  * @param fieldName - The name of the field being compared
  * @param changeSet - The change set object to update
  * @returns void - Updates the changeSet in place
+ * TODO REMOVE
  */
 export function compareComplexField<T>(
   before: T,

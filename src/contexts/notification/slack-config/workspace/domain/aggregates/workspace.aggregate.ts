@@ -131,7 +131,7 @@ export class WorkspaceAggregate extends AggregateRootBase {
       eventMetadata,
     );
 
-    // Create typed WorkspaceCreatedEvent with domain data
+    // Create typed WorkspaceCreatedEvent with only business data
     const createdEvent = WorkspaceCreatedEvent.create({
       id: entityProps.id.value,
       name: entityProps.name.value,
@@ -442,6 +442,8 @@ export class WorkspaceAggregate extends AggregateRootBase {
     const updatedEvent = WorkspaceUpdatedEvent.create({
       id: this._entity.id.value,
       name: this._entity.name.value,
+      botToken: this._entity.botToken?.value,
+      signingSecret: this._entity.signingSecret?.value,
       appId: this._entity.appId?.value,
       botUserId: this._entity.botUserId?.value,
       defaultChannelId: this._entity.defaultChannelId?.value,
