@@ -93,6 +93,3 @@ export const WorkspaceUpdateResource = () =>
 
 export const WorkspaceReadResource = () =>
   WorkspaceResource(WorkspacePermission.DOMAIN_WORKSPACE_READ);
-
-export const WorkspaceUpsertResource = () =>
-  WorkspaceResource(WorkspacePermission.DOMAIN_WORKSPACE_UPDATE);

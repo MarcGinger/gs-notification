@@ -5,14 +5,13 @@ import {
   Controller,
   Get,
   Post,
-  Put,
   Body,
-  Patch,
   HttpStatus,
   HttpCode,
   Param,
   UseInterceptors,
   UseGuards,
+  Put,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -33,14 +32,12 @@ import {
   DetailWorkspaceResponse,
   CreateWorkspaceRequest,
   UpdateWorkspaceRequest,
-  UpsertWorkspaceRequest,
 } from '../../../application/dtos';
 import { Result, ResultInterceptor, DomainError } from 'src/shared/errors';
 import {
   WorkspaceReadResource,
   WorkspaceCreateResource,
   WorkspaceUpdateResource,
-  WorkspaceUpsertResource,
 } from '../../workspace.resource';
 import { ApiCommonErrors } from 'src/shared/interfaces/http';
 
@@ -136,7 +133,7 @@ export class WorkspaceController {
     return result;
   }
 
-  @Patch(':id')
+  @Put(':id')
   @WorkspaceUpdateResource()
   @ApiOperation({
     summary: 'Update a Workspace',
@@ -174,67 +171,6 @@ export class WorkspaceController {
       user,
       id,
       updateWorkspaceRequest,
-    );
-
-    return result;
-  }
-
-  @Put(':id')
-  @WorkspaceUpsertResource()
-  @ApiOperation({
-    summary: 'Upsert a Workspace',
-    description:
-      'Creates or updates a Workspace. If the workspace exists, it will be updated; if not, it will be created. Requires CREATE or UPDATE permission (MEDIUM risk).',
-  })
-  @ApiParam({
-    name: 'id',
-    type: 'string',
-    description: 'Workspace unique identifier',
-    example: 'T01EXAMPLE123',
-  })
-  @ApiHeader({
-    name: 'Idempotency-Key',
-    required: false,
-    description:
-      'Ensures the request is processed only once. Accepts both Idempotency-Key and x-idempotency-key headers.',
-  })
-  @ApiResponse({
-    status: HttpStatus.OK,
-    description: 'Workspace upserted successfully',
-    type: DetailWorkspaceResponse,
-  })
-  @ApiCommonErrors({
-    include422: true,
-    extra: [
-      { status: 429, description: 'Too Many Requests' },
-      { status: 503, description: 'Upstream dependency unavailable' },
-    ],
-  })
-  @ApiBody({
-    type: UpsertWorkspaceRequest,
-    description:
-      'Workspace upsert data. All fields are optional except ID which is taken from the URL parameter.',
-  })
-  async upsert(
-    @CurrentUser() user: IUserToken,
-    @Param('id') id: string,
-    @Body() upsertWorkspaceRequest: UpsertWorkspaceRequest,
-    @IdempotencyKey(new IdempotencyKeyPipe())
-    idempotencyKey: string | undefined,
-  ): Promise<Result<DetailWorkspaceResponse, DomainError>> {
-    // Ensure the ID from the path matches the ID in the body (if provided)
-    const requestWithId = {
-      ...upsertWorkspaceRequest,
-      id, // Override with path parameter
-    };
-
-    const result = await this.workspaceApplicationService.upsertWorkspace(
-      user,
-      id,
-      requestWithId,
-      {
-        idempotencyKey,
-      },
     );
 
     return result;
