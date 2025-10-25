@@ -301,7 +301,7 @@ export class WorkspaceApplicationService {
   async getWorkspaceById(
     user: IUserToken,
     id: string,
-  ): Promise<Result<DetailWorkspaceResponse | null, DomainError>> {
+  ): Promise<Result<DetailWorkspaceResponse, DomainError>> {
     // Early input validation
     const idValidation = this.validateId(id, 'read');
     if (!idValidation.ok) {
@@ -311,7 +311,7 @@ export class WorkspaceApplicationService {
     const validatedid = idValidation.value;
     const authContext = this.createAuthContext(user, 'read');
 
-    return this.authorizeThenExecute<DetailWorkspaceResponse | null>({
+    return this.authorizeThenExecute<DetailWorkspaceResponse>({
       operation: 'read',
       user,
       id: validatedid,

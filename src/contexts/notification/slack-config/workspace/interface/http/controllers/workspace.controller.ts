@@ -17,7 +17,6 @@ import {
   ApiTags,
   ApiOperation,
   ApiResponse,
-  ApiNoContentResponse,
   ApiCreatedResponse,
   ApiBody,
   ApiHeader,
@@ -73,7 +72,7 @@ export class WorkspaceController {
   async get(
     @CurrentUser() user: IUserToken,
     @Param('id') id: string,
-  ): Promise<Result<DetailWorkspaceResponse | null, DomainError>> {
+  ): Promise<Result<DetailWorkspaceResponse, DomainError>> {
     const result = await this.workspaceApplicationService.getWorkspaceById(
       user,
       id,

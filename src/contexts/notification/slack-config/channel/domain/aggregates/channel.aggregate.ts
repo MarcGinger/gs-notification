@@ -5,6 +5,7 @@ import { AggregateRootBase } from 'src/shared/domain/aggregates';
 import { DomainEvent, EventMetadata } from 'src/shared/domain/events';
 import { DomainError, Result, ok, err } from 'src/shared/errors';
 import { Clock } from 'src/shared/domain/clock';
+import { hasValueChanged } from 'src/shared/utilities';
 import { ChannelEntity } from '../entities';
 import { ChannelSnapshotProps } from '../props';
 import { ValidatedChannelUpdateFields } from '../types';
@@ -23,6 +24,7 @@ import {
 import { ChannelCreatedEvent, ChannelUpdatedEvent } from '../events';
 import { ChannelErrors } from '../errors';
 import { ChannelDomainState } from '../state';
+
 /**
  * Domain Aggregate Root: Channel
  *
@@ -305,6 +307,66 @@ export class ChannelAggregate extends AggregateRootBase {
   // Private Helpers
   // ======================
 
+  /**
+   * Detects if any field values have actually changed
+   * @param validatedFields - New field values to check
+   * @returns true if any changes detected, false otherwise
+   */
+  private detectChanges(
+    validatedFields: ValidatedChannelUpdateFields,
+  ): boolean {
+    // Check each field for actual value changes using value object equality
+    if (validatedFields.name !== undefined) {
+      if (hasValueChanged(this._entity.name, validatedFields.name)) {
+        return true;
+      }
+    }
+    if (validatedFields.workspaceId !== undefined) {
+      if (
+        hasValueChanged(this._entity.workspaceId, validatedFields.workspaceId)
+      ) {
+        return true;
+      }
+    }
+    if (validatedFields.isPrivate !== undefined) {
+      if (hasValueChanged(this._entity.isPrivate, validatedFields.isPrivate)) {
+        return true;
+      }
+    }
+    if (validatedFields.isDm !== undefined) {
+      if (hasValueChanged(this._entity.isDm, validatedFields.isDm)) {
+        return true;
+      }
+    }
+    if (validatedFields.topic !== undefined) {
+      if (hasValueChanged(this._entity.topic, validatedFields.topic)) {
+        return true;
+      }
+    }
+    if (validatedFields.purpose !== undefined) {
+      if (hasValueChanged(this._entity.purpose, validatedFields.purpose)) {
+        return true;
+      }
+    }
+    if (validatedFields.subscribedEvents !== undefined) {
+      if (
+        hasValueChanged(
+          this._entity.subscribedEvents,
+          validatedFields.subscribedEvents,
+        )
+      ) {
+        return true;
+      }
+    }
+    if (validatedFields.enabled !== undefined) {
+      if (hasValueChanged(this._entity.enabled, validatedFields.enabled)) {
+        return true;
+      }
+    }
+    // No changes detected
+    return false;
+  }
+
   // ======================
   // Business Operations (Event Publishing)
   // ======================
@@ -342,6 +404,14 @@ export class ChannelAggregate extends AggregateRootBase {
     }
 
     const before = this._entity.toSnapshot();
+
+    // Check if any field actually changed by comparing values
+    const hasChanges = this.detectChanges(validatedFields);
+
+    // If no changes detected, return success without creating events
+    if (!hasChanges) {
+      return ok(undefined);
+    }
 
     // Single version bump for entire batch (not per field)
     const currentVersionResult = createChannelVersion(before.version);

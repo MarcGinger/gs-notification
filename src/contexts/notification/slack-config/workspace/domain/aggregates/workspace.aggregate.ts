@@ -5,6 +5,7 @@ import { AggregateRootBase } from 'src/shared/domain/aggregates';
 import { DomainEvent, EventMetadata } from 'src/shared/domain/events';
 import { DomainError, Result, ok, err } from 'src/shared/errors';
 import { Clock } from 'src/shared/domain/clock';
+import { hasValueChanged } from 'src/shared/utilities';
 import { WorkspaceEntity } from '../entities';
 import { WorkspaceSnapshotProps } from '../props';
 import { ValidatedWorkspaceUpdateFields } from '../types';
@@ -23,7 +24,7 @@ import {
 import { WorkspaceCreatedEvent, WorkspaceUpdatedEvent } from '../events';
 import { WorkspaceErrors } from '../errors';
 import { WorkspaceDomainState } from '../state';
-import { hasValueChanged } from 'src/shared/utilities';
+
 /**
  * Domain Aggregate Root: Workspace
  *
@@ -317,13 +318,11 @@ export class WorkspaceAggregate extends AggregateRootBase {
         return true;
       }
     }
-
     if (validatedFields.botToken !== undefined) {
       if (hasValueChanged(this._entity.botToken, validatedFields.botToken)) {
         return true;
       }
     }
-
     if (validatedFields.signingSecret !== undefined) {
       if (
         hasValueChanged(
@@ -334,19 +333,16 @@ export class WorkspaceAggregate extends AggregateRootBase {
         return true;
       }
     }
-
     if (validatedFields.appId !== undefined) {
       if (hasValueChanged(this._entity.appId, validatedFields.appId)) {
         return true;
       }
     }
-
     if (validatedFields.botUserId !== undefined) {
       if (hasValueChanged(this._entity.botUserId, validatedFields.botUserId)) {
         return true;
       }
     }
-
     if (validatedFields.defaultChannelId !== undefined) {
       if (
         hasValueChanged(
@@ -357,13 +353,11 @@ export class WorkspaceAggregate extends AggregateRootBase {
         return true;
       }
     }
-
     if (validatedFields.enabled !== undefined) {
       if (hasValueChanged(this._entity.enabled, validatedFields.enabled)) {
         return true;
       }
     }
-
     // No changes detected
     return false;
   }

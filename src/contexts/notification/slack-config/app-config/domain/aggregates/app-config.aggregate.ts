@@ -5,6 +5,7 @@ import { AggregateRootBase } from 'src/shared/domain/aggregates';
 import { DomainEvent, EventMetadata } from 'src/shared/domain/events';
 import { DomainError, Result, ok, err } from 'src/shared/errors';
 import { Clock } from 'src/shared/domain/clock';
+import { hasValueChanged } from 'src/shared/utilities';
 import { AppConfigEntity } from '../entities';
 import { AppConfigSnapshotProps } from '../props';
 import { ValidatedAppConfigUpdateFields } from '../types';
@@ -23,6 +24,7 @@ import {
 import { AppConfigCreatedEvent, AppConfigUpdatedEvent } from '../events';
 import { AppConfigErrors } from '../errors';
 import { AppConfigDomainState } from '../state';
+
 /**
  * Domain Aggregate Root: AppConfig
  *
@@ -302,6 +304,81 @@ export class AppConfigAggregate extends AggregateRootBase {
   // Private Helpers
   // ======================
 
+  /**
+   * Detects if any field values have actually changed
+   * @param validatedFields - New field values to check
+   * @returns true if any changes detected, false otherwise
+   */
+  private detectChanges(
+    validatedFields: ValidatedAppConfigUpdateFields,
+  ): boolean {
+    // Check each field for actual value changes using value object equality
+    if (validatedFields.workspaceId !== undefined) {
+      if (
+        hasValueChanged(this._entity.workspaceId, validatedFields.workspaceId)
+      ) {
+        return true;
+      }
+    }
+    if (validatedFields.maxRetryAttempts !== undefined) {
+      if (
+        hasValueChanged(
+          this._entity.maxRetryAttempts,
+          validatedFields.maxRetryAttempts,
+        )
+      ) {
+        return true;
+      }
+    }
+    if (validatedFields.retryBackoffSeconds !== undefined) {
+      if (
+        hasValueChanged(
+          this._entity.retryBackoffSeconds,
+          validatedFields.retryBackoffSeconds,
+        )
+      ) {
+        return true;
+      }
+    }
+    if (validatedFields.defaultLocale !== undefined) {
+      if (
+        hasValueChanged(
+          this._entity.defaultLocale,
+          validatedFields.defaultLocale,
+        )
+      ) {
+        return true;
+      }
+    }
+    if (validatedFields.loggingEnabled !== undefined) {
+      if (
+        hasValueChanged(
+          this._entity.loggingEnabled,
+          validatedFields.loggingEnabled,
+        )
+      ) {
+        return true;
+      }
+    }
+    if (validatedFields.auditChannelId !== undefined) {
+      if (
+        hasValueChanged(
+          this._entity.auditChannelId,
+          validatedFields.auditChannelId,
+        )
+      ) {
+        return true;
+      }
+    }
+    if (validatedFields.metadata !== undefined) {
+      if (hasValueChanged(this._entity.metadata, validatedFields.metadata)) {
+        return true;
+      }
+    }
+    // No changes detected
+    return false;
+  }
+
   // ======================
   // Business Operations (Event Publishing)
   // ======================
@@ -339,6 +416,14 @@ export class AppConfigAggregate extends AggregateRootBase {
     }
 
     const before = this._entity.toSnapshot();
+
+    // Check if any field actually changed by comparing values
+    const hasChanges = this.detectChanges(validatedFields);
+
+    // If no changes detected, return success without creating events
+    if (!hasChanges) {
+      return ok(undefined);
+    }
 
     // Single version bump for entire batch (not per field)
     const currentVersionResult = createAppConfigVersion(before.version);

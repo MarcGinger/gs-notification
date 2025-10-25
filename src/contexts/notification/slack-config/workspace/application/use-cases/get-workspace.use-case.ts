@@ -34,6 +34,7 @@ import { IWorkspaceQuery, WORKSPACE_QUERY_TOKEN } from '../ports';
 import { WorkspaceAuthorizationAdapter } from '../services';
 import { DetailWorkspaceResponse } from '../dtos';
 import { IGetWorkspaceUseCase } from './contracts';
+import { WorkspaceErrors } from '../../domain/errors';
 
 /**
  * Get Workspace Use Case - CQRS Read Side Implementation
@@ -89,7 +90,7 @@ export class GetWorkspaceUseCase implements IGetWorkspaceUseCase {
     user: IUserToken;
     id: string;
     correlationId: string;
-  }): Promise<Result<DetailWorkspaceResponse | null, DomainError>> {
+  }): Promise<Result<DetailWorkspaceResponse, DomainError>> {
     const operation = 'get_workspace';
     const startTime = this.clock.nowMs();
     const correlationId = params.correlationId || CorrelationUtil.generate();
@@ -252,27 +253,48 @@ export class GetWorkspaceUseCase implements IGetWorkspaceUseCase {
       ? null
       : workspaceResult.value.value;
 
-    // Step 6: Light compliance check for read operations (audit log only)
-    if (workspaceDto) {
-      // For read operations, we only log data access for compliance audit
-      const readClassification = this.piiClassificationService.classifyData(
-        {},
-        {
-          domain: 'slack-config',
-          tenantId: params.user.tenant,
-          // entityType: 'Workspace' // Future: for entity-level rules
-        },
+    // Step 5.1: Return 404 error if workspace not found
+    if (!workspaceDto) {
+      const notFoundError = withContext(WorkspaceErrors.WORKSPACE_NOT_FOUND, {
+        id: params.id,
+        name: '', // Not available since workspace doesn't exist
+        enabled: false, // Default values for required fields
+        workspaceId: params.id,
+        correlationId,
+        userId: params.user.sub,
+        operation: 'get_workspace',
+      });
+
+      UseCaseLoggingUtil.logOperationError(
+        this.logger,
+        operation,
+        safeLogContext,
+        notFoundError,
+        'LOW',
       );
 
-      if (readClassification.containsPII) {
-        // Log data access for audit trail (no protection needed for reads)
-        UseCaseLoggingUtil.logComplianceCheck(
-          this.logger,
-          operation,
-          safeLogContext,
-          readClassification,
-        );
-      }
+      return err(notFoundError);
+    }
+
+    // Step 6: Light compliance check for read operations (audit log only)
+    // For read operations, we only log data access for compliance audit
+    const readClassification = this.piiClassificationService.classifyData(
+      {},
+      {
+        domain: 'slack-config',
+        tenantId: params.user.tenant,
+        // entityType: 'Workspace' // Future: for entity-level rules
+      },
+    );
+
+    if (readClassification.containsPII) {
+      // Log data access for audit trail (no protection needed for reads)
+      UseCaseLoggingUtil.logComplianceCheck(
+        this.logger,
+        operation,
+        safeLogContext,
+        readClassification,
+      );
     }
 
     // Step 7: Log operation success with comprehensive metrics
@@ -285,10 +307,10 @@ export class GetWorkspaceUseCase implements IGetWorkspaceUseCase {
         executionTimeMs: executionTime,
         businessData: {
           workspaceId: params.id,
-          found: workspaceDto !== null,
+          found: true,
           cacheEnabled: true,
           cacheTtl: repositoryOptions.cache?.ttl,
-          dataAccessLogged: workspaceDto !== null,
+          dataAccessLogged: true,
         },
       },
     );

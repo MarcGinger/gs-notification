@@ -5,6 +5,7 @@ import { AggregateRootBase } from 'src/shared/domain/aggregates';
 import { DomainEvent, EventMetadata } from 'src/shared/domain/events';
 import { DomainError, Result, ok, err } from 'src/shared/errors';
 import { Clock } from 'src/shared/domain/clock';
+import { hasValueChanged } from 'src/shared/utilities';
 import { TemplateEntity } from '../entities';
 import { TemplateSnapshotProps } from '../props';
 import { ValidatedTemplateUpdateFields } from '../types';
@@ -23,6 +24,7 @@ import {
 import { TemplateCreatedEvent, TemplateUpdatedEvent } from '../events';
 import { TemplateErrors } from '../errors';
 import { TemplateDomainState } from '../state';
+
 /**
  * Domain Aggregate Root: Template
  *
@@ -302,6 +304,68 @@ export class TemplateAggregate extends AggregateRootBase {
   // Private Helpers
   // ======================
 
+  /**
+   * Detects if any field values have actually changed
+   * @param validatedFields - New field values to check
+   * @returns true if any changes detected, false otherwise
+   */
+  private detectChanges(
+    validatedFields: ValidatedTemplateUpdateFields,
+  ): boolean {
+    // Check each field for actual value changes using value object equality
+    if (validatedFields.workspaceId !== undefined) {
+      if (
+        hasValueChanged(this._entity.workspaceId, validatedFields.workspaceId)
+      ) {
+        return true;
+      }
+    }
+    if (validatedFields.name !== undefined) {
+      if (hasValueChanged(this._entity.name, validatedFields.name)) {
+        return true;
+      }
+    }
+    if (validatedFields.description !== undefined) {
+      if (
+        hasValueChanged(this._entity.description, validatedFields.description)
+      ) {
+        return true;
+      }
+    }
+    if (validatedFields.contentBlocks !== undefined) {
+      if (
+        hasValueChanged(
+          this._entity.contentBlocks,
+          validatedFields.contentBlocks,
+        )
+      ) {
+        return true;
+      }
+    }
+    if (validatedFields.variables !== undefined) {
+      if (hasValueChanged(this._entity.variables, validatedFields.variables)) {
+        return true;
+      }
+    }
+    if (validatedFields.samplePayload !== undefined) {
+      if (
+        hasValueChanged(
+          this._entity.samplePayload,
+          validatedFields.samplePayload,
+        )
+      ) {
+        return true;
+      }
+    }
+    if (validatedFields.enabled !== undefined) {
+      if (hasValueChanged(this._entity.enabled, validatedFields.enabled)) {
+        return true;
+      }
+    }
+    // No changes detected
+    return false;
+  }
+
   // ======================
   // Business Operations (Event Publishing)
   // ======================
@@ -339,6 +403,14 @@ export class TemplateAggregate extends AggregateRootBase {
     }
 
     const before = this._entity.toSnapshot();
+
+    // Check if any field actually changed by comparing values
+    const hasChanges = this.detectChanges(validatedFields);
+
+    // If no changes detected, return success without creating events
+    if (!hasChanges) {
+      return ok(undefined);
+    }
 
     // Single version bump for entire batch (not per field)
     const currentVersionResult = createTemplateVersion(before.version);

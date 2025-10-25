@@ -28,5 +28,5 @@ export abstract class IGetWorkspaceUseCase {
     user: IUserToken;
     id: string;
     correlationId: string;
-  }): Promise<Result<DetailWorkspaceResponse | null, DomainError>>;
+  }): Promise<Result<DetailWorkspaceResponse, DomainError>>;
 }
