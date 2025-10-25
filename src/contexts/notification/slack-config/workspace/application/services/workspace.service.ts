@@ -34,8 +34,6 @@ import { WorkspaceAuthContext } from '../types/workspace-auth-context';
 
 // Use case contracts
 import {
-  ICreateWorkspaceUseCase,
-  IUpdateWorkspaceUseCase,
   IUpsertWorkspaceUseCase,
   IGetWorkspaceUseCase,
 } from '../use-cases/contracts';
@@ -49,8 +47,6 @@ export class WorkspaceApplicationService {
 
   constructor(
     private readonly workspaceAuthorizationService: WorkspaceAuthorizationService,
-    private readonly createWorkspaceUseCase: ICreateWorkspaceUseCase,
-    private readonly updateWorkspaceUseCase: IUpdateWorkspaceUseCase,
     private readonly upsertWorkspaceUseCase: IUpsertWorkspaceUseCase,
     private readonly getWorkspaceUseCase: IGetWorkspaceUseCase,
     @Inject(CLOCK) private readonly clock: Clock,

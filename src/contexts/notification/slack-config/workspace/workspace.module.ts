@@ -10,12 +10,10 @@ import {
   WorkspaceAuthorizationAdapter,
 } from './application/services';
 import {
-  ICreateWorkspaceUseCase,
-  CreateWorkspaceUseCase,
-  IUpdateWorkspaceUseCase,
-  UpdateWorkspaceUseCase,
   IGetWorkspaceUseCase,
   GetWorkspaceUseCase,
+  UpsertWorkspaceUseCase,
+  IUpsertWorkspaceUseCase,
 } from './application/use-cases';
 
 // import { IWorkspaceRepository } from './application/ports';
@@ -58,12 +56,8 @@ import {
 
     // Use case implementations
     {
-      provide: ICreateWorkspaceUseCase,
-      useClass: CreateWorkspaceUseCase,
-    },
-    {
-      provide: IUpdateWorkspaceUseCase,
-      useClass: UpdateWorkspaceUseCase,
+      provide: IUpsertWorkspaceUseCase,
+      useClass: UpsertWorkspaceUseCase,
     },
     {
       provide: IGetWorkspaceUseCase,

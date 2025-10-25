@@ -7,45 +7,45 @@ import { Result, DomainError } from 'src/shared/errors';
 import { APP_LOGGER, componentLogger, Logger } from 'src/shared/logging';
 import { CommandHandlerUtil } from 'src/shared/application';
 import { DetailWorkspaceResponse } from '../dtos';
-import { UpdateWorkspaceUseCase } from '../use-cases';
-import { UpdateWorkspaceCommand } from '../commands';
+import { UpsertWorkspaceUseCase } from '../use-cases';
+import { UpsertWorkspaceCommand } from '../commands';
 
 /**
- * Enhanced Update Workspace Handler with security context support
+ * Enhanced Upsert Workspace Handler with security context support
  */
-@CommandHandler(UpdateWorkspaceCommand)
-export class UpdateWorkspaceHandler
-  implements ICommandHandler<UpdateWorkspaceCommand>
+@CommandHandler(UpsertWorkspaceCommand)
+export class UpsertWorkspaceHandler
+  implements ICommandHandler<UpsertWorkspaceCommand>
 {
   private readonly logger: Logger;
 
   constructor(
-    @Inject(UpdateWorkspaceUseCase)
-    private readonly updateWorkspaceUseCase: UpdateWorkspaceUseCase,
+    @Inject(UpsertWorkspaceUseCase)
+    private readonly UpsertWorkspaceUseCase: UpsertWorkspaceUseCase,
     @Inject(APP_LOGGER) moduleLogger: Logger,
   ) {
-    this.logger = componentLogger(moduleLogger, 'UpdateWorkspaceHandler');
+    this.logger = componentLogger(moduleLogger, 'UpsertWorkspaceHandler');
   }
 
   /**
-   * Executes the update workspace command with enhanced security and validation
+   * Executes the Upsert workspace command with enhanced security and validation
    */
   async execute(
-    command: UpdateWorkspaceCommand,
+    command: UpsertWorkspaceCommand,
   ): Promise<Result<DetailWorkspaceResponse, DomainError>> {
-    const commandName = 'UpdateWorkspaceCommand';
+    const commandName = 'UpsertWorkspaceCommand';
 
     // Log command execution start
     CommandHandlerUtil.logCommandStart(this.logger, commandName, command, {
       application: 'slack-config',
-      component: 'UpdateWorkspaceHandler',
-      extractCommandData: (cmd: UpdateWorkspaceCommand) => ({
+      component: 'UpsertWorkspaceHandler',
+      extractCommandData: (cmd: UpsertWorkspaceCommand) => ({
         propsKeys: Object.keys(cmd.props || {}),
       }),
     });
 
     // Transform command to use case parameters
-    const result = await this.updateWorkspaceUseCase.execute({
+    const result = await this.UpsertWorkspaceUseCase.execute({
       user: command.user,
       id: command.id,
       props: command.props,
@@ -62,7 +62,7 @@ export class UpdateWorkspaceHandler
         result.value,
         {
           application: 'slack-config',
-          component: 'UpdateWorkspaceHandler',
+          component: 'UpsertWorkspaceHandler',
         },
       );
     } else {
@@ -74,8 +74,8 @@ export class UpdateWorkspaceHandler
         command,
         {
           application: 'slack-config',
-          component: 'UpdateWorkspaceHandler',
-          extractErrorContext: (cmd: UpdateWorkspaceCommand) => ({
+          component: 'UpsertWorkspaceHandler',
+          extractErrorContext: (cmd: UpsertWorkspaceCommand) => ({
             inputStructure: {
               hasProps: !!cmd.props,
               propsKeys: cmd.props ? Object.keys(cmd.props) : [],
