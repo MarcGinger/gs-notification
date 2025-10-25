@@ -134,3 +134,43 @@ export const extractPropertyArray = <T>(
   // Otherwise, try to extract as a collection value object using getVOArray
   return getVOArray<T>(property);
 };
+
+/**
+ * Compares two optional value objects for changes
+ *
+ * This utility function provides a standardized way to detect changes between
+ * optional value objects that implement the equals() method. It handles all
+ * the null/undefined edge cases properly.
+ *
+ * @param current - Current value object or undefined
+ * @param newValue - New value object or undefined
+ * @returns true if values are different, false if same
+ *
+ * @example
+ * ```typescript
+ * // Detecting changes in aggregates
+ * if (hasValueChanged(this._entity.email, validatedFields.email)) {
+ *   return true; // Email has changed
+ * }
+ *
+ * // Works with all scenarios:
+ * hasValueChanged(undefined, newEmail)     // true (adding value)
+ * hasValueChanged(oldEmail, undefined)     // true (removing value)
+ * hasValueChanged(oldEmail, newEmail)      // uses equals() method
+ * hasValueChanged(undefined, undefined)    // false (no change)
+ * ```
+ */
+export const hasValueChanged = <T extends { equals(other: T): boolean }>(
+  current: T | undefined,
+  newValue: T | undefined,
+): boolean => {
+  // One is undefined, other isn't
+  if ((current === undefined) !== (newValue === undefined)) {
+    return true;
+  }
+  // Both exist but values differ
+  if (current && newValue && !newValue.equals(current)) {
+    return true;
+  }
+  return false;
+};

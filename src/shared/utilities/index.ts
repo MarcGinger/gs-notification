@@ -6,3 +6,4 @@
 
 export * from './correlation.util';
 export * from './field-extraction.util';
+export * from './value-object.util';

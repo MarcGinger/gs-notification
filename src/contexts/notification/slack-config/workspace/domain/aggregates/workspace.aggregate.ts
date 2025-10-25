@@ -23,6 +23,7 @@ import {
 import { WorkspaceCreatedEvent, WorkspaceUpdatedEvent } from '../events';
 import { WorkspaceErrors } from '../errors';
 import { WorkspaceDomainState } from '../state';
+import { hasValueChanged } from 'src/shared/utilities';
 /**
  * Domain Aggregate Root: Workspace
  *
@@ -302,6 +303,71 @@ export class WorkspaceAggregate extends AggregateRootBase {
   // Private Helpers
   // ======================
 
+  /**
+   * Detects if any field values have actually changed
+   * @param validatedFields - New field values to check
+   * @returns true if any changes detected, false otherwise
+   */
+  private detectChanges(
+    validatedFields: ValidatedWorkspaceUpdateFields,
+  ): boolean {
+    // Check each field for actual value changes using value object equality
+    if (validatedFields.name !== undefined) {
+      if (hasValueChanged(this._entity.name, validatedFields.name)) {
+        return true;
+      }
+    }
+
+    if (validatedFields.botToken !== undefined) {
+      if (hasValueChanged(this._entity.botToken, validatedFields.botToken)) {
+        return true;
+      }
+    }
+
+    if (validatedFields.signingSecret !== undefined) {
+      if (
+        hasValueChanged(
+          this._entity.signingSecret,
+          validatedFields.signingSecret,
+        )
+      ) {
+        return true;
+      }
+    }
+
+    if (validatedFields.appId !== undefined) {
+      if (hasValueChanged(this._entity.appId, validatedFields.appId)) {
+        return true;
+      }
+    }
+
+    if (validatedFields.botUserId !== undefined) {
+      if (hasValueChanged(this._entity.botUserId, validatedFields.botUserId)) {
+        return true;
+      }
+    }
+
+    if (validatedFields.defaultChannelId !== undefined) {
+      if (
+        hasValueChanged(
+          this._entity.defaultChannelId,
+          validatedFields.defaultChannelId,
+        )
+      ) {
+        return true;
+      }
+    }
+
+    if (validatedFields.enabled !== undefined) {
+      if (hasValueChanged(this._entity.enabled, validatedFields.enabled)) {
+        return true;
+      }
+    }
+
+    // No changes detected
+    return false;
+  }
+
   // ======================
   // Business Operations (Event Publishing)
   // ======================
@@ -339,6 +405,14 @@ export class WorkspaceAggregate extends AggregateRootBase {
     }
 
     const before = this._entity.toSnapshot();
+
+    // Check if any field actually changed by comparing values
+    const hasChanges = this.detectChanges(validatedFields);
+
+    // If no changes detected, return success without creating events
+    if (!hasChanges) {
+      return ok(undefined);
+    }
 
     // Single version bump for entire batch (not per field)
     const currentVersionResult = createWorkspaceVersion(before.version);
