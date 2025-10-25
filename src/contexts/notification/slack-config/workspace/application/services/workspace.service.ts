@@ -25,6 +25,7 @@ import { WorkspaceErrors } from '../../domain/errors/workspace.errors';
 import type {
   CreateWorkspaceProps,
   UpdateWorkspaceProps,
+  UpsertWorkspaceProps,
 } from '../../domain/props';
 import { DetailWorkspaceResponse } from '../dtos';
 
@@ -36,6 +37,7 @@ import { WorkspaceAuthContext } from '../types/workspace-auth-context';
 import {
   ICreateWorkspaceUseCase,
   IUpdateWorkspaceUseCase,
+  IUpsertWorkspaceUseCase,
   IGetWorkspaceUseCase,
 } from '../use-cases/contracts';
 
@@ -50,6 +52,7 @@ export class WorkspaceApplicationService {
     private readonly workspaceAuthorizationService: WorkspaceAuthorizationService,
     private readonly createWorkspaceUseCase: ICreateWorkspaceUseCase,
     private readonly updateWorkspaceUseCase: IUpdateWorkspaceUseCase,
+    private readonly upsertWorkspaceUseCase: IUpsertWorkspaceUseCase,
     private readonly getWorkspaceUseCase: IGetWorkspaceUseCase,
     @Inject(CLOCK) private readonly clock: Clock,
     @Inject(APP_LOGGER) moduleLogger: Logger,
@@ -293,6 +296,77 @@ export class WorkspaceApplicationService {
           }),
         }),
       logContext: { id: validatedid },
+    });
+  }
+
+  /**
+   * Upsert a workspace (create or update) with authorization
+   */
+  async upsertWorkspace(
+    user: IUserToken,
+    id: string,
+    props: UpsertWorkspaceProps,
+    options?: { idempotencyKey?: string; correlationId?: string },
+  ): Promise<Result<DetailWorkspaceResponse, DomainError>> {
+    // Early input validation
+    const idValidation = this.validateId(id, 'upsert');
+    if (!idValidation.ok) {
+      return err(idValidation.error);
+    }
+
+    const validatedId = idValidation.value;
+    const authContext = this.createAuthContext(user, 'upsert');
+    const correlationId =
+      options?.correlationId ||
+      CorrelationUtil.generateForOperation('workspace-upsert');
+
+    // For upsert operations, we need to check both create AND update permissions
+    // Since we don't know if the resource exists beforehand
+    return this.authorizeThenExecute<DetailWorkspaceResponse>({
+      operation: 'update', // Using 'update' as the primary operation type for auth
+      user,
+      id: validatedId,
+      correlationIdPrefix: 'workspace-upsert',
+      doAuthorize: async () => {
+        // Check if user has either create OR update permissions
+        const canCreate =
+          await this.workspaceAuthorizationService.canCreateWorkspace(
+            user.sub,
+            correlationId,
+            authContext,
+          );
+
+        const canUpdate =
+          await this.workspaceAuthorizationService.canUpdateWorkspace(
+            user.sub,
+            validatedId,
+            correlationId,
+            authContext,
+          );
+
+        // User needs at least one of these permissions for upsert
+        if (canCreate.ok && canCreate.value) {
+          return ok(true);
+        }
+        if (canUpdate.ok && canUpdate.value) {
+          return ok(true);
+        }
+
+        // Return the first error, or a generic permission denied
+        return canUpdate.ok ? ok(false) : canUpdate;
+      },
+      doExecute: () =>
+        this.upsertWorkspaceUseCase.execute({
+          user,
+          id: validatedId,
+          props,
+          correlationId,
+          authorizationReason: 'upsert_workspace',
+          ...(options?.idempotencyKey && {
+            idempotencyKey: options.idempotencyKey,
+          }),
+        }),
+      logContext: { id: validatedId },
     });
   }
 
