@@ -22,6 +22,7 @@ import { CacheMetricsCollector } from 'src/shared/infrastructure/projections/cac
 import { SLACK_CONFIG_DI_TOKENS } from '../../../slack-config.constants';
 import { DetailWorkspaceResponse } from '../../application/dtos';
 import { IWorkspaceQuery } from '../../application/ports';
+import { WorkspaceProjectionKeys } from '../../workspace-projection-keys';
 
 /**
  * Internal workspace data structure for Redis operations
@@ -224,19 +225,19 @@ export class WorkspaceQueryRepository implements IWorkspaceQuery {
   }
 
   /**
-   * Generate cluster-safe Redis keys with hash tags for locality
-   * Uses same pattern as WorkspaceProjector for consistency
+   * Generate cluster-safe Redis keys using centralized WorkspaceProjectionKeys
+   * Ensures consistency with projector key patterns
    */
   private generateWorkspaceKey(tenantId: string, id: string): string {
-    // ✅ Hash-tags ensure key routes to same Redis Cluster slot as projector
-    return `workspace-projector:{${tenantId}}:workspace:${id}`;
+    // ✅ Use centralized key generation for consistency
+    return WorkspaceProjectionKeys.getRedisWorkspaceKey(tenantId, id);
   }
 
   /**
-   * Generate tenant index key for pagination and sorting
+   * Generate tenant index key for pagination and sorting using centralized keys
    */
   private generateTenantIndexKey(tenantId: string): string {
-    return `workspace-projector:{${tenantId}}:workspace-index`;
+    return WorkspaceProjectionKeys.getRedisTenantIndexKey(tenantId);
   }
 
   /**

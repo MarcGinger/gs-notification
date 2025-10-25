@@ -113,7 +113,7 @@ export class WorkspaceProjector
     private readonly cache: CacheService,
   ) {
     super(
-      'workspace-projector',
+      WorkspaceProjectionKeys.PROJECTOR_NAME,
       'workspace-projection',
       baseLogger,
       checkpointStore,
@@ -283,10 +283,12 @@ export class WorkspaceProjector
         params as unknown as Record<string, unknown>,
       );
 
-      // ✅ Generate cluster-safe keys with hash tags for Redis cluster locality
-      const entityKey =
-        'workspace-projector:{' + tenant + '}:workspace:' + params.id;
-      const indexKey = 'workspace-projector:{' + tenant + '}:workspace-index';
+      // ✅ Generate cluster-safe keys using centralized WorkspaceProjectionKeys
+      const entityKey = WorkspaceProjectionKeys.getRedisWorkspaceKey(
+        tenant,
+        params.id,
+      );
+      const indexKey = WorkspaceProjectionKeys.getRedisTenantIndexKey(tenant);
 
       // ✅ Validate hash-tag consistency for cluster safety
       RedisClusterUtils.validateHashTagConsistency(entityKey, indexKey);
@@ -450,9 +452,23 @@ export class WorkspaceProjector
           eventData,
         );
 
+      // Override envelope fields with actual event envelope data
+      // The version, createdAt, updatedAt should come from event envelope, not payload
+      const eventTimestamp =
+        event.metadata?.occurredAt instanceof Date
+          ? event.metadata.occurredAt
+          : new Date();
+
+      const eventEnvelope = {
+        version: event.revision, // Use event revision as version
+        createdAt: eventTimestamp, // Use event timestamp
+        updatedAt: eventTimestamp, // Use event timestamp
+      };
+
       // Add projector-specific fields for Redis storage
       return {
         ...workspaceSnapshot,
+        ...eventEnvelope, // Override with correct envelope data
         tenantId,
         deletedAt: null, // Projector handles soft deletes
         lastStreamRevision: event.revision.toString(),

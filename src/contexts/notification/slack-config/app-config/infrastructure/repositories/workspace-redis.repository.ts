@@ -24,6 +24,7 @@ import {
   WorkspaceValidationResult,
 } from '../../application/ports';
 import { Option } from 'src/shared/domain/types';
+import { WorkspaceProjectionKeys } from '../../../workspace/workspace-projection-keys';
 
 /**
  * Workspace Reader Repository - Redis Implementation
@@ -74,12 +75,12 @@ export class WorkspaceReaderRepository implements IWorkspaceReader {
   }
 
   /**
-   * Generate cluster-safe Redis keys with hash tags for locality
-   * Uses same pattern as WorkspaceProjector for consistency
+   * Generate cluster-safe Redis keys using centralized WorkspaceProjectionKeys
+   * Ensures consistency with projector key patterns
    */
   private generateWorkspaceKey(tenantId: string, id: string): string {
-    // ✅ Hash-tags ensure key routes to same Redis Cluster slot as projector
-    return `workspace-projector:{${tenantId}}:workspace:${id}`;
+    // ✅ Use centralized key generation for consistency
+    return WorkspaceProjectionKeys.getRedisWorkspaceKey(tenantId, id);
   }
 
   /**
@@ -198,18 +199,20 @@ export class WorkspaceReaderRepository implements IWorkspaceReader {
     );
 
     try {
+      // Use Redis SCAN to find all workspace keys for the tenant
+      const pattern = WorkspaceProjectionKeys.getRedisTenantWorkspacePattern(
+        actor.tenantId,
+      );
+
       Log.debug(this.logger, 'Finding valid workspace ids in Redis', {
         ...logContext,
         queryDetails: {
           scope: 'redis_keys',
           method: 'redis.scan',
-          pattern: `workspace-projector:{${actor.tenantId}}:workspace:*`,
+          pattern: pattern,
           clusterSafe: true,
         },
       });
-
-      // Use Redis SCAN to find all workspace keys for the tenant
-      const pattern = `workspace-projector:{${actor.tenantId}}:workspace:*`;
       const ids: string[] = [];
       const scanIterator = this.redis.scanStream({
         match: pattern,
@@ -218,7 +221,7 @@ export class WorkspaceReaderRepository implements IWorkspaceReader {
 
       for await (const keys of scanIterator) {
         for (const key of keys as string[]) {
-          // Extract id from key pattern: workspace-projector:{tenantId}:workspace:{ id }
+          // Extract id from key pattern: notification:workspace-projector:{tenantId}:workspace:{id}
           const keyParts = key.split(':');
           if (keyParts.length === 4) {
             const id = keyParts[3];

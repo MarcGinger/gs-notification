@@ -83,44 +83,45 @@ export class WorkspaceProjectionKeys {
   }
 
   // Redis projection key patterns
-  static readonly REDIS_KEY_PREFIX = 'workspace:projection';
-  static readonly REDIS_INDEX_PREFIX = 'workspace:index';
+  static readonly REDIS_KEY_PREFIX = 'notification:workspace-projector';
+  static readonly REDIS_INDEX_PREFIX = 'notification:workspace-index';
+  static readonly PROJECTOR_NAME = 'workspace-projector';
 
   /**
-   * Get Redis key for workspace projection
-   * Format: workspace:projection:{tenantId}:{code}
+   * Get Redis key for workspace projection with cluster-safe hash tags
+   * Format: notification:workspace-projector:{tenantId}:workspace:{code}
    */
   static getRedisWorkspaceKey(tenantId: string, code: string): string {
-    return `${this.REDIS_KEY_PREFIX}:${tenantId}:${code}`;
+    return `${this.REDIS_KEY_PREFIX}:{${tenantId}}:workspace:${code}`;
   }
 
   /**
-   * Get Redis key for tenant-based workspace index
-   * Format: workspace:index:by_tenant:{tenantId}
+   * Get Redis key for tenant-based workspace index with cluster-safe hash tags
+   * Format: notification:workspace-projector:{tenantId}:workspace-index
    */
   static getRedisTenantIndexKey(tenantId: string): string {
-    return `${this.REDIS_INDEX_PREFIX}:by_tenant:${tenantId}`;
+    return `${this.REDIS_KEY_PREFIX}:{${tenantId}}:workspace-index`;
   }
 
   /**
-   * Get Redis key for category-based workspace index
-   * Format: workspace:index:by_category:{tenantId}:{category}
+   * Get Redis key for category-based workspace index with cluster-safe hash tags
+   * Format: notification:workspace-index:{tenantId}:by_category:{category}
    */
   static getRedisCategoryIndexKey(tenantId: string, category: string): string {
-    return `${this.REDIS_INDEX_PREFIX}:by_category:${tenantId}:${category}`;
+    return `${this.REDIS_INDEX_PREFIX}:{${tenantId}}:by_category:${category}`;
   }
 
   /**
    * Get Redis key pattern for all workspaces in a tenant
-   * Format: workspace:projection:{tenantId}:*
+   * Format: notification:workspace-projector:{tenantId}:workspace:*
    */
   static getRedisTenantWorkspacePattern(tenantId: string): string {
-    return `${this.REDIS_KEY_PREFIX}:${tenantId}:*`;
+    return `${this.REDIS_KEY_PREFIX}:{${tenantId}}:workspace:*`;
   }
 
   /**
    * Get Redis key pattern for all workspace projections
-   * Format: workspace:projection:*
+   * Format: notification:workspace-projector:*
    */
   static getRedisAllWorkspacesPattern(): string {
     return `${this.REDIS_KEY_PREFIX}:*`;

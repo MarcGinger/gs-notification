@@ -23,6 +23,7 @@ import { SLACK_CONFIG_DI_TOKENS } from '../../../slack-config.constants';
 import { WorkspaceSnapshotProps } from '../../domain/props';
 import { WorkspaceId } from '../../domain/value-objects';
 import { IWorkspaceReader } from '../../application/ports';
+import { WorkspaceProjectionKeys } from '../../workspace-projection-keys';
 
 /**
  * Workspace Reader Repository - Redis Implementation
@@ -73,12 +74,12 @@ export class WorkspaceReaderRepository implements IWorkspaceReader {
   }
 
   /**
-   * Generate cluster-safe Redis keys with hash tags for locality
-   * Uses same pattern as WorkspaceProjector for consistency
+   * Generate cluster-safe Redis keys using centralized WorkspaceProjectionKeys
+   * Ensures consistency with projector key patterns
    */
   private generateWorkspaceKey(tenantId: string, id: string): string {
-    // ✅ Hash-tags ensure key routes to same Redis Cluster slot as projector
-    return `workspace-projector:{${tenantId}}:workspace:${id}`;
+    // ✅ Use centralized key generation for consistency
+    return WorkspaceProjectionKeys.getRedisWorkspaceKey(tenantId, id);
   }
 
   /**

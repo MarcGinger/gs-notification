@@ -7,6 +7,7 @@
 import { Controller, Get, Inject } from '@nestjs/common';
 import { APP_LOGGER, Log, componentLogger, Logger } from 'src/shared/logging';
 import { WorkspaceProjector } from '../../../infrastructure/projectors';
+import { WorkspaceProjectionKeys } from '../../../workspace-projection-keys';
 
 @Controller('health/projectors')
 export class WorkspaceProjectorHealthController {
@@ -57,7 +58,7 @@ export class WorkspaceProjectorHealthController {
       return {
         isHealthy: false,
         isRunning: false,
-        projectorName: 'workspace-projector',
+        projectorName: WorkspaceProjectionKeys.PROJECTOR_NAME,
         subscriptionGroup: 'workspace-projection',
         eventsProcessed: 0,
         lastProcessedAt: null,
