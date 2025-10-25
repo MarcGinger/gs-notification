@@ -59,7 +59,7 @@ export class AppConfigProjectorHealthController {
         isHealthy: false,
         isRunning: false,
         projectorName: AppConfigProjectionKeys.PROJECTOR_NAME,
-        subscriptionGroup: 'app-config-projection',
+        subscriptionGroup: AppConfigProjectionKeys.SUBSCRIPTION_GROUP,
         eventsProcessed: 0,
         lastProcessedAt: null,
         lastError: e.message,

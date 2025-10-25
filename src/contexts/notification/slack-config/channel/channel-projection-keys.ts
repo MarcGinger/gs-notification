@@ -86,6 +86,7 @@ export class ChannelProjectionKeys {
   static readonly REDIS_KEY_PREFIX = 'notification:channel-projector';
   static readonly REDIS_INDEX_PREFIX = 'notification:channel-index';
   static readonly PROJECTOR_NAME = 'channel-projector';
+  static readonly SUBSCRIPTION_GROUP = 'channel-projection';
 
   /**
    * Get Redis key for channel projection with cluster-safe hash tags

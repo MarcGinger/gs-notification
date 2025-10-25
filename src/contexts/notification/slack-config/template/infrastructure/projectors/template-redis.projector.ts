@@ -114,7 +114,7 @@ export class TemplateProjector
   ) {
     super(
       TemplateProjectionKeys.PROJECTOR_NAME,
-      'template-projection',
+      TemplateProjectionKeys.SUBSCRIPTION_GROUP,
       baseLogger,
       checkpointStore,
     );

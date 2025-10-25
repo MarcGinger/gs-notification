@@ -86,6 +86,7 @@ export class TemplateProjectionKeys {
   static readonly REDIS_KEY_PREFIX = 'notification:template-projector';
   static readonly REDIS_INDEX_PREFIX = 'notification:template-index';
   static readonly PROJECTOR_NAME = 'template-projector';
+  static readonly SUBSCRIPTION_GROUP = 'template-projection';
 
   /**
    * Get Redis key for template projection with cluster-safe hash tags

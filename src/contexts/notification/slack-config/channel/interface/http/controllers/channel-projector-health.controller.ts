@@ -59,7 +59,7 @@ export class ChannelProjectorHealthController {
         isHealthy: false,
         isRunning: false,
         projectorName: ChannelProjectionKeys.PROJECTOR_NAME,
-        subscriptionGroup: 'channel-projection',
+        subscriptionGroup: ChannelProjectionKeys.SUBSCRIPTION_GROUP,
         eventsProcessed: 0,
         lastProcessedAt: null,
         lastError: e.message,

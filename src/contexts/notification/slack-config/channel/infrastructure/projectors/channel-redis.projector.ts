@@ -114,7 +114,7 @@ export class ChannelProjector
   ) {
     super(
       ChannelProjectionKeys.PROJECTOR_NAME,
-      'channel-projection',
+      ChannelProjectionKeys.SUBSCRIPTION_GROUP,
       baseLogger,
       checkpointStore,
     );

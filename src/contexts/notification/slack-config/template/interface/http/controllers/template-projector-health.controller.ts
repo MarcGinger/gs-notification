@@ -59,7 +59,7 @@ export class TemplateProjectorHealthController {
         isHealthy: false,
         isRunning: false,
         projectorName: TemplateProjectionKeys.PROJECTOR_NAME,
-        subscriptionGroup: 'template-projection',
+        subscriptionGroup: TemplateProjectionKeys.SUBSCRIPTION_GROUP,
         eventsProcessed: 0,
         lastProcessedAt: null,
         lastError: e.message,

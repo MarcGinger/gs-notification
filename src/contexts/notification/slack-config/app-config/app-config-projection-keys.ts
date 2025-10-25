@@ -86,6 +86,7 @@ export class AppConfigProjectionKeys {
   static readonly REDIS_KEY_PREFIX = 'notification:app-config-projector';
   static readonly REDIS_INDEX_PREFIX = 'notification:app-config-index';
   static readonly PROJECTOR_NAME = 'app-config-projector';
+  static readonly SUBSCRIPTION_GROUP = 'app-config-projection';
 
   /**
    * Get Redis key for app-config projection with cluster-safe hash tags

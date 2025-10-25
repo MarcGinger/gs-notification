@@ -218,7 +218,7 @@ export class AppConfigReaderRepository implements IAppConfigReader {
 
     try {
       // Generate cluster-safe Redis key
-      const redisKey = this.generateAppConfigKey(actor.tenantId, id.value);
+      const redisKey = this.generateAppConfigKey(actor.tenantId, id.toString());
 
       Log.debug(this.logger, 'Finding app-config by ID in Redis', {
         ...logContext,
@@ -338,7 +338,10 @@ export class AppConfigReaderRepository implements IAppConfigReader {
 
     try {
       // Generate cluster-safe Redis key
-      const redisKey = this.generateAppConfigKey(actor.tenantId!, id.value);
+      const redisKey = this.generateAppConfigKey(
+        actor.tenantId!,
+        id.toString(),
+      );
 
       Log.debug(this.logger, 'Checking app-config existence in Redis', {
         ...logContext,
@@ -433,7 +436,10 @@ export class AppConfigReaderRepository implements IAppConfigReader {
 
     try {
       // Generate cluster-safe Redis key
-      const redisKey = this.generateAppConfigKey(actor.tenantId!, id.value);
+      const redisKey = this.generateAppConfigKey(
+        actor.tenantId!,
+        id.toString(),
+      );
 
       Log.debug(this.logger, 'Getting app-config version from Redis', {
         ...logContext,
@@ -541,7 +547,10 @@ export class AppConfigReaderRepository implements IAppConfigReader {
 
     try {
       // Generate cluster-safe Redis key
-      const redisKey = this.generateAppConfigKey(actor.tenantId!, id.value);
+      const redisKey = this.generateAppConfigKey(
+        actor.tenantId!,
+        id.toString(),
+      );
 
       Log.debug(this.logger, 'Getting minimal app-config data from Redis', {
         ...logContext,

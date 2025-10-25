@@ -114,7 +114,7 @@ export class AppConfigProjector
   ) {
     super(
       AppConfigProjectionKeys.PROJECTOR_NAME,
-      'app-config-projection',
+      AppConfigProjectionKeys.SUBSCRIPTION_GROUP,
       baseLogger,
       checkpointStore,
     );
@@ -286,7 +286,7 @@ export class AppConfigProjector
       // ✅ Generate cluster-safe keys using centralized AppConfigProjectionKeys
       const entityKey = AppConfigProjectionKeys.getRedisAppConfigKey(
         tenant,
-        params.id,
+        params.id.toString(),
       );
       const indexKey = AppConfigProjectionKeys.getRedisTenantIndexKey(tenant);
 
