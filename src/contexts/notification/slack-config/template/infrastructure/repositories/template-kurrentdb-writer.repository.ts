@@ -194,6 +194,7 @@ export class TemplateWriterRepository
       eventsToStore,
       actor,
       'template-writer-repository',
+      'notification',
       {
         correlationId: metadata?.correlationId ?? correlationId,
         causationId: metadata?.causationId,
@@ -401,6 +402,7 @@ export class TemplateWriterRepository
           events,
           actor,
           'template-writer-repository',
+          'notification',
           opts?.meta,
         ),
         expectedRevision,

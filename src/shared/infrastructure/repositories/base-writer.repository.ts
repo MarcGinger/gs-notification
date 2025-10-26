@@ -62,6 +62,7 @@ export abstract class BaseWriterRepository {
     events: readonly DomainEvent[],
     actor: ActorContext,
     source: string,
+    boundedContext: string,
     meta?: { correlationId?: string; causationId?: string; commandId?: string },
   ): EventEnvelope<any>[] {
     const now = new Date().toISOString(); // RFC 3339 UTC
@@ -94,6 +95,7 @@ export abstract class BaseWriterRepository {
         occurredAt: now,
         contentType: 'application/json+domain' as const, // Keep compatible type
         schemaVersion: eventVersion, // Keep as number for compatibility
+        boundedContext: boundedContext, // Context classification for proper event routing
 
         // ---- Enhanced canonical fields (no duplicates) ----
         // Actor context (enhanced with role optimization)

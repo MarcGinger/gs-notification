@@ -195,6 +195,7 @@ export class WorkspaceWriterRepository
       eventsToStore,
       actor,
       'workspace-writer-repository',
+      'notification',
       {
         correlationId: metadata?.correlationId ?? correlationId,
         causationId: metadata?.causationId,
@@ -402,6 +403,7 @@ export class WorkspaceWriterRepository
           events,
           actor,
           'workspace-writer-repository',
+          'notification',
           opts?.meta,
         ),
         expectedRevision,

@@ -195,6 +195,7 @@ export class AppConfigWriterRepository
       eventsToStore,
       actor,
       'app-config-writer-repository',
+      'notification',
       {
         correlationId: metadata?.correlationId ?? correlationId,
         causationId: metadata?.causationId,
@@ -402,6 +403,7 @@ export class AppConfigWriterRepository
           events,
           actor,
           'app-config-writer-repository',
+          'notification',
           opts?.meta,
         ),
         expectedRevision,

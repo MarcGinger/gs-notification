@@ -194,6 +194,7 @@ export class ChannelWriterRepository
       eventsToStore,
       actor,
       'channel-writer-repository',
+      'notification',
       {
         correlationId: metadata?.correlationId ?? correlationId,
         causationId: metadata?.causationId,
@@ -401,6 +402,7 @@ export class ChannelWriterRepository
           events,
           actor,
           'channel-writer-repository',
+          'notification',
           opts?.meta,
         ),
         expectedRevision,
