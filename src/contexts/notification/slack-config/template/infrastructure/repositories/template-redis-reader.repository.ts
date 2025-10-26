@@ -99,19 +99,11 @@ export class TemplateReaderRepository implements ITemplateReader {
       }
 
       // Parse array fields using safeParseJSONArray utility (following product-query.repository.ts pattern)
-      const workspaceId = safeParseJSONArray(
-        hashData.workspaceId,
-        'workspaceId',
-        (x): x is string => typeof x === 'string',
-      );
-
-      // Parse array fields using safeParseJSONArray utility (following product-query.repository.ts pattern)
       const contentBlocks = safeParseJSONArray(
         hashData.contentBlocks,
         'contentBlocks',
         (x): x is string => typeof x === 'string',
       );
-
       const variables = safeParseJSONArray(
         hashData.variables,
         'variables',
@@ -128,11 +120,11 @@ export class TemplateReaderRepository implements ITemplateReader {
 
       return {
         code: hashData.code,
-        workspaceId,
+        workspaceId: hashData.workspaceId,
         name: hashData.name,
         description: hashData.description || undefined,
         contentBlocks,
-        variables: variables || undefined,
+        variables,
         samplePayload,
         enabled: hashData.enabled === 'true',
         version: parseInt(hashData.version, 10),

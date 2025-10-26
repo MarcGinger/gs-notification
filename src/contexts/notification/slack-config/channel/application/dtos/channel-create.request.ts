@@ -22,7 +22,7 @@ export class CreateChannelRequest implements CreateChannelProps {
   name: string;
 
   @ApiChannelWorkspaceId()
-  workspaceId: string[];
+  workspaceId: string;
 
   @ApiChannelIsPrivate()
   isPrivate: boolean;
@@ -37,7 +37,7 @@ export class CreateChannelRequest implements CreateChannelProps {
   purpose?: string;
 
   @ApiChannelSubscribedEvents({ required: false })
-  subscribedEvents?: Record<string, unknown>;
+  subscribedEvents?: string[];
 
   @ApiChannelEnabled()
   enabled: boolean;

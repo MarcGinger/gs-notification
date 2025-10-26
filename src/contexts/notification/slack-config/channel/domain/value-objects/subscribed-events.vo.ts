@@ -2,37 +2,75 @@
 // REMOVE THIS COMMENT TO STOP AUTOMATIC UPDATES TO THIS BLOCK
 
 import {
-  RecordVOInstance,
-  createRecordVO,
-  createRecordVOErrors,
+  CollectionVOInstance,
+  StringVOInstance,
+  createCollectionVO,
+  createCollectionVOErrors,
+  createStringVO,
+  createStringVOErrors,
 } from 'src/shared/domain/value-objects';
 import { ChannelErrors } from '../errors/channel.errors';
 
 /**
- * SubscribedEvents Record Value Object
- * Validates a plain object (Record<string, unknown>); deepFreeze.
+ * SubscribedEventsItem Value Object
+ * Represents a validated subscribedEventsItem with business rules
  */
-export const ChannelSubscribedEvents = createRecordVO({
-  name: 'SubscribedEvents',
-  // JSON key validation - must start with letter/underscore, contain only alphanumeric, underscore
-  keyPattern: /^[a-zA-Z_][a-zA-Z0-9_]*$/,
+export const ChannelSubscribedEventsItem = createStringVO({
+  name: 'SubscribedEventsItem',
+  trim: true,
+  caseTransform: 'none',
+  allowEmpty: true,
 
   // Optional: declarative refinements for advanced validation
   // refinements: [
   // ],
 
-  errors: createRecordVOErrors(
+  errors: createStringVOErrors(
     ChannelErrors.INVALID_SUBSCRIBED_EVENTS,
-    'SubscribedEvents',
+    'SubscribedEventsItem',
   ),
 });
 
-/** Public instance type for SubscribedEvents */
-export type ChannelSubscribedEvents = RecordVOInstance;
+/**
+ * Public instance type for SubscribedEventsItem
+ */
+export type ChannelSubscribedEventsItemType = StringVOInstance;
 
 // Convenience creators
-export const createChannelSubscribedEvents = (v: Record<string, unknown>) =>
-  ChannelSubscribedEvents.create(v);
+export const createChannelSubscribedEventsItem = (s: string) =>
+  ChannelSubscribedEventsItem.create(s);
+export const subscribedEventsItemFrom = (v: unknown) =>
+  ChannelSubscribedEventsItem.from(v);
 
-export const channelSubscribedEventsFrom = (v: unknown) =>
-  ChannelSubscribedEvents.from(v);
+/**
+ * Collection Value Object for Channel SubscribedEvents
+ * Encapsulates array of subscribedEvents with collection-level business rules
+ *
+ * Migrated to generic createCollectionVO for enhanced type safety and consistency.
+ */
+export const ChannelSubscribedEvents = createCollectionVO<
+  string,
+  ChannelSubscribedEventsItemType
+>({
+  name: 'SubscribedEvents',
+  itemName: ChannelSubscribedEventsItem.name,
+  itemFactory: ChannelSubscribedEventsItem,
+  allowEmpty: true,
+  allowDuplicates: false,
+
+  errors: createCollectionVOErrors(
+    ChannelErrors.INVALID_SUBSCRIBED_EVENTS_DATA,
+    'Channel SubscribedEvents',
+  ),
+  businessMethods: [],
+});
+
+/** Public type for ChannelSubscribedEvents */
+export type ChannelSubscribedEvents = CollectionVOInstance<
+  string,
+  ChannelSubscribedEventsItemType
+>;
+
+// Convenience creators
+export const createChannelSubscribedEvents = (codes: string[]) =>
+  ChannelSubscribedEvents.create(codes);

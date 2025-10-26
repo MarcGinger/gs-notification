@@ -23,7 +23,7 @@ export function ApiTemplateWorkspaceId(options: PropOptions = {}) {
   return applyDecorators(
     ApiProperty({
       description: `Foreign key linking template to its workspace. Enables workspace-specific template customization and multi-tenant template isolation.`,
-      example: `['T01EXAMPLE123']`,
+      example: `T01EXAMPLE123`,
       type: String,
       required,
     }),

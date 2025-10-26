@@ -37,24 +37,16 @@ export class ChannelFieldValidatorUtil {
     updatedAt: Date;
   } {
     // Parse array fields using safeParseJSONArray utility
-    const workspaceId = safeParseJSONArray(
-      aggregateData.workspaceId,
-      'workspaceId',
-      (x): x is string => typeof x === 'string',
-    );
-
-    const subscribedEvents = safeParseJSON<Record<string, unknown>>(
-      aggregateData.subscribedEvents,
-      'subscribedEvents',
-    );
     // Extract simple fields directly from event data
     const id = aggregateData.id as string;
     const name = aggregateData.name as string;
+    const workspaceId = aggregateData.workspaceId as string;
     const isPrivate =
       aggregateData.isPrivate === 'true' || aggregateData.isPrivate === true;
     const isDm = aggregateData.isDm === 'true' || aggregateData.isDm === true;
     const topic = aggregateData.topic as string;
     const purpose = aggregateData.purpose as string;
+    const subscribedEvents = aggregateData.subscribedEvents as string[];
     const enabled =
       aggregateData.enabled === 'true' || aggregateData.enabled === true;
 

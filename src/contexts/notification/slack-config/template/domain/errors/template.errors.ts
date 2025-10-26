@@ -62,13 +62,6 @@ export const TemplateErrors = {
     category: 'validation',
     retryable: false,
   } as DomainError<'TEMPLATE.DUPLICATE_VARIABLES', TemplateContext>,
-  DUPLICATE_WORKSPACE_ID: {
-    code: 'TEMPLATE.DUPLICATE_WORKSPACE_ID',
-    title: 'Duplicate Values',
-    detail: 'Workspace contains duplicate values for Template.',
-    category: 'validation',
-    retryable: false,
-  } as DomainError<'TEMPLATE.DUPLICATE_WORKSPACE_ID', TemplateContext>,
   INVALID_CODE: {
     code: 'TEMPLATE.INVALID_CODE',
     title: 'Value Required',
@@ -188,14 +181,6 @@ export const TemplateErrors = {
     category: 'validation',
     retryable: false,
   } as DomainError<'TEMPLATE.INVALID_WORKSPACE_ID_DATA', TemplateContext>,
-  INVALID_WORKSPACE_IDS: {
-    code: 'TEMPLATE.INVALID_WORKSPACE_IDS',
-    title: 'Invalid Workspace References',
-    detail:
-      'One or more id values do not exist. All id references must be valid when updating template.',
-    category: 'validation',
-    retryable: false,
-  } as DomainError<'TEMPLATE.INVALID_WORKSPACE_IDS', TemplateContext>,
   NOT_BOOLEAN_ENABLED: {
     code: 'TEMPLATE.NOT_BOOLEAN_ENABLED',
     title: 'Not a Boolean',
@@ -293,13 +278,6 @@ export const TemplateErrors = {
     category: 'validation',
     retryable: false,
   } as DomainError<'TEMPLATE.TOO_FEW_VARIABLES', TemplateContext>,
-  TOO_FEW_WORKSPACE_ID: {
-    code: 'TEMPLATE.TOO_FEW_WORKSPACE_ID',
-    title: 'Too Few Items',
-    detail: 'Workspace has fewer items than required for Template.',
-    category: 'validation',
-    retryable: false,
-  } as DomainError<'TEMPLATE.TOO_FEW_WORKSPACE_ID', TemplateContext>,
   TOO_MANY_CONTENT_BLOCKS: {
     code: 'TEMPLATE.TOO_MANY_CONTENT_BLOCKS',
     title: 'Too Many Items',
@@ -314,13 +292,6 @@ export const TemplateErrors = {
     category: 'validation',
     retryable: false,
   } as DomainError<'TEMPLATE.TOO_MANY_VARIABLES', TemplateContext>,
-  TOO_MANY_WORKSPACE_ID: {
-    code: 'TEMPLATE.TOO_MANY_WORKSPACE_ID',
-    title: 'Too Many Items',
-    detail: 'Workspace exceeds maximum allowed count for Template.',
-    category: 'validation',
-    retryable: false,
-  } as DomainError<'TEMPLATE.TOO_MANY_WORKSPACE_ID', TemplateContext>,
   UPDATED_AT_REQUIRED: {
     code: 'TEMPLATE.UPDATED_AT_REQUIRED',
     title: 'Updated At Required',

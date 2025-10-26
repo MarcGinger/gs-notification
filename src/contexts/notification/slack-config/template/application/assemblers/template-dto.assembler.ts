@@ -29,7 +29,7 @@ export class TemplateDtoAssembler {
 
     // Extract primitive values from VOs
     dto.code = domainState.code.value;
-    dto.workspaceId = domainState.workspaceId.toArray();
+    dto.workspaceId = domainState.workspaceId.value;
     dto.name = domainState.name.value;
     dto.description = domainState.description?.value;
     dto.contentBlocks = domainState.contentBlocks.toArray();

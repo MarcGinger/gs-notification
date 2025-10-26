@@ -7,7 +7,7 @@
  */
 export interface TemplateCreatedEventPayload {
   code: string;
-  workspaceId: string[];
+  workspaceId: string;
   name: string;
   description?: string;
   contentBlocks: string[];
@@ -38,7 +38,7 @@ export class TemplateCreatedEvent {
     return this.payload.code;
   }
 
-  get workspaceId(): string[] {
+  get workspaceId(): string {
     return this.payload.workspaceId;
   }
 

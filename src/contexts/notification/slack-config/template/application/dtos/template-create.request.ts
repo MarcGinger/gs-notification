@@ -18,7 +18,7 @@ export class CreateTemplateRequest implements CreateTemplateProps {
   code: string;
 
   @ApiTemplateWorkspaceId()
-  workspaceId: string[];
+  workspaceId: string;
 
   @ApiTemplateName()
   name: string;

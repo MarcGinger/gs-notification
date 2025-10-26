@@ -4,11 +4,11 @@
 export interface CreateChannelProps {
   id: string;
   name: string;
-  workspaceId: string[];
+  workspaceId: string;
   isPrivate: boolean;
   isDm: boolean;
   topic?: string;
   purpose?: string;
-  subscribedEvents?: Record<string, unknown>;
+  subscribedEvents?: string[];
   enabled: boolean;
 }

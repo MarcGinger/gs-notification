@@ -426,7 +426,7 @@ export class TemplateEntity extends EntityIdBase<
   public toSnapshot(): TemplateSnapshotProps {
     return {
       code: this.props.code.value,
-      workspaceId: this.props.workspaceId.toArray(),
+      workspaceId: this.props.workspaceId.value,
       name: this.props.name.value,
       description: this.props.description?.value,
       contentBlocks: this.props.contentBlocks.toArray(),

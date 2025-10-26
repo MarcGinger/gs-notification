@@ -8,12 +8,12 @@
 export interface ChannelCreatedEventPayload {
   id: string;
   name: string;
-  workspaceId: string[];
+  workspaceId: string;
   isPrivate: boolean;
   isDm: boolean;
   topic?: string;
   purpose?: string;
-  subscribedEvents?: Record<string, unknown>;
+  subscribedEvents?: string[];
   enabled: boolean;
 }
 
@@ -43,7 +43,7 @@ export class ChannelCreatedEvent {
     return this.payload.name;
   }
 
-  get workspaceId(): string[] {
+  get workspaceId(): string {
     return this.payload.workspaceId;
   }
 
@@ -63,7 +63,7 @@ export class ChannelCreatedEvent {
     return this.payload.purpose;
   }
 
-  get subscribedEvents(): Record<string, unknown> | undefined {
+  get subscribedEvents(): string[] | undefined {
     return this.payload.subscribedEvents;
   }
 

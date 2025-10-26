@@ -99,24 +99,20 @@ export class ChannelReaderRepository implements IChannelReader {
       }
 
       // Parse array fields using safeParseJSONArray utility (following product-query.repository.ts pattern)
-      const workspaceId = safeParseJSONArray(
-        hashData.workspaceId,
-        'workspaceId',
+      const subscribedEvents = safeParseJSONArray(
+        hashData.subscribedEvents,
+        'subscribedEvents',
         (x): x is string => typeof x === 'string',
       );
 
       // Parse object fields using safeParseJSON utility (following product-query.repository.ts pattern)
-      const subscribedEvents = safeParseJSON<Record<string, unknown>>(
-        hashData.subscribedEvents,
-        'subscribedEvents',
-      );
 
       // Extract basic fields directly from hash data (following product-query.repository.ts pattern)
 
       return {
         id: hashData.id,
         name: hashData.name,
-        workspaceId,
+        workspaceId: hashData.workspaceId,
         isPrivate: hashData.isPrivate === 'true',
         isDm: hashData.isDm === 'true',
         topic: hashData.topic || undefined,

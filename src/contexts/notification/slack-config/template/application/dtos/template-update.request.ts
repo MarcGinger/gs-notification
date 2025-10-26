@@ -18,7 +18,7 @@ export class UpdateTemplateRequest implements UpdateTemplateProps {
   code: string;
 
   @ApiTemplateWorkspaceId()
-  workspaceId?: string[];
+  workspaceId?: string;
 
   @ApiTemplateName()
   name?: string;

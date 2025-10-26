@@ -2,21 +2,18 @@
 // REMOVE THIS COMMENT TO STOP AUTOMATIC UPDATES TO THIS BLOCK
 
 import {
-  CollectionVOInstance,
   StringVOInstance,
-  createCollectionVO,
-  createCollectionVOErrors,
   createStringVO,
   createStringVOErrors,
 } from 'src/shared/domain/value-objects';
 import { TemplateErrors } from '../errors/template.errors';
 
 /**
- * WorkspaceIdItem Value Object
- * Represents a validated workspaceIdItem with business rules
+ * WorkspaceId Value Object
+ * Represents a validated workspaceId with business rules
  */
-export const TemplateWorkspaceIdItem = createStringVO({
-  name: 'WorkspaceIdItem',
+export const TemplateWorkspaceId = createStringVO({
+  name: 'WorkspaceId',
   trim: true,
   caseTransform: 'none',
   allowEmpty: false,
@@ -29,51 +26,17 @@ export const TemplateWorkspaceIdItem = createStringVO({
 
   errors: createStringVOErrors(
     TemplateErrors.INVALID_WORKSPACE_ID,
-    'WorkspaceIdItem',
+    'WorkspaceId',
   ),
 });
 
 /**
- * Public instance type for WorkspaceIdItem
+ * Public instance type for WorkspaceId
  */
-export type TemplateWorkspaceIdItemType = StringVOInstance;
+export type TemplateWorkspaceId = StringVOInstance;
 
 // Convenience creators
-export const createTemplateWorkspaceIdItem = (s: string) =>
-  TemplateWorkspaceIdItem.create(s);
-export const workspaceIdItemFrom = (v: unknown) =>
-  TemplateWorkspaceIdItem.from(v);
-
-/**
- * Collection Value Object for Template WorkspaceId
- * Encapsulates array of workspaceId with collection-level business rules
- *
- * Migrated to generic createCollectionVO for enhanced type safety and consistency.
- */
-export const TemplateWorkspaceId = createCollectionVO<
-  string,
-  TemplateWorkspaceIdItemType
->({
-  name: 'WorkspaceId',
-  itemName: TemplateWorkspaceIdItem.name,
-  itemFactory: TemplateWorkspaceIdItem,
-  allowEmpty: false,
-  allowDuplicates: false,
-
-  minCount: 1,
-  errors: createCollectionVOErrors(
-    TemplateErrors.INVALID_WORKSPACE_ID_DATA,
-    'Template WorkspaceId',
-  ),
-  businessMethods: [],
-});
-
-/** Public type for TemplateWorkspaceId */
-export type TemplateWorkspaceId = CollectionVOInstance<
-  string,
-  TemplateWorkspaceIdItemType
->;
-
-// Convenience creators
-export const createTemplateWorkspaceId = (codes: string[]) =>
-  TemplateWorkspaceId.create(codes);
+export const createTemplateWorkspaceId = (s: string) =>
+  TemplateWorkspaceId.create(s);
+export const templateWorkspaceIdFrom = (v: unknown) =>
+  TemplateWorkspaceId.from(v);

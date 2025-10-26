@@ -258,24 +258,16 @@ export class TemplateQueryRepository implements ITemplateQuery {
       }
 
       // Parse array fields using safeParseJSONArray utility
-      const workspaceId = safeParseJSONArray(
-        hashData.workspaceId,
-        'workspaceId',
-        (x): x is string => typeof x === 'string',
-      );
-
       const contentBlocks = safeParseJSONArray(
         hashData.contentBlocks,
         'contentBlocks',
         (x): x is string => typeof x === 'string',
       );
-
       const variables = safeParseJSONArray(
         hashData.variables,
         'variables',
         (x): x is string => typeof x === 'string',
       );
-
       const samplePayload = safeParseJSON<Record<string, unknown>>(
         hashData.samplePayload,
         'samplePayload',
@@ -283,11 +275,11 @@ export class TemplateQueryRepository implements ITemplateQuery {
 
       return {
         code: hashData.code,
-        workspaceId,
+        workspaceId: hashData.workspaceId,
         name: hashData.name,
         description: hashData.description || undefined,
         contentBlocks,
-        variables: variables || undefined,
+        variables,
         samplePayload,
         enabled: hashData.enabled === 'true',
         version: parseInt(hashData.version, 10),

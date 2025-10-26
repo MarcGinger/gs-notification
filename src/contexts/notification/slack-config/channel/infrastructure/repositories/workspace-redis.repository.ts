@@ -18,11 +18,7 @@ import { Result, DomainError, err, ok } from 'src/shared/errors';
 import { ActorContext } from 'src/shared/application/context';
 import { RepositoryErrorFactory } from 'src/shared/domain/errors/repository.error';
 import { SLACK_CONFIG_DI_TOKENS } from '../../../slack-config.constants';
-import {
-  IWorkspaceReader,
-  WorkspaceReference,
-  WorkspaceValidationResult,
-} from '../../application/ports';
+import { IWorkspaceReader, WorkspaceReference } from '../../application/ports';
 import { Option } from 'src/shared/domain/types';
 
 /**
@@ -375,127 +371,6 @@ export class WorkspaceReaderRepository implements IWorkspaceReader {
       RepositoryLoggingUtil.logOperationError(
         this.logger,
         'Workspace lookup',
-        logContext,
-        error as Error,
-        'HIGH',
-      );
-
-      // Handle and return the classified error using shared utility
-      return handleRepositoryError(error);
-    }
-  }
-
-  /**
-   * Find Workspace configurations by Workspace Ids
-   * @param actor - The authenticated user context
-   * @param ids - The Workspace Ids to lookup
-   * @param options - Optional repository options (correlation ID, timeout, caching, etc.)
-   * @returns Result containing Workspace configurations or empty array if not found
-   */
-  async findWorkspacesByIds(
-    actor: ActorContext,
-    ids: string[],
-    options?: RepositoryOptions,
-  ): Promise<Result<WorkspaceValidationResult, DomainError>> {
-    const operation = 'findWorkspacesByIds';
-    const riskLevel = this.assessOperationRisk(operation);
-    const correlationId =
-      options?.correlationId ??
-      CorrelationUtil.generateForOperation('workspace-validate-codes');
-
-    // Early return for empty requests
-    if (ids.length === 0) {
-      return ok({ found: [], missing: [] });
-    }
-
-    const logContext = this.createLogContext(operation, correlationId, actor, {
-      riskLevel,
-      requestedCount: ids.length,
-      customCorrelationId: !!options?.correlationId,
-      source: options?.source,
-      requestId: options?.requestId,
-      dataSource: 'redis-projector',
-    });
-
-    // Validate actor context with enhanced security logging
-    const validation = RepositoryLoggingUtil.validateActorContext(
-      this.logger,
-      actor,
-      logContext,
-    );
-    if (!validation.ok) {
-      return validation;
-    }
-
-    // Log successful authorization
-    RepositoryLoggingUtil.logAuthorizationSuccess(
-      this.logger,
-      operation,
-      logContext,
-      {
-        queryType: 'fk_validation',
-        scope: 'redis_projection',
-        requestedIds: ids.length <= 10 ? ids : ids.slice(0, 10),
-      },
-    );
-
-    try {
-      Log.debug(this.logger, 'Finding workspaces by ids in Redis', {
-        ...logContext,
-        queryDetails: {
-          scope: 'redis_hash',
-          method: 'redis.hmget',
-          requestedIds:
-            ids.length <= 5
-              ? ids
-              : `${ids.slice(0, 5).join(', ')}... (${ids.length} total)`,
-          clusterSafe: true,
-        },
-      });
-
-      const found: WorkspaceReference[] = [];
-
-      // Fetch each workspace by its id from Redis
-      for (const id of ids) {
-        const redisKey = this.generateWorkspaceKey(actor.tenantId!, id);
-        const hashData = await this.redis.hgetall(redisKey);
-
-        if (hashData && Object.keys(hashData).length > 0) {
-          const workspaceReference = this.parseRedisHashToWorkspace(hashData);
-          if (workspaceReference) {
-            found.push(workspaceReference);
-          }
-        }
-      }
-
-      // Calculate missing ids for FK validation
-      const requestedSet = new Set(ids);
-      const foundIds = new Set(found.map((f) => f.id));
-      const missing = [...requestedSet].filter((c) => !foundIds.has(c));
-
-      // Log query metrics using shared utility
-      RepositoryLoggingUtil.logQueryMetrics(
-        this.logger,
-        operation,
-        logContext,
-        {
-          resultCount: found.length,
-          dataQuality: missing.length === 0 ? 'good' : 'partial',
-          sampleData: {
-            found: found.slice(0, 3).map((c) => c.id),
-            missing: missing.slice(0, 3),
-            validationStatus:
-              missing.length === 0 ? 'all_valid' : 'some_invalid',
-          },
-        },
-      );
-
-      return ok({ found, missing });
-    } catch (error) {
-      // Log operation error using shared utility
-      RepositoryLoggingUtil.logOperationError(
-        this.logger,
-        operation,
         logContext,
         error as Error,
         'HIGH',

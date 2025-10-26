@@ -47,6 +47,8 @@ export const ChannelResource = (permission: ChannelPermission) =>
       const isDm = body?.isDm || query?.isDm;
       const topic = body?.topic || query?.topic;
       const purpose = body?.purpose || query?.purpose;
+      const subscribedEvents =
+        body?.subscribedEvents || query?.subscribedEvents;
       const enabled = body?.enabled || query?.enabled;
 
       const baseAttributes = {
@@ -56,6 +58,7 @@ export const ChannelResource = (permission: ChannelPermission) =>
         isDm,
         topic,
         purpose,
+        subscribedEvents,
         enabled,
       };
 

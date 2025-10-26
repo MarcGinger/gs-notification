@@ -21,7 +21,7 @@ export class DetailChannelResponse {
   name: string;
 
   @ApiChannelWorkspaceId()
-  workspaceId: string[];
+  workspaceId: string;
 
   @ApiChannelIsPrivate()
   isPrivate: boolean;
@@ -36,7 +36,7 @@ export class DetailChannelResponse {
   purpose?: string;
 
   @ApiChannelSubscribedEvents({ required: false })
-  subscribedEvents?: Record<string, unknown>;
+  subscribedEvents?: string[];
 
   @ApiChannelEnabled()
   enabled: boolean;

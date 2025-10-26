@@ -136,7 +136,7 @@ export class TemplateAggregate extends AggregateRootBase {
     // Create typed TemplateCreatedEvent with only business data
     const createdEvent = TemplateCreatedEvent.create({
       code: entityProps.code.value,
-      workspaceId: entityProps.workspaceId.toArray(),
+      workspaceId: entityProps.workspaceId.value,
       name: entityProps.name.value,
       description: entityProps.description?.value,
       contentBlocks: entityProps.contentBlocks.toArray(),
@@ -190,7 +190,7 @@ export class TemplateAggregate extends AggregateRootBase {
         // Both events now have the same domain shape - simple merge
         const d = event.data as {
           code: string;
-          workspaceId: string[];
+          workspaceId: string;
           name: string;
           description?: string;
           contentBlocks: string[];
@@ -513,7 +513,7 @@ export class TemplateAggregate extends AggregateRootBase {
     // Create domain-shaped update event (same structure as created event)
     const updatedEvent = TemplateUpdatedEvent.create({
       code: this._entity.code.value,
-      workspaceId: this._entity.workspaceId.toArray(),
+      workspaceId: this._entity.workspaceId.value,
       name: this._entity.name.value,
       description: this._entity.description?.value,
       contentBlocks: this._entity.contentBlocks.toArray(),

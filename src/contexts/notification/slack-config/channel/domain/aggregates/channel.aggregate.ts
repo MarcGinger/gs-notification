@@ -137,12 +137,12 @@ export class ChannelAggregate extends AggregateRootBase {
     const createdEvent = ChannelCreatedEvent.create({
       id: entityProps.id.value,
       name: entityProps.name.value,
-      workspaceId: entityProps.workspaceId.toArray(),
+      workspaceId: entityProps.workspaceId.value,
       isPrivate: entityProps.isPrivate.value,
       isDm: entityProps.isDm.value,
       topic: entityProps.topic?.value,
       purpose: entityProps.purpose?.value,
-      subscribedEvents: entityProps.subscribedEvents?.value,
+      subscribedEvents: entityProps.subscribedEvents?.toArray(),
       enabled: entityProps.enabled.value,
     });
 
@@ -192,12 +192,12 @@ export class ChannelAggregate extends AggregateRootBase {
         const d = event.data as {
           id: string;
           name: string;
-          workspaceId: string[];
+          workspaceId: string;
           isPrivate: boolean;
           isDm: boolean;
           topic?: string;
           purpose?: string;
-          subscribedEvents?: Record<string, unknown>;
+          subscribedEvents?: string[];
           enabled: boolean;
         };
 
@@ -525,12 +525,12 @@ export class ChannelAggregate extends AggregateRootBase {
     const updatedEvent = ChannelUpdatedEvent.create({
       id: this._entity.id.value,
       name: this._entity.name.value,
-      workspaceId: this._entity.workspaceId.toArray(),
+      workspaceId: this._entity.workspaceId.value,
       isPrivate: this._entity.isPrivate.value,
       isDm: this._entity.isDm.value,
       topic: this._entity.topic?.value,
       purpose: this._entity.purpose?.value,
-      subscribedEvents: this._entity.subscribedEvents?.value,
+      subscribedEvents: this._entity.subscribedEvents?.toArray(),
       enabled: this._entity.enabled.value,
     });
 

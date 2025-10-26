@@ -3,7 +3,7 @@
 
 export interface UpsertTemplateProps {
   code: string;
-  workspaceId?: string[];
+  workspaceId?: string;
   name?: string;
   description?: string;
   contentBlocks?: string[];

@@ -9,7 +9,7 @@ export interface ChannelContext extends Record<string, unknown> {
   isDm: boolean;
   topic?: string;
   purpose?: string;
-  subscribedEvents?: Record<string, unknown>;
+  subscribedEvents?: string;
   enabled: boolean;
   userId?: string;
   correlationId?: string;
@@ -94,13 +94,13 @@ export const ChannelErrors = {
     category: 'validation',
     retryable: false,
   } as DomainError<'CHANNEL.CREATED_AT_REQUIRED', ChannelContext>,
-  DUPLICATE_WORKSPACE_ID: {
-    code: 'CHANNEL.DUPLICATE_WORKSPACE_ID',
+  DUPLICATE_SUBSCRIBED_EVENTS: {
+    code: 'CHANNEL.DUPLICATE_SUBSCRIBED_EVENTS',
     title: 'Duplicate Values',
-    detail: 'Workspace contains duplicate values for Channel.',
+    detail: 'Subscribed contains duplicate values for Channel.',
     category: 'validation',
     retryable: false,
-  } as DomainError<'CHANNEL.DUPLICATE_WORKSPACE_ID', ChannelContext>,
+  } as DomainError<'CHANNEL.DUPLICATE_SUBSCRIBED_EVENTS', ChannelContext>,
   INVALID_CHANNEL_DATA: {
     code: 'CHANNEL.INVALID_CHANNEL_DATA',
     title: 'Invalid Data',
@@ -241,14 +241,6 @@ export const ChannelErrors = {
     category: 'validation',
     retryable: false,
   } as DomainError<'CHANNEL.INVALID_WORKSPACE_ID_DATA', ChannelContext>,
-  INVALID_WORKSPACE_IDS: {
-    code: 'CHANNEL.INVALID_WORKSPACE_IDS',
-    title: 'Invalid Workspace References',
-    detail:
-      'One or more id values do not exist. All id references must be valid when updating channel.',
-    category: 'validation',
-    retryable: false,
-  } as DomainError<'CHANNEL.INVALID_WORKSPACE_IDS', ChannelContext>,
   NOT_BOOLEAN_ENABLED: {
     code: 'CHANNEL.NOT_BOOLEAN_ENABLED',
     title: 'Not a Boolean',
@@ -298,20 +290,20 @@ export const ChannelErrors = {
     category: 'domain',
     retryable: false,
   } as DomainError<'CHANNEL.PERMISSION_NOT_FOUND', ChannelContext>,
-  TOO_FEW_WORKSPACE_ID: {
-    code: 'CHANNEL.TOO_FEW_WORKSPACE_ID',
+  TOO_FEW_SUBSCRIBED_EVENTS: {
+    code: 'CHANNEL.TOO_FEW_SUBSCRIBED_EVENTS',
     title: 'Too Few Items',
-    detail: 'Workspace has fewer items than required for Channel.',
+    detail: 'Subscribed has fewer items than required for Channel.',
     category: 'validation',
     retryable: false,
-  } as DomainError<'CHANNEL.TOO_FEW_WORKSPACE_ID', ChannelContext>,
-  TOO_MANY_WORKSPACE_ID: {
-    code: 'CHANNEL.TOO_MANY_WORKSPACE_ID',
+  } as DomainError<'CHANNEL.TOO_FEW_SUBSCRIBED_EVENTS', ChannelContext>,
+  TOO_MANY_SUBSCRIBED_EVENTS: {
+    code: 'CHANNEL.TOO_MANY_SUBSCRIBED_EVENTS',
     title: 'Too Many Items',
-    detail: 'Workspace exceeds maximum allowed count for Channel.',
+    detail: 'Subscribed exceeds maximum allowed count for Channel.',
     category: 'validation',
     retryable: false,
-  } as DomainError<'CHANNEL.TOO_MANY_WORKSPACE_ID', ChannelContext>,
+  } as DomainError<'CHANNEL.TOO_MANY_SUBSCRIBED_EVENTS', ChannelContext>,
   UPDATED_AT_REQUIRED: {
     code: 'CHANNEL.UPDATED_AT_REQUIRED',
     title: 'Updated At Required',

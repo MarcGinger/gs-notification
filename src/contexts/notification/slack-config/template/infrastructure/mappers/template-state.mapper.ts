@@ -146,7 +146,7 @@ export class TemplateStateMapper {
     return {
       // Extract primitive values from VOs
       code: domainState.code.value,
-      workspaceId: domainState.workspaceId.toArray(),
+      workspaceId: domainState.workspaceId.value,
       name: domainState.name.value,
       description: domainState.description?.value,
       contentBlocks: domainState.contentBlocks.toArray(),

@@ -30,12 +30,12 @@ export class ChannelDtoAssembler {
     // Extract primitive values from VOs
     dto.id = domainState.id.value;
     dto.name = domainState.name.value;
-    dto.workspaceId = domainState.workspaceId.toArray();
+    dto.workspaceId = domainState.workspaceId.value;
     dto.isPrivate = domainState.isPrivate.value;
     dto.isDm = domainState.isDm.value;
     dto.topic = domainState.topic?.value;
     dto.purpose = domainState.purpose?.value;
-    dto.subscribedEvents = domainState.subscribedEvents?.value;
+    dto.subscribedEvents = domainState.subscribedEvents?.toArray();
     dto.enabled = domainState.enabled.value;
 
     return dto;

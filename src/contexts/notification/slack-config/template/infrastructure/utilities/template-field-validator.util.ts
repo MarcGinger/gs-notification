@@ -37,18 +37,13 @@ export class TemplateFieldValidatorUtil {
     updatedAt: Date;
   } {
     // Parse array fields using safeParseJSONArray utility
-    const workspaceId = safeParseJSONArray(
-      aggregateData.workspaceId,
-      'workspaceId',
-      (x): x is string => typeof x === 'string',
-    );
-
     const samplePayload = safeParseJSON<Record<string, unknown>>(
       aggregateData.samplePayload,
       'samplePayload',
     );
     // Extract simple fields directly from event data
     const code = aggregateData.code as string;
+    const workspaceId = aggregateData.workspaceId as string;
     const name = aggregateData.name as string;
     const description = aggregateData.description as string;
     const contentBlocks = aggregateData.contentBlocks as string[];

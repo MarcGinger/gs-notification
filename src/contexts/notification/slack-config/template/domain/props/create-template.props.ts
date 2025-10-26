@@ -3,7 +3,7 @@
 
 export interface CreateTemplateProps {
   code: string;
-  workspaceId: string[];
+  workspaceId: string;
   name: string;
   description?: string;
   contentBlocks: string[];

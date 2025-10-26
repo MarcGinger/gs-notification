@@ -2,21 +2,18 @@
 // REMOVE THIS COMMENT TO STOP AUTOMATIC UPDATES TO THIS BLOCK
 
 import {
-  CollectionVOInstance,
   StringVOInstance,
-  createCollectionVO,
-  createCollectionVOErrors,
   createStringVO,
   createStringVOErrors,
 } from 'src/shared/domain/value-objects';
 import { ChannelErrors } from '../errors/channel.errors';
 
 /**
- * WorkspaceIdItem Value Object
- * Represents a validated workspaceIdItem with business rules
+ * WorkspaceId Value Object
+ * Represents a validated workspaceId with business rules
  */
-export const ChannelWorkspaceIdItem = createStringVO({
-  name: 'WorkspaceIdItem',
+export const ChannelWorkspaceId = createStringVO({
+  name: 'WorkspaceId',
   trim: true,
   caseTransform: 'none',
   allowEmpty: false,
@@ -29,51 +26,17 @@ export const ChannelWorkspaceIdItem = createStringVO({
 
   errors: createStringVOErrors(
     ChannelErrors.INVALID_WORKSPACE_ID,
-    'WorkspaceIdItem',
+    'WorkspaceId',
   ),
 });
 
 /**
- * Public instance type for WorkspaceIdItem
+ * Public instance type for WorkspaceId
  */
-export type ChannelWorkspaceIdItemType = StringVOInstance;
+export type ChannelWorkspaceId = StringVOInstance;
 
 // Convenience creators
-export const createChannelWorkspaceIdItem = (s: string) =>
-  ChannelWorkspaceIdItem.create(s);
-export const workspaceIdItemFrom = (v: unknown) =>
-  ChannelWorkspaceIdItem.from(v);
-
-/**
- * Collection Value Object for Channel WorkspaceId
- * Encapsulates array of workspaceId with collection-level business rules
- *
- * Migrated to generic createCollectionVO for enhanced type safety and consistency.
- */
-export const ChannelWorkspaceId = createCollectionVO<
-  string,
-  ChannelWorkspaceIdItemType
->({
-  name: 'WorkspaceId',
-  itemName: ChannelWorkspaceIdItem.name,
-  itemFactory: ChannelWorkspaceIdItem,
-  allowEmpty: false,
-  allowDuplicates: false,
-
-  minCount: 1,
-  errors: createCollectionVOErrors(
-    ChannelErrors.INVALID_WORKSPACE_ID_DATA,
-    'Channel WorkspaceId',
-  ),
-  businessMethods: [],
-});
-
-/** Public type for ChannelWorkspaceId */
-export type ChannelWorkspaceId = CollectionVOInstance<
-  string,
-  ChannelWorkspaceIdItemType
->;
-
-// Convenience creators
-export const createChannelWorkspaceId = (codes: string[]) =>
-  ChannelWorkspaceId.create(codes);
+export const createChannelWorkspaceId = (s: string) =>
+  ChannelWorkspaceId.create(s);
+export const channelWorkspaceIdFrom = (v: unknown) =>
+  ChannelWorkspaceId.from(v);

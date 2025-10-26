@@ -226,9 +226,9 @@
             "example": "T01EXAMPLE123",
             "autoIncrement": false,
             "maxLength": "64",
-            "array": true,
+            "array": false,
             "isPII": "",
-            "relationship": "many",
+            "relationship": "one",
             "parentRelationship": "workspace_channel",
             "childRelationship": "",
             "meta": {
@@ -236,7 +236,7 @@
               "maxLength": 64
             }
           },
-          "type": "many",
+          "type": "one",
           "complex": true
         },
         {
@@ -278,9 +278,9 @@
             "example": "T01EXAMPLE123",
             "autoIncrement": false,
             "maxLength": "64",
-            "array": true,
+            "array": false,
             "isPII": "",
-            "relationship": "many",
+            "relationship": "one",
             "parentRelationship": "workspace_template",
             "childRelationship": "",
             "meta": {
@@ -288,7 +288,7 @@
               "maxLength": 64
             }
           },
-          "type": "many",
+          "type": "one",
           "complex": true
         },
         {
@@ -494,9 +494,9 @@
           "example": "T01EXAMPLE123",
           "autoIncrement": false,
           "maxLength": "64",
-          "array": true,
+          "array": false,
           "isPII": "",
-          "relationship": "many",
+          "relationship": "one",
           "parentRelationship": "workspace_channel",
           "childRelationship": "",
           "meta": {
@@ -590,23 +590,22 @@
         },
         {
           "name": "subscribed_events",
-          "type": "Record<string, unknown>",
+          "type": "string",
           "childRelationshipType": "",
           "parentRelationshipType": "",
-          "datatype": "JSON",
+          "datatype": "VARCHAR",
           "primaryKey": false,
           "required": false,
           "description": "Array of event types this channel subscribes to receive notifications for. Supports filtering and routing specific events to appropriate channels based on business rules.",
           "defaultvalue": "",
           "example": "[\"user.created\", \"payment.failed\", \"system.error\"]",
           "autoIncrement": false,
-          "array": false,
+          "array": true,
           "isPII": "",
           "parentRelationship": "",
           "childRelationship": "",
           "meta": {
-            "kind": "json",
-            "jsonShape": "object"
+            "kind": "string"
           }
         },
         {
@@ -670,9 +669,9 @@
             "example": "T01EXAMPLE123",
             "autoIncrement": false,
             "maxLength": "64",
-            "array": true,
+            "array": false,
             "isPII": "",
-            "relationship": "many",
+            "relationship": "one",
             "parentRelationship": "workspace_channel",
             "childRelationship": "",
             "meta": {
@@ -680,7 +679,7 @@
               "maxLength": 64
             }
           },
-          "type": "many",
+          "type": "one",
           "complex": true
         }
       ],
@@ -812,9 +811,9 @@
           "example": "T01EXAMPLE123",
           "autoIncrement": false,
           "maxLength": "64",
-          "array": true,
+          "array": false,
           "isPII": "",
-          "relationship": "many",
+          "relationship": "one",
           "parentRelationship": "workspace_template",
           "childRelationship": "",
           "meta": {
@@ -989,9 +988,9 @@
             "example": "T01EXAMPLE123",
             "autoIncrement": false,
             "maxLength": "64",
-            "array": true,
+            "array": false,
             "isPII": "",
-            "relationship": "many",
+            "relationship": "one",
             "parentRelationship": "workspace_template",
             "childRelationship": "",
             "meta": {
@@ -999,7 +998,7 @@
               "maxLength": 64
             }
           },
-          "type": "many",
+          "type": "one",
           "complex": true
         }
       ],
@@ -1451,9 +1450,9 @@
         "example": "T01EXAMPLE123",
         "autoIncrement": false,
         "maxLength": "64",
-        "array": true,
+        "array": false,
         "isPII": "",
-        "relationship": "many",
+        "relationship": "one",
         "parentRelationship": "workspace_channel",
         "childRelationship": "",
         "meta": {
@@ -1461,7 +1460,7 @@
           "maxLength": 64
         }
       },
-      "type": "many",
+      "type": "one",
       "complex": true
     },
     {
@@ -1503,9 +1502,9 @@
         "example": "T01EXAMPLE123",
         "autoIncrement": false,
         "maxLength": "64",
-        "array": true,
+        "array": false,
         "isPII": "",
-        "relationship": "many",
+        "relationship": "one",
         "parentRelationship": "workspace_template",
         "childRelationship": "",
         "meta": {
@@ -1513,7 +1512,7 @@
           "maxLength": 64
         }
       },
-      "type": "many",
+      "type": "one",
       "complex": true
     },
     {

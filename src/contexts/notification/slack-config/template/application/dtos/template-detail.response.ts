@@ -17,7 +17,7 @@ export class DetailTemplateResponse {
   code: string;
 
   @ApiTemplateWorkspaceId()
-  workspaceId: string[];
+  workspaceId: string;
 
   @ApiTemplateName()
   name: string;

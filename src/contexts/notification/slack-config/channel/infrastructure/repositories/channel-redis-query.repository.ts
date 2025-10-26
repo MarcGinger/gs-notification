@@ -259,20 +259,16 @@ export class ChannelQueryRepository implements IChannelQuery {
       }
 
       // Parse array fields using safeParseJSONArray utility
-      const workspaceId = safeParseJSONArray(
-        hashData.workspaceId,
-        'workspaceId',
-        (x): x is string => typeof x === 'string',
-      );
-      const subscribedEvents = safeParseJSON<Record<string, unknown>>(
+      const subscribedEvents = safeParseJSONArray(
         hashData.subscribedEvents,
         'subscribedEvents',
+        (x): x is string => typeof x === 'string',
       );
 
       return {
         id: hashData.id,
         name: hashData.name,
-        workspaceId,
+        workspaceId: hashData.workspaceId,
         isPrivate: hashData.isPrivate === 'true',
         isDm: hashData.isDm === 'true',
         topic: hashData.topic || undefined,

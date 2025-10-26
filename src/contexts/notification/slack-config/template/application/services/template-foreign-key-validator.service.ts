@@ -42,22 +42,21 @@ export class TemplateForeignKeyValidatorService {
   /**
    * Validates workspaceId existence
    * @param actor - User context for authorization
-   * @param workspaceId - Array of id values to validate
+   * @param workspaceId - Workspace id to validate
    * @param context - Validation context for logging and error handling
    * @param logger - Logger instance for structured logging
    * @returns Result indicating validation success or failure
    */
   async validateWorkspaceId(
     actor: ActorContext,
-    workspaceId: string[] | undefined,
+    workspaceId: string | undefined,
     context: ForeignKeyValidationContext,
     logger: Logger,
-  ): Promise<Result<WorkspaceReference[], DomainError>> {
-    if (!workspaceId || workspaceId.length === 0) {
-      return ok([]);
+  ): Promise<Result<WorkspaceReference | undefined, DomainError>> {
+    if (!workspaceId) {
+      return ok(undefined);
     }
-
-    Log.debug(logger, 'Validating workspaceId foreign keys', {
+    Log.debug(logger, 'Validating workspaceId foreign key', {
       application: SlackConfigServiceConstants.SERVICE_NAME,
       component: context.component,
       method: 'validateWorkspaceId',
@@ -67,13 +66,13 @@ export class TemplateForeignKeyValidatorService {
       operation: context.operation,
     });
 
-    const workspacesResult = await this.workspaceReader.findWorkspacesByIds(
+    const workspaceIdResult = await this.workspaceReader.findWorkspaceById(
       actor,
       workspaceId,
     );
 
-    if (!workspacesResult.ok) {
-      Log.error(logger, 'Workspace codes lookup failed during validation', {
+    if (!workspaceIdResult.ok) {
+      Log.error(logger, 'Workspace lookup failed during validation', {
         application: SlackConfigServiceConstants.SERVICE_NAME,
         component: context.component,
         method: 'validateWorkspaceId',
@@ -81,49 +80,45 @@ export class TemplateForeignKeyValidatorService {
         userId: context.userId,
         workspaceId,
         operation: context.operation,
-        error: workspacesResult.error,
+        error: workspaceIdResult.error,
       });
-      return err(workspacesResult.error);
+      return err(workspaceIdResult.error);
     }
 
-    const validationResult = workspacesResult.value;
-    const foundWorkspaceIds = validationResult.found.map((c) => c.id);
-    const missingWorkspaceIds = validationResult.missing;
+    const workspace = workspaceIdResult.value;
 
-    if (missingWorkspaceIds.length > 0) {
-      Log.warn(logger, 'Some workspace ids not found during validation', {
+    if (Option.isNone(workspace)) {
+      Log.warn(logger, 'Workspace not found during validation', {
         application: SlackConfigServiceConstants.SERVICE_NAME,
         component: context.component,
         method: 'validateWorkspaceId',
         correlationId: context.correlationId,
         userId: context.userId,
-        requestedIds: workspaceId,
-        missingIds: missingWorkspaceIds,
+        workspaceId,
         operation: context.operation,
       });
       return err(
-        withContext(TemplateErrors.INVALID_WORKSPACE_IDS, {
+        withContext(TemplateErrors.INVALID_WORKSPACE_ID, {
           correlationId: context.correlationId,
           userId: context.userId,
           operation: context.operation,
-          requestedIds: workspaceId,
-          missingIds: missingWorkspaceIds,
-          reason: 'Some workspace ids do not exist in the system',
+          workspaceId,
+          reason: 'Workspace id does not exist in the system',
         }),
       );
     }
 
-    Log.debug(logger, 'Workspace ids existence validation passed', {
+    Log.debug(logger, 'Workspace existence validation passed', {
       application: SlackConfigServiceConstants.SERVICE_NAME,
       component: context.component,
       method: 'validateWorkspaceId',
       correlationId: context.correlationId,
       userId: context.userId,
-      workspaceIdsCount: validationResult.found.length,
+      workspaceId,
       operation: context.operation,
     });
 
-    return ok(validationResult.found);
+    return ok(workspace.value);
   }
 
   /**
@@ -137,14 +132,14 @@ export class TemplateForeignKeyValidatorService {
   async validateTemplateForeignKeys(
     actor: ActorContext,
     props: {
-      workspaceId?: string[];
+      workspaceId?: string;
     },
     context: ForeignKeyValidationContext,
     logger: Logger,
   ): Promise<
     Result<
       {
-        workspaceId?: WorkspaceReference[];
+        workspaceId?: WorkspaceReference;
       },
       DomainError
     >
@@ -176,14 +171,14 @@ export class TemplateForeignKeyValidatorService {
   async validateForeignKeys(
     actor: ActorContext,
     props: {
-      workspaceId?: string[];
+      workspaceId?: string;
     },
     context: ForeignKeyValidationContext,
     logger: Logger,
   ): Promise<
     Result<
       {
-        workspaceId?: WorkspaceReference[];
+        workspaceId?: WorkspaceReference;
       },
       DomainError
     >
