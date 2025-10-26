@@ -17,7 +17,6 @@ import {
   ApiTags,
   ApiOperation,
   ApiResponse,
-  ApiNoContentResponse,
   ApiCreatedResponse,
   ApiBody,
   ApiHeader,
@@ -73,7 +72,7 @@ export class ChannelController {
   async get(
     @CurrentUser() user: IUserToken,
     @Param('id') id: string,
-  ): Promise<Result<DetailChannelResponse | null, DomainError>> {
+  ): Promise<Result<DetailChannelResponse, DomainError>> {
     const result = await this.channelApplicationService.getChannelById(
       user,
       id,

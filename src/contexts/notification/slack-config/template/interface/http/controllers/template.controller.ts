@@ -17,7 +17,6 @@ import {
   ApiTags,
   ApiOperation,
   ApiResponse,
-  ApiNoContentResponse,
   ApiCreatedResponse,
   ApiBody,
   ApiHeader,
@@ -73,7 +72,7 @@ export class TemplateController {
   async get(
     @CurrentUser() user: IUserToken,
     @Param('code') code: string,
-  ): Promise<Result<DetailTemplateResponse | null, DomainError>> {
+  ): Promise<Result<DetailTemplateResponse, DomainError>> {
     const result = await this.templateApplicationService.getTemplateById(
       user,
       code,

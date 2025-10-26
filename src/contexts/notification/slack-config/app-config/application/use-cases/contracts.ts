@@ -28,5 +28,5 @@ export abstract class IGetAppConfigUseCase {
     user: IUserToken;
     id: number;
     correlationId: string;
-  }): Promise<Result<DetailAppConfigResponse | null, DomainError>>;
+  }): Promise<Result<DetailAppConfigResponse, DomainError>>;
 }

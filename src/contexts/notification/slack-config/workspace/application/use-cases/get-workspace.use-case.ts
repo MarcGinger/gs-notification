@@ -257,7 +257,7 @@ export class GetWorkspaceUseCase implements IGetWorkspaceUseCase {
     if (!workspaceDto) {
       const notFoundError = withContext(WorkspaceErrors.WORKSPACE_NOT_FOUND, {
         id: params.id,
-        name: '', // Not available since workspace doesn't exist
+        name: '', // Default values for required fields
         enabled: false, // Default values for required fields
         workspaceId: params.id,
         correlationId,

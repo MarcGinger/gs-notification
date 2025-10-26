@@ -18,7 +18,6 @@ import {
   ApiTags,
   ApiOperation,
   ApiResponse,
-  ApiNoContentResponse,
   ApiCreatedResponse,
   ApiBody,
   ApiHeader,
@@ -75,7 +74,7 @@ export class AppConfigController {
   async get(
     @CurrentUser() user: IUserToken,
     @Param('id', ParseIntPipe) id: number,
-  ): Promise<Result<DetailAppConfigResponse | null, DomainError>> {
+  ): Promise<Result<DetailAppConfigResponse, DomainError>> {
     const result = await this.appConfigApplicationService.getAppConfigById(
       user,
       id,

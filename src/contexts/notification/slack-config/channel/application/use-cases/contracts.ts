@@ -28,5 +28,5 @@ export abstract class IGetChannelUseCase {
     user: IUserToken;
     id: string;
     correlationId: string;
-  }): Promise<Result<DetailChannelResponse | null, DomainError>>;
+  }): Promise<Result<DetailChannelResponse, DomainError>>;
 }

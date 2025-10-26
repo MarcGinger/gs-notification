@@ -34,6 +34,7 @@ import { ITemplateQuery, TEMPLATE_QUERY_TOKEN } from '../ports';
 import { TemplateAuthorizationAdapter } from '../services';
 import { DetailTemplateResponse } from '../dtos';
 import { IGetTemplateUseCase } from './contracts';
+import { TemplateErrors } from '../../domain/errors';
 
 /**
  * Get Template Use Case - CQRS Read Side Implementation
@@ -89,7 +90,7 @@ export class GetTemplateUseCase implements IGetTemplateUseCase {
     user: IUserToken;
     code: string;
     correlationId: string;
-  }): Promise<Result<DetailTemplateResponse | null, DomainError>> {
+  }): Promise<Result<DetailTemplateResponse, DomainError>> {
     const operation = 'get_template';
     const startTime = this.clock.nowMs();
     const correlationId = params.correlationId || CorrelationUtil.generate();
@@ -252,27 +253,50 @@ export class GetTemplateUseCase implements IGetTemplateUseCase {
       ? null
       : templateResult.value.value;
 
-    // Step 6: Light compliance check for read operations (audit log only)
-    if (templateDto) {
-      // For read operations, we only log data access for compliance audit
-      const readClassification = this.piiClassificationService.classifyData(
-        {},
-        {
-          domain: 'slack-config',
-          tenantId: params.user.tenant,
-          // entityType: 'Template' // Future: for entity-level rules
-        },
+    // Step 5.1: Return 404 error if template not found
+    if (!templateDto) {
+      const notFoundError = withContext(TemplateErrors.TEMPLATE_NOT_FOUND, {
+        code: params.code,
+        workspaceId: '', // Default values for required fields
+        name: '', // Default values for required fields
+        contentBlocks: 0, // Default values for required fields
+        enabled: false, // Default values for required fields
+        templateCode: params.code,
+        correlationId,
+        userId: params.user.sub,
+        operation: 'get_template',
+      });
+
+      UseCaseLoggingUtil.logOperationError(
+        this.logger,
+        operation,
+        safeLogContext,
+        notFoundError,
+        'LOW',
       );
 
-      if (readClassification.containsPII) {
-        // Log data access for audit trail (no protection needed for reads)
-        UseCaseLoggingUtil.logComplianceCheck(
-          this.logger,
-          operation,
-          safeLogContext,
-          readClassification,
-        );
-      }
+      return err(notFoundError);
+    }
+
+    // Step 6: Light compliance check for read operations (audit log only)
+    // For read operations, we only log data access for compliance audit
+    const readClassification = this.piiClassificationService.classifyData(
+      {},
+      {
+        domain: 'slack-config',
+        tenantId: params.user.tenant,
+        // entityType: 'Template' // Future: for entity-level rules
+      },
+    );
+
+    if (readClassification.containsPII) {
+      // Log data access for audit trail (no protection needed for reads)
+      UseCaseLoggingUtil.logComplianceCheck(
+        this.logger,
+        operation,
+        safeLogContext,
+        readClassification,
+      );
     }
 
     // Step 7: Log operation success with comprehensive metrics
@@ -285,10 +309,10 @@ export class GetTemplateUseCase implements IGetTemplateUseCase {
         executionTimeMs: executionTime,
         businessData: {
           templateCode: params.code,
-          found: templateDto !== null,
+          found: true,
           cacheEnabled: true,
           cacheTtl: repositoryOptions.cache?.ttl,
-          dataAccessLogged: templateDto !== null,
+          dataAccessLogged: true,
         },
       },
     );

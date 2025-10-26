@@ -301,7 +301,7 @@ export class TemplateApplicationService {
   async getTemplateById(
     user: IUserToken,
     code: string,
-  ): Promise<Result<DetailTemplateResponse | null, DomainError>> {
+  ): Promise<Result<DetailTemplateResponse, DomainError>> {
     // Early input validation
     const codeValidation = this.validateCode(code, 'read');
     if (!codeValidation.ok) {
@@ -311,7 +311,7 @@ export class TemplateApplicationService {
     const validatedcode = codeValidation.value;
     const authContext = this.createAuthContext(user, 'read');
 
-    return this.authorizeThenExecute<DetailTemplateResponse | null>({
+    return this.authorizeThenExecute<DetailTemplateResponse>({
       operation: 'read',
       user,
       code: validatedcode,

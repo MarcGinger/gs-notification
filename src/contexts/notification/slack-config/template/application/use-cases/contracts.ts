@@ -28,5 +28,5 @@ export abstract class IGetTemplateUseCase {
     user: IUserToken;
     code: string;
     correlationId: string;
-  }): Promise<Result<DetailTemplateResponse | null, DomainError>>;
+  }): Promise<Result<DetailTemplateResponse, DomainError>>;
 }

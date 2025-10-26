@@ -291,7 +291,7 @@ export class AppConfigApplicationService {
   async getAppConfigById(
     user: IUserToken,
     id: number,
-  ): Promise<Result<DetailAppConfigResponse | null, DomainError>> {
+  ): Promise<Result<DetailAppConfigResponse, DomainError>> {
     // Early input validation
     const idValidation = this.validateId(id, 'read');
     if (!idValidation.ok) {
@@ -301,7 +301,7 @@ export class AppConfigApplicationService {
     const validatedid = idValidation.value;
     const authContext = this.createAuthContext(user, 'read');
 
-    return this.authorizeThenExecute<DetailAppConfigResponse | null>({
+    return this.authorizeThenExecute<DetailAppConfigResponse>({
       operation: 'read',
       user,
       id: validatedid,

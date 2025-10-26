@@ -34,6 +34,7 @@ import { IChannelQuery, CHANNEL_QUERY_TOKEN } from '../ports';
 import { ChannelAuthorizationAdapter } from '../services';
 import { DetailChannelResponse } from '../dtos';
 import { IGetChannelUseCase } from './contracts';
+import { ChannelErrors } from '../../domain/errors';
 
 /**
  * Get Channel Use Case - CQRS Read Side Implementation
@@ -89,7 +90,7 @@ export class GetChannelUseCase implements IGetChannelUseCase {
     user: IUserToken;
     id: string;
     correlationId: string;
-  }): Promise<Result<DetailChannelResponse | null, DomainError>> {
+  }): Promise<Result<DetailChannelResponse, DomainError>> {
     const operation = 'get_channel';
     const startTime = this.clock.nowMs();
     const correlationId = params.correlationId || CorrelationUtil.generate();
@@ -252,27 +253,51 @@ export class GetChannelUseCase implements IGetChannelUseCase {
       ? null
       : channelResult.value.value;
 
-    // Step 6: Light compliance check for read operations (audit log only)
-    if (channelDto) {
-      // For read operations, we only log data access for compliance audit
-      const readClassification = this.piiClassificationService.classifyData(
-        {},
-        {
-          domain: 'slack-config',
-          tenantId: params.user.tenant,
-          // entityType: 'Channel' // Future: for entity-level rules
-        },
+    // Step 5.1: Return 404 error if channel not found
+    if (!channelDto) {
+      const notFoundError = withContext(ChannelErrors.CHANNEL_NOT_FOUND, {
+        id: params.id,
+        name: '', // Default values for required fields
+        workspaceId: '', // Default values for required fields
+        isPrivate: false, // Default values for required fields
+        isDm: false, // Default values for required fields
+        enabled: false, // Default values for required fields
+        channelId: params.id,
+        correlationId,
+        userId: params.user.sub,
+        operation: 'get_channel',
+      });
+
+      UseCaseLoggingUtil.logOperationError(
+        this.logger,
+        operation,
+        safeLogContext,
+        notFoundError,
+        'LOW',
       );
 
-      if (readClassification.containsPII) {
-        // Log data access for audit trail (no protection needed for reads)
-        UseCaseLoggingUtil.logComplianceCheck(
-          this.logger,
-          operation,
-          safeLogContext,
-          readClassification,
-        );
-      }
+      return err(notFoundError);
+    }
+
+    // Step 6: Light compliance check for read operations (audit log only)
+    // For read operations, we only log data access for compliance audit
+    const readClassification = this.piiClassificationService.classifyData(
+      {},
+      {
+        domain: 'slack-config',
+        tenantId: params.user.tenant,
+        // entityType: 'Channel' // Future: for entity-level rules
+      },
+    );
+
+    if (readClassification.containsPII) {
+      // Log data access for audit trail (no protection needed for reads)
+      UseCaseLoggingUtil.logComplianceCheck(
+        this.logger,
+        operation,
+        safeLogContext,
+        readClassification,
+      );
     }
 
     // Step 7: Log operation success with comprehensive metrics
@@ -285,10 +310,10 @@ export class GetChannelUseCase implements IGetChannelUseCase {
         executionTimeMs: executionTime,
         businessData: {
           channelId: params.id,
-          found: channelDto !== null,
+          found: true,
           cacheEnabled: true,
           cacheTtl: repositoryOptions.cache?.ttl,
-          dataAccessLogged: channelDto !== null,
+          dataAccessLogged: true,
         },
       },
     );

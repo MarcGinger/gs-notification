@@ -34,6 +34,7 @@ import { IAppConfigQuery, APP_CONFIG_QUERY_TOKEN } from '../ports';
 import { AppConfigAuthorizationAdapter } from '../services';
 import { DetailAppConfigResponse } from '../dtos';
 import { IGetAppConfigUseCase } from './contracts';
+import { AppConfigErrors } from '../../domain/errors';
 
 /**
  * Get AppConfig Use Case - CQRS Read Side Implementation
@@ -89,7 +90,7 @@ export class GetAppConfigUseCase implements IGetAppConfigUseCase {
     user: IUserToken;
     id: number;
     correlationId: string;
-  }): Promise<Result<DetailAppConfigResponse | null, DomainError>> {
+  }): Promise<Result<DetailAppConfigResponse, DomainError>> {
     const operation = 'get_app_config';
     const startTime = this.clock.nowMs();
     const correlationId = params.correlationId || CorrelationUtil.generate();
@@ -248,27 +249,51 @@ export class GetAppConfigUseCase implements IGetAppConfigUseCase {
       ? null
       : appConfigResult.value.value;
 
-    // Step 6: Light compliance check for read operations (audit log only)
-    if (appConfigDto) {
-      // For read operations, we only log data access for compliance audit
-      const readClassification = this.piiClassificationService.classifyData(
-        {},
-        {
-          domain: 'slack-config',
-          tenantId: params.user.tenant,
-          // entityType: 'AppConfig' // Future: for entity-level rules
-        },
+    // Step 5.1: Return 404 error if appConfig not found
+    if (!appConfigDto) {
+      const notFoundError = withContext(AppConfigErrors.APP_CONFIG_NOT_FOUND, {
+        id: params.id,
+        workspaceId: '', // Default values for required fields
+        maxRetryAttempts: 0, // Default values for required fields
+        retryBackoffSeconds: 0, // Default values for required fields
+        defaultLocale: '', // Default values for required fields
+        loggingEnabled: false, // Default values for required fields
+        appConfigId: params.id,
+        correlationId,
+        userId: params.user.sub,
+        operation: 'get_app_config',
+      });
+
+      UseCaseLoggingUtil.logOperationError(
+        this.logger,
+        operation,
+        safeLogContext,
+        notFoundError,
+        'LOW',
       );
 
-      if (readClassification.containsPII) {
-        // Log data access for audit trail (no protection needed for reads)
-        UseCaseLoggingUtil.logComplianceCheck(
-          this.logger,
-          operation,
-          safeLogContext,
-          readClassification,
-        );
-      }
+      return err(notFoundError);
+    }
+
+    // Step 6: Light compliance check for read operations (audit log only)
+    // For read operations, we only log data access for compliance audit
+    const readClassification = this.piiClassificationService.classifyData(
+      {},
+      {
+        domain: 'slack-config',
+        tenantId: params.user.tenant,
+        // entityType: 'AppConfig' // Future: for entity-level rules
+      },
+    );
+
+    if (readClassification.containsPII) {
+      // Log data access for audit trail (no protection needed for reads)
+      UseCaseLoggingUtil.logComplianceCheck(
+        this.logger,
+        operation,
+        safeLogContext,
+        readClassification,
+      );
     }
 
     // Step 7: Log operation success with comprehensive metrics
@@ -281,10 +306,10 @@ export class GetAppConfigUseCase implements IGetAppConfigUseCase {
         executionTimeMs: executionTime,
         businessData: {
           appConfigId: params.id,
-          found: appConfigDto !== null,
+          found: true,
           cacheEnabled: true,
           cacheTtl: repositoryOptions.cache?.ttl,
-          dataAccessLogged: appConfigDto !== null,
+          dataAccessLogged: true,
         },
       },
     );

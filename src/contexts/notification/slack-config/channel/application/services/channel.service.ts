@@ -301,7 +301,7 @@ export class ChannelApplicationService {
   async getChannelById(
     user: IUserToken,
     id: string,
-  ): Promise<Result<DetailChannelResponse | null, DomainError>> {
+  ): Promise<Result<DetailChannelResponse, DomainError>> {
     // Early input validation
     const idValidation = this.validateId(id, 'read');
     if (!idValidation.ok) {
@@ -311,7 +311,7 @@ export class ChannelApplicationService {
     const validatedid = idValidation.value;
     const authContext = this.createAuthContext(user, 'read');
 
-    return this.authorizeThenExecute<DetailChannelResponse | null>({
+    return this.authorizeThenExecute<DetailChannelResponse>({
       operation: 'read',
       user,
       id: validatedid,
