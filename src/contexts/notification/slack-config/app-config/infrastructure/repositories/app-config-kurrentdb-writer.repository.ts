@@ -24,6 +24,7 @@ import { AppConfigProjectionKeys } from '../../app-config-projection-keys';
 import { AppConfigId } from '../../domain/value-objects';
 import { AppConfigDeletedEvent } from '../../domain/events';
 import { IAppConfigWriter } from '../../application/ports';
+import { SlackConfigServiceConstants } from '../../../service-constants';
 
 /**
  * AppConfig Writer Repository - Interface Segregation Principle Implementation
@@ -195,7 +196,7 @@ export class AppConfigWriterRepository
       eventsToStore,
       actor,
       'app-config-writer-repository',
-      'notification',
+      SlackConfigServiceConstants.BOUNDED_CONTEXT,
       {
         correlationId: metadata?.correlationId ?? correlationId,
         causationId: metadata?.causationId,
