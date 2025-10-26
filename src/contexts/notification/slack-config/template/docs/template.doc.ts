@@ -32,7 +32,27 @@ export class TemplateDocumentation {
 
 ### application: slack-config
 [← Back to documentation](/api/docs/notification/slack-config)
-Stores reusable templates for Slack messages (both plain text and block-based).`,
+## 🧩 SlackTemplate
+
+### **Purpose**
+
+The \`SlackTemplate\` aggregate defines reusable message templates that standardize the look and feel of Slack notifications. Templates are typically built using **Slack Block Kit** — Slack’s rich formatting system for interactive and visually appealing messages.
+
+These templates can include placeholders (variables) for dynamic data, making them ideal for structured messages like approvals, alerts, and workflow completions.
+
+### **Responsibilities**
+
+* Define message layouts and content using Block Kit JSON.
+* Manage template metadata (e.g., name, description, version, and tenant).
+* Store variable definitions and validation rules.
+* Enable/disable templates per tenant for staged rollouts.
+* Emit events when templates are created, updated, or retired.
+
+### **Why It Matters**
+
+\`SlackTemplate\` enables **message consistency** and branding. Instead of ad-hoc message construction, all Slack notifications use predefined, validated templates — ensuring compliance, clarity, and maintainability.
+
+`,
       )
       .setVersion('1.0.0')
       .addTag('Templates', `Configuration for template table`);

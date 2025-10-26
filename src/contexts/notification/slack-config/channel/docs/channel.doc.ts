@@ -32,7 +32,26 @@ export class ChannelDocumentation {
 
 ### application: slack-config
 [← Back to documentation](/api/docs/notification/slack-config)
-Represents known or approved Slack channels in the workspace.`,
+## 🧵 SlackChannel
+
+### **Purpose**
+
+The \`SlackChannel\` aggregate defines which channels or direct message endpoints within a workspace are authorized for communication. Each entry in this aggregate corresponds to a Slack channel (\`#alerts\`, \`#approvals\`, etc.) or DM (\`@username\`) where notifications can be posted.
+
+This aggregate allows fine-grained control over what events each channel receives and ensures that messages are routed to valid and approved destinations.
+
+### **Responsibilities**
+
+* Register and maintain authorized Slack channels per workspace.
+* Define subscription rules (e.g., which event types can post to which channels).
+* Store metadata about channels (e.g., \`isPrivate\`, \`isDm\`, \`topic\`, \`purpose\`).
+* Allow enabling/disabling individual channels without removing configuration.
+* Ensure messages are delivered only to permitted targets.
+
+### **Why It Matters**
+
+\`SlackChannel\` acts as the **delivery policy** layer. It prevents unauthorized posting, provides flexibility in event routing, and allows tenants to configure business-specific notification targets.
+`,
       )
       .setVersion('1.0.0')
       .addTag('Channels', `Configuration for channel table`);

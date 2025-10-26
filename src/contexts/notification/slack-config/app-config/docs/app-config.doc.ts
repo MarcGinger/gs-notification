@@ -32,7 +32,27 @@ export class AppConfigDocumentation {
 
 ### application: slack-config
 [← Back to documentation](/api/docs/notification/slack-config)
-High-level operational configuration for the Slack app itself.`,
+## ⚙️ SlackAppConfig
+
+### **Purpose**
+
+The \`SlackAppConfig\` aggregate manages system-wide operational parameters for the Slack integration within a tenant’s workspace. It defines how the app behaves under various runtime conditions, such as retries, logging, and audit behavior.
+
+This configuration ensures that message delivery is resilient and aligned with organizational policies (e.g., how many times to retry sending, whether to log every event, which audit channel to use, etc.).
+
+### **Responsibilities**
+
+* Manage retry and backoff policies for message delivery.
+* Enable or disable message-level logging for auditing.
+* Define the audit channel ID for operational or compliance logs.
+* Maintain default locale, metadata, and other operational flags.
+* Emit configuration change events for runtime synchronization.
+
+### **Why It Matters**
+
+\`SlackAppConfig\` provides the **operational backbone** for Slack messaging. It ensures reliability, compliance, and observability — allowing organizations to manage how Slack notifications behave at scale and during failures.
+
+`,
       )
       .setVersion('1.0.0')
       .addTag('AppConfigs', `Configuration for app_config table`);

@@ -17,13 +17,106 @@ export class SlackConfigDocumentation {
         { type: 'http', scheme: 'bearer', bearerFormat: 'JWT' },
         'bearer',
       )
-      .setTitle(
-        `📱 notification slack-config application/service Management API`,
-      )
+      .setTitle(`Core Slack Configuration`)
       .setDescription(
-        `## Access notification slack-config application/service
+        `
 ## bounded context: notification
 [← Back to documentation](/api/docs/notification)
+
+# 🧩 Core Slack Config — General Overview
+
+The **Core Slack Config** service is part of the broader **Notification Bounded Context**, responsible for managing all configuration aspects required to send Slack notifications within the platform. It provides the infrastructure and domain logic that connects a tenant’s Slack workspace to the notification ecosystem, ensuring secure, structured, and compliant communication between services and Slack.
+
+---
+
+## 🎯 Purpose
+
+The primary purpose of **Core Slack Config** is to manage the lifecycle of Slack-related configuration for each tenant. It defines *how*, *where*, and *under what conditions* Slack messages are sent. By maintaining configurations in a domain-driven, event-sourced model, the service guarantees auditability, tenant isolation, and consistency across all Slack-related operations.
+
+---
+
+## 🧱 Architectural Role
+
+**Core Slack Config** acts as the **configuration source of truth** for all Slack integrations in the system. It is not responsible for sending messages (that’s handled by the **Core Slack Execute** service), but instead manages the metadata, tokens, templates, and operational policies that determine how Slack notifications are constructed and authorized.
+
+### Key Roles:
+
+* Acts as the *control plane* for Slack notification configuration.
+* Provides secure storage and rotation for OAuth tokens and signing secrets.
+* Defines approved channels and message templates per workspace.
+* Publishes events consumed by other services (e.g., executors, auditors, or workflow engines).
+* Ensures compliance with security and audit policies via event sourcing.
+
+---
+
+## ⚙️ Core Components
+
+| Aggregate          | Description                                                                                                           |
+| ------------------ | --------------------------------------------------------------------------------------------------------------------- |
+| **SlackWorkspace** | Represents a tenant’s Slack workspace connection, holding OAuth credentials, signing secrets, and workspace metadata. |
+| **SlackChannel**   | Defines the list of authorized channels and direct message endpoints available for message delivery.                  |
+| **SlackTemplate**  | Manages reusable message templates (text, block layouts, and variables) for structured notifications.                 |
+| **SlackAppConfig** | Contains global settings, retry/backoff parameters, logging preferences, and audit configurations.                    |
+
+Each aggregate is event-sourced and projected into Redis for fast reads. The system follows a **CQRS pattern**, separating command writes (EventStoreDB) from queries (Redis projections).
+
+---
+
+## 🧩 Data Flow Summary
+
+&#x60;&#x60;&#x60;
+[API Command] → [Use Case] → [ESDB Writer Repository] → [EventStoreDB]
+       ↓
+[Central Projection Service] → [Redis Snapshot] + [Redis Query Index]
+       ↓
+[Query API] → [Consumer Services / UI]
+&#x60;&#x60;&#x60;
+
+This architecture provides full event auditability in **EventStoreDB**, real-time read performance in **Redis**, and flexible event-driven synchronization via **BullMQ** projectors.
+
+---
+
+## 🛡️ Security and Compliance
+
+* **Authentication:** Managed via Keycloak (OAuth2 / OpenID Connect).
+* **Authorization:** Governed by Open Policy Agent (OPA) Rego policies.
+* **Secret Storage:** Slack tokens and signing secrets are stored securely using Doppler or another approved secret manager.
+* **Auditability:** Every configuration change emits domain events stored in EventStoreDB, ensuring immutable history and traceability.
+
+---
+
+## 🚀 Example Use Cases
+
+| Use Case                | Description                                                                                                                        |
+| ----------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| **Tenant Onboarding**   | When a new tenant connects their Slack workspace, &#x60;SlackWorkspaceConfigured.v1&#x60; and &#x60;SlackAppConfigUpdated.v1&#x60; events are emitted. |
+| **Channel Management**  | Admins can link or disable channels for specific event types (e.g., approvals, alerts).                                            |
+| **Template Management** | Teams can create reusable message templates with placeholders for workflow data.                                                   |
+| **Policy Updates**      | Changing retry or logging settings emits &#x60;SlackAppConfigUpdated.v1&#x60;, allowing other services to adjust behavior dynamically.       |
+
+---
+
+## ✅ Benefits
+
+* **Event-Sourced Reliability:** Every change is versioned, replayable, and fully auditable.
+* **Tenant Isolation:** Each Slack workspace and channel configuration is scoped to a tenant.
+* **High Performance:** Read models are served from Redis with millisecond-level latency.
+* **Extensible Design:** Supports additional configuration layers (e.g., threads, attachments, Slack workflows) in future iterations.
+* **Integration Friendly:** Easily integrates with other notification channels (email, SMS, webhook) through consistent event naming and structure.
+
+---
+
+## 🧩 Summary
+
+The **Core Slack Config** service provides the configuration backbone for all Slack-based notifications. It ensures that every message sent through Slack is:
+
+* Securely authenticated.
+* Delivered through approved channels.
+* Formatted using consistent templates.
+* Managed under auditable, tenant-aware policies.
+
+This service is a critical component of the Notification Bounded Context, enabling robust, enterprise-grade Slack integration within a modern, event-driven architecture.
+
 
 ### application: slack-config
 

@@ -32,7 +32,7 @@ export class WorkspaceDocumentation {
 
 ### application: slack-config
 [← Back to documentation](/api/docs/notification/slack-config)
-## 🧠 1. SlackWorkspace
+## 🧠 SlackWorkspace
 
 ### **Purpose**
 
