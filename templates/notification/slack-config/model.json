@@ -11,7 +11,7 @@
   "tables": [
     {
       "name": "workspace",
-      "description": "Represents each tenant’s registered Slack workspace.",
+      "description": "## 🧠 1. SlackWorkspace\n\n### **Purpose**\n\nThe \\`SlackWorkspace\\` aggregate represents the tenant’s connection to their Slack workspace. It acts as the foundational configuration point that defines the link between the system and the tenant’s Slack organization.\n\nThis aggregate holds sensitive integration credentials — including OAuth tokens, signing secrets, and app identifiers — and ensures they are securely managed and rotated when necessary. It also tracks which workspace belongs to which tenant and whether the connection is currently active.\n\n### **Responsibilities**\n\n* Maintain the tenant-to-Slack workspace mapping.\n* Securely store and reference OAuth credentials (e.g., \\`botToken\\`, \\`signingSecret\\`).\n* Enable or disable the Slack integration per tenant.\n* Manage the default posting channel for system notifications.\n* Emit events that notify other services when configuration changes occur.\n\n### **Why It Matters**\n\nWithout the \\`SlackWorkspace\\` aggregate, the platform wouldn’t know **where** to send Slack messages or which tokens to use for authentication. It ensures tenant isolation and provides a secure boundary for Slack API interactions.\n",
       "columns": [
         {
           "name": "id",

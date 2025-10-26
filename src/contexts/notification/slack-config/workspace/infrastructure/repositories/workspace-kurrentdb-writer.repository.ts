@@ -19,6 +19,7 @@ import {
   RepositoryLoggingUtil,
   RepositoryLoggingConfig,
 } from 'src/shared/infrastructure/repositories';
+import { SlackConfigServiceConstants } from '../../../service-constants';
 import { WorkspaceAggregate } from '../../domain/aggregates';
 import { WorkspaceProjectionKeys } from '../../workspace-projection-keys';
 import { WorkspaceId } from '../../domain/value-objects';
@@ -195,7 +196,7 @@ export class WorkspaceWriterRepository
       eventsToStore,
       actor,
       'workspace-writer-repository',
-      'notification',
+      SlackConfigServiceConstants.BOUNDED_CONTEXT,
       {
         correlationId: metadata?.correlationId ?? correlationId,
         causationId: metadata?.causationId,
@@ -403,7 +404,7 @@ export class WorkspaceWriterRepository
           events,
           actor,
           'workspace-writer-repository',
-          'notification',
+          SlackConfigServiceConstants.BOUNDED_CONTEXT,
           opts?.meta,
         ),
         expectedRevision,

@@ -19,6 +19,7 @@ import {
   RepositoryLoggingUtil,
   RepositoryLoggingConfig,
 } from 'src/shared/infrastructure/repositories';
+import { SlackConfigServiceConstants } from '../../../service-constants';
 import { ChannelAggregate } from '../../domain/aggregates';
 import { ChannelProjectionKeys } from '../../channel-projection-keys';
 import { ChannelId } from '../../domain/value-objects';
@@ -194,7 +195,7 @@ export class ChannelWriterRepository
       eventsToStore,
       actor,
       'channel-writer-repository',
-      'notification',
+      SlackConfigServiceConstants.BOUNDED_CONTEXT,
       {
         correlationId: metadata?.correlationId ?? correlationId,
         causationId: metadata?.causationId,
@@ -402,7 +403,7 @@ export class ChannelWriterRepository
           events,
           actor,
           'channel-writer-repository',
-          'notification',
+          SlackConfigServiceConstants.BOUNDED_CONTEXT,
           opts?.meta,
         ),
         expectedRevision,

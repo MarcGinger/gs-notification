@@ -19,12 +19,12 @@ import {
   RepositoryLoggingUtil,
   RepositoryLoggingConfig,
 } from 'src/shared/infrastructure/repositories';
+import { SlackConfigServiceConstants } from '../../../service-constants';
 import { AppConfigAggregate } from '../../domain/aggregates';
 import { AppConfigProjectionKeys } from '../../app-config-projection-keys';
 import { AppConfigId } from '../../domain/value-objects';
 import { AppConfigDeletedEvent } from '../../domain/events';
 import { IAppConfigWriter } from '../../application/ports';
-import { SlackConfigServiceConstants } from '../../../service-constants';
 
 /**
  * AppConfig Writer Repository - Interface Segregation Principle Implementation
@@ -404,7 +404,7 @@ export class AppConfigWriterRepository
           events,
           actor,
           'app-config-writer-repository',
-          'notification',
+          SlackConfigServiceConstants.BOUNDED_CONTEXT,
           opts?.meta,
         ),
         expectedRevision,

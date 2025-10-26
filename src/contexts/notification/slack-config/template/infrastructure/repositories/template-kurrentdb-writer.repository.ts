@@ -19,6 +19,7 @@ import {
   RepositoryLoggingUtil,
   RepositoryLoggingConfig,
 } from 'src/shared/infrastructure/repositories';
+import { SlackConfigServiceConstants } from '../../../service-constants';
 import { TemplateAggregate } from '../../domain/aggregates';
 import { TemplateProjectionKeys } from '../../template-projection-keys';
 import { TemplateCode } from '../../domain/value-objects';
@@ -194,7 +195,7 @@ export class TemplateWriterRepository
       eventsToStore,
       actor,
       'template-writer-repository',
-      'notification',
+      SlackConfigServiceConstants.BOUNDED_CONTEXT,
       {
         correlationId: metadata?.correlationId ?? correlationId,
         causationId: metadata?.causationId,
@@ -402,7 +403,7 @@ export class TemplateWriterRepository
           events,
           actor,
           'template-writer-repository',
-          'notification',
+          SlackConfigServiceConstants.BOUNDED_CONTEXT,
           opts?.meta,
         ),
         expectedRevision,

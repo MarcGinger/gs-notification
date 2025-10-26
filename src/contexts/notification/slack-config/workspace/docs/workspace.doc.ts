@@ -32,7 +32,26 @@ export class WorkspaceDocumentation {
 
 ### application: slack-config
 [← Back to documentation](/api/docs/notification/slack-config)
-Represents each tenant’s registered Slack workspace.`,
+## 🧠 1. SlackWorkspace
+
+### **Purpose**
+
+The \`SlackWorkspace\` aggregate represents the tenant’s connection to their Slack workspace. It acts as the foundational configuration point that defines the link between the system and the tenant’s Slack organization.
+
+This aggregate holds sensitive integration credentials — including OAuth tokens, signing secrets, and app identifiers — and ensures they are securely managed and rotated when necessary. It also tracks which workspace belongs to which tenant and whether the connection is currently active.
+
+### **Responsibilities**
+
+* Maintain the tenant-to-Slack workspace mapping.
+* Securely store and reference OAuth credentials (e.g., \`botToken\`, \`signingSecret\`).
+* Enable or disable the Slack integration per tenant.
+* Manage the default posting channel for system notifications.
+* Emit events that notify other services when configuration changes occur.
+
+### **Why It Matters**
+
+Without the \`SlackWorkspace\` aggregate, the platform wouldn’t know **where** to send Slack messages or which tokens to use for authentication. It ensures tenant isolation and provides a secure boundary for Slack API interactions.
+`,
       )
       .setVersion('1.0.0')
       .addTag('Workspaces', `Configuration for workspace table`);
