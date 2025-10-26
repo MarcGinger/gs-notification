@@ -403,14 +403,41 @@ export class WorkspaceReaderRepository implements IWorkspaceReader {
       options?.correlationId ??
       CorrelationUtil.generateForOperation('workspace-validate-codes');
 
+    // Defensive check: ensure ids is actually an array
+    // Sometimes we might receive a stringified array due to serialization issues
+    let normalizedIds: string[];
+    if (Array.isArray(ids)) {
+      normalizedIds = ids;
+    } else if (typeof ids === 'string') {
+      try {
+        // Try to parse as JSON array
+        const parsed: unknown = JSON.parse(ids);
+        if (
+          Array.isArray(parsed) &&
+          parsed.every((item: unknown) => typeof item === 'string')
+        ) {
+          normalizedIds = parsed;
+        } else {
+          // Not a string array, treat original as single string
+          normalizedIds = [ids];
+        }
+      } catch {
+        // Not valid JSON, treat as single string
+        normalizedIds = [ids];
+      }
+    } else {
+      // Convert to array if it's not already
+      normalizedIds = Array.isArray(ids) ? ids : [String(ids)];
+    }
+
     // Early return for empty requests
-    if (ids.length === 0) {
+    if (normalizedIds.length === 0) {
       return ok({ found: [], missing: [] });
     }
 
     const logContext = this.createLogContext(operation, correlationId, actor, {
       riskLevel,
-      requestedCount: ids.length,
+      requestedCount: normalizedIds.length,
       customCorrelationId: !!options?.correlationId,
       source: options?.source,
       requestId: options?.requestId,
@@ -435,7 +462,10 @@ export class WorkspaceReaderRepository implements IWorkspaceReader {
       {
         queryType: 'fk_validation',
         scope: 'redis_projection',
-        requestedIds: ids.length <= 10 ? ids : ids.slice(0, 10),
+        requestedIds:
+          normalizedIds.length <= 10
+            ? normalizedIds
+            : normalizedIds.slice(0, 10),
       },
     );
 
@@ -446,9 +476,9 @@ export class WorkspaceReaderRepository implements IWorkspaceReader {
           scope: 'redis_hash',
           method: 'redis.hmget',
           requestedIds:
-            ids.length <= 5
-              ? ids
-              : `${ids.slice(0, 5).join(', ')}... (${ids.length} total)`,
+            normalizedIds.length <= 5
+              ? normalizedIds
+              : `${normalizedIds.slice(0, 5).join(', ')}... (${normalizedIds.length} total)`,
           clusterSafe: true,
         },
       });
@@ -456,7 +486,7 @@ export class WorkspaceReaderRepository implements IWorkspaceReader {
       const found: WorkspaceReference[] = [];
 
       // Fetch each workspace by its id from Redis
-      for (const id of ids) {
+      for (const id of normalizedIds) {
         const redisKey = this.generateWorkspaceKey(actor.tenantId!, id);
         const hashData = await this.redis.hgetall(redisKey);
 
@@ -469,7 +499,7 @@ export class WorkspaceReaderRepository implements IWorkspaceReader {
       }
 
       // Calculate missing ids for FK validation
-      const requestedSet = new Set(ids);
+      const requestedSet = new Set(normalizedIds);
       const foundIds = new Set(found.map((f) => f.id));
       const missing = [...requestedSet].filter((c) => !foundIds.has(c));
 

@@ -26,10 +26,10 @@ export class DetailTemplateResponse {
   description?: string;
 
   @ApiTemplateContentBlocks()
-  contentBlocks: Record<string, unknown>;
+  contentBlocks: string[];
 
   @ApiTemplateVariables({ required: false })
-  variables?: Record<string, unknown>;
+  variables?: string[];
 
   @ApiTemplateSamplePayload({ required: false })
   samplePayload?: Record<string, unknown>;

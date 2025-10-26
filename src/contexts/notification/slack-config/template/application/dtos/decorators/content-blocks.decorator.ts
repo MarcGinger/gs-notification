@@ -3,7 +3,7 @@
 
 import { applyDecorators } from '@nestjs/common';
 import { ApiProperty } from '@nestjs/swagger';
-import { IsOptional, IsNotEmpty, IsObject } from 'class-validator';
+import { IsOptional, IsNotEmpty, IsString } from 'class-validator';
 
 /**
  * Options for property decorators
@@ -23,12 +23,11 @@ export function ApiTemplateContentBlocks(options: PropOptions = {}) {
   return applyDecorators(
     ApiProperty({
       description: `Slack Block Kit JSON structure defining the visual layout and interactive elements of the message. Supports rich formatting, buttons, and dynamic content replacement.`,
-      example:
-        '[{"type":"section","text":{"type":"mrkdwn","text":"*Payment Failed* \n Transaction {{transactionId}} failed"}}]',
-      type: 'object',
-      additionalProperties: true,
+      example: `['[{"type":"section"','"text":{"type":"mrkdwn"','"text":"*Payment Failed* \n Transaction {{transactionId}} failed"}}]']`,
+      type: String,
+      required,
     }),
-    IsObject(),
+    IsString(),
     required ? IsNotEmpty() : IsOptional(),
   );
 }

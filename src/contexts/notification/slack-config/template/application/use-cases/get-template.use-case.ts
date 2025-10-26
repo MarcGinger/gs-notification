@@ -259,7 +259,7 @@ export class GetTemplateUseCase implements IGetTemplateUseCase {
         code: params.code,
         workspaceId: '', // Default values for required fields
         name: '', // Default values for required fields
-        contentBlocks: 0, // Default values for required fields
+        contentBlocks: '', // Default values for required fields
         enabled: false, // Default values for required fields
         templateCode: params.code,
         correlationId,

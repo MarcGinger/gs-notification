@@ -3,7 +3,7 @@
 
 import { applyDecorators } from '@nestjs/common';
 import { ApiProperty } from '@nestjs/swagger';
-import { IsOptional, IsNotEmpty, IsObject, ValidateIf } from 'class-validator';
+import { IsOptional, IsNotEmpty, IsString } from 'class-validator';
 
 /**
  * Options for property decorators
@@ -23,12 +23,11 @@ export function ApiTemplateVariables(options: PropOptions = {}) {
   return applyDecorators(
     ApiProperty({
       description: `Array of variable names that can be dynamically replaced in the template content. Each variable corresponds to a placeholder in content_blocks using {{variableName}} syntax.`,
-      example: '["transactionId", "amount", "customerEmail", "errorCode"]',
-      type: 'object',
-      additionalProperties: true,
+      example: `['["transactionId"','"amount"','"customerEmail"','"errorCode"]']`,
+      type: String,
+      required,
     }),
-    IsObject(),
-    ValidateIf((o, v) => v !== null),
+    IsString(),
     required ? IsNotEmpty() : IsOptional(),
   );
 }

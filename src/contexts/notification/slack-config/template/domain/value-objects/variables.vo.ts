@@ -2,33 +2,74 @@
 // REMOVE THIS COMMENT TO STOP AUTOMATIC UPDATES TO THIS BLOCK
 
 import {
-  RecordVOInstance,
-  createRecordVO,
-  createRecordVOErrors,
+  CollectionVOInstance,
+  StringVOInstance,
+  createCollectionVO,
+  createCollectionVOErrors,
+  createStringVO,
+  createStringVOErrors,
 } from 'src/shared/domain/value-objects';
 import { TemplateErrors } from '../errors/template.errors';
 
 /**
- * Variables Record Value Object
- * Validates a plain object (Record<string, unknown>); deepFreeze.
+ * VariablesItem Value Object
+ * Represents a validated variablesItem with business rules
  */
-export const TemplateVariables = createRecordVO({
-  name: 'Variables',
-  // JSON key validation - must start with letter/underscore, contain only alphanumeric, underscore
-  keyPattern: /^[a-zA-Z_][a-zA-Z0-9_]*$/,
+export const TemplateVariablesItem = createStringVO({
+  name: 'VariablesItem',
+  trim: true,
+  caseTransform: 'none',
+  allowEmpty: true,
 
   // Optional: declarative refinements for advanced validation
   // refinements: [
   // ],
 
-  errors: createRecordVOErrors(TemplateErrors.INVALID_VARIABLES, 'Variables'),
+  errors: createStringVOErrors(
+    TemplateErrors.INVALID_VARIABLES,
+    'VariablesItem',
+  ),
 });
 
-/** Public instance type for Variables */
-export type TemplateVariables = RecordVOInstance;
+/**
+ * Public instance type for VariablesItem
+ */
+export type TemplateVariablesItemType = StringVOInstance;
 
 // Convenience creators
-export const createTemplateVariables = (v: Record<string, unknown>) =>
-  TemplateVariables.create(v);
+export const createTemplateVariablesItem = (s: string) =>
+  TemplateVariablesItem.create(s);
+export const variablesItemFrom = (v: unknown) => TemplateVariablesItem.from(v);
 
-export const templateVariablesFrom = (v: unknown) => TemplateVariables.from(v);
+/**
+ * Collection Value Object for Template Variables
+ * Encapsulates array of variables with collection-level business rules
+ *
+ * Migrated to generic createCollectionVO for enhanced type safety and consistency.
+ */
+export const TemplateVariables = createCollectionVO<
+  string,
+  TemplateVariablesItemType
+>({
+  name: 'Variables',
+  itemName: TemplateVariablesItem.name,
+  itemFactory: TemplateVariablesItem,
+  allowEmpty: true,
+  allowDuplicates: false,
+
+  errors: createCollectionVOErrors(
+    TemplateErrors.INVALID_VARIABLES_DATA,
+    'Template Variables',
+  ),
+  businessMethods: [],
+});
+
+/** Public type for TemplateVariables */
+export type TemplateVariables = CollectionVOInstance<
+  string,
+  TemplateVariablesItemType
+>;
+
+// Convenience creators
+export const createTemplateVariables = (codes: string[]) =>
+  TemplateVariables.create(codes);

@@ -43,14 +43,6 @@ export class TemplateFieldValidatorUtil {
       (x): x is string => typeof x === 'string',
     );
 
-    const contentBlocks = safeParseJSON<Record<string, unknown>>(
-      aggregateData.contentBlocks,
-      'contentBlocks',
-    );
-    const variables = safeParseJSON<Record<string, unknown>>(
-      aggregateData.variables,
-      'variables',
-    );
     const samplePayload = safeParseJSON<Record<string, unknown>>(
       aggregateData.samplePayload,
       'samplePayload',
@@ -59,6 +51,8 @@ export class TemplateFieldValidatorUtil {
     const code = aggregateData.code as string;
     const name = aggregateData.name as string;
     const description = aggregateData.description as string;
+    const contentBlocks = aggregateData.contentBlocks as string[];
+    const variables = aggregateData.variables as string[];
     const enabled =
       aggregateData.enabled === 'true' || aggregateData.enabled === true;
 

@@ -32,8 +32,8 @@ export class TemplateDtoAssembler {
     dto.workspaceId = domainState.workspaceId.toArray();
     dto.name = domainState.name.value;
     dto.description = domainState.description?.value;
-    dto.contentBlocks = domainState.contentBlocks.value;
-    dto.variables = domainState.variables?.value;
+    dto.contentBlocks = domainState.contentBlocks.toArray();
+    dto.variables = domainState.variables?.toArray();
     dto.samplePayload = domainState.samplePayload?.value;
     dto.enabled = domainState.enabled.value;
 

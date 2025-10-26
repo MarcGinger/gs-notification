@@ -139,8 +139,8 @@ export class TemplateAggregate extends AggregateRootBase {
       workspaceId: entityProps.workspaceId.toArray(),
       name: entityProps.name.value,
       description: entityProps.description?.value,
-      contentBlocks: entityProps.contentBlocks.value,
-      variables: entityProps.variables?.value,
+      contentBlocks: entityProps.contentBlocks.toArray(),
+      variables: entityProps.variables?.toArray(),
       samplePayload: entityProps.samplePayload?.value,
       enabled: entityProps.enabled.value,
     });
@@ -193,8 +193,8 @@ export class TemplateAggregate extends AggregateRootBase {
           workspaceId: string[];
           name: string;
           description?: string;
-          contentBlocks: Record<string, unknown>;
-          variables?: Record<string, unknown>;
+          contentBlocks: string[];
+          variables?: string[];
           samplePayload?: Record<string, unknown>;
           enabled: boolean;
         };
@@ -516,8 +516,8 @@ export class TemplateAggregate extends AggregateRootBase {
       workspaceId: this._entity.workspaceId.toArray(),
       name: this._entity.name.value,
       description: this._entity.description?.value,
-      contentBlocks: this._entity.contentBlocks.value,
-      variables: this._entity.variables?.value,
+      contentBlocks: this._entity.contentBlocks.toArray(),
+      variables: this._entity.variables?.toArray(),
       samplePayload: this._entity.samplePayload?.value,
       enabled: this._entity.enabled.value,
     });

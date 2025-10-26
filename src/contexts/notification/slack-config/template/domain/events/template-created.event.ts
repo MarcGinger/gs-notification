@@ -10,8 +10,8 @@ export interface TemplateCreatedEventPayload {
   workspaceId: string[];
   name: string;
   description?: string;
-  contentBlocks: Record<string, unknown>;
-  variables?: Record<string, unknown>;
+  contentBlocks: string[];
+  variables?: string[];
   samplePayload?: Record<string, unknown>;
   enabled: boolean;
 }
@@ -50,11 +50,11 @@ export class TemplateCreatedEvent {
     return this.payload.description;
   }
 
-  get contentBlocks(): Record<string, unknown> {
+  get contentBlocks(): string[] {
     return this.payload.contentBlocks;
   }
 
-  get variables(): Record<string, unknown> | undefined {
+  get variables(): string[] | undefined {
     return this.payload.variables;
   }
 

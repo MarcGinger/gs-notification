@@ -6,8 +6,8 @@ export interface UpsertTemplateProps {
   workspaceId?: string[];
   name?: string;
   description?: string;
-  contentBlocks?: Record<string, unknown>;
-  variables?: Record<string, unknown>;
+  contentBlocks?: string[];
+  variables?: string[];
   samplePayload?: Record<string, unknown>;
   enabled?: boolean;
 }

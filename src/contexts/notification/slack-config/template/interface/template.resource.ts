@@ -44,12 +44,16 @@ export const TemplateResource = (permission: TemplatePermission) =>
       const workspaceId = body?.workspaceId || query?.workspaceId;
       const name = body?.name || query?.name;
       const description = body?.description || query?.description;
+      const contentBlocks = body?.contentBlocks || query?.contentBlocks;
+      const variables = body?.variables || query?.variables;
       const enabled = body?.enabled || query?.enabled;
 
       const baseAttributes = {
         workspaceId,
         name,
         description,
+        contentBlocks,
+        variables,
         enabled,
       };
 

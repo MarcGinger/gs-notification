@@ -105,15 +105,20 @@ export class TemplateReaderRepository implements ITemplateReader {
         (x): x is string => typeof x === 'string',
       );
 
-      // Parse object fields using safeParseJSON utility (following product-query.repository.ts pattern)
-      const contentBlocks = safeParseJSON<Record<string, unknown>>(
+      // Parse array fields using safeParseJSONArray utility (following product-query.repository.ts pattern)
+      const contentBlocks = safeParseJSONArray(
         hashData.contentBlocks,
         'contentBlocks',
+        (x): x is string => typeof x === 'string',
       );
-      const variables = safeParseJSON<Record<string, unknown>>(
+
+      const variables = safeParseJSONArray(
         hashData.variables,
         'variables',
+        (x): x is string => typeof x === 'string',
       );
+
+      // Parse object fields using safeParseJSON utility (following product-query.repository.ts pattern)
       const samplePayload = safeParseJSON<Record<string, unknown>>(
         hashData.samplePayload,
         'samplePayload',
@@ -127,7 +132,7 @@ export class TemplateReaderRepository implements ITemplateReader {
         name: hashData.name,
         description: hashData.description || undefined,
         contentBlocks,
-        variables,
+        variables: variables || undefined,
         samplePayload,
         enabled: hashData.enabled === 'true',
         version: parseInt(hashData.version, 10),

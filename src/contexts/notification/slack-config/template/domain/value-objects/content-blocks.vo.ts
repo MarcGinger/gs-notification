@@ -2,39 +2,76 @@
 // REMOVE THIS COMMENT TO STOP AUTOMATIC UPDATES TO THIS BLOCK
 
 import {
-  RecordVOInstance,
-  createRecordVO,
-  createRecordVOErrors,
+  CollectionVOInstance,
+  StringVOInstance,
+  createCollectionVO,
+  createCollectionVOErrors,
+  createStringVO,
+  createStringVOErrors,
 } from 'src/shared/domain/value-objects';
 import { TemplateErrors } from '../errors/template.errors';
 
 /**
- * ContentBlocks Record Value Object
- * Validates a plain object (Record<string, unknown>); deepFreeze.
+ * ContentBlocksItem Value Object
+ * Represents a validated contentBlocksItem with business rules
  */
-export const TemplateContentBlocks = createRecordVO({
-  name: 'ContentBlocks',
-  // JSON key validation - must start with letter/underscore, contain only alphanumeric, underscore
-  keyPattern: /^[a-zA-Z_][a-zA-Z0-9_]*$/,
-  required: true,
+export const TemplateContentBlocksItem = createStringVO({
+  name: 'ContentBlocksItem',
+  trim: true,
+  caseTransform: 'none',
   allowEmpty: false,
 
   // Optional: declarative refinements for advanced validation
   // refinements: [
   // ],
 
-  errors: createRecordVOErrors(
+  errors: createStringVOErrors(
     TemplateErrors.INVALID_CONTENT_BLOCKS,
-    'ContentBlocks',
+    'ContentBlocksItem',
   ),
 });
 
-/** Public instance type for ContentBlocks */
-export type TemplateContentBlocks = RecordVOInstance;
+/**
+ * Public instance type for ContentBlocksItem
+ */
+export type TemplateContentBlocksItemType = StringVOInstance;
 
 // Convenience creators
-export const createTemplateContentBlocks = (v: Record<string, unknown>) =>
-  TemplateContentBlocks.create(v);
+export const createTemplateContentBlocksItem = (s: string) =>
+  TemplateContentBlocksItem.create(s);
+export const contentBlocksItemFrom = (v: unknown) =>
+  TemplateContentBlocksItem.from(v);
 
-export const templateContentBlocksFrom = (v: unknown) =>
-  TemplateContentBlocks.from(v);
+/**
+ * Collection Value Object for Template ContentBlocks
+ * Encapsulates array of contentBlocks with collection-level business rules
+ *
+ * Migrated to generic createCollectionVO for enhanced type safety and consistency.
+ */
+export const TemplateContentBlocks = createCollectionVO<
+  string,
+  TemplateContentBlocksItemType
+>({
+  name: 'ContentBlocks',
+  itemName: TemplateContentBlocksItem.name,
+  itemFactory: TemplateContentBlocksItem,
+  allowEmpty: false,
+  allowDuplicates: false,
+
+  minCount: 1,
+  errors: createCollectionVOErrors(
+    TemplateErrors.INVALID_CONTENT_BLOCKS_DATA,
+    'Template ContentBlocks',
+  ),
+  businessMethods: [],
+});
+
+/** Public type for TemplateContentBlocks */
+export type TemplateContentBlocks = CollectionVOInstance<
+  string,
+  TemplateContentBlocksItemType
+>;
+
+// Convenience creators
+export const createTemplateContentBlocks = (codes: string[]) =>
+  TemplateContentBlocks.create(codes);

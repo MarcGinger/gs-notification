@@ -6,8 +6,8 @@ export interface TemplateContext extends Record<string, unknown> {
   code: string;
   name: string;
   description?: string;
-  contentBlocks: Record<string, unknown>;
-  variables?: Record<string, unknown>;
+  contentBlocks: string;
+  variables?: string;
   samplePayload?: Record<string, unknown>;
   enabled: boolean;
   userId?: string;
@@ -48,6 +48,20 @@ export const TemplateErrors = {
     category: 'validation',
     retryable: false,
   } as DomainError<'TEMPLATE.CREATED_AT_REQUIRED', TemplateContext>,
+  DUPLICATE_CONTENT_BLOCKS: {
+    code: 'TEMPLATE.DUPLICATE_CONTENT_BLOCKS',
+    title: 'Duplicate Values',
+    detail: 'Content contains duplicate values for Template.',
+    category: 'validation',
+    retryable: false,
+  } as DomainError<'TEMPLATE.DUPLICATE_CONTENT_BLOCKS', TemplateContext>,
+  DUPLICATE_VARIABLES: {
+    code: 'TEMPLATE.DUPLICATE_VARIABLES',
+    title: 'Duplicate Values',
+    detail: 'Variables contains duplicate values for Template.',
+    category: 'validation',
+    retryable: false,
+  } as DomainError<'TEMPLATE.DUPLICATE_VARIABLES', TemplateContext>,
   DUPLICATE_WORKSPACE_ID: {
     code: 'TEMPLATE.DUPLICATE_WORKSPACE_ID',
     title: 'Duplicate Values',
@@ -265,6 +279,20 @@ export const TemplateErrors = {
     'TEMPLATE.TEMPLATE_UPDATE_RECONSTITUTE_FAILED',
     TemplateContext
   >,
+  TOO_FEW_CONTENT_BLOCKS: {
+    code: 'TEMPLATE.TOO_FEW_CONTENT_BLOCKS',
+    title: 'Too Few Items',
+    detail: 'Content has fewer items than required for Template.',
+    category: 'validation',
+    retryable: false,
+  } as DomainError<'TEMPLATE.TOO_FEW_CONTENT_BLOCKS', TemplateContext>,
+  TOO_FEW_VARIABLES: {
+    code: 'TEMPLATE.TOO_FEW_VARIABLES',
+    title: 'Too Few Items',
+    detail: 'Variables has fewer items than required for Template.',
+    category: 'validation',
+    retryable: false,
+  } as DomainError<'TEMPLATE.TOO_FEW_VARIABLES', TemplateContext>,
   TOO_FEW_WORKSPACE_ID: {
     code: 'TEMPLATE.TOO_FEW_WORKSPACE_ID',
     title: 'Too Few Items',
@@ -272,6 +300,20 @@ export const TemplateErrors = {
     category: 'validation',
     retryable: false,
   } as DomainError<'TEMPLATE.TOO_FEW_WORKSPACE_ID', TemplateContext>,
+  TOO_MANY_CONTENT_BLOCKS: {
+    code: 'TEMPLATE.TOO_MANY_CONTENT_BLOCKS',
+    title: 'Too Many Items',
+    detail: 'Content exceeds maximum allowed count for Template.',
+    category: 'validation',
+    retryable: false,
+  } as DomainError<'TEMPLATE.TOO_MANY_CONTENT_BLOCKS', TemplateContext>,
+  TOO_MANY_VARIABLES: {
+    code: 'TEMPLATE.TOO_MANY_VARIABLES',
+    title: 'Too Many Items',
+    detail: 'Variables exceeds maximum allowed count for Template.',
+    category: 'validation',
+    retryable: false,
+  } as DomainError<'TEMPLATE.TOO_MANY_VARIABLES', TemplateContext>,
   TOO_MANY_WORKSPACE_ID: {
     code: 'TEMPLATE.TOO_MANY_WORKSPACE_ID',
     title: 'Too Many Items',

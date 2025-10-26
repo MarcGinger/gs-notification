@@ -867,44 +867,44 @@
         },
         {
           "name": "content_blocks",
-          "type": "Record<string, unknown>",
+          "type": "string",
           "childRelationshipType": "",
           "parentRelationshipType": "",
-          "datatype": "JSON",
+          "datatype": "TEXT",
           "primaryKey": false,
           "required": true,
           "description": "Slack Block Kit JSON structure defining the visual layout and interactive elements of the message. Supports rich formatting, buttons, and dynamic content replacement.",
           "defaultvalue": "",
           "example": "[{\"type\":\"section\",\"text\":{\"type\":\"mrkdwn\",\"text\":\"*Payment Failed* \\n Transaction {{transactionId}} failed\"}}]",
           "autoIncrement": false,
-          "array": false,
+          "array": true,
           "isPII": "",
           "parentRelationship": "",
           "childRelationship": "",
           "meta": {
-            "kind": "json",
-            "jsonShape": "object"
+            "kind": "string",
+            "maxLength": 65535
           }
         },
         {
           "name": "variables",
-          "type": "Record<string, unknown>",
+          "type": "string",
           "childRelationshipType": "",
           "parentRelationshipType": "",
-          "datatype": "JSON",
+          "datatype": "TEXT",
           "primaryKey": false,
           "required": false,
           "description": "Array of variable names that can be dynamically replaced in the template content. Each variable corresponds to a placeholder in content_blocks using {{variableName}} syntax.",
           "defaultvalue": "",
           "example": "[\"transactionId\", \"amount\", \"customerEmail\", \"errorCode\"]",
           "autoIncrement": false,
-          "array": false,
+          "array": true,
           "isPII": "",
           "parentRelationship": "",
           "childRelationship": "",
           "meta": {
-            "kind": "json",
-            "jsonShape": "object"
+            "kind": "string",
+            "maxLength": 65535
           }
         },
         {

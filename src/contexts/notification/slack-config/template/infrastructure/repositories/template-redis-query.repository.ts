@@ -263,14 +263,19 @@ export class TemplateQueryRepository implements ITemplateQuery {
         'workspaceId',
         (x): x is string => typeof x === 'string',
       );
-      const contentBlocks = safeParseJSON<Record<string, unknown>>(
+
+      const contentBlocks = safeParseJSONArray(
         hashData.contentBlocks,
         'contentBlocks',
+        (x): x is string => typeof x === 'string',
       );
-      const variables = safeParseJSON<Record<string, unknown>>(
+
+      const variables = safeParseJSONArray(
         hashData.variables,
         'variables',
+        (x): x is string => typeof x === 'string',
       );
+
       const samplePayload = safeParseJSON<Record<string, unknown>>(
         hashData.samplePayload,
         'samplePayload',
@@ -282,7 +287,7 @@ export class TemplateQueryRepository implements ITemplateQuery {
         name: hashData.name,
         description: hashData.description || undefined,
         contentBlocks,
-        variables,
+        variables: variables || undefined,
         samplePayload,
         enabled: hashData.enabled === 'true',
         version: parseInt(hashData.version, 10),
