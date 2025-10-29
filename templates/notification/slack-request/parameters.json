@@ -1,0 +1,156 @@
+{
+  "service": {
+    "name": "notification-slack-request",
+    "version": "1"
+  },
+  "tables": {
+    "message_request": {
+      "docs": {
+        "name": "Message_request",
+        "summary": "Configuration for message_request table",
+        "version": "1.0.0"
+      },
+      "apis": {},
+      "store": {
+        "read": "sql,eventstream,redis",
+        "write": "sql,eventstream,redis",
+        "query": "sql,eventstream,redis"
+      },
+      "redis": {
+        "prefix": "",
+        "version": "1.0",
+        "category": "notification:slack-request.message.request.v1",
+        "ttl": 3600,
+        "hash": true,
+        "aggregate": "message_request"
+      },
+      "eventstream": {
+        "boundedContext": "notification",
+        "aggregate": "message_request",
+        "version": "v1",
+        "stream": "notification.slackRequest.messageRequest",
+        "createdEvent": "NotificationSlackRequestMessageRequestCreated.v1",
+        "updatedEvent": "NotificationSlackRequestMessageRequestUpdated.v1",
+        "deletedEvent": "NotificationSlackRequestMessageRequestDeleted.v1"
+      },
+      "cols": {
+        "id": {},
+        "workspace_id": {},
+        "template_code": {},
+        "recipient": {},
+        "data": {},
+        "status": {}
+      },
+      "permissions": {
+        "bulk": [
+          "update",
+          "delete",
+          "import"
+        ],
+        "adminOverride": true,
+        "auditView": true,
+        "custom": []
+      }
+    },
+    "workspace": {
+      "docs": {
+        "name": "Workspace",
+        "summary": "Configuration for workspace table",
+        "version": "1.0.0"
+      },
+      "apis": {},
+      "store": {
+        "read": "sql,eventstream,redis",
+        "write": "sql,eventstream,redis",
+        "query": "sql,eventstream,redis"
+      },
+      "redis": {
+        "prefix": "",
+        "version": "1.0",
+        "category": "notification:slack-request.workspace.v1",
+        "ttl": 3600,
+        "hash": true,
+        "aggregate": "workspace"
+      },
+      "eventstream": {
+        "boundedContext": "notification",
+        "aggregate": "workspace",
+        "version": "v1",
+        "stream": "notification.slackRequest.workspace",
+        "createdEvent": "NotificationSlackRequestWorkspaceCreated.v1",
+        "updatedEvent": "NotificationSlackRequestWorkspaceUpdated.v1",
+        "deletedEvent": "NotificationSlackRequestWorkspaceDeleted.v1"
+      },
+      "cols": {
+        "id": {},
+        "name": {},
+        "app_id": {},
+        "default_channel_id": {},
+        "enabled": {}
+      },
+      "permissions": {
+        "bulk": [
+          "update",
+          "delete",
+          "import"
+        ],
+        "adminOverride": true,
+        "auditView": true,
+        "custom": []
+      }
+    },
+    "template": {
+      "docs": {
+        "name": "Template",
+        "summary": "Configuration for template table",
+        "version": "1.0.0"
+      },
+      "apis": {},
+      "store": {
+        "read": "sql,eventstream,redis",
+        "write": "sql,eventstream,redis",
+        "query": "sql,eventstream,redis"
+      },
+      "redis": {
+        "prefix": "",
+        "version": "1.0",
+        "category": "notification:slack-request.template.v1",
+        "ttl": 3600,
+        "hash": true,
+        "aggregate": "template"
+      },
+      "eventstream": {
+        "boundedContext": "notification",
+        "aggregate": "template",
+        "version": "v1",
+        "stream": "notification.slackRequest.template",
+        "createdEvent": "NotificationSlackRequestTemplateCreated.v1",
+        "updatedEvent": "NotificationSlackRequestTemplateUpdated.v1",
+        "deletedEvent": "NotificationSlackRequestTemplateDeleted.v1"
+      },
+      "cols": {
+        "code": {},
+        "workspace_id": {},
+        "name": {},
+        "description": {},
+        "content_blocks": {},
+        "variables": {},
+        "sample_payload": {},
+        "enabled": {}
+      },
+      "permissions": {
+        "bulk": [
+          "update",
+          "delete",
+          "import"
+        ],
+        "adminOverride": true,
+        "auditView": true,
+        "custom": []
+      }
+    }
+  },
+  "docs": {
+    "summary": ""
+  }
+}

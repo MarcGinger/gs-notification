@@ -598,7 +598,7 @@
           "required": false,
           "description": "Array of event types this channel subscribes to receive notifications for. Supports filtering and routing specific events to appropriate channels based on business rules.",
           "defaultvalue": "",
-          "example": "[\"user.created\", \"payment.failed\", \"system.error\"]",
+          "example": "\"user.created\", \"payment.failed\", \"system.error\"",
           "autoIncrement": false,
           "array": true,
           "isPII": "",
@@ -788,14 +788,14 @@
           "defaultvalue": "",
           "example": "payment_failure_alert",
           "autoIncrement": false,
-          "maxLength": "128",
+          "maxLength": "64",
           "array": false,
           "isPII": "",
           "parentRelationship": "",
           "childRelationship": "",
           "meta": {
             "kind": "string",
-            "maxLength": 128
+            "maxLength": 64
           }
         },
         {
@@ -874,7 +874,7 @@
           "required": true,
           "description": "Slack Block Kit JSON structure defining the visual layout and interactive elements of the message. Supports rich formatting, buttons, and dynamic content replacement.",
           "defaultvalue": "",
-          "example": "[{\"type\":\"section\",\"text\":{\"type\":\"mrkdwn\",\"text\":\"*Payment Failed* \\n Transaction {{transactionId}} failed\"}}]",
+          "example": "{\"type\":\"section\",\"text\":{\"type\":\"mrkdwn\",\"text\":\"*Payment Failed* \\n Transaction {{transactionId}} failed\"}}",
           "autoIncrement": false,
           "array": true,
           "isPII": "",
@@ -895,7 +895,7 @@
           "required": false,
           "description": "Array of variable names that can be dynamically replaced in the template content. Each variable corresponds to a placeholder in content_blocks using {{variableName}} syntax.",
           "defaultvalue": "",
-          "example": "[\"transactionId\", \"amount\", \"customerEmail\", \"errorCode\"]",
+          "example": "\"transactionId\", \"amount\", \"customerEmail\", \"errorCode\"",
           "autoIncrement": false,
           "array": true,
           "isPII": "",
@@ -1016,14 +1016,14 @@
           "defaultvalue": "",
           "example": "payment_failure_alert",
           "autoIncrement": false,
-          "maxLength": "128",
+          "maxLength": "64",
           "array": false,
           "isPII": "",
           "parentRelationship": "",
           "childRelationship": "",
           "meta": {
             "kind": "string",
-            "maxLength": 128
+            "maxLength": 64
           }
         }
       ],

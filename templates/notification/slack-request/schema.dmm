@@ -11,7 +11,7 @@
 					"id": "da5d4788-4185-4bb4-9b78-dee1102fd58b",
 					"name": "id",
 					"datatype": "UUID",
-					"param": "35",
+					"param": "36",
 					"pk": true,
 					"nn": true,
 					"fk": false,
@@ -29,16 +29,16 @@
 					"estimatedSize": ""
 				},
 				{
-					"id": "f1a2b3c4-d5e6-7f8g-9h0i-1j2k3l4m5n6o",
-					"name": "workspaceId",
+					"id": "7761f899-83b3-47b0-a46c-538c1b15bbbf",
+					"name": "workspace_id",
 					"datatype": "VARCHAR",
 					"param": "64",
 					"pk": false,
 					"nn": true,
-					"fk": false,
-					"comment": "Slack workspace to post to.",
+					"fk": true,
+					"comment": "Unique identifier for the Slack workspace/team, provided by Slack API during OAuth installation. This is the primary key linking all workspace-specific configurations.",
 					"defaultvalue": "",
-					"data": "",
+					"data": "T01EXAMPLE123",
 					"after": "",
 					"autoinc": false,
 					"collation": "",
@@ -50,16 +50,16 @@
 					"estimatedSize": ""
 				},
 				{
-					"id": "g2h3i4j5-k6l7-8m9n-0o1p-2q3r4s5t6u7v",
-					"name": "templateCode",
+					"id": "36514d41-f79e-4d65-bc8a-e0a304ec3ddc",
+					"name": "template_code",
 					"datatype": "VARCHAR",
 					"param": "64",
 					"pk": false,
-					"nn": false,
-					"fk": false,
-					"comment": "Template to render.",
+					"nn": true,
+					"fk": true,
+					"comment": "Unique template identifier used for programmatic template selection. Must follow snake_case naming convention for consistency with application code.",
 					"defaultvalue": "",
-					"data": "",
+					"data": "payment_failure_alert",
 					"after": "",
 					"autoinc": false,
 					"collation": "",
@@ -134,7 +134,10 @@
 					"estimatedSize": ""
 				}
 			],
-			"relations": [],
+			"relations": [
+				"ee964ec4-df50-4b3c-9142-79d2a2c1d7fd",
+				"d2f53d6f-81af-4d53-98e3-e008e6ee171d"
+			],
 			"lines": [],
 			"keys": [
 				{
@@ -153,7 +156,395 @@
 			"embeddable": false,
 			"generate": true,
 			"generateCustomCode": true,
-			"customCode": "write('kurrentdb')\nread('redis')\nquery('redis')\nprojector('redis')\nsoftDelete(false)",
+			"customCode": "write('kurrentdb')\nread('redis')\nquery('redis')\nprojector('redis')\nsoftDelete(false)\nupdate(false)\ncreate(true)",
+			"tabletype": "InnoDB",
+			"collation": "utf8mb4_general_ci",
+			"charset": "utf8mb4",
+			"rowformat": "",
+			"database": "service",
+			"initautoinc": "",
+			"temporary": false,
+			"ifnotexists": false
+		},
+		"909c06b8-57eb-4e62-9fac-41d483ac57a7": {
+			"id": "909c06b8-57eb-4e62-9fac-41d483ac57a7",
+			"visible": true,
+			"name": "workspace",
+			"desc": "## 🧠 SlackWorkspace\n\n### **Purpose**\n\nThe `SlackWorkspace` aggregate represents the tenant’s connection to their Slack workspace. It acts as the foundational configuration point that defines the link between the system and the tenant’s Slack organization.\n\nThis aggregate holds sensitive integration credentials — including OAuth tokens, signing secrets, and app identifiers — and ensures they are securely managed and rotated when necessary. It also tracks which workspace belongs to which tenant and whether the connection is currently active.\n\n### **Responsibilities**\n\n* Maintain the tenant-to-Slack workspace mapping.\n* Securely store and reference OAuth credentials (e.g., `botToken`, `signingSecret`).\n* Enable or disable the Slack integration per tenant.\n* Manage the default posting channel for system notifications.\n* Emit events that notify other services when configuration changes occur.\n\n### **Why It Matters**\n\nWithout the `SlackWorkspace` aggregate, the platform wouldn’t know **where** to send Slack messages or which tokens to use for authentication. It ensures tenant isolation and provides a secure boundary for Slack API interactions.\n",
+			"estimatedSize": "",
+			"cols": [
+				{
+					"id": "b22b39d4-9fa3-4020-bf5b-7d963fff312f",
+					"name": "id",
+					"datatype": "VARCHAR",
+					"param": "64",
+					"pk": true,
+					"nn": true,
+					"fk": false,
+					"comment": "Unique identifier for the Slack workspace/team, provided by Slack API during OAuth installation. This is the primary key linking all workspace-specific configurations.",
+					"defaultvalue": "",
+					"data": "T01EXAMPLE123",
+					"after": "",
+					"autoinc": false,
+					"collation": "",
+					"charset": "",
+					"binary": false,
+					"zerofill": false,
+					"unsigned": false,
+					"enum": "",
+					"estimatedSize": ""
+				},
+				{
+					"id": "b9a41ad4-6147-45ef-aa2f-c6a1cd65955c",
+					"name": "name",
+					"datatype": "VARCHAR",
+					"param": "255",
+					"pk": false,
+					"nn": true,
+					"fk": false,
+					"comment": "Human-readable display name of the Slack workspace as configured by workspace administrators. Used for identification and logging purposes.",
+					"defaultvalue": "",
+					"data": "Acme Corp Engineering",
+					"after": "",
+					"autoinc": false,
+					"collation": "",
+					"charset": "",
+					"binary": false,
+					"zerofill": false,
+					"unsigned": false,
+					"enum": "",
+					"estimatedSize": ""
+				},
+				{
+					"id": "bb539b1a-c6ee-4ca0-9032-dd2bbd515eac",
+					"name": "app_id",
+					"datatype": "VARCHAR",
+					"param": "64",
+					"pk": false,
+					"nn": false,
+					"fk": false,
+					"comment": "Unique identifier for the Slack application as registered in the Slack App Directory. Used for app-specific API calls and identifying the source of bot interactions.",
+					"defaultvalue": "",
+					"data": "A01EXAMPLE456",
+					"after": "",
+					"autoinc": false,
+					"collation": "",
+					"charset": "",
+					"binary": false,
+					"zerofill": false,
+					"unsigned": false,
+					"enum": "",
+					"estimatedSize": ""
+				},
+				{
+					"id": "adbef564-9a4e-466d-b676-cc1b9b2aa046",
+					"name": "default_channel_id",
+					"datatype": "VARCHAR",
+					"param": "64",
+					"pk": false,
+					"nn": false,
+					"fk": false,
+					"comment": "Fallback channel ID for notifications when no specific channel is configured or available. Must be a channel where the bot has posting permissions.",
+					"defaultvalue": "",
+					"data": "C01EXAMPLE000",
+					"after": "",
+					"autoinc": false,
+					"collation": "",
+					"charset": "",
+					"binary": false,
+					"zerofill": false,
+					"unsigned": false,
+					"enum": "",
+					"estimatedSize": ""
+				},
+				{
+					"id": "c96df9b3-d332-44d8-a73c-6b6653edfd7b",
+					"name": "enabled",
+					"datatype": "BOOLEAN",
+					"param": "",
+					"pk": false,
+					"nn": true,
+					"fk": false,
+					"comment": "Global toggle for Slack integration functionality. When false, all notifications to this workspace are disabled, useful for maintenance or temporary suspension.",
+					"defaultvalue": "true",
+					"data": "true",
+					"after": "",
+					"autoinc": false,
+					"collation": "",
+					"charset": "",
+					"binary": false,
+					"zerofill": false,
+					"unsigned": false,
+					"enum": "",
+					"estimatedSize": ""
+				}
+			],
+			"relations": [
+				"d2f53d6f-81af-4d53-98e3-e008e6ee171d"
+			],
+			"lines": [],
+			"keys": [
+				{
+					"id": "8b65fbc5-780a-4691-a381-26862f664c29",
+					"name": "PRIMARY",
+					"isPk": true,
+					"cols": [
+						{
+							"id": "5b3fa144-1711-489f-a28b-e013c69009f1",
+							"colid": "b22b39d4-9fa3-4020-bf5b-7d963fff312f"
+						}
+					]
+				}
+			],
+			"indexes": [
+				{
+					"id": "b18dd311-ec76-487c-8085-198ee46d4e3b",
+					"name": "workspace_ix_id",
+					"unique": false,
+					"fulltext": false,
+					"using": "na",
+					"algorithm": "na",
+					"lockoption": "na",
+					"cols": [
+						{
+							"id": "f1369378-e50e-4be9-ae30-42fa9260b30a",
+							"colid": "b22b39d4-9fa3-4020-bf5b-7d963fff312f",
+							"mariadb": {
+								"desc": false
+							}
+						}
+					]
+				},
+				{
+					"id": "f357686f-f646-44b3-9a39-ec1b2927e5fd",
+					"name": "workspace_ix_name",
+					"unique": false,
+					"fulltext": false,
+					"using": "na",
+					"algorithm": "na",
+					"lockoption": "na",
+					"cols": [
+						{
+							"id": "ceff4892-450b-4dca-9ba4-7a064a22fc1e",
+							"colid": "b9a41ad4-6147-45ef-aa2f-c6a1cd65955c",
+							"mariadb": {
+								"desc": false
+							}
+						}
+					]
+				}
+			],
+			"embeddable": false,
+			"generate": true,
+			"generateCustomCode": true,
+			"customCode": "command(false)\nread('redis')\nquery('redis')\nprojector('redis')",
+			"tabletype": "InnoDB",
+			"collation": "utf8mb4_general_ci",
+			"charset": "utf8mb4",
+			"rowformat": "",
+			"database": "service",
+			"initautoinc": "",
+			"temporary": false,
+			"ifnotexists": false
+		},
+		"51c1e2eb-0c35-4362-a524-e40e3a838e50": {
+			"id": "51c1e2eb-0c35-4362-a524-e40e3a838e50",
+			"visible": true,
+			"name": "template",
+			"desc": "## 🧩 SlackTemplate\n\n### **Purpose**\n\nThe `SlackTemplate` aggregate defines reusable message templates that standardize the look and feel of Slack notifications. Templates are typically built using **Slack Block Kit** — Slack’s rich formatting system for interactive and visually appealing messages.\n\nThese templates can include placeholders (variables) for dynamic data, making them ideal for structured messages like approvals, alerts, and workflow completions.\n\n### **Responsibilities**\n\n* Define message layouts and content using Block Kit JSON.\n* Manage template metadata (e.g., name, description, version, and tenant).\n* Store variable definitions and validation rules.\n* Enable/disable templates per tenant for staged rollouts.\n* Emit events when templates are created, updated, or retired.\n\n### **Why It Matters**\n\n`SlackTemplate` enables **message consistency** and branding. Instead of ad-hoc message construction, all Slack notifications use predefined, validated templates — ensuring compliance, clarity, and maintainability.\n\n",
+			"estimatedSize": "",
+			"cols": [
+				{
+					"id": "74d9ca14-f261-4b45-a392-d6ab8081eb75",
+					"name": "code",
+					"datatype": "VARCHAR",
+					"param": "64",
+					"pk": true,
+					"nn": true,
+					"fk": false,
+					"comment": "Unique template identifier used for programmatic template selection. Must follow snake_case naming convention for consistency with application code.",
+					"defaultvalue": "",
+					"data": "payment_failure_alert",
+					"after": "",
+					"autoinc": false,
+					"collation": "",
+					"charset": "",
+					"binary": false,
+					"zerofill": false,
+					"unsigned": false,
+					"enum": "",
+					"estimatedSize": ""
+				},
+				{
+					"id": "221cfd58-99fc-4aa7-b7ac-6a65b1257e69",
+					"name": "workspace_id",
+					"datatype": "VARCHAR",
+					"param": "64",
+					"pk": false,
+					"nn": true,
+					"fk": false,
+					"comment": "Foreign key linking template to its workspace. Enables workspace-specific template customization and multi-tenant template isolation.",
+					"defaultvalue": "",
+					"data": "T01EXAMPLE123",
+					"after": "",
+					"autoinc": false,
+					"collation": "",
+					"charset": "",
+					"binary": false,
+					"zerofill": false,
+					"unsigned": false,
+					"enum": "",
+					"estimatedSize": ""
+				},
+				{
+					"id": "6c0aacb8-b78c-40dc-a5f0-10f6e82698dc",
+					"name": "name",
+					"datatype": "VARCHAR",
+					"param": "255",
+					"pk": false,
+					"nn": true,
+					"fk": false,
+					"comment": "User-friendly template name displayed in admin interfaces and template selection menus. Should clearly describe the template's purpose and usage context.",
+					"defaultvalue": "",
+					"data": "Payment Failure Alert",
+					"after": "",
+					"autoinc": false,
+					"collation": "",
+					"charset": "",
+					"binary": false,
+					"zerofill": false,
+					"unsigned": false,
+					"enum": "",
+					"estimatedSize": ""
+				},
+				{
+					"id": "7a0dfa99-06f1-4b29-8f9a-2bb9f241c76d",
+					"name": "description",
+					"datatype": "TEXT",
+					"param": "",
+					"pk": false,
+					"nn": false,
+					"fk": false,
+					"comment": "Detailed description of the template's purpose, when to use it, and any special considerations. Helps administrators choose appropriate templates for specific notification scenarios.",
+					"defaultvalue": "",
+					"data": "Alert template for payment processing failures requiring immediate attention",
+					"after": "",
+					"autoinc": false,
+					"collation": "",
+					"charset": "",
+					"binary": false,
+					"zerofill": false,
+					"unsigned": false,
+					"enum": "",
+					"estimatedSize": ""
+				},
+				{
+					"id": "c79da42f-df5b-4fe6-a096-30e13d6235fd",
+					"name": "content_blocks",
+					"datatype": "TEXT",
+					"param": "",
+					"pk": false,
+					"nn": true,
+					"fk": false,
+					"comment": "Slack Block Kit JSON structure defining the visual layout and interactive elements of the message. Supports rich formatting, buttons, and dynamic content replacement.",
+					"defaultvalue": "",
+					"data": "{\"type\":\"section\",\"text\":{\"type\":\"mrkdwn\",\"text\":\"*Payment Failed* \\n Transaction {{transactionId}} failed\"}}",
+					"after": "array()",
+					"autoinc": false,
+					"collation": "",
+					"charset": "",
+					"binary": false,
+					"zerofill": false,
+					"unsigned": false,
+					"enum": "",
+					"estimatedSize": ""
+				},
+				{
+					"id": "27e9e84a-ea44-433d-aa2f-4825a4ff360f",
+					"name": "variables",
+					"datatype": "TEXT",
+					"param": "",
+					"pk": false,
+					"nn": false,
+					"fk": false,
+					"comment": "Array of variable names that can be dynamically replaced in the template content. Each variable corresponds to a placeholder in content_blocks using {{variableName}} syntax.",
+					"defaultvalue": "",
+					"data": "\"transactionId\", \"amount\", \"customerEmail\", \"errorCode\"",
+					"after": "array()",
+					"autoinc": false,
+					"collation": "",
+					"charset": "",
+					"binary": false,
+					"zerofill": false,
+					"unsigned": false,
+					"enum": "",
+					"estimatedSize": ""
+				},
+				{
+					"id": "7701e2cd-2fa7-400c-a4b4-4d4991b04f79",
+					"name": "sample_payload",
+					"datatype": "JSON",
+					"param": "",
+					"pk": false,
+					"nn": false,
+					"fk": false,
+					"comment": "Example data structure showing realistic values for all template variables. Used for template testing, preview generation, and developer documentation.",
+					"defaultvalue": "",
+					"data": "{\"transactionId\":\"TXN-EXAMPLE123\",\"amount\":\"$99.99\",\"customerEmail\":\"example@domain.com\",\"errorCode\":\"CARD_DECLINED\"}",
+					"after": "",
+					"autoinc": false,
+					"collation": "",
+					"charset": "",
+					"binary": false,
+					"zerofill": false,
+					"unsigned": false,
+					"enum": "",
+					"estimatedSize": ""
+				},
+				{
+					"id": "f82168db-c64b-4de5-b78e-1b2167c8ece7",
+					"name": "enabled",
+					"datatype": "BOOLEAN",
+					"param": "",
+					"pk": false,
+					"nn": true,
+					"fk": false,
+					"comment": "Template availability toggle. Disabled templates cannot be used for new notifications but existing scheduled notifications will continue to use them.",
+					"defaultvalue": "true",
+					"data": "true",
+					"after": "",
+					"autoinc": false,
+					"collation": "",
+					"charset": "",
+					"binary": false,
+					"zerofill": false,
+					"unsigned": false,
+					"enum": "",
+					"estimatedSize": ""
+				}
+			],
+			"relations": [
+				"ee964ec4-df50-4b3c-9142-79d2a2c1d7fd"
+			],
+			"lines": [],
+			"keys": [
+				{
+					"id": "b96241be-c210-4d76-92d6-2f9c124520b1",
+					"name": "PRIMARY",
+					"isPk": true,
+					"cols": [
+						{
+							"id": "85fc7f9c-02cc-4330-bded-690aa559d38f",
+							"colid": "74d9ca14-f261-4b45-a392-d6ab8081eb75"
+						}
+					]
+				}
+			],
+			"indexes": [],
+			"embeddable": false,
+			"generate": true,
+			"generateCustomCode": true,
+			"customCode": "command(false)\nread('redis')\nquery('redis')\nprojector('redis')",
 			"tabletype": "InnoDB",
 			"collation": "utf8mb4_general_ci",
 			"charset": "utf8mb4",
@@ -164,7 +555,62 @@
 			"ifnotexists": false
 		}
 	},
-	"relations": {},
+	"relations": {
+		"ee964ec4-df50-4b3c-9142-79d2a2c1d7fd": {
+			"id": "ee964ec4-df50-4b3c-9142-79d2a2c1d7fd",
+			"name": "code_message_request",
+			"desc": "",
+			"type": "identifying",
+			"parent_key": "b96241be-c210-4d76-92d6-2f9c124520b1",
+			"parent": "51c1e2eb-0c35-4362-a524-e40e3a838e50",
+			"child": "cd5f87d5-b86c-47eb-8bd6-6699ed90dc28",
+			"c_mp": "true",
+			"c_mch": "true",
+			"c_p": "one",
+			"c_ch": "many",
+			"c_cp": "",
+			"c_cch": "",
+			"cols": [
+				{
+					"id": "d2213421-6fb8-4c07-9437-8461c6100351",
+					"parentcol": "74d9ca14-f261-4b45-a392-d6ab8081eb75",
+					"childcol": "36514d41-f79e-4d65-bc8a-e0a304ec3ddc"
+				}
+			],
+			"generate": true,
+			"generateCustomCode": true,
+			"customCode": "",
+			"relationColor": "transparent",
+			"linegraphics": "default"
+		},
+		"d2f53d6f-81af-4d53-98e3-e008e6ee171d": {
+			"id": "d2f53d6f-81af-4d53-98e3-e008e6ee171d",
+			"name": "workspace_message_request",
+			"desc": "",
+			"type": "identifying",
+			"parent_key": "8b65fbc5-780a-4691-a381-26862f664c29",
+			"parent": "909c06b8-57eb-4e62-9fac-41d483ac57a7",
+			"child": "cd5f87d5-b86c-47eb-8bd6-6699ed90dc28",
+			"c_mp": "true",
+			"c_mch": "true",
+			"c_p": "one",
+			"c_ch": "many",
+			"c_cp": "",
+			"c_cch": "",
+			"cols": [
+				{
+					"id": "a1670375-a4f0-4781-ad98-b1eedfd4a652",
+					"parentcol": "b22b39d4-9fa3-4020-bf5b-7d963fff312f",
+					"childcol": "7761f899-83b3-47b0-a46c-538c1b15bbbf"
+				}
+			],
+			"generate": true,
+			"generateCustomCode": true,
+			"customCode": "",
+			"relationColor": "transparent",
+			"linegraphics": "default"
+		}
+	},
 	"notes": {},
 	"lines": {},
 	"model": {
@@ -192,7 +638,7 @@
 		},
 		"type": "MARIADB",
 		"version": 1,
-		"lastSaved": 1761467849889,
+		"lastSaved": 1761730750264,
 		"beforeScript": "",
 		"afterScript": "",
 		"sqlSettings": {
@@ -238,10 +684,36 @@
 			"diagramItems": {
 				"cd5f87d5-b86c-47eb-8bd6-6699ed90dc28": {
 					"referencedItemId": "cd5f87d5-b86c-47eb-8bd6-6699ed90dc28",
-					"x": 45,
-					"y": 281,
+					"x": 234,
+					"y": 93,
 					"gHeight": 135,
-					"gWidth": 243,
+					"gWidth": 246,
+					"color": "#ffffff",
+					"background": "#03a9f4",
+					"resized": false,
+					"autoExpand": true,
+					"backgroundOpacity": "10",
+					"collapsed": false
+				},
+				"909c06b8-57eb-4e62-9fac-41d483ac57a7": {
+					"referencedItemId": "909c06b8-57eb-4e62-9fac-41d483ac57a7",
+					"x": 366,
+					"y": 322,
+					"gHeight": 164,
+					"gWidth": 268,
+					"color": "#ffffff",
+					"background": "#03a9f4",
+					"resized": false,
+					"autoExpand": true,
+					"backgroundOpacity": "10",
+					"collapsed": false
+				},
+				"51c1e2eb-0c35-4362-a524-e40e3a838e50": {
+					"referencedItemId": "51c1e2eb-0c35-4362-a524-e40e3a838e50",
+					"x": 552,
+					"y": 93,
+					"gHeight": 171,
+					"gWidth": 239,
 					"color": "#ffffff",
 					"background": "#03a9f4",
 					"resized": false,
@@ -295,7 +767,11 @@
 	},
 	"diagramsOrder": [],
 	"order": [
-		"cd5f87d5-b86c-47eb-8bd6-6699ed90dc28"
+		"cd5f87d5-b86c-47eb-8bd6-6699ed90dc28",
+		"51c1e2eb-0c35-4362-a524-e40e3a838e50",
+		"909c06b8-57eb-4e62-9fac-41d483ac57a7",
+		"ee964ec4-df50-4b3c-9142-79d2a2c1d7fd",
+		"d2f53d6f-81af-4d53-98e3-e008e6ee171d"
 	],
 	"collapsedTreeItems": [],
 	"reverseStats": {}
