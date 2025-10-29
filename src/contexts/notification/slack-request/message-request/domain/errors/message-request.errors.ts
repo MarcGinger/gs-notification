@@ -253,26 +253,6 @@ export const MessageRequestErrors = {
     'MESSAGE_REQUEST.MESSAGE_REQUEST_NOT_FOUND',
     MessageRequestContext
   >,
-  MESSAGE_REQUEST_UPDATE_FACTORY_FAILED: {
-    code: 'MESSAGE_REQUEST.MESSAGE_REQUEST_UPDATE_FACTORY_FAILED',
-    title: 'Update Factory Failed',
-    detail: 'Failed to update Message using factory.',
-    category: 'validation',
-    retryable: false,
-  } as DomainError<
-    'MESSAGE_REQUEST.MESSAGE_REQUEST_UPDATE_FACTORY_FAILED',
-    MessageRequestContext
-  >,
-  MESSAGE_REQUEST_UPDATE_RECONSTITUTE_FAILED: {
-    code: 'MESSAGE_REQUEST.MESSAGE_REQUEST_UPDATE_RECONSTITUTE_FAILED',
-    title: 'Update Reconstitute Failed',
-    detail: 'Failed to reconstitute Message from snapshot for update.',
-    category: 'validation',
-    retryable: false,
-  } as DomainError<
-    'MESSAGE_REQUEST.MESSAGE_REQUEST_UPDATE_RECONSTITUTE_FAILED',
-    MessageRequestContext
-  >,
   NOT_IMPLEMENTED: {
     code: 'MESSAGE_REQUEST.NOT_IMPLEMENTED',
     title: 'Not Implemented',

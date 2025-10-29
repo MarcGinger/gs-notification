@@ -3,10 +3,8 @@
 
 import {
   Controller,
-  Get,
   Post,
   Body,
-  Put,
   HttpStatus,
   HttpCode,
   Param,
@@ -16,7 +14,6 @@ import {
 import {
   ApiTags,
   ApiOperation,
-  ApiResponse,
   ApiCreatedResponse,
   ApiBody,
   ApiHeader,
@@ -31,14 +28,9 @@ import { CurrentUser, IUserToken, JwtAuthGuard } from 'src/shared/security';
 import {
   DetailMessageRequestResponse,
   CreateMessageRequestRequest,
-  UpdateMessageRequestRequest,
 } from '../../../application/dtos';
 import { Result, ResultInterceptor, DomainError } from 'src/shared/errors';
-import {
-  MessageRequestReadResource,
-  MessageRequestCreateResource,
-  MessageRequestUpdateResource,
-} from '../../message-request.resource';
+import { MessageRequestCreateResource } from '../../message-request.resource';
 import { ApiCommonErrors } from 'src/shared/interfaces/http';
 
 @Controller('message-requests')
@@ -51,37 +43,6 @@ export class MessageRequestController {
     private readonly messageRequestApplicationService: MessageRequestApplicationService,
   ) {}
 
-  @Get(':id')
-  @MessageRequestReadResource()
-  @ApiOperation({
-    summary: 'Get Message by ID',
-    description:
-      'Retrieves a single Message by its unique identifier. Requires READ permission (LOW risk).',
-  })
-  @ApiParam({
-    name: 'id',
-    type: 'string',
-    description: 'MessageRequest unique identifier (UUID format)',
-    format: 'uuid',
-    example: '123e4567-e89b-12d3-a456-426614174000',
-  })
-  @ApiOkResponse({
-    description: 'MessageRequest details retrieved successfully',
-    type: DetailMessageRequestResponse,
-  })
-  @ApiCommonErrors()
-  async get(
-    @CurrentUser() user: IUserToken,
-    @Param('id') id: string,
-  ): Promise<Result<DetailMessageRequestResponse, DomainError>> {
-    const result =
-      await this.messageRequestApplicationService.getMessageRequestById(
-        user,
-        id,
-      );
-
-    return result;
-  }
   // ========================================
   // Core CRUD Operations
   // ========================================
@@ -131,52 +92,6 @@ export class MessageRequestController {
         {
           idempotencyKey,
         },
-      );
-
-    return result;
-  }
-
-  @Put(':id')
-  @MessageRequestUpdateResource()
-  @ApiOperation({
-    summary: 'Update a Message',
-    description:
-      'Updates an existing Message with new data. Supports partial updates. Requires UPDATE permission (MEDIUM risk).',
-  })
-  @ApiParam({
-    name: 'id',
-    type: 'string',
-    description: 'MessageRequest unique identifier (UUID format)',
-    format: 'uuid',
-    example: '123e4567-e89b-12d3-a456-426614174000',
-  })
-  @ApiResponse({
-    status: HttpStatus.OK,
-    description: 'MessageRequest updated successfully',
-    type: DetailMessageRequestResponse,
-  })
-  @ApiCommonErrors({
-    include422: true,
-    extra: [
-      { status: 429, description: 'Too Many Requests' },
-      { status: 503, description: 'Upstream dependency unavailable' },
-    ],
-  })
-  @ApiBody({
-    type: UpdateMessageRequestRequest,
-    description:
-      'MessageRequest update data. Only provided fields will be updated.',
-  })
-  async update(
-    @CurrentUser() user: IUserToken,
-    @Param('id') id: string,
-    @Body() updateMessageRequestRequest: UpdateMessageRequestRequest,
-  ): Promise<Result<DetailMessageRequestResponse, DomainError>> {
-    const result =
-      await this.messageRequestApplicationService.updateMessageRequest(
-        user,
-        id,
-        updateMessageRequestRequest,
       );
 
     return result;

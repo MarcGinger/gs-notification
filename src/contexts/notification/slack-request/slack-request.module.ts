@@ -8,7 +8,6 @@ import { SlackRequestSharedModule } from './slack-request-shared.module';
 
 // Import all slack-request domain modules
 import { MessageRequestModule } from './message-request/message-request.module';
-import { MessageRequestProjectorModule } from './message-request/message-request-projector.module';
 import { WorkspaceModule } from './workspace/workspace.module';
 import { WorkspaceProjectorModule } from './workspace/workspace-projector.module';
 import { TemplateModule } from './template/template.module';
@@ -36,7 +35,6 @@ import { TemplateProjectorModule } from './template/template-projector.module';
     // Shared infrastructure (imported once for all domains)
     SlackRequestSharedModule,
     MessageRequestModule,
-    MessageRequestProjectorModule,
     WorkspaceModule,
     WorkspaceProjectorModule,
     TemplateModule,
@@ -45,7 +43,6 @@ import { TemplateProjectorModule } from './template/template-projector.module';
   exports: [
     // Export all modules for potential cross-domain dependencies
     MessageRequestModule,
-    MessageRequestProjectorModule,
     WorkspaceModule,
     WorkspaceProjectorModule,
     TemplateModule,

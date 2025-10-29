@@ -13,15 +13,10 @@ import {
 import {
   ICreateMessageRequestUseCase,
   CreateMessageRequestUseCase,
-  IUpdateMessageRequestUseCase,
-  UpdateMessageRequestUseCase,
-  IGetMessageRequestUseCase,
-  GetMessageRequestUseCase,
 } from './application/use-cases';
 
 // import { IMessageRequestRepository } from './application/ports';
 import {
-  MessageRequestQueryRepository,
   MessageRequestReaderRepository,
   MessageRequestWriterRepository,
   TemplateReaderRepository,
@@ -34,7 +29,6 @@ import {
   MESSAGE_REQUEST_WRITER_TOKEN,
   TEMPLATE_REFERENCE_READER_TOKEN,
   WORKSPACE_REFERENCE_READER_TOKEN,
-  MESSAGE_REQUEST_QUERY_TOKEN,
 } from './application/ports';
 @Module({
   imports: [
@@ -50,10 +44,6 @@ import {
     {
       provide: MESSAGE_REQUEST_WRITER_TOKEN,
       useClass: MessageRequestWriterRepository,
-    },
-    {
-      provide: MESSAGE_REQUEST_QUERY_TOKEN,
-      useClass: MessageRequestQueryRepository,
     },
 
     // Bounded Context Reader Repositories
@@ -77,20 +67,11 @@ import {
       provide: ICreateMessageRequestUseCase,
       useClass: CreateMessageRequestUseCase,
     },
-    {
-      provide: IUpdateMessageRequestUseCase,
-      useClass: UpdateMessageRequestUseCase,
-    },
-    {
-      provide: IGetMessageRequestUseCase,
-      useClass: GetMessageRequestUseCase,
-    },
   ],
   exports: [
     // Repository tokens for external module consumption
     MESSAGE_REQUEST_READER_TOKEN,
     MESSAGE_REQUEST_WRITER_TOKEN,
-    MESSAGE_REQUEST_QUERY_TOKEN,
     // Bounded Context Reader tokens
     TEMPLATE_REFERENCE_READER_TOKEN,
     WORKSPACE_REFERENCE_READER_TOKEN,

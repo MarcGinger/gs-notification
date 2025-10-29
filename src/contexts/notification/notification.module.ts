@@ -5,6 +5,8 @@ import { Module } from '@nestjs/common';
 
 // SlackConfig Application
 import { NotificationSlackConfigModule } from './slack-config/slack-config.module';
+// SlackExecute Application
+import { NotificationSlackExecuteModule } from './slack-execute/slack-execute.module';
 // SlackRequest Application
 import { NotificationSlackRequestModule } from './slack-request/slack-request.module';
 
@@ -16,12 +18,21 @@ import { NotificationSlackRequestModule } from './slack-request/slack-request.mo
  *
  * Applications in this context:
  * - SlackConfig: slack-config application
+ * - SlackExecute: slack-execute application
  * - SlackRequest: slack-request application
  */
 @Module({
-  imports: [NotificationSlackConfigModule, NotificationSlackRequestModule],
+  imports: [
+    NotificationSlackConfigModule,
+    NotificationSlackExecuteModule,
+    NotificationSlackRequestModule,
+  ],
   controllers: [],
   providers: [],
-  exports: [NotificationSlackConfigModule, NotificationSlackRequestModule],
+  exports: [
+    NotificationSlackConfigModule,
+    NotificationSlackExecuteModule,
+    NotificationSlackRequestModule,
+  ],
 })
 export class NotificationModule {}

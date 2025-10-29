@@ -10,10 +10,7 @@
 
 import { Result, DomainError } from 'src/shared/errors';
 import type { IUserToken } from 'src/shared/security';
-import type {
-  CreateMessageRequestProps,
-  UpdateMessageRequestProps,
-} from '../../domain/props';
+import type { CreateMessageRequestProps } from '../../domain/props';
 import type { DetailMessageRequestResponse } from '../dtos';
 
 export abstract class ICreateMessageRequestUseCase {
@@ -22,23 +19,5 @@ export abstract class ICreateMessageRequestUseCase {
     props: CreateMessageRequestProps;
     correlationId: string;
     authorizationReason: string;
-  }): Promise<Result<DetailMessageRequestResponse, DomainError>>;
-}
-
-export abstract class IUpdateMessageRequestUseCase {
-  abstract execute(params: {
-    user: IUserToken;
-    id: string;
-    props: UpdateMessageRequestProps;
-    correlationId: string;
-    authorizationReason: string;
-  }): Promise<Result<DetailMessageRequestResponse, DomainError>>;
-}
-
-export abstract class IGetMessageRequestUseCase {
-  abstract execute(params: {
-    user: IUserToken;
-    id: string;
-    correlationId: string;
   }): Promise<Result<DetailMessageRequestResponse, DomainError>>;
 }

@@ -22,10 +22,7 @@ import { SlackRequestServiceConstants } from '../../../service-constants';
 
 // Domain types and errors
 import { MessageRequestErrors } from '../../domain/errors/message-request.errors';
-import type {
-  CreateMessageRequestProps,
-  UpdateMessageRequestProps,
-} from '../../domain/props';
+import type { CreateMessageRequestProps } from '../../domain/props';
 import { DetailMessageRequestResponse } from '../dtos';
 
 // Application layer
@@ -33,11 +30,7 @@ import { MessageRequestAuthorizationService } from './message-request-authorizat
 import { MessageRequestAuthContext } from '../types/message-request-auth-context';
 
 // Use case contracts
-import {
-  ICreateMessageRequestUseCase,
-  IUpdateMessageRequestUseCase,
-  IGetMessageRequestUseCase,
-} from '../use-cases/contracts';
+import { ICreateMessageRequestUseCase } from '../use-cases/contracts';
 
 /**
  * Application Service for MessageRequest operations with integrated authorization
@@ -49,8 +42,6 @@ export class MessageRequestApplicationService {
   constructor(
     private readonly messageRequestAuthorizationService: MessageRequestAuthorizationService,
     private readonly createMessageRequestUseCase: ICreateMessageRequestUseCase,
-    private readonly updateMessageRequestUseCase: IUpdateMessageRequestUseCase,
-    private readonly getMessageRequestUseCase: IGetMessageRequestUseCase,
     @Inject(CLOCK) private readonly clock: Clock,
     @Inject(APP_LOGGER) moduleLogger: Logger,
   ) {
@@ -124,7 +115,7 @@ export class MessageRequestApplicationService {
    * Centralized auth → log → execute → catch pattern
    */
   private async authorizeThenExecute<T>(args: {
-    operation: 'create' | 'update' | 'read';
+    operation: 'create' | 'update';
     user: IUserToken;
     id?: string;
     correlationIdPrefix: string;
@@ -231,117 +222,6 @@ export class MessageRequestApplicationService {
             idempotencyKey: options.idempotencyKey,
           }),
         }),
-    });
-  }
-
-  /**
-   * Update an existing messageRequest with authorization
-   */
-  async updateMessageRequest(
-    user: IUserToken,
-    id: string,
-    props: UpdateMessageRequestProps,
-    options?: { idempotencyKey?: string; correlationId?: string },
-  ): Promise<Result<DetailMessageRequestResponse, DomainError>> {
-    // Early input validation
-    const idValidation = this.validateId(id, 'update');
-    if (!idValidation.ok) {
-      return err(idValidation.error);
-    }
-
-    const validatedid = idValidation.value;
-    const authContext = this.createAuthContext(user, 'update');
-    const correlationId =
-      options?.correlationId ||
-      CorrelationUtil.generateForOperation('message-request-update');
-
-    // Optional: Field-level authorization
-    // Uncomment when MessageRequestAuthorizationService supports authorizeMessageRequestOperation
-    /*
-    const fields = extractDefinedFields(props); // Use shared utility
-    const opAuth = await this.messageRequestAuthorizationService.authorizeMessageRequestOperation(
-      user.sub, 
-      'update', 
-      CorrelationUtil.generateForOperation('message-request-update'), 
-      validatedid, 
-      fields, 
-      authContext
-    );
-    if (!opAuth.ok) return err(opAuth.error);
-    if (!opAuth.value.authorized) {
-      return err(withContext(MessageRequestErrors.PERMISSION_DENIED, { 
-        operation: 'update', 
-        id: validatedid, 
-        userId: user.sub,
-        category: 'security'
-      }));
-    }
-    */
-
-    return this.authorizeThenExecute<DetailMessageRequestResponse>({
-      operation: 'update',
-      user,
-      id: validatedid,
-      correlationIdPrefix: 'message-request-update',
-      doAuthorize: () =>
-        this.messageRequestAuthorizationService.canUpdateMessageRequest(
-          user.sub,
-          validatedid,
-          correlationId,
-          authContext,
-        ),
-      doExecute: () =>
-        this.updateMessageRequestUseCase.execute({
-          user,
-          id: validatedid,
-          props,
-          correlationId,
-          authorizationReason: 'update_message_request',
-          ...(options?.idempotencyKey && {
-            idempotencyKey: options.idempotencyKey,
-          }),
-        }),
-      logContext: { id: validatedid },
-    });
-  }
-
-  /**
-   * Get a messageRequest by ID with authorization
-   */
-  async getMessageRequestById(
-    user: IUserToken,
-    id: string,
-  ): Promise<Result<DetailMessageRequestResponse, DomainError>> {
-    // Early input validation
-    const idValidation = this.validateId(id, 'read');
-    if (!idValidation.ok) {
-      return err(idValidation.error);
-    }
-
-    const validatedid = idValidation.value;
-    const authContext = this.createAuthContext(user, 'read');
-
-    return this.authorizeThenExecute<DetailMessageRequestResponse>({
-      operation: 'read',
-      user,
-      id: validatedid,
-      correlationIdPrefix: 'message-request-read',
-      doAuthorize: () =>
-        this.messageRequestAuthorizationService.canReadMessageRequest(
-          user.sub,
-          validatedid,
-          CorrelationUtil.generateForOperation('message-request-read'),
-          authContext,
-        ),
-      doExecute: () =>
-        this.getMessageRequestUseCase.execute({
-          user,
-          id: validatedid,
-          correlationId: CorrelationUtil.generateForOperation(
-            'message-request-read',
-          ),
-        }),
-      logContext: { id: validatedid },
     });
   }
 }

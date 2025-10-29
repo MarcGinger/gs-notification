@@ -307,14 +307,16 @@
       "store": {
         "read": "redis",
         "write": "kurrentdb",
-        "query": "redis",
+        "query": "sql,eventstream,redis",
         "projector": "redis"
       },
       "options": {
         "command": true,
+        "create": true,
+        "update": false,
         "read": "redis",
         "write": "kurrentdb",
-        "query": "redis",
+        "query": "none",
         "projector": "redis",
         "softDelete": false,
         "timestamps": true,
@@ -613,6 +615,8 @@
       },
       "options": {
         "command": false,
+        "create": true,
+        "update": true,
         "read": "redis",
         "write": "memory",
         "query": "redis",
@@ -931,6 +935,8 @@
       },
       "options": {
         "command": false,
+        "create": true,
+        "update": true,
         "read": "redis",
         "write": "memory",
         "query": "redis",

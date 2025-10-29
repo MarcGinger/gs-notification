@@ -23,6 +23,7 @@ export class NotificationDocumentation {
   | Applications/Services |
   |---------------|
   | [**slack-config**](/api/docs/notification/slack-config) |
+  | [**slack-execute**](/api/docs/notification/slack-execute) |
   | [**slack-request**](/api/docs/notification/slack-request) |
 
         `,
