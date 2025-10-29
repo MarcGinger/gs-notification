@@ -5,8 +5,6 @@ import { INestApplication } from '@nestjs/common';
 import { AppConfigUtil } from 'src/shared/config/app-config.util';
 import { NotificationDocumentation } from './notification.doc';
 import { setupNotificationSlackConfigDocs } from './slack-config/slack-config-swagger.util';
-import { setupNotificationSlackExecuteDocs } from './slack-execute/slack-execute-swagger.util';
-import { setupNotificationSlackRequestDocs } from './slack-request/slack-request-swagger.util';
 
 /**
  * Setup notification application/service Swagger documentation
@@ -25,19 +23,9 @@ export function setupNotificationConfigDocs(
     app,
     port,
   );
-  const notificationSlackExecuteUrls = setupNotificationSlackExecuteDocs(
-    app,
-    port,
-  );
-  const notificationSlackRequestUrls = setupNotificationSlackRequestDocs(
-    app,
-    port,
-  );
 
   return {
     ...notificationUrls,
     ...notificationSlackConfigUrls,
-    ...notificationSlackExecuteUrls,
-    ...notificationSlackRequestUrls,
   };
 }

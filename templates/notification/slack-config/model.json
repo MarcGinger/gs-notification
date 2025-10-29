@@ -384,6 +384,8 @@
       },
       "options": {
         "command": true,
+        "create": true,
+        "update": true,
         "read": "redis",
         "write": "kurrentdb",
         "query": "redis",
@@ -723,6 +725,8 @@
       },
       "options": {
         "command": true,
+        "create": true,
+        "update": true,
         "read": "redis",
         "write": "kurrentdb",
         "query": "redis",
@@ -1042,6 +1046,8 @@
       },
       "options": {
         "command": true,
+        "create": true,
+        "update": true,
         "read": "redis",
         "write": "kurrentdb",
         "query": "redis",
@@ -1360,6 +1366,8 @@
       },
       "options": {
         "command": true,
+        "create": true,
+        "update": true,
         "read": "redis",
         "write": "kurrentdb",
         "query": "redis",

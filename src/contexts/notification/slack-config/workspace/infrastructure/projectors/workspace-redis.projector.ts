@@ -288,7 +288,8 @@ export class WorkspaceProjector
         tenant,
         params.id,
       );
-      const indexKey = WorkspaceProjectionKeys.getRedisTenantIndexKey(tenant);
+      const indexKey =
+        WorkspaceProjectionKeys.getRedisWorkspaceIndexKey(tenant);
 
       // ✅ Validate hash-tag consistency for cluster safety
       RedisClusterUtils.validateHashTagConsistency(entityKey, indexKey);

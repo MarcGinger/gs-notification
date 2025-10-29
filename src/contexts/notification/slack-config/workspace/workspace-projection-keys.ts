@@ -83,48 +83,113 @@ export class WorkspaceProjectionKeys {
   }
 
   // Redis projection key patterns
-  static readonly REDIS_KEY_PREFIX = 'notification:workspace-projector';
-  static readonly REDIS_INDEX_PREFIX = 'notification:workspace-index';
+  static readonly REDIS_KEY_PREFIX = 'notification.slack';
+  static readonly REDIS_VERSION = 'v1';
   static readonly PROJECTOR_NAME = 'workspace-projector';
   static readonly SUBSCRIPTION_GROUP = 'workspace-projection';
 
   /**
    * Get Redis key for workspace projection with cluster-safe hash tags
-   * Format: notification:workspace-projector:{tenantId}:workspace:{code}
+   * Format: notification.slack:v1:{tenantId}:workspace:{workspaceId}
    */
-  static getRedisWorkspaceKey(tenantId: string, code: string): string {
-    return `${this.REDIS_KEY_PREFIX}:{${tenantId}}:workspace:${code}`;
+  static getRedisWorkspaceKey(tenantId: string, workspaceId: string): string {
+    return `${this.REDIS_KEY_PREFIX}:${this.REDIS_VERSION}:{${tenantId}}:workspace:${workspaceId}`;
   }
 
   /**
-   * Get Redis key for tenant-based workspace index with cluster-safe hash tags
-   * Format: notification:workspace-projector:{tenantId}:workspace-index
+   * Get Redis key for workspace index with cluster-safe hash tags
+   * Format: notification.slack:v1:{tenantId}:idx:workspace:list
    */
-  static getRedisTenantIndexKey(tenantId: string): string {
-    return `${this.REDIS_KEY_PREFIX}:{${tenantId}}:workspace-index`;
+  static getRedisWorkspaceIndexKey(tenantId: string): string {
+    return `${this.REDIS_KEY_PREFIX}:${this.REDIS_VERSION}:{${tenantId}}:idx:workspace:list`;
   }
 
   /**
    * Get Redis key for category-based workspace index with cluster-safe hash tags
-   * Format: notification:workspace-index:{tenantId}:by_category:{category}
+   * Format: notification.slack:v1:{tenantId}:idx:workspace:by-category:{category}
    */
   static getRedisCategoryIndexKey(tenantId: string, category: string): string {
-    return `${this.REDIS_INDEX_PREFIX}:{${tenantId}}:by_category:${category}`;
+    return `${this.REDIS_KEY_PREFIX}:${this.REDIS_VERSION}:{${tenantId}}:idx:workspace:by-category:${category}`;
   }
 
   /**
    * Get Redis key pattern for all workspaces in a tenant
-   * Format: notification:workspace-projector:{tenantId}:workspace:*
+   * Format: notification.slack:v1:{tenantId}:workspace:*
    */
   static getRedisTenantWorkspacePattern(tenantId: string): string {
-    return `${this.REDIS_KEY_PREFIX}:{${tenantId}}:workspace:*`;
+    return `${this.REDIS_KEY_PREFIX}:${this.REDIS_VERSION}:{${tenantId}}:workspace:*`;
   }
 
   /**
    * Get Redis key pattern for all workspace projections
-   * Format: notification:workspace-projector:*
+   * Format: notification.slack:v1:*:workspace:*
    */
   static getRedisAllWorkspacesPattern(): string {
+    return `${this.REDIS_KEY_PREFIX}:${this.REDIS_VERSION}:*:workspace:*`;
+  }
+
+  /**
+   * Get Redis key pattern for all projections in a specific tenant
+   * Format: notification.slack:v1:{tenantId}:*
+   */
+  static getRedisTenantPattern(tenantId: string): string {
+    return `${this.REDIS_KEY_PREFIX}:${this.REDIS_VERSION}:{${tenantId}}:*`;
+  }
+
+  /**
+   * Get Redis key pattern for all slack projections
+   * Format: notification.slack:*
+   */
+  static getRedisSlackPattern(): string {
     return `${this.REDIS_KEY_PREFIX}:*`;
+  }
+
+  // Migration helpers - for transitioning from old keys to new keys
+
+  /**
+   * Get old Redis key format for workspace (for migration purposes)
+   * Format: notification:workspace-projector:{tenantId}:workspace:{workspaceId}
+   */
+  static getOldRedisWorkspaceKey(
+    tenantId: string,
+    workspaceId: string,
+  ): string {
+    return `notification:workspace-projector:{${tenantId}}:workspace:${workspaceId}`;
+  }
+
+  /**
+   * Get old Redis key format for workspace index (for migration purposes)
+   * Format: notification:workspace-projector:{tenantId}:workspace-index
+   */
+  static getOldRedisWorkspaceIndexKey(tenantId: string): string {
+    return `notification:workspace-projector:{${tenantId}}:workspace-index`;
+  }
+
+  /**
+   * Get old pp key format (for migration purposes)
+   * Format: pp:{tenantId}:workspace:{workspaceId}
+   */
+  static getOldPpKey(tenantId: string, workspaceId: string): string {
+    return `pp:{${tenantId}}:workspace:${workspaceId}`;
+  }
+
+  /**
+   * Get old version key format (for migration purposes)
+   * Format: ver:{tenantId}:workspace:{workspaceId}
+   */
+  static getOldVersionKey(tenantId: string, workspaceId: string): string {
+    return `ver:{${tenantId}}:workspace:${workspaceId}`;
+  }
+
+  /**
+   * Get all old key patterns for cleanup/migration
+   */
+  static getOldKeyPatterns(): string[] {
+    return [
+      'notification:workspace-projector:*',
+      'notification:workspace-index:*',
+      'pp:*:workspace:*',
+      'ver:*:workspace:*',
+    ];
   }
 }

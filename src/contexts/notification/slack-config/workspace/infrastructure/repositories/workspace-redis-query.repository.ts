@@ -237,7 +237,7 @@ export class WorkspaceQueryRepository implements IWorkspaceQuery {
    * Generate tenant index key for pagination and sorting using centralized keys
    */
   private generateTenantIndexKey(tenantId: string): string {
-    return WorkspaceProjectionKeys.getRedisTenantIndexKey(tenantId);
+    return WorkspaceProjectionKeys.getRedisWorkspaceIndexKey(tenantId);
   }
 
   /**
