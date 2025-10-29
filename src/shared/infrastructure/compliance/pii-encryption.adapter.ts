@@ -147,9 +147,7 @@ export class PIIEncryptionAdapter {
     path: string,
   ): unknown {
     return path.split('.').reduce((current, key) => {
-      return current && typeof current === 'object'
-        ? (current as Record<string, unknown>)[key]
-        : undefined;
+      return current && typeof current === 'object' ? current[key] : undefined;
     }, obj);
   }
 

@@ -200,3 +200,171 @@ export function handleRepositoryError(
   // Default to connection error for any other database-related errors
   return err(RepositoryErrorFactory.connectionError((e as Error).message));
 }
+
+/**
+ * Redis parsing utilities for type conversions
+ *
+ * These utilities handle the conversion of Redis string values to their proper types,
+ * which is common when working with Redis hash data structures where all values
+ * are stored as strings but need to be converted back to their original types.
+ */
+
+/**
+ * Convert string values to boolean, preserving existing boolean values
+ *
+ * @param x - The value to convert (can be string or boolean)
+ * @returns Boolean value
+ *
+ * @example
+ * ```typescript
+ * const enabled = parsedArray.map(convertStringToBoolean);
+ * ```
+ */
+export const convertStringToBoolean = (x: unknown): boolean =>
+  typeof x === 'string' ? x === 'true' : (x as boolean);
+
+/**
+ * Convert string values to float, preserving existing number values
+ *
+ * @param x - The value to convert (can be string or number)
+ * @returns Number value (float)
+ *
+ * @example
+ * ```typescript
+ * const prices = parsedArray.map(convertStringToFloat);
+ * ```
+ */
+export const convertStringToFloat = (x: unknown): number =>
+  typeof x === 'string' ? parseFloat(x) : (x as number);
+
+/**
+ * Convert string values to integer, preserving existing number values
+ *
+ * @param x - The value to convert (can be string or number)
+ * @returns Number value (integer)
+ *
+ * @example
+ * ```typescript
+ * const quantities = parsedArray.map(convertStringToInt);
+ * ```
+ */
+export const convertStringToInt = (x: unknown): number =>
+  typeof x === 'string' ? parseInt(x, 10) : (x as number);
+
+/**
+ * Redis type guard utilities for validating values during parsing
+ *
+ * These functions provide type-safe validation of values that may come from
+ * Redis as strings but need to be validated as their target types.
+ */
+
+/**
+ * Type guard for boolean values or valid boolean strings
+ *
+ * @param x - The value to validate
+ * @returns True if the value is a boolean or valid boolean string
+ *
+ * @example
+ * ```typescript
+ * const enabled = safeParseJSONArray(
+ *   hashData.enabled,
+ *   'enabled',
+ *   isBooleanOrBooleanString,
+ * ).map(convertStringToBoolean);
+ * ```
+ */
+export const isBooleanOrBooleanString = (x: unknown): x is boolean => {
+  if (typeof x === 'string') {
+    return x === 'true' || x === 'false';
+  }
+  return typeof x === 'boolean';
+};
+
+/**
+ * Type guard for number values or valid number strings
+ *
+ * @param x - The value to validate
+ * @returns True if the value is a number or valid number string
+ *
+ * @example
+ * ```typescript
+ * const prices = safeParseJSONArray(
+ *   hashData.prices,
+ *   'prices',
+ *   isNumberOrValidNumberString,
+ * ).map(convertStringToFloat);
+ * ```
+ */
+export const isNumberOrValidNumberString = (x: unknown): x is number => {
+  if (typeof x === 'string') {
+    const parsed = parseFloat(x);
+    return !isNaN(parsed) && isFinite(parsed);
+  }
+  return typeof x === 'number' && !isNaN(x) && isFinite(x);
+};
+
+/**
+ * Type guard for integer values or valid integer strings
+ *
+ * @param x - The value to validate
+ * @returns True if the value is an integer or valid integer string
+ *
+ * @example
+ * ```typescript
+ * const quantities = safeParseJSONArray(
+ *   hashData.quantities,
+ *   'quantities',
+ *   isIntegerOrValidIntegerString,
+ * ).map(convertStringToInt);
+ * ```
+ */
+export const isIntegerOrValidIntegerString = (x: unknown): x is number => {
+  if (typeof x === 'string') {
+    const parsed = parseInt(x, 10);
+    return !isNaN(parsed) && isFinite(parsed);
+  }
+  return typeof x === 'number' && Number.isInteger(x);
+};
+
+/**
+ * Type guard for string values
+ *
+ * @param x - The value to validate
+ * @returns True if the value is a string
+ *
+ * @example
+ * ```typescript
+ * const names = safeParseJSONArray(
+ *   hashData.names,
+ *   'names',
+ *   isString,
+ * );
+ * ```
+ */
+export const isString = (x: unknown): x is string => typeof x === 'string';
+
+/**
+ * Create a type guard for enum values
+ *
+ * @param allowedValues - Array of allowed enum values
+ * @returns Type guard function that validates enum values
+ *
+ * @example
+ * ```typescript
+ * const StatusValues = ['active', 'disabled', 'pending'] as const;
+ * type StatusValue = (typeof StatusValues)[number];
+ *
+ * const isStatusValue = createEnumTypeGuard<StatusValue>(StatusValues);
+ * const status = safeParseJSONArray(hashData.status, 'status', isStatusValue);
+ * ```
+ */
+export const createEnumTypeGuard = <T extends string>(
+  allowedValues: readonly T[],
+) => {
+  return (x: unknown): x is T => {
+    if (typeof x === 'string') {
+      return allowedValues.includes(x as T);
+    }
+    return false;
+  };
+};

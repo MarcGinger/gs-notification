@@ -192,7 +192,7 @@
 		},
 		"type": "MARIADB",
 		"version": 1,
-		"lastSaved": 1761441011092,
+		"lastSaved": 1761467849889,
 		"beforeScript": "",
 		"afterScript": "",
 		"sqlSettings": {
