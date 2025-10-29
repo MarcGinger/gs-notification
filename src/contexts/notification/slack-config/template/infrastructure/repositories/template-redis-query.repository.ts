@@ -13,6 +13,7 @@ import {
   safeParseJSON,
   safeParseJSONArray,
   RepositoryOptions,
+  isString,
 } from 'src/shared/infrastructure/repositories';
 import { Result, DomainError, err, ok } from 'src/shared/errors';
 import { Option } from 'src/shared/domain/types';
@@ -258,20 +259,25 @@ export class TemplateQueryRepository implements ITemplateQuery {
       }
 
       // Parse array fields using safeParseJSONArray utility
+
       const contentBlocks = safeParseJSONArray(
         hashData.contentBlocks,
         'contentBlocks',
-        (x): x is string => typeof x === 'string',
+        isString,
       );
+
       const variables = safeParseJSONArray(
         hashData.variables,
         'variables',
-        (x): x is string => typeof x === 'string',
+        isString,
       );
+
+      // Parse object fields using safeParseJSON utility
       const samplePayload = safeParseJSON<Record<string, unknown>>(
         hashData.samplePayload,
         'samplePayload',
       );
+      // Extract basic fields directly from hash data
 
       return {
         code: hashData.code,

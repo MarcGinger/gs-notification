@@ -11,15 +11,14 @@ import {
   RepositoryLoggingUtil,
   RepositoryLoggingConfig,
   handleRepositoryError,
-  safeParseJSON,
   RepositoryOptions,
 } from 'src/shared/infrastructure/repositories';
 import { Result, DomainError, err, ok } from 'src/shared/errors';
+import { Option } from 'src/shared/domain/types';
 import { ActorContext } from 'src/shared/application/context';
 import { RepositoryErrorFactory } from 'src/shared/domain/errors/repository.error';
 import { SLACK_CONFIG_DI_TOKENS } from '../../../slack-config.constants';
 import { IWorkspaceReader, WorkspaceReference } from '../../application/ports';
-import { Option } from 'src/shared/domain/types';
 
 /**
  * Workspace Reader Repository - Redis Implementation
@@ -94,8 +93,8 @@ export class WorkspaceReaderRepository implements IWorkspaceReader {
         return null;
       }
 
-      // Parse JSON fields using safeParseJSON utility (following product-query.repository.ts pattern)
-      // Extract fields directly from hash data (following product-query.repository.ts pattern)
+      // Parse JSON fields using safeParseJSON utility
+      // Extract fields directly from hash data
       return {
         id: hashData.id,
         name: hashData.name,

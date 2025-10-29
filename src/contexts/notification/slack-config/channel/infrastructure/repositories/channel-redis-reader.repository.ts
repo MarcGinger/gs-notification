@@ -14,6 +14,7 @@ import {
   safeParseJSON,
   safeParseJSONArray,
   RepositoryOptions,
+  isString,
 } from 'src/shared/infrastructure/repositories';
 import { Result, DomainError, err, ok } from 'src/shared/errors';
 import { Option } from 'src/shared/domain/types';
@@ -98,16 +99,16 @@ export class ChannelReaderRepository implements IChannelReader {
         return null;
       }
 
-      // Parse array fields using safeParseJSONArray utility (following product-query.repository.ts pattern)
+      // Parse array fields using safeParseJSONArray utility
+
       const subscribedEvents = safeParseJSONArray(
         hashData.subscribedEvents,
         'subscribedEvents',
-        (x): x is string => typeof x === 'string',
+        isString,
       );
 
-      // Parse object fields using safeParseJSON utility (following product-query.repository.ts pattern)
-
-      // Extract basic fields directly from hash data (following product-query.repository.ts pattern)
+      // Parse object fields using safeParseJSON utility
+      // Extract basic fields directly from hash data
 
       return {
         id: hashData.id,

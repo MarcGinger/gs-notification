@@ -260,10 +260,13 @@ export class AppConfigQueryRepository implements IAppConfigQuery {
       }
 
       // Parse array fields using safeParseJSONArray utility
+
+      // Parse object fields using safeParseJSON utility
       const metadata = safeParseJSON<Record<string, unknown>>(
         hashData.metadata,
         'metadata',
       );
+      // Extract basic fields directly from hash data
 
       return {
         id: parseInt(hashData.id || '0', 10),

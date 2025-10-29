@@ -13,6 +13,7 @@ import {
   safeParseJSON,
   safeParseJSONArray,
   RepositoryOptions,
+  isString,
 } from 'src/shared/infrastructure/repositories';
 import { Result, DomainError, err, ok } from 'src/shared/errors';
 import { Option } from 'src/shared/domain/types';
@@ -259,11 +260,15 @@ export class ChannelQueryRepository implements IChannelQuery {
       }
 
       // Parse array fields using safeParseJSONArray utility
+
       const subscribedEvents = safeParseJSONArray(
         hashData.subscribedEvents,
         'subscribedEvents',
-        (x): x is string => typeof x === 'string',
+        isString,
       );
+
+      // Parse object fields using safeParseJSON utility
+      // Extract basic fields directly from hash data
 
       return {
         id: hashData.id,

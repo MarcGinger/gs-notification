@@ -98,11 +98,10 @@ export class WorkspaceReaderRepository implements IWorkspaceReader {
         return null;
       }
 
-      // Parse array fields using safeParseJSONArray utility (following product-query.repository.ts pattern)
+      // Parse array fields using safeParseJSONArray utility
 
-      // Parse object fields using safeParseJSON utility (following product-query.repository.ts pattern)
-
-      // Extract basic fields directly from hash data (following product-query.repository.ts pattern)
+      // Parse object fields using safeParseJSON utility
+      // Extract basic fields directly from hash data
 
       return {
         id: hashData.id,

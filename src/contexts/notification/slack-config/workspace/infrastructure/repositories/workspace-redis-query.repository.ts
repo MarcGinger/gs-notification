@@ -259,6 +259,9 @@ export class WorkspaceQueryRepository implements IWorkspaceQuery {
 
       // Parse array fields using safeParseJSONArray utility
 
+      // Parse object fields using safeParseJSON utility
+      // Extract basic fields directly from hash data
+
       return {
         id: hashData.id,
         name: hashData.name,
