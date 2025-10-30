@@ -10,7 +10,7 @@ import { SlackConfigServiceConstants } from '../service-constants';
 export class AppConfigProjectionKeys {
   // EventStore DB patterns
   static readonly ESDB_BOUNDED_CONTEXT =
-    SlackConfigServiceConstants.BOUNDED_CONTEXT;
+    SlackConfigServiceConstants.MODULE_NAMESPACE;
   static readonly ESDB_AGGREGATE_NAME = 'app-config';
   static readonly ESDB_VERSION = 'v1';
 
