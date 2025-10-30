@@ -470,18 +470,22 @@ export class WorkspaceQueryRepository implements IWorkspaceQuery {
       const page = filter?.page ?? 1;
       const size = Math.min(filter?.size ?? 20, 100); // Cap at 100 items per page
 
+      // Generate the proper Redis key pattern using centralized WorkspaceProjectionKeys
+      const pattern = WorkspaceProjectionKeys.getRedisTenantWorkspacePattern(
+        actor.tenantId,
+      );
+
       Log.debug(this.logger, 'Scanning Redis for tenant workspaces', {
         ...logContext,
         queryDetails: {
           scope: 'redis_scan',
           method: 'redis.scan',
-          pattern: `workspace-projector:{${actor.tenantId}}:workspace:*`,
+          pattern,
           clusterSafe: true,
         },
       });
 
       // Use Redis SCAN to find all workspace keys for the tenant
-      const pattern = `workspace-projector:{${actor.tenantId}}:workspace:*`;
       const workspaceKeys: string[] = [];
       const scanIterator = this.redis.scanStream({
         match: pattern,
