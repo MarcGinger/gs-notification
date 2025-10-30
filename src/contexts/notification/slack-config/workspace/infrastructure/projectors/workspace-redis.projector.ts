@@ -32,14 +32,12 @@ import {
 import { RedisPipelineBuilder } from 'src/shared/infrastructure/projections/redis-pipeline-builder';
 import { RedisClusterUtils } from 'src/shared/infrastructure/projections/redis-scripts';
 import { ProjectionOutcome } from 'src/shared/infrastructure/projections/event-pipeline-processor';
-
 import { APP_LOGGER, Log, Logger } from 'src/shared/logging';
 import { Clock, CLOCK } from 'src/shared/infrastructure/time';
 import { withContext } from 'src/shared/errors';
 import { CacheService } from 'src/shared/application/caching/cache.service';
 import { SLACK_CONFIG_DI_TOKENS } from '../../../slack-config.constants';
 import { NotificationSlackProjectorConfig } from '../../../projector.config';
-
 import { WorkspaceProjectionKeys } from '../../workspace-projection-keys';
 import { WorkspaceFieldValidatorUtil } from '../utilities/workspace-field-validator.util';
 import { DetailWorkspaceResponse } from '../../application/dtos';
@@ -157,7 +155,7 @@ export class WorkspaceProjector
       });
       const runOptions: RunOptions = {
         prefixes: [WorkspaceProjectionKeys.getEventStoreStreamPrefix()],
-        batchSize: 1,
+        batchSize: 100,
         stopOnCaughtUp: false,
         maxRetries: 3,
         retryDelayMs: 1000,

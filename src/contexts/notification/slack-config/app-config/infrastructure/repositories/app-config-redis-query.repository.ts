@@ -239,7 +239,7 @@ export class AppConfigQueryRepository implements IAppConfigQuery {
    * Generate tenant index key for pagination and sorting using centralized keys
    */
   private generateTenantIndexKey(tenantId: string): string {
-    return AppConfigProjectionKeys.getRedisTenantIndexKey(tenantId);
+    return AppConfigProjectionKeys.getRedisAppConfigIndexKey(tenantId);
   }
 
   /**

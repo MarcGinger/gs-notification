@@ -16,7 +16,7 @@ export class AppConfigProjectionKeys {
 
   /**
    * Get EventStore stream prefix for individual streams
-   * Format: <boundedContext>.<aggregate>.<version>
+   * Format: <serviceName>.<aggregate>.<version>
    * Example: slack-config.app-config.v1
    */
   static getEventStoreStreamPrefix(): string {
@@ -83,48 +83,93 @@ export class AppConfigProjectionKeys {
   }
 
   // Redis projection key patterns
-  static readonly REDIS_KEY_PREFIX = 'notification:app-config-projector';
-  static readonly REDIS_INDEX_PREFIX = 'notification:app-config-index';
+  static readonly REDIS_KEY_PREFIX = 'notification.slack';
+  static readonly REDIS_VERSION = 'v1';
   static readonly PROJECTOR_NAME = 'app-config-projector';
   static readonly SUBSCRIPTION_GROUP = 'app-config-projection';
 
+  // ⚠️ IMPORTANT: Cache optimization keys use different format
+  // The CacheOptimizationUtils class uses notification.slack:pp:ver:{tenant}:app-config:{appConfigId}
+  // for version hints. These are NOT migrated and serve different purposes:
+  // - Business keys (this class): Human-readable, descriptive, versioned
+  // - Cache keys (CacheOptimizationUtils): Compact, performance-optimized, module-namespaced
+  // See docs/REDIS_KEY_ARCHITECTURE.md for complete explanation
+
   /**
    * Get Redis key for app-config projection with cluster-safe hash tags
-   * Format: notification:app-config-projector:{tenantId}:app-config:{code}
+   * Format: notification.slack:v1:{tenantId}:app-config:{appConfigId}
    */
-  static getRedisAppConfigKey(tenantId: string, code: string): string {
-    return `${this.REDIS_KEY_PREFIX}:{${tenantId}}:app-config:${code}`;
+  static getRedisAppConfigKey(tenantId: string, appConfigId: string): string {
+    return `${this.REDIS_KEY_PREFIX}:${this.REDIS_VERSION}:{${tenantId}}:app-config:${appConfigId}`;
   }
 
   /**
-   * Get Redis key for tenant-based app-config index with cluster-safe hash tags
-   * Format: notification:app-config-projector:{tenantId}:app-config-index
+   * Get Redis key for app-config index with cluster-safe hash tags
+   * Format: notification.slack:v1:{tenantId}:idx:app-config:list
    */
-  static getRedisTenantIndexKey(tenantId: string): string {
-    return `${this.REDIS_KEY_PREFIX}:{${tenantId}}:app-config-index`;
+  static getRedisAppConfigIndexKey(tenantId: string): string {
+    return `${this.REDIS_KEY_PREFIX}:${this.REDIS_VERSION}:{${tenantId}}:idx:app-config:list`;
   }
 
   /**
    * Get Redis key for category-based app-config index with cluster-safe hash tags
-   * Format: notification:app-config-index:{tenantId}:by_category:{category}
+   * Format: notification.slack:v1:{tenantId}:idx:app-config:by-category:{category}
    */
   static getRedisCategoryIndexKey(tenantId: string, category: string): string {
-    return `${this.REDIS_INDEX_PREFIX}:{${tenantId}}:by_category:${category}`;
+    return `${this.REDIS_KEY_PREFIX}:${this.REDIS_VERSION}:{${tenantId}}:idx:app-config:by-category:${category}`;
   }
 
   /**
    * Get Redis key pattern for all app-configs in a tenant
-   * Format: notification:app-config-projector:{tenantId}:app-config:*
+   * Format: notification.slack:v1:{tenantId}:app-config:*
    */
   static getRedisTenantAppConfigPattern(tenantId: string): string {
-    return `${this.REDIS_KEY_PREFIX}:{${tenantId}}:app-config:*`;
+    return `${this.REDIS_KEY_PREFIX}:${this.REDIS_VERSION}:{${tenantId}}:app-config:*`;
   }
 
   /**
    * Get Redis key pattern for all app-config projections
-   * Format: notification:app-config-projector:*
+   * Format: notification.slack:v1:*:app-config:*
    */
   static getRedisAllAppConfigsPattern(): string {
+    return `${this.REDIS_KEY_PREFIX}:${this.REDIS_VERSION}:*:app-config:*`;
+  }
+
+  /**
+   * Get Redis key pattern for all projections in a specific tenant
+   * Format: notification.slack:v1:{tenantId}:*
+   */
+  static getRedisTenantPattern(tenantId: string): string {
+    return `${this.REDIS_KEY_PREFIX}:${this.REDIS_VERSION}:{${tenantId}}:*`;
+  }
+
+  /**
+   * Get Redis key pattern for all slack-config projections
+   * Format: notification.slack:*
+   */
+  static getRedisSlackConfigPattern(): string {
     return `${this.REDIS_KEY_PREFIX}:*`;
+  }
+
+  /**
+   * Get new namespaced cache key format (current format)
+   * Format: notification.slack:pp:ver:{tenantId}:app-config:{appConfigId}
+   */
+  static getNamespacedVersionHintKey(
+    tenantId: string,
+    appConfigId: string,
+  ): string {
+    return `notification.slack:pp:ver:{${tenantId}}:app-config:${appConfigId}`;
+  }
+
+  /**
+   * Get current namespaced key patterns (should not be cleaned up)
+   */
+  static getCurrentKeyPatterns(): string[] {
+    return [
+      'notification.slack:v1:*:app-config:*', // Business data keys
+      'notification.slack:pp:ver:*:app-config:*', // Namespaced version hints
+      'notification.slack:pd:dup:*', // Namespaced dedup keys
+    ];
   }
 }

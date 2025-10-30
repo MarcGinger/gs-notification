@@ -32,13 +32,12 @@ import {
 import { RedisPipelineBuilder } from 'src/shared/infrastructure/projections/redis-pipeline-builder';
 import { RedisClusterUtils } from 'src/shared/infrastructure/projections/redis-scripts';
 import { ProjectionOutcome } from 'src/shared/infrastructure/projections/event-pipeline-processor';
-import { CHECKPOINT_STORE } from 'src/shared/constants/injection-tokens';
 import { APP_LOGGER, Log, Logger } from 'src/shared/logging';
 import { Clock, CLOCK } from 'src/shared/infrastructure/time';
 import { withContext } from 'src/shared/errors';
 import { CacheService } from 'src/shared/application/caching/cache.service';
 import { SLACK_CONFIG_DI_TOKENS } from '../../../slack-config.constants';
-
+import { NotificationSlackProjectorConfig } from '../../../projector.config';
 import { AppConfigProjectionKeys } from '../../app-config-projection-keys';
 import { AppConfigFieldValidatorUtil } from '../utilities/app-config-field-validator.util';
 import { DetailAppConfigResponse } from '../../application/dtos';
@@ -106,7 +105,8 @@ export class AppConfigProjector
     @Inject(CLOCK) private readonly clock: Clock,
     @Inject(SLACK_CONFIG_DI_TOKENS.CATCHUP_RUNNER)
     private readonly catchUpRunner: CatchUpRunner,
-    @Inject(CHECKPOINT_STORE) checkpointStore: CheckpointStore,
+    @Inject(SLACK_CONFIG_DI_TOKENS.CHECKPOINT_STORE)
+    checkpointStore: CheckpointStore,
     @Inject(SLACK_CONFIG_DI_TOKENS.IO_REDIS)
     private readonly redis: Redis,
     @Inject(SLACK_CONFIG_DI_TOKENS.CACHE_SERVICE)
@@ -257,13 +257,15 @@ export class AppConfigProjector
       // ✅ Extract app-config parameters using existing utility
       const params = this.extractAppConfigParams(event, 'project');
 
-      // ✅ Apply version hint deduplication first (app-configion-ready SET NX EX)
+      // ✅ Apply version hint deduplication first (production-ready SET NX EX)
+      const config = NotificationSlackProjectorConfig.getConfig();
       const alreadyProcessed = await CacheOptimizationUtils.checkVersionHint(
         this.redis,
         tenant,
         'app-config',
         params.id.toString(),
         params.version,
+        config.VERSION_KEY_PREFIX,
       );
 
       if (alreadyProcessed) {
@@ -288,7 +290,8 @@ export class AppConfigProjector
         tenant,
         params.id.toString(),
       );
-      const indexKey = AppConfigProjectionKeys.getRedisTenantIndexKey(tenant);
+      const indexKey =
+        AppConfigProjectionKeys.getRedisAppConfigIndexKey(tenant);
 
       // ✅ Validate hash-tag consistency for cluster safety
       RedisClusterUtils.validateHashTagConsistency(entityKey, indexKey);
@@ -339,6 +342,8 @@ export class AppConfigProjector
         'app-config',
         params.id.toString(),
         params.version,
+        undefined, // Use default TTL
+        config.VERSION_KEY_PREFIX,
       );
 
       // ✅ Log observable outcomes for SLO monitoring

@@ -239,7 +239,7 @@ export class ChannelQueryRepository implements IChannelQuery {
    * Generate tenant index key for pagination and sorting using centralized keys
    */
   private generateTenantIndexKey(tenantId: string): string {
-    return ChannelProjectionKeys.getRedisTenantIndexKey(tenantId);
+    return ChannelProjectionKeys.getRedisChannelIndexKey(tenantId);
   }
 
   /**

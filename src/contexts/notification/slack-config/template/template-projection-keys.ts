@@ -16,7 +16,7 @@ export class TemplateProjectionKeys {
 
   /**
    * Get EventStore stream prefix for individual streams
-   * Format: <boundedContext>.<aggregate>.<version>
+   * Format: <serviceName>.<aggregate>.<version>
    * Example: slack-config.template.v1
    */
   static getEventStoreStreamPrefix(): string {
@@ -83,48 +83,93 @@ export class TemplateProjectionKeys {
   }
 
   // Redis projection key patterns
-  static readonly REDIS_KEY_PREFIX = 'notification:template-projector';
-  static readonly REDIS_INDEX_PREFIX = 'notification:template-index';
+  static readonly REDIS_KEY_PREFIX = 'notification.slack';
+  static readonly REDIS_VERSION = 'v1';
   static readonly PROJECTOR_NAME = 'template-projector';
   static readonly SUBSCRIPTION_GROUP = 'template-projection';
 
+  // ⚠️ IMPORTANT: Cache optimization keys use different format
+  // The CacheOptimizationUtils class uses notification.slack:pp:ver:{tenant}:template:{templateId}
+  // for version hints. These are NOT migrated and serve different purposes:
+  // - Business keys (this class): Human-readable, descriptive, versioned
+  // - Cache keys (CacheOptimizationUtils): Compact, performance-optimized, module-namespaced
+  // See docs/REDIS_KEY_ARCHITECTURE.md for complete explanation
+
   /**
    * Get Redis key for template projection with cluster-safe hash tags
-   * Format: notification:template-projector:{tenantId}:template:{code}
+   * Format: notification.slack:v1:{tenantId}:template:{templateId}
    */
-  static getRedisTemplateKey(tenantId: string, code: string): string {
-    return `${this.REDIS_KEY_PREFIX}:{${tenantId}}:template:${code}`;
+  static getRedisTemplateKey(tenantId: string, templateId: string): string {
+    return `${this.REDIS_KEY_PREFIX}:${this.REDIS_VERSION}:{${tenantId}}:template:${templateId}`;
   }
 
   /**
-   * Get Redis key for tenant-based template index with cluster-safe hash tags
-   * Format: notification:template-projector:{tenantId}:template-index
+   * Get Redis key for template index with cluster-safe hash tags
+   * Format: notification.slack:v1:{tenantId}:idx:template:list
    */
-  static getRedisTenantIndexKey(tenantId: string): string {
-    return `${this.REDIS_KEY_PREFIX}:{${tenantId}}:template-index`;
+  static getRedisTemplateIndexKey(tenantId: string): string {
+    return `${this.REDIS_KEY_PREFIX}:${this.REDIS_VERSION}:{${tenantId}}:idx:template:list`;
   }
 
   /**
    * Get Redis key for category-based template index with cluster-safe hash tags
-   * Format: notification:template-index:{tenantId}:by_category:{category}
+   * Format: notification.slack:v1:{tenantId}:idx:template:by-category:{category}
    */
   static getRedisCategoryIndexKey(tenantId: string, category: string): string {
-    return `${this.REDIS_INDEX_PREFIX}:{${tenantId}}:by_category:${category}`;
+    return `${this.REDIS_KEY_PREFIX}:${this.REDIS_VERSION}:{${tenantId}}:idx:template:by-category:${category}`;
   }
 
   /**
    * Get Redis key pattern for all templates in a tenant
-   * Format: notification:template-projector:{tenantId}:template:*
+   * Format: notification.slack:v1:{tenantId}:template:*
    */
   static getRedisTenantTemplatePattern(tenantId: string): string {
-    return `${this.REDIS_KEY_PREFIX}:{${tenantId}}:template:*`;
+    return `${this.REDIS_KEY_PREFIX}:${this.REDIS_VERSION}:{${tenantId}}:template:*`;
   }
 
   /**
    * Get Redis key pattern for all template projections
-   * Format: notification:template-projector:*
+   * Format: notification.slack:v1:*:template:*
    */
   static getRedisAllTemplatesPattern(): string {
+    return `${this.REDIS_KEY_PREFIX}:${this.REDIS_VERSION}:*:template:*`;
+  }
+
+  /**
+   * Get Redis key pattern for all projections in a specific tenant
+   * Format: notification.slack:v1:{tenantId}:*
+   */
+  static getRedisTenantPattern(tenantId: string): string {
+    return `${this.REDIS_KEY_PREFIX}:${this.REDIS_VERSION}:{${tenantId}}:*`;
+  }
+
+  /**
+   * Get Redis key pattern for all slack-config projections
+   * Format: notification.slack:*
+   */
+  static getRedisSlackConfigPattern(): string {
     return `${this.REDIS_KEY_PREFIX}:*`;
+  }
+
+  /**
+   * Get new namespaced cache key format (current format)
+   * Format: notification.slack:pp:ver:{tenantId}:template:{templateId}
+   */
+  static getNamespacedVersionHintKey(
+    tenantId: string,
+    templateId: string,
+  ): string {
+    return `notification.slack:pp:ver:{${tenantId}}:template:${templateId}`;
+  }
+
+  /**
+   * Get current namespaced key patterns (should not be cleaned up)
+   */
+  static getCurrentKeyPatterns(): string[] {
+    return [
+      'notification.slack:v1:*:template:*', // Business data keys
+      'notification.slack:pp:ver:*:template:*', // Namespaced version hints
+      'notification.slack:pd:dup:*', // Namespaced dedup keys
+    ];
   }
 }

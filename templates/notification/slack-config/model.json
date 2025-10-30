@@ -3,6 +3,7 @@
     "name": "notification-slack-config",
     "boundedContext": "notification",
     "application": "slack-config",
+    "moduleName": "notification.slack",
     "version": "1",
     "hasRedis": true,
     "hasSql": true,

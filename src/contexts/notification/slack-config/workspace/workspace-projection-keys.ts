@@ -144,10 +144,10 @@ export class WorkspaceProjectionKeys {
   }
 
   /**
-   * Get Redis key pattern for all slack projections
+   * Get Redis key pattern for all slack-config projections
    * Format: notification.slack:*
    */
-  static getRedisSlackPattern(): string {
+  static getRedisSlackConfigPattern(): string {
     return `${this.REDIS_KEY_PREFIX}:*`;
   }
 

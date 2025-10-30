@@ -14,8 +14,6 @@ import { NotificationSlackConfigModule } from './slack-config/slack-config.modul
  *
  * Applications in this context:
  * - SlackConfig: slack-config application
- * - SlackExecute: slack-execute application
- * - SlackRequest: slack-request application
  */
 @Module({
   imports: [NotificationSlackConfigModule],

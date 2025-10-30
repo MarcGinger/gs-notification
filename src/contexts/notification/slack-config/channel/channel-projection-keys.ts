@@ -16,7 +16,7 @@ export class ChannelProjectionKeys {
 
   /**
    * Get EventStore stream prefix for individual streams
-   * Format: <boundedContext>.<aggregate>.<version>
+   * Format: <serviceName>.<aggregate>.<version>
    * Example: slack-config.channel.v1
    */
   static getEventStoreStreamPrefix(): string {
@@ -83,48 +83,93 @@ export class ChannelProjectionKeys {
   }
 
   // Redis projection key patterns
-  static readonly REDIS_KEY_PREFIX = 'notification:channel-projector';
-  static readonly REDIS_INDEX_PREFIX = 'notification:channel-index';
+  static readonly REDIS_KEY_PREFIX = 'notification.slack';
+  static readonly REDIS_VERSION = 'v1';
   static readonly PROJECTOR_NAME = 'channel-projector';
   static readonly SUBSCRIPTION_GROUP = 'channel-projection';
 
+  // ⚠️ IMPORTANT: Cache optimization keys use different format
+  // The CacheOptimizationUtils class uses notification.slack:pp:ver:{tenant}:channel:{channelId}
+  // for version hints. These are NOT migrated and serve different purposes:
+  // - Business keys (this class): Human-readable, descriptive, versioned
+  // - Cache keys (CacheOptimizationUtils): Compact, performance-optimized, module-namespaced
+  // See docs/REDIS_KEY_ARCHITECTURE.md for complete explanation
+
   /**
    * Get Redis key for channel projection with cluster-safe hash tags
-   * Format: notification:channel-projector:{tenantId}:channel:{code}
+   * Format: notification.slack:v1:{tenantId}:channel:{channelId}
    */
-  static getRedisChannelKey(tenantId: string, code: string): string {
-    return `${this.REDIS_KEY_PREFIX}:{${tenantId}}:channel:${code}`;
+  static getRedisChannelKey(tenantId: string, channelId: string): string {
+    return `${this.REDIS_KEY_PREFIX}:${this.REDIS_VERSION}:{${tenantId}}:channel:${channelId}`;
   }
 
   /**
-   * Get Redis key for tenant-based channel index with cluster-safe hash tags
-   * Format: notification:channel-projector:{tenantId}:channel-index
+   * Get Redis key for channel index with cluster-safe hash tags
+   * Format: notification.slack:v1:{tenantId}:idx:channel:list
    */
-  static getRedisTenantIndexKey(tenantId: string): string {
-    return `${this.REDIS_KEY_PREFIX}:{${tenantId}}:channel-index`;
+  static getRedisChannelIndexKey(tenantId: string): string {
+    return `${this.REDIS_KEY_PREFIX}:${this.REDIS_VERSION}:{${tenantId}}:idx:channel:list`;
   }
 
   /**
    * Get Redis key for category-based channel index with cluster-safe hash tags
-   * Format: notification:channel-index:{tenantId}:by_category:{category}
+   * Format: notification.slack:v1:{tenantId}:idx:channel:by-category:{category}
    */
   static getRedisCategoryIndexKey(tenantId: string, category: string): string {
-    return `${this.REDIS_INDEX_PREFIX}:{${tenantId}}:by_category:${category}`;
+    return `${this.REDIS_KEY_PREFIX}:${this.REDIS_VERSION}:{${tenantId}}:idx:channel:by-category:${category}`;
   }
 
   /**
    * Get Redis key pattern for all channels in a tenant
-   * Format: notification:channel-projector:{tenantId}:channel:*
+   * Format: notification.slack:v1:{tenantId}:channel:*
    */
   static getRedisTenantChannelPattern(tenantId: string): string {
-    return `${this.REDIS_KEY_PREFIX}:{${tenantId}}:channel:*`;
+    return `${this.REDIS_KEY_PREFIX}:${this.REDIS_VERSION}:{${tenantId}}:channel:*`;
   }
 
   /**
    * Get Redis key pattern for all channel projections
-   * Format: notification:channel-projector:*
+   * Format: notification.slack:v1:*:channel:*
    */
   static getRedisAllChannelsPattern(): string {
+    return `${this.REDIS_KEY_PREFIX}:${this.REDIS_VERSION}:*:channel:*`;
+  }
+
+  /**
+   * Get Redis key pattern for all projections in a specific tenant
+   * Format: notification.slack:v1:{tenantId}:*
+   */
+  static getRedisTenantPattern(tenantId: string): string {
+    return `${this.REDIS_KEY_PREFIX}:${this.REDIS_VERSION}:{${tenantId}}:*`;
+  }
+
+  /**
+   * Get Redis key pattern for all slack-config projections
+   * Format: notification.slack:*
+   */
+  static getRedisSlackConfigPattern(): string {
     return `${this.REDIS_KEY_PREFIX}:*`;
+  }
+
+  /**
+   * Get new namespaced cache key format (current format)
+   * Format: notification.slack:pp:ver:{tenantId}:channel:{channelId}
+   */
+  static getNamespacedVersionHintKey(
+    tenantId: string,
+    channelId: string,
+  ): string {
+    return `notification.slack:pp:ver:{${tenantId}}:channel:${channelId}`;
+  }
+
+  /**
+   * Get current namespaced key patterns (should not be cleaned up)
+   */
+  static getCurrentKeyPatterns(): string[] {
+    return [
+      'notification.slack:v1:*:channel:*', // Business data keys
+      'notification.slack:pp:ver:*:channel:*', // Namespaced version hints
+      'notification.slack:pd:dup:*', // Namespaced dedup keys
+    ];
   }
 }

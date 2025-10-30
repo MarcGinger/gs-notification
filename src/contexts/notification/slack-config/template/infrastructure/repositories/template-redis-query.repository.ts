@@ -238,7 +238,7 @@ export class TemplateQueryRepository implements ITemplateQuery {
    * Generate tenant index key for pagination and sorting using centralized keys
    */
   private generateTenantIndexKey(tenantId: string): string {
-    return TemplateProjectionKeys.getRedisTenantIndexKey(tenantId);
+    return TemplateProjectionKeys.getRedisTemplateIndexKey(tenantId);
   }
 
   /**

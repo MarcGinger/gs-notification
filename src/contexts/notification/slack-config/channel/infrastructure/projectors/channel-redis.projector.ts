@@ -32,13 +32,12 @@ import {
 import { RedisPipelineBuilder } from 'src/shared/infrastructure/projections/redis-pipeline-builder';
 import { RedisClusterUtils } from 'src/shared/infrastructure/projections/redis-scripts';
 import { ProjectionOutcome } from 'src/shared/infrastructure/projections/event-pipeline-processor';
-import { CHECKPOINT_STORE } from 'src/shared/constants/injection-tokens';
 import { APP_LOGGER, Log, Logger } from 'src/shared/logging';
 import { Clock, CLOCK } from 'src/shared/infrastructure/time';
 import { withContext } from 'src/shared/errors';
 import { CacheService } from 'src/shared/application/caching/cache.service';
 import { SLACK_CONFIG_DI_TOKENS } from '../../../slack-config.constants';
-
+import { NotificationSlackProjectorConfig } from '../../../projector.config';
 import { ChannelProjectionKeys } from '../../channel-projection-keys';
 import { ChannelFieldValidatorUtil } from '../utilities/channel-field-validator.util';
 import { DetailChannelResponse } from '../../application/dtos';
@@ -106,7 +105,8 @@ export class ChannelProjector
     @Inject(CLOCK) private readonly clock: Clock,
     @Inject(SLACK_CONFIG_DI_TOKENS.CATCHUP_RUNNER)
     private readonly catchUpRunner: CatchUpRunner,
-    @Inject(CHECKPOINT_STORE) checkpointStore: CheckpointStore,
+    @Inject(SLACK_CONFIG_DI_TOKENS.CHECKPOINT_STORE)
+    checkpointStore: CheckpointStore,
     @Inject(SLACK_CONFIG_DI_TOKENS.IO_REDIS)
     private readonly redis: Redis,
     @Inject(SLACK_CONFIG_DI_TOKENS.CACHE_SERVICE)
@@ -257,13 +257,15 @@ export class ChannelProjector
       // ✅ Extract channel parameters using existing utility
       const params = this.extractChannelParams(event, 'project');
 
-      // ✅ Apply version hint deduplication first (channelion-ready SET NX EX)
+      // ✅ Apply version hint deduplication first (production-ready SET NX EX)
+      const config = NotificationSlackProjectorConfig.getConfig();
       const alreadyProcessed = await CacheOptimizationUtils.checkVersionHint(
         this.redis,
         tenant,
         'channel',
         params.id,
         params.version,
+        config.VERSION_KEY_PREFIX,
       );
 
       if (alreadyProcessed) {
@@ -288,7 +290,7 @@ export class ChannelProjector
         tenant,
         params.id,
       );
-      const indexKey = ChannelProjectionKeys.getRedisTenantIndexKey(tenant);
+      const indexKey = ChannelProjectionKeys.getRedisChannelIndexKey(tenant);
 
       // ✅ Validate hash-tag consistency for cluster safety
       RedisClusterUtils.validateHashTagConsistency(entityKey, indexKey);
@@ -339,6 +341,8 @@ export class ChannelProjector
         'channel',
         params.id,
         params.version,
+        undefined, // Use default TTL
+        config.VERSION_KEY_PREFIX,
       );
 
       // ✅ Log observable outcomes for SLO monitoring
