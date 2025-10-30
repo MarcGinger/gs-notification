@@ -74,7 +74,7 @@ export class WorkspaceReaderRepository implements IWorkspaceReader {
    */
   private generateWorkspaceKey(tenantId: string, id: string): string {
     // ✅ Hash-tags ensure key routes to same Redis Cluster slot as projector
-    return `notification:workspace-projector:{${tenantId}}:workspace:${id}`;
+    return `notification.slack:v1:{${tenantId}}:workspace:${id}`;
   }
 
   /**

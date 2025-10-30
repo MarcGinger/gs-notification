@@ -370,7 +370,52 @@
           }
         }
       ],
-      "indexes": [],
+      "indexes": [
+        {
+          "name": "id",
+          "type": "string",
+          "childRelationshipType": "AppConfig",
+          "parentRelationshipType": "",
+          "datatype": "VARCHAR",
+          "primaryKey": true,
+          "required": true,
+          "description": "Unique identifier for the Slack workspace/team, provided by Slack API during OAuth installation. This is the primary key linking all workspace-specific configurations.",
+          "defaultvalue": "",
+          "example": "T01EXAMPLE123",
+          "autoIncrement": false,
+          "maxLength": "64",
+          "array": false,
+          "isPII": "",
+          "parentRelationship": "",
+          "childRelationship": "workspace_channel, workspace_template, workspace_app_config",
+          "meta": {
+            "kind": "string",
+            "maxLength": 64
+          }
+        },
+        {
+          "name": "name",
+          "type": "string",
+          "childRelationshipType": "",
+          "parentRelationshipType": "",
+          "datatype": "VARCHAR",
+          "primaryKey": false,
+          "required": true,
+          "description": "Human-readable display name of the Slack workspace as configured by workspace administrators. Used for identification and logging purposes.",
+          "defaultvalue": "",
+          "example": "Acme Corp Engineering",
+          "autoIncrement": false,
+          "maxLength": "255",
+          "array": false,
+          "isPII": "",
+          "parentRelationship": "",
+          "childRelationship": "",
+          "meta": {
+            "kind": "string",
+            "maxLength": 255
+          }
+        }
+      ],
       "docs": {
         "name": "Workspace",
         "summary": "Configuration for workspace table",

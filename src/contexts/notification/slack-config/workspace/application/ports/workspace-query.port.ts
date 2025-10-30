@@ -5,7 +5,11 @@ import { Result, DomainError } from 'src/shared/errors';
 import { RepositoryOptions } from 'src/shared/infrastructure/repositories';
 import { ActorContext } from 'src/shared/application/context';
 import { Option } from 'src/shared/domain/types';
-import { DetailWorkspaceResponse } from '../dtos';
+import {
+  DetailWorkspaceResponse,
+  WorkspacePageResponse,
+  ListWorkspaceFilterRequest,
+} from '../dtos';
 
 /**
  * Token for injecting IWorkspaceQuery port implementation
@@ -41,4 +45,17 @@ export interface IWorkspaceQuery {
     id: string,
     options?: RepositoryOptions,
   ): Promise<Result<Option<DetailWorkspaceResponse>, DomainError>>;
+
+  /**
+   * Find Workspace records with pagination and filtering.
+   * @param actor - The actor context containing authentication and request metadata.
+   * @param filter - Optional filter criteria for the product search.
+   * @param options - Optional repository options (e.g., pagination, sorting).
+   * @returns A promise resolving to a Result containing paginated Workspace responses or a DomainError.
+   */
+  findPaginated(
+    actor: ActorContext,
+    filter?: ListWorkspaceFilterRequest,
+    options?: RepositoryOptions,
+  ): Promise<Result<WorkspacePageResponse, DomainError>>;
 }

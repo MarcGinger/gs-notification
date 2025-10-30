@@ -12,11 +12,16 @@ import { TimeModule } from 'src/shared/infrastructure/time';
 import {
   IO_REDIS,
   CACHE_SERVICE,
-  CHECKPOINT_STORE,
   DATA_SOURCE,
-  CATCHUP_RUNNER,
 } from 'src/shared/constants/injection-tokens';
+import { EventStoreService } from 'src/shared/infrastructure/eventstore/eventstore.service';
 import { SLACK_CONFIG_DI_TOKENS } from '../slack-config.constants';
+import { NotificationSlackProjectorConfig } from '../projector.config';
+import { AppConfigUtil } from 'src/shared/config';
+import { APP_LOGGER, type Logger } from 'src/shared/logging';
+import { CatchUpRunner } from 'src/shared/infrastructure/projections/catchup.runner';
+import type { Redis } from 'ioredis';
+import type { CheckpointStore } from 'src/shared/infrastructure/projections/checkpoint.store';
 
 import { TemplateProjector } from './infrastructure/projectors';
 import { TemplateProjectorHealthController } from './interface/http/controllers';
@@ -47,7 +52,13 @@ import { TemplateProjectorHealthController } from './interface/http/controllers'
     },
     {
       provide: SLACK_CONFIG_DI_TOKENS.CHECKPOINT_STORE, // 'SlackConfigCheckpointStore'
-      useExisting: CHECKPOINT_STORE, // 'CHECKPOINT_STORE'
+      inject: [IO_REDIS, APP_LOGGER],
+      useFactory: (redis: Redis, logger: Logger) => {
+        const envPrefix = `${AppConfigUtil.getEnvironment()}:`;
+        const factory =
+          NotificationSlackProjectorConfig.createCheckpointStoreFactory();
+        return factory(redis, logger, envPrefix);
+      },
     },
     {
       provide: SLACK_CONFIG_DI_TOKENS.CACHE_SERVICE, // 'SlackConfigCacheService'
@@ -55,7 +66,18 @@ import { TemplateProjectorHealthController } from './interface/http/controllers'
     },
     {
       provide: SLACK_CONFIG_DI_TOKENS.CATCHUP_RUNNER, // 'SlackConfigCatchupRunner'
-      useExisting: CATCHUP_RUNNER, // 'CATCHUP_RUNNER'
+      inject: [
+        EventStoreService,
+        SLACK_CONFIG_DI_TOKENS.CHECKPOINT_STORE,
+        APP_LOGGER,
+      ],
+      useFactory: (
+        eventStoreService: EventStoreService,
+        checkpointStore: CheckpointStore,
+        logger: Logger,
+      ) => {
+        return new CatchUpRunner(eventStoreService, checkpointStore, logger);
+      },
     },
     TemplateProjector,
   ],

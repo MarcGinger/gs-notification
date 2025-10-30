@@ -4,6 +4,7 @@
 import {
   Controller,
   Get,
+  Query,
   Post,
   Body,
   Put,
@@ -32,8 +33,12 @@ import {
   DetailWorkspaceResponse,
   CreateWorkspaceRequest,
   UpdateWorkspaceRequest,
+  WorkspacePageResponse,
+  ListWorkspaceFilterRequest,
+  ListWorkspaceResponse,
 } from '../../../application/dtos';
 import { Result, ResultInterceptor, DomainError } from 'src/shared/errors';
+import { PaginatedResponse } from 'src/shared/application/dtos';
 import {
   WorkspaceReadResource,
   WorkspaceCreateResource,
@@ -50,6 +55,29 @@ export class WorkspaceController {
   constructor(
     private readonly workspaceApplicationService: WorkspaceApplicationService,
   ) {}
+
+  @Get()
+  @WorkspaceReadResource()
+  @ApiOperation({
+    summary: 'List Workspaces',
+    description:
+      'Retrieves a list of Workspaces with optional filtering. Supports pagination and filtering by name or category. Requires READ permission (LOW risk).',
+  })
+  @ApiOkResponse({
+    description: 'List of Workspaces retrieved successfully',
+    type: WorkspacePageResponse,
+  })
+  @ApiCommonErrors()
+  async list(
+    @CurrentUser() user: IUserToken,
+    @Query() pageRequest?: ListWorkspaceFilterRequest,
+  ): Promise<Result<PaginatedResponse<ListWorkspaceResponse>, DomainError>> {
+    const result = await this.workspaceApplicationService.listWorkspaces(
+      user,
+      pageRequest,
+    );
+    return result;
+  }
 
   @Get(':id')
   @WorkspaceReadResource()

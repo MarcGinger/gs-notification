@@ -21,7 +21,13 @@ import { RepositoryErrorFactory } from 'src/shared/domain/errors/repository.erro
 import { CacheMetricsCollector } from 'src/shared/infrastructure/projections/cache-optimization';
 import { SLACK_CONFIG_DI_TOKENS } from '../../../slack-config.constants';
 import { WorkspaceProjectionKeys } from '../../workspace-projection-keys';
-import { DetailWorkspaceResponse } from '../../application/dtos';
+import {
+  DetailWorkspaceResponse,
+  WorkspacePageResponse,
+  ListWorkspaceFilterRequest,
+  ListWorkspaceResponse,
+} from '../../application/dtos';
+import { PaginationMetaResponse } from 'src/shared/application/dtos';
 import { IWorkspaceQuery } from '../../application/ports';
 
 /**
@@ -288,6 +294,93 @@ export class WorkspaceQueryRepository implements IWorkspaceQuery {
       return null;
     }
   }
+
+  /**
+   * Transform Workspace CacheData to ListWorkspaceResponse DTO
+   */
+  private toListResponse(workspace: WorkspaceCacheData): ListWorkspaceResponse {
+    return {
+      id: workspace.id,
+      name: workspace.name,
+      botToken: workspace.botToken,
+      signingSecret: workspace.signingSecret,
+      appId: workspace.appId,
+      botUserId: workspace.botUserId,
+      defaultChannelId: workspace.defaultChannelId,
+      enabled: workspace.enabled,
+    } as ListWorkspaceResponse;
+  }
+
+  /**
+   * Apply filters to workspace data using Redis pattern matching and client-side filtering
+   */
+  private matchesFilter(
+    workspace: WorkspaceCacheData,
+    filter?: ListWorkspaceFilterRequest,
+  ): boolean {
+    if (!filter) return true;
+
+    // Filter by name (partial match)
+    if (filter.id) {
+      if (!workspace.id.toLowerCase().includes(filter.id.toLowerCase())) {
+        return false;
+      }
+    }
+    // Filter by name (partial match)
+    if (filter.name) {
+      if (!workspace.name.toLowerCase().includes(filter.name.toLowerCase())) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  /**
+   * Sort workspaces based on sort criteria
+   */
+  private sortWorkspaces(
+    workspaces: WorkspaceCacheData[],
+    sortBy?: Record<string, string>,
+  ): WorkspaceCacheData[] {
+    if (!sortBy || Object.keys(sortBy).length === 0) {
+      // No sorting criteria provided, return as-is
+      return workspaces;
+    }
+
+    return workspaces.sort((a, b) => {
+      for (const [field, direction] of Object.entries(sortBy)) {
+        let aVal: number | Date | string;
+        let bVal: number | Date | string;
+
+        switch (field) {
+          case 'id':
+            aVal = a.id;
+            bVal = b.id;
+            break;
+          case 'name':
+            aVal = a.name;
+            bVal = b.name;
+            break;
+          case 'createdAt':
+            aVal = a.createdAt;
+            bVal = b.createdAt;
+            break;
+          case 'updatedAt':
+            aVal = a.updatedAt;
+            bVal = b.updatedAt;
+            break;
+          default:
+            continue;
+        }
+
+        if (aVal === bVal) continue;
+
+        const comparison = aVal < bVal ? -1 : 1;
+        return direction?.toLowerCase() === 'desc' ? -comparison : comparison;
+      }
+      return 0;
+    });
+  }
   /**
    * Helper to create consistent logging context using shared utilities
    */
@@ -305,5 +398,218 @@ export class WorkspaceQueryRepository implements IWorkspaceQuery {
       actor,
       additionalContext,
     );
+  }
+
+  /**
+   * Find Workspace records with pagination and filtering using Redis projections.
+   *
+   * Leverages the established Redis patterns from WorkspaceProjector and WorkspaceReaderRepository
+   * with cluster-safe keys and production-ready caching.
+   *
+   * Features:
+   * - Cluster-safe Redis keys with hash tags for co-location
+   * - Client-side filtering for id patterns and name search
+   * - Efficient in-memory sorting with configurable directions
+   * - Pagination with total count calculation
+   * - Tenant isolation using Redis key patterns
+   * - Comprehensive logging and error handling
+   * - Production-ready metrics collection
+   *
+   * @param actor - The actor context containing authentication and request metadata.
+   * @param filter - Optional filter criteria for the workspace search.
+   * @param options - Optional repository options (e.g., pagination, sorting).
+   * @returns A promise resolving to a Result containing paginated Workspace responses or a DomainError.
+   */
+  async findPaginated(
+    actor: ActorContext,
+    filter?: ListWorkspaceFilterRequest,
+    options?: RepositoryOptions,
+  ): Promise<Result<WorkspacePageResponse, DomainError>> {
+    const operation = 'findPaginated';
+    const correlationId =
+      options?.correlationId ??
+      CorrelationUtil.generateForOperation('workspace-query-paginated');
+
+    const logContext = this.createLogContext(operation, correlationId, actor, {
+      filterId: filter?.id,
+      filterName: filter?.name,
+      page: filter?.page,
+      size: filter?.size,
+      sortBy: filter?.sortBy,
+      dataSource: 'redis-projector',
+    });
+
+    // Validate actor context with enhanced security logging
+    const validation = RepositoryLoggingUtil.validateActorContext(
+      this.logger,
+      actor,
+      logContext,
+    );
+    if (!validation.ok) return err(validation.error);
+
+    // Guard tenant explicitly
+    if (!actor.tenantId) {
+      return err(
+        RepositoryErrorFactory.validationError('tenantId', 'Missing tenant id'),
+      );
+    }
+
+    // Log successful authorization
+    RepositoryLoggingUtil.logAuthorizationSuccess(
+      this.logger,
+      operation,
+      logContext,
+      {
+        operationType: 'workspace_query_paginated',
+        scope: 'redis_projection_search',
+        tenantId: actor.tenantId,
+      },
+    );
+
+    try {
+      const page = filter?.page ?? 1;
+      const size = Math.min(filter?.size ?? 20, 100); // Cap at 100 items per page
+
+      Log.debug(this.logger, 'Scanning Redis for tenant workspaces', {
+        ...logContext,
+        queryDetails: {
+          scope: 'redis_scan',
+          method: 'redis.scan',
+          pattern: `workspace-projector:{${actor.tenantId}}:workspace:*`,
+          clusterSafe: true,
+        },
+      });
+
+      // Use Redis SCAN to find all workspace keys for the tenant
+      const pattern = `workspace-projector:{${actor.tenantId}}:workspace:*`;
+      const workspaceKeys: string[] = [];
+      const scanIterator = this.redis.scanStream({
+        match: pattern,
+        count: 1000, // Batch size for scanning
+      });
+
+      for await (const keys of scanIterator) {
+        workspaceKeys.push(...(keys as string[]));
+      }
+
+      if (workspaceKeys.length === 0) {
+        // No workspaces found for tenant
+        const meta = new PaginationMetaResponse({
+          page,
+          size,
+          totalItems: 0,
+          totalPages: 0,
+          hasNextPage: false,
+          hasPreviousPage: false,
+        });
+
+        const response = WorkspacePageResponse.create([], meta);
+
+        Log.debug(this.logger, 'No workspaces found for tenant', {
+          ...logContext,
+          totalItems: 0,
+        });
+
+        return ok(response);
+      }
+
+      // Batch fetch all workspace hashes using pipeline for efficiency
+      const pipeline = this.redis.pipeline();
+      workspaceKeys.forEach((key) => {
+        pipeline.hgetall(key);
+      });
+
+      const results = await pipeline.exec();
+
+      if (!results) {
+        throw new Error('Redis pipeline execution failed');
+      }
+
+      // Parse all workspaces from Redis hashes
+      const allWorkspaces: WorkspaceCacheData[] = [];
+      for (let i = 0; i < results.length; i++) {
+        const [error, hashData] = results[i];
+        if (!error && hashData) {
+          const workspace = this.parseRedisHashToWorkspace(
+            hashData as Record<string, string>,
+          );
+          if (workspace) {
+            allWorkspaces.push(workspace);
+          }
+        }
+      }
+
+      // Apply client-side filtering
+      const filteredWorkspaces = allWorkspaces.filter((workspace) =>
+        this.matchesFilter(workspace, filter),
+      );
+
+      // Apply client-side sorting
+      const sortedWorkspaces = this.sortWorkspaces(
+        filteredWorkspaces,
+        filter?.sortBy,
+      );
+
+      // Calculate pagination metadata
+      const totalItems = sortedWorkspaces.length;
+      const totalPages = Math.ceil(totalItems / size);
+      const hasNextPage = page < totalPages;
+      const hasPreviousPage = page > 1;
+
+      // Apply pagination
+      const startIndex = (page - 1) * size;
+      const endIndex = startIndex + size;
+      const paginatedWorkspaces = sortedWorkspaces.slice(startIndex, endIndex);
+
+      // Transform to DTOs
+      const workspaceResponses = paginatedWorkspaces.map((workspace) =>
+        this.toListResponse(workspace),
+      );
+
+      const meta = new PaginationMetaResponse({
+        page,
+        size,
+        totalItems,
+        totalPages,
+        hasNextPage,
+        hasPreviousPage,
+      });
+
+      const response = WorkspacePageResponse.create(workspaceResponses, meta);
+
+      // Log successful query metrics
+      RepositoryLoggingUtil.logQueryMetrics(
+        this.logger,
+        operation,
+        logContext,
+        {
+          resultCount: paginatedWorkspaces.length,
+          dataQuality: paginatedWorkspaces.length > 0 ? 'good' : 'empty',
+          sampleData: {
+            totalItems,
+            totalKeysScanned: workspaceKeys.length,
+            filteredCount: filteredWorkspaces.length,
+            page,
+            size,
+            hasFilters: !!(filter?.id || filter?.name),
+            sortFields: Object.keys(filter?.sortBy ?? {}),
+          },
+        },
+      );
+
+      return ok(response);
+    } catch (error) {
+      // Log operation error using shared utility
+      RepositoryLoggingUtil.logOperationError(
+        this.logger,
+        operation,
+        logContext,
+        error as Error,
+        'HIGH',
+      );
+
+      // Handle and return the classified error using shared utility
+      return handleRepositoryError(error);
+    }
   }
 }

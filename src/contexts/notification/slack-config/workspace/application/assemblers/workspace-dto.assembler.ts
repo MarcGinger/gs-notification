@@ -2,7 +2,7 @@
 // REMOVE THIS COMMENT TO STOP AUTOMATIC UPDATES TO THIS BLOCK
 
 import { WorkspaceDomainState } from '../../domain/state';
-import { DetailWorkspaceResponse } from '../dtos';
+import { DetailWorkspaceResponse, ListWorkspaceResponse } from '../dtos';
 
 /**
  * Workspace DTO Assembler
@@ -39,6 +39,43 @@ export class WorkspaceDtoAssembler {
 
     return dto;
   }
+
+  /**
+   * Convert WorkspaceDomainState to list response DTO
+   *
+   * @param domainState - Rich domain state with VOs
+   * @returns Clean DTO for list API response
+   */
+  static toListResponse(
+    domainState: WorkspaceDomainState,
+  ): ListWorkspaceResponse {
+    const dto = new ListWorkspaceResponse();
+
+    // Extract primitive values from VOs
+    dto.id = domainState.id.value;
+    dto.name = domainState.name.value;
+    dto.botToken = domainState.botToken?.value;
+    dto.signingSecret = domainState.signingSecret?.value;
+    dto.appId = domainState.appId?.value;
+    dto.botUserId = domainState.botUserId?.value;
+    dto.defaultChannelId = domainState.defaultChannelId?.value;
+    dto.enabled = domainState.enabled.value;
+
+    return dto;
+  }
+
+  /**
+   * Convert array of WorkspaceDomainState to array of list DTOs
+   *
+   * @param domainStates - Array of rich domain states
+   * @returns Array of clean DTOs for list API response
+   */
+  static toListResponseArray(
+    domainStates: WorkspaceDomainState[],
+  ): ListWorkspaceResponse[] {
+    return domainStates.map((domainState) => this.toListResponse(domainState));
+  }
+
   /**
    * Convert array of WorkspaceDomainState to array of detail DTOs
    *

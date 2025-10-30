@@ -26,7 +26,11 @@ import type {
   CreateWorkspaceProps,
   UpdateWorkspaceProps,
 } from '../../domain/props';
-import { DetailWorkspaceResponse } from '../dtos';
+import {
+  DetailWorkspaceResponse,
+  ListWorkspaceFilterRequest,
+  WorkspacePageResponse,
+} from '../dtos';
 
 // Application layer
 import { WorkspaceAuthorizationService } from './workspace-authorization.service';
@@ -36,6 +40,7 @@ import { WorkspaceAuthContext } from '../types/workspace-auth-context';
 import {
   IUpsertWorkspaceUseCase,
   IGetWorkspaceUseCase,
+  IListWorkspaceUseCase,
 } from '../use-cases/contracts';
 
 /**
@@ -49,6 +54,7 @@ export class WorkspaceApplicationService {
     private readonly workspaceAuthorizationService: WorkspaceAuthorizationService,
     private readonly upsertWorkspaceUseCase: IUpsertWorkspaceUseCase,
     private readonly getWorkspaceUseCase: IGetWorkspaceUseCase,
+    private readonly listWorkspaceUseCase: IListWorkspaceUseCase,
     @Inject(CLOCK) private readonly clock: Clock,
     @Inject(APP_LOGGER) moduleLogger: Logger,
   ) {
@@ -330,6 +336,45 @@ export class WorkspaceApplicationService {
           correlationId: CorrelationUtil.generateForOperation('workspace-read'),
         }),
       logContext: { id: validatedid },
+    });
+  }
+
+  /**
+   * List workspaces with authorization and pagination
+   */
+  async listWorkspaces(
+    user: IUserToken,
+    filter?: ListWorkspaceFilterRequest,
+  ): Promise<Result<WorkspacePageResponse, DomainError>> {
+    const authContext = this.createAuthContext(user, 'list');
+    const correlationId =
+      CorrelationUtil.generateForOperation('workspace-list');
+
+    // Ensure we always have a proper filter object
+    const safeFilter = filter || new ListWorkspaceFilterRequest();
+
+    return this.authorizeThenExecute<WorkspacePageResponse>({
+      operation: 'read', // List is a form of read operation
+      user,
+      correlationIdPrefix: 'workspace-list',
+      doAuthorize: () =>
+        this.workspaceAuthorizationService.canReadWorkspace(
+          user.sub,
+          'list', // Use 'list' as a special id for list operations
+          correlationId,
+          authContext,
+        ),
+      doExecute: () =>
+        this.listWorkspaceUseCase.execute({
+          user,
+          filter: safeFilter,
+          correlationId,
+        }),
+      logContext: {
+        operation: 'list_workspaces',
+        pageSize: safeFilter.size,
+        page: safeFilter.page,
+      },
     });
   }
 }

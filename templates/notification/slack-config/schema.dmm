@@ -195,7 +195,44 @@
 					]
 				}
 			],
-			"indexes": [],
+			"indexes": [
+				{
+					"id": "fe43a53c-7498-4f16-80e3-fd4839b600b9",
+					"name": "workspace_ix_id",
+					"unique": false,
+					"fulltext": false,
+					"using": "na",
+					"algorithm": "na",
+					"lockoption": "na",
+					"cols": [
+						{
+							"id": "75c79d7b-c475-49d8-bd3c-26e1bb60058f",
+							"colid": "da5d4788-4185-4bb4-9b78-dee1102fd58b",
+							"mariadb": {
+								"desc": false
+							}
+						}
+					]
+				},
+				{
+					"id": "e5b42b6b-7a15-4cbe-8ea9-4f1eaa30a750",
+					"name": "workspace_ix_name",
+					"unique": false,
+					"fulltext": false,
+					"using": "na",
+					"algorithm": "na",
+					"lockoption": "na",
+					"cols": [
+						{
+							"id": "99835e1f-e15e-4d1f-b102-79ff66a4951a",
+							"colid": "f1a2b3c4-d5e6-7f8g-9h0i-1j2k3l4m5n6o",
+							"mariadb": {
+								"desc": false
+							}
+						}
+					]
+				}
+			],
 			"embeddable": false,
 			"generate": true,
 			"generateCustomCode": true,
@@ -962,7 +999,7 @@
 		},
 		"type": "MARIADB",
 		"version": 1,
-		"lastSaved": 1761772705145,
+		"lastSaved": 1761775622914,
 		"beforeScript": "",
 		"afterScript": "",
 		"sqlSettings": {
@@ -994,8 +1031,8 @@
 			"includeCreationSql": "no"
 		},
 		"laststoredin": {
-			"major": 10,
-			"minor": 1,
+			"major": 12,
+			"minor": 2,
 			"extra": 0
 		}
 	},
@@ -1010,8 +1047,8 @@
 					"referencedItemId": "cd5f87d5-b86c-47eb-8bd6-6699ed90dc28",
 					"x": 45,
 					"y": 281,
-					"gHeight": 171,
-					"gWidth": 275,
+					"gHeight": 218,
+					"gWidth": 268,
 					"color": "#ffffff",
 					"background": "#03a9f4",
 					"resized": false,
@@ -1024,7 +1061,7 @@
 					"x": 523,
 					"y": 333,
 					"gHeight": 189,
-					"gWidth": 254,
+					"gWidth": 248,
 					"color": "#ffffff",
 					"background": "#03a9f4",
 					"resized": false,
@@ -1037,7 +1074,7 @@
 					"x": 527,
 					"y": 46,
 					"gHeight": 171,
-					"gWidth": 245,
+					"gWidth": 239,
 					"color": "#ffffff",
 					"background": "#03a9f4",
 					"resized": false,
@@ -1050,7 +1087,7 @@
 					"x": 45,
 					"y": 35,
 					"gHeight": 171,
-					"gWidth": 264,
+					"gWidth": 258,
 					"color": "#ffffff",
 					"background": "#03a9f4",
 					"resized": false,
@@ -1098,7 +1135,12 @@
 			"showRelationshipNames": false,
 			"showLineCaptions": false,
 			"showCustomizations": true,
-			"showExportDimensions": false
+			"showExportDimensions": false,
+			"showLines": true,
+			"showDependencies": true,
+			"showDependencyCaptions": false,
+			"showCompleted": true,
+			"showAnimations": true
 		}
 	},
 	"diagramsOrder": [],

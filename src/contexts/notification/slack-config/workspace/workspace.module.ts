@@ -14,6 +14,8 @@ import {
   UpsertWorkspaceUseCase,
   IGetWorkspaceUseCase,
   GetWorkspaceUseCase,
+  IListWorkspaceUseCase,
+  ListWorkspaceUseCase,
 } from './application/use-cases';
 
 // import { IWorkspaceRepository } from './application/ports';
@@ -62,6 +64,10 @@ import {
     {
       provide: IGetWorkspaceUseCase,
       useClass: GetWorkspaceUseCase,
+    },
+    {
+      provide: IListWorkspaceUseCase,
+      useClass: ListWorkspaceUseCase,
     },
   ],
   exports: [
