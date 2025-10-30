@@ -13,16 +13,20 @@ export class CacheOptimizationUtils {
     tenant: string,
     entityType: string,
     entityId: string,
+    versionKeyPrefix?: string,
   ): string {
-    return `${ProjectorConfig.VERSION_KEY_PREFIX}{${tenant}}:${entityType}:${entityId}`;
+    const prefix = versionKeyPrefix ?? ProjectorConfig.VERSION_KEY_PREFIX;
+    return `${prefix}{${tenant}}:${entityType}:${entityId}`;
   }
 
   static getDedupKey(
     tenant: string,
     streamId: string,
     revision: number,
+    dedupKeyPrefix?: string,
   ): string {
-    return `${ProjectorConfig.DEDUPE_KEY_PREFIX}{${tenant}}:${streamId}:${revision}`;
+    const prefix = dedupKeyPrefix ?? ProjectorConfig.DEDUPE_KEY_PREFIX;
+    return `${prefix}{${tenant}}:${streamId}:${revision}`;
   }
 
   // ✅ SET NX EX - atomic operation, eliminates race condition
@@ -34,8 +38,9 @@ export class CacheOptimizationUtils {
     streamId: string,
     revision: number,
     ttlHours: number = ProjectorConfig.DEDUP_TTL_HOURS,
+    dedupKeyPrefix?: string,
   ): Promise<boolean> {
-    const key = this.getDedupKey(tenant, streamId, revision);
+    const key = this.getDedupKey(tenant, streamId, revision, dedupKeyPrefix);
     const ttlSeconds = ttlHours * 3600;
 
     // ✅ Single atomic operation - no race condition
@@ -51,8 +56,14 @@ export class CacheOptimizationUtils {
     entityType: string,
     entityId: string,
     incomingVersion: number,
+    versionKeyPrefix?: string,
   ): Promise<boolean> {
-    const key = this.getVersionHintKey(tenant, entityType, entityId);
+    const key = this.getVersionHintKey(
+      tenant,
+      entityType,
+      entityId,
+      versionKeyPrefix,
+    );
     const projectedVersion = await redis.get(key);
 
     if (!projectedVersion) {
@@ -73,8 +84,14 @@ export class CacheOptimizationUtils {
     entityId: string,
     version: number,
     ttlSeconds?: number | null,
+    versionKeyPrefix?: string,
   ): Promise<void> {
-    const key = this.getVersionHintKey(tenant, entityType, entityId);
+    const key = this.getVersionHintKey(
+      tenant,
+      entityType,
+      entityId,
+      versionKeyPrefix,
+    );
     const actualTtl = ttlSeconds ?? ProjectorConfig.VERSION_HINT_TTL_SECONDS;
 
     if (actualTtl && actualTtl > 0) {

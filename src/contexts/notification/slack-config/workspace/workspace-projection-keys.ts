@@ -16,7 +16,7 @@ export class WorkspaceProjectionKeys {
 
   /**
    * Get EventStore stream prefix for individual streams
-   * Format: <boundedContext>.<aggregate>.<version>
+   * Format: <serviceName>.<aggregate>.<version>
    * Example: slack-config.workspace.v1
    */
   static getEventStoreStreamPrefix(): string {
@@ -88,6 +88,13 @@ export class WorkspaceProjectionKeys {
   static readonly PROJECTOR_NAME = 'workspace-projector';
   static readonly SUBSCRIPTION_GROUP = 'workspace-projection';
 
+  // ⚠️ IMPORTANT: Cache optimization keys use different format
+  // The CacheOptimizationUtils class uses notification.slack:pp:ver:{tenant}:workspace:{workspaceId}
+  // for version hints. These are NOT migrated and serve different purposes:
+  // - Business keys (this class): Human-readable, descriptive, versioned
+  // - Cache keys (CacheOptimizationUtils): Compact, performance-optimized, module-namespaced
+  // See docs/REDIS_KEY_ARCHITECTURE.md for complete explanation
+
   /**
    * Get Redis key for workspace projection with cluster-safe hash tags
    * Format: notification.slack:v1:{tenantId}:workspace:{workspaceId}
@@ -144,52 +151,25 @@ export class WorkspaceProjectionKeys {
     return `${this.REDIS_KEY_PREFIX}:*`;
   }
 
-  // Migration helpers - for transitioning from old keys to new keys
-
   /**
-   * Get old Redis key format for workspace (for migration purposes)
-   * Format: notification:workspace-projector:{tenantId}:workspace:{workspaceId}
+   * Get new namespaced cache key format (current format)
+   * Format: notification.slack:pp:ver:{tenantId}:workspace:{workspaceId}
    */
-  static getOldRedisWorkspaceKey(
+  static getNamespacedVersionHintKey(
     tenantId: string,
     workspaceId: string,
   ): string {
-    return `notification:workspace-projector:{${tenantId}}:workspace:${workspaceId}`;
+    return `notification.slack:pp:ver:{${tenantId}}:workspace:${workspaceId}`;
   }
 
   /**
-   * Get old Redis key format for workspace index (for migration purposes)
-   * Format: notification:workspace-projector:{tenantId}:workspace-index
+   * Get current namespaced key patterns (should not be cleaned up)
    */
-  static getOldRedisWorkspaceIndexKey(tenantId: string): string {
-    return `notification:workspace-projector:{${tenantId}}:workspace-index`;
-  }
-
-  /**
-   * Get old pp key format (for migration purposes)
-   * Format: pp:{tenantId}:workspace:{workspaceId}
-   */
-  static getOldPpKey(tenantId: string, workspaceId: string): string {
-    return `pp:{${tenantId}}:workspace:${workspaceId}`;
-  }
-
-  /**
-   * Get old version key format (for migration purposes)
-   * Format: ver:{tenantId}:workspace:{workspaceId}
-   */
-  static getOldVersionKey(tenantId: string, workspaceId: string): string {
-    return `ver:{${tenantId}}:workspace:${workspaceId}`;
-  }
-
-  /**
-   * Get all old key patterns for cleanup/migration
-   */
-  static getOldKeyPatterns(): string[] {
+  static getCurrentKeyPatterns(): string[] {
     return [
-      'notification:workspace-projector:*',
-      'notification:workspace-index:*',
-      'pp:*:workspace:*',
-      'ver:*:workspace:*',
+      'notification.slack:v1:*:workspace:*', // Business data keys
+      'notification.slack:pp:ver:*:workspace:*', // Namespaced version hints
+      'notification.slack:pd:dup:*', // Namespaced dedup keys
     ];
   }
 }

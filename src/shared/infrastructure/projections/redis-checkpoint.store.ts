@@ -29,10 +29,20 @@ export class RedisCheckpointStore implements CheckpointStore {
     @Inject(APP_LOGGER) private readonly logger: Logger,
     // Pass env/service to avoid collisions, e.g. 'prod:', 'dev:', etc.
     envPrefix: string = '',
+    // Pass module namespace to avoid collisions, e.g. 'notification.slack'
+    moduleNamespace?: string,
   ) {
     // create component-scoped child logger
     this.logger = componentLogger(this.logger, COMPONENT);
-    this.prefix = `${envPrefix}checkpoint:`; // e.g. 'prod:checkpoint:'
+
+    // Build flat namespaced prefix to avoid Redis hierarchy issues
+    if (moduleNamespace) {
+      // Format: module:checkpoint:env: (flat structure)
+      this.prefix = `${moduleNamespace}:checkpoint:${envPrefix}`; // e.g. 'notification.slack:checkpoint:dev:'
+    } else {
+      // Fallback to original format for backward compatibility
+      this.prefix = `${envPrefix}checkpoint:`; // e.g. 'dev:checkpoint:'
+    }
 
     // Lua script for compare-and-set: only update if incoming commit >= stored commit
     this.casScript = `

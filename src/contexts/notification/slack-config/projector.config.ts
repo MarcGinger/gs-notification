@@ -1,0 +1,88 @@
+// Module-specific projector configuration for notification.slack
+// This provides the namespace configuration for the shared infrastructure
+
+import {
+  ProjectorConfigBuilder,
+  type ProjectorConfigOverrides,
+} from '../../../shared/infrastructure/projections/projector-config';
+import { RedisCheckpointStore } from '../../../shared/infrastructure/projections/redis-checkpoint.store';
+import type { Redis } from 'ioredis';
+import type { Logger } from '../../../shared/logging';
+import { SlackConfigServiceConstants } from './service-constants';
+
+/**
+ * Configuration service for notification.slack projectors
+ * Provides module-namespaced Redis key prefixes to prevent collisions
+ */
+export class NotificationSlackProjectorConfig {
+  /**
+   * Get projector configuration with notification.slack namespace
+   */
+  static getConfig(
+    overrides?: Omit<ProjectorConfigOverrides, 'moduleNamespace'>,
+  ) {
+    return ProjectorConfigBuilder.build({
+      ...overrides,
+      moduleNamespace: SlackConfigServiceConstants.MODULE_NAMESPACE,
+    });
+  }
+
+  /**
+   * Get module namespace for external use
+   */
+  static getModuleNamespace(): string {
+    return SlackConfigServiceConstants.MODULE_NAMESPACE;
+  }
+
+  /**
+   * Create module-namespaced checkpoint store factory
+   */
+  static createCheckpointStoreFactory() {
+    return (redis: Redis, logger: Logger, envPrefix: string = '') => {
+      return new RedisCheckpointStore(
+        redis,
+        logger,
+        envPrefix,
+        SlackConfigServiceConstants.MODULE_NAMESPACE,
+      );
+    };
+  }
+
+  /**
+   * Get namespaced version key prefix
+   */
+  static getVersionKeyPrefix(): string {
+    const config = this.getConfig();
+    return config.VERSION_KEY_PREFIX;
+  }
+
+  /**
+   * Get namespaced dedup key prefix
+   */
+  static getDedupKeyPrefix(): string {
+    const config = this.getConfig();
+    return config.DEDUPE_KEY_PREFIX;
+  }
+
+  /**
+   * Create environment-specific configuration
+   */
+  static forEnvironment(env: 'development' | 'staging' | 'production') {
+    const envOverrides: Omit<ProjectorConfigOverrides, 'moduleNamespace'> = {
+      development: {
+        versionHintTtlSeconds: 60 * 60, // 1 hour
+        dedupTtlHours: 2, // 2 hours
+      },
+      staging: {
+        versionHintTtlSeconds: 24 * 60 * 60, // 1 day
+        dedupTtlHours: 24, // 24 hours
+      },
+      production: {
+        versionHintTtlSeconds: 7 * 24 * 60 * 60, // 7 days
+        dedupTtlHours: 48, // 48 hours
+      },
+    }[env];
+
+    return this.getConfig(envOverrides);
+  }
+}

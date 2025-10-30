@@ -12,6 +12,13 @@
  */
 export class SlackConfigServiceConstants {
   /**
+   * Bounded context identifier for domain separation
+   */
+  static readonly BOUNDED_CONTEXT = 'notification' as const;
+
+  static readonly MODULE_NAMESPACE = 'notification.slack';
+
+  /**
    * Service identifier for the slack-config bounded context
    * Used in event metadata, logging, and service identification
    */
@@ -21,63 +28,4 @@ export class SlackConfigServiceConstants {
    * Service version for compatibility and migration tracking
    */
   static readonly SERVICE_VERSION = '1' as const;
-
-  /**
-   * Bounded context identifier for domain separation
-   */
-  static readonly BOUNDED_CONTEXT = 'notification' as const;
-
-  /**
-   * Default event store category for this service
-   */
-  static readonly EVENT_STORE_CATEGORY = `notification-slack-config` as const;
-
-  /**
-   * Service metadata for event sourcing and monitoring
-   */
-  static getServiceMetadata(): {
-    serviceName: string;
-    serviceVersion: string;
-    boundedContext: string;
-    eventStoreCategory: string;
-  } {
-    return {
-      serviceName: this.SERVICE_NAME,
-      serviceVersion: this.SERVICE_VERSION,
-      boundedContext: this.BOUNDED_CONTEXT,
-      eventStoreCategory: this.EVENT_STORE_CATEGORY,
-    };
-  }
-
-  /**
-   * Create standardized service metadata for event streams
-   */
-  static createEventMetadata(
-    aggregateType: string,
-    correlationId?: string,
-    causationId?: string,
-  ): {
-    service: string;
-    context: string;
-    aggregateType: string;
-    version: string;
-    correlationId?: string;
-    causationId?: string;
-  } {
-    return {
-      service: this.SERVICE_NAME,
-      context: this.BOUNDED_CONTEXT,
-      aggregateType,
-      version: this.SERVICE_VERSION,
-      correlationId,
-      causationId,
-    };
-  }
-
-  /**
-   * Validate if a service name matches this bounded context
-   */
-  static isValidServiceName(serviceName: string): boolean {
-    return serviceName === this.SERVICE_NAME;
-  }
 }

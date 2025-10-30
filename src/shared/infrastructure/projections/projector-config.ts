@@ -10,6 +10,7 @@ export const ProjectorConfig = {
   VERSION_HINT_TTL_SECONDS: 7 * 24 * 60 * 60, // 7 days (null = no TTL)
 
   // ✅ Key Prefixes (centralized schema management)
+  // NOTE: These are base prefixes - modules should provide their namespace
   DEDUPE_KEY_PREFIX: 'pd:dup:', // projector dedup
   VERSION_KEY_PREFIX: 'pp:ver:', // projector projected version
 
@@ -34,9 +35,15 @@ export const ProjectorConfig = {
 
 // ✅ Environment-specific overrides
 export interface ProjectorConfigOverrides {
+  // Module-specific configuration
+  moduleNamespace?: string; // e.g., 'notification.slack', 'user.profile', etc.
+
+  // TTL overrides
   dedupTtlHours?: number;
   deleteTtlSeconds?: number;
   versionHintTtlSeconds?: number | null;
+
+  // Performance overrides
   batchSize?: number;
   maxRetries?: number;
   retryDelayMs?: number;
@@ -45,8 +52,24 @@ export interface ProjectorConfigOverrides {
 // ✅ Configuration builder with environment support
 export class ProjectorConfigBuilder {
   static build(overrides?: ProjectorConfigOverrides) {
+    const moduleNamespace = overrides?.moduleNamespace;
+
+    // Build namespaced key prefixes if module namespace provided
+    const dedupPrefix = moduleNamespace
+      ? `${moduleNamespace}:${ProjectorConfig.DEDUPE_KEY_PREFIX}`
+      : ProjectorConfig.DEDUPE_KEY_PREFIX;
+
+    const versionPrefix = moduleNamespace
+      ? `${moduleNamespace}:${ProjectorConfig.VERSION_KEY_PREFIX}`
+      : ProjectorConfig.VERSION_KEY_PREFIX;
+
     return {
       ...ProjectorConfig,
+      // Namespaced key prefixes
+      DEDUPE_KEY_PREFIX: dedupPrefix,
+      VERSION_KEY_PREFIX: versionPrefix,
+
+      // TTL configurations
       DEDUP_TTL_HOURS:
         overrides?.dedupTtlHours ?? ProjectorConfig.DEDUP_TTL_HOURS,
       DELETE_TTL_SECONDS:
@@ -54,6 +77,8 @@ export class ProjectorConfigBuilder {
       VERSION_HINT_TTL_SECONDS:
         overrides?.versionHintTtlSeconds ??
         ProjectorConfig.VERSION_HINT_TTL_SECONDS,
+
+      // Performance configurations
       DEFAULT_BATCH_SIZE:
         overrides?.batchSize ?? ProjectorConfig.DEFAULT_BATCH_SIZE,
       DEFAULT_MAX_RETRIES:
