@@ -29,10 +29,10 @@ import { NoopAuthorizationService } from 'src/shared/security/noop-authorization
 import { SlackRequestServiceConstants } from './service-constants';
 import { SLACK_REQUEST_DI_TOKENS } from './slack-request.constants';
 
-// Slack Domain Services
+// Slack request Domain Services
 import { SlackRequestPolicyService } from './slack-request-policy.service';
 /**
- * Slack Shared Module
+ * Slack request Shared Module
  *
  * Provides common infrastructure and services for all slack-request domain modules.
  * This module is marked as @Global to avoid re-importing in every domain module.

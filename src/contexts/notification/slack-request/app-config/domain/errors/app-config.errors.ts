@@ -19,14 +19,14 @@ export const AppConfigErrors = {
   APP_CONFIG_ALREADY_EXISTS: {
     code: 'APP_CONFIG.APP_CONFIG_ALREADY_EXISTS',
     title: 'Already Exists',
-    detail: 'App already exists',
+    detail: 'App config already exists',
     category: 'validation',
     retryable: false,
   } as DomainError<'APP_CONFIG.APP_CONFIG_ALREADY_EXISTS', AppConfigContext>,
   APP_CONFIG_FACTORY_CREATION_FAILED: {
     code: 'APP_CONFIG.APP_CONFIG_FACTORY_CREATION_FAILED',
     title: 'Factory Creation Failed',
-    detail: 'Failed to create App using factory.',
+    detail: 'Failed to create App config using factory.',
     category: 'validation',
     retryable: false,
   } as DomainError<
@@ -36,7 +36,7 @@ export const AppConfigErrors = {
   APP_CONFIG_INVARIANT_VIOLATION: {
     code: 'APP_CONFIG.APP_CONFIG_INVARIANT_VIOLATION',
     title: 'Invariant Violation',
-    detail: 'Business invariant violation for App',
+    detail: 'Business invariant violation for App config',
     category: 'validation',
     retryable: false,
   } as DomainError<
@@ -46,14 +46,14 @@ export const AppConfigErrors = {
   APP_CONFIG_NOT_FOUND: {
     code: 'APP_CONFIG.APP_CONFIG_NOT_FOUND',
     title: 'Not Found',
-    detail: 'App not found',
+    detail: 'App config not found',
     category: 'validation',
     retryable: false,
   } as DomainError<'APP_CONFIG.APP_CONFIG_NOT_FOUND', AppConfigContext>,
   APP_CONFIG_UPDATE_FACTORY_FAILED: {
     code: 'APP_CONFIG.APP_CONFIG_UPDATE_FACTORY_FAILED',
     title: 'Update Factory Failed',
-    detail: 'Failed to update App using factory.',
+    detail: 'Failed to update App config using factory.',
     category: 'validation',
     retryable: false,
   } as DomainError<
@@ -63,7 +63,7 @@ export const AppConfigErrors = {
   APP_CONFIG_UPDATE_RECONSTITUTE_FAILED: {
     code: 'APP_CONFIG.APP_CONFIG_UPDATE_RECONSTITUTE_FAILED',
     title: 'Update Reconstitute Failed',
-    detail: 'Failed to reconstitute App from snapshot for update.',
+    detail: 'Failed to reconstitute App config from snapshot for update.',
     category: 'validation',
     retryable: false,
   } as DomainError<
@@ -80,7 +80,7 @@ export const AppConfigErrors = {
   CANNOT_DELETE_APP_CONFIG_WITH_DEPENDENCIES: {
     code: 'APP_CONFIG.CANNOT_DELETE_APP_CONFIG_WITH_DEPENDENCIES',
     title: 'Cannot Delete',
-    detail: 'Cannot delete App with existing dependencies',
+    detail: 'Cannot delete App config with existing dependencies',
     category: 'validation',
     retryable: false,
   } as DomainError<
@@ -90,7 +90,7 @@ export const AppConfigErrors = {
   CONCURRENCY_CONFLICT: {
     code: 'APP_CONFIG.CONCURRENCY_CONFLICT',
     title: 'Concurrency Conflict',
-    detail: 'Concurrency conflict for App',
+    detail: 'Concurrency conflict for App config',
     category: 'validation',
     retryable: false,
   } as DomainError<'APP_CONFIG.CONCURRENCY_CONFLICT', AppConfigContext>,
@@ -104,21 +104,21 @@ export const AppConfigErrors = {
   INVALID_APP_CONFIG_DATA: {
     code: 'APP_CONFIG.INVALID_APP_CONFIG_DATA',
     title: 'Invalid Data',
-    detail: 'Invalid App data provided',
+    detail: 'Invalid App config data provided',
     category: 'validation',
     retryable: false,
   } as DomainError<'APP_CONFIG.INVALID_APP_CONFIG_DATA', AppConfigContext>,
   INVALID_AUDIT_CHANNEL_ID: {
     code: 'APP_CONFIG.INVALID_AUDIT_CHANNEL_ID',
     title: 'Value Required',
-    detail: 'Audit is required for App.',
+    detail: 'Audit channel id is required for App config.',
     category: 'validation',
     retryable: false,
   } as DomainError<'APP_CONFIG.INVALID_AUDIT_CHANNEL_ID', AppConfigContext>,
   INVALID_AUDIT_CHANNEL_ID_DATA: {
     code: 'APP_CONFIG.INVALID_AUDIT_CHANNEL_ID_DATA',
     title: 'Value Required',
-    detail: 'Audit is required for App.',
+    detail: 'Audit channel id is required for App config.',
     category: 'validation',
     retryable: false,
   } as DomainError<
@@ -135,42 +135,42 @@ export const AppConfigErrors = {
   INVALID_DEFAULT_LOCALE: {
     code: 'APP_CONFIG.INVALID_DEFAULT_LOCALE',
     title: 'Value Required',
-    detail: 'Default is required for App.',
+    detail: 'Default locale is required for App config.',
     category: 'validation',
     retryable: false,
   } as DomainError<'APP_CONFIG.INVALID_DEFAULT_LOCALE', AppConfigContext>,
   INVALID_DEFAULT_LOCALE_DATA: {
     code: 'APP_CONFIG.INVALID_DEFAULT_LOCALE_DATA',
     title: 'Value Required',
-    detail: 'Default is required for App.',
+    detail: 'Default locale is required for App config.',
     category: 'validation',
     retryable: false,
   } as DomainError<'APP_CONFIG.INVALID_DEFAULT_LOCALE_DATA', AppConfigContext>,
   INVALID_LOGGING_ENABLED: {
     code: 'APP_CONFIG.INVALID_LOGGING_ENABLED',
     title: 'Value Required',
-    detail: 'Logging is required for App.',
+    detail: 'Logging enabled is required for App config.',
     category: 'validation',
     retryable: false,
   } as DomainError<'APP_CONFIG.INVALID_LOGGING_ENABLED', AppConfigContext>,
   INVALID_LOGGING_ENABLED_DATA: {
     code: 'APP_CONFIG.INVALID_LOGGING_ENABLED_DATA',
     title: 'Value Required',
-    detail: 'Logging is required for App.',
+    detail: 'Logging enabled is required for App config.',
     category: 'validation',
     retryable: false,
   } as DomainError<'APP_CONFIG.INVALID_LOGGING_ENABLED_DATA', AppConfigContext>,
   INVALID_MAX_RETRY_ATTEMPTS: {
     code: 'APP_CONFIG.INVALID_MAX_RETRY_ATTEMPTS',
     title: 'Value Required',
-    detail: 'Max is required for App.',
+    detail: 'Max retry attempts is required for App config.',
     category: 'validation',
     retryable: false,
   } as DomainError<'APP_CONFIG.INVALID_MAX_RETRY_ATTEMPTS', AppConfigContext>,
   INVALID_MAX_RETRY_ATTEMPTS_DATA: {
     code: 'APP_CONFIG.INVALID_MAX_RETRY_ATTEMPTS_DATA',
     title: 'Value Required',
-    detail: 'Max is required for App.',
+    detail: 'Max retry attempts is required for App config.',
     category: 'validation',
     retryable: false,
   } as DomainError<
@@ -180,21 +180,21 @@ export const AppConfigErrors = {
   INVALID_METADATA: {
     code: 'APP_CONFIG.INVALID_METADATA',
     title: 'Value Required',
-    detail: 'Metadata is required for App.',
+    detail: 'Metadata is required for App config.',
     category: 'validation',
     retryable: false,
   } as DomainError<'APP_CONFIG.INVALID_METADATA', AppConfigContext>,
   INVALID_METADATA_DATA: {
     code: 'APP_CONFIG.INVALID_METADATA_DATA',
     title: 'Value Required',
-    detail: 'Metadata is required for App.',
+    detail: 'Metadata is required for App config.',
     category: 'validation',
     retryable: false,
   } as DomainError<'APP_CONFIG.INVALID_METADATA_DATA', AppConfigContext>,
   INVALID_RETRY_BACKOFF_SECONDS: {
     code: 'APP_CONFIG.INVALID_RETRY_BACKOFF_SECONDS',
     title: 'Value Required',
-    detail: 'Retry is required for App.',
+    detail: 'Retry backoff seconds is required for App config.',
     category: 'validation',
     retryable: false,
   } as DomainError<
@@ -204,7 +204,7 @@ export const AppConfigErrors = {
   INVALID_RETRY_BACKOFF_SECONDS_DATA: {
     code: 'APP_CONFIG.INVALID_RETRY_BACKOFF_SECONDS_DATA',
     title: 'Value Required',
-    detail: 'Retry is required for App.',
+    detail: 'Retry backoff seconds is required for App config.',
     category: 'validation',
     retryable: false,
   } as DomainError<
@@ -214,35 +214,35 @@ export const AppConfigErrors = {
   INVALID_WORKSPACE_CODE: {
     code: 'APP_CONFIG.INVALID_WORKSPACE_CODE',
     title: 'Value Required',
-    detail: 'Workspace is required for App.',
+    detail: 'Workspace code is required for App config.',
     category: 'validation',
     retryable: false,
   } as DomainError<'APP_CONFIG.INVALID_WORKSPACE_CODE', AppConfigContext>,
   INVALID_WORKSPACE_CODE_DATA: {
     code: 'APP_CONFIG.INVALID_WORKSPACE_CODE_DATA',
     title: 'Value Required',
-    detail: 'Workspace is required for App.',
+    detail: 'Workspace code is required for App config.',
     category: 'validation',
     retryable: false,
   } as DomainError<'APP_CONFIG.INVALID_WORKSPACE_CODE_DATA', AppConfigContext>,
   NOT_BOOLEAN_LOGGING_ENABLED: {
     code: 'APP_CONFIG.NOT_BOOLEAN_LOGGING_ENABLED',
     title: 'Not a Boolean',
-    detail: 'Logging must be true or false.',
+    detail: 'Logging enabled must be true or false.',
     category: 'validation',
     retryable: false,
   } as DomainError<'APP_CONFIG.NOT_BOOLEAN_LOGGING_ENABLED', AppConfigContext>,
   NOT_IMPLEMENTED: {
     code: 'APP_CONFIG.NOT_IMPLEMENTED',
     title: 'Not Implemented',
-    detail: 'Method not implemented for App.',
+    detail: 'Method not implemented for App config.',
     category: 'validation',
     retryable: false,
   } as DomainError<'APP_CONFIG.NOT_IMPLEMENTED', AppConfigContext>,
   NOT_INTEGER_MAX_RETRY_ATTEMPTS: {
     code: 'APP_CONFIG.NOT_INTEGER_MAX_RETRY_ATTEMPTS',
     title: 'Not an Integer',
-    detail: 'Max must be a whole number.',
+    detail: 'Max retry attempts must be a whole number.',
     category: 'validation',
     retryable: false,
   } as DomainError<
@@ -252,7 +252,7 @@ export const AppConfigErrors = {
   NOT_INTEGER_RETRY_BACKOFF_SECONDS: {
     code: 'APP_CONFIG.NOT_INTEGER_RETRY_BACKOFF_SECONDS',
     title: 'Not an Integer',
-    detail: 'Retry must be a whole number.',
+    detail: 'Retry backoff seconds must be a whole number.',
     category: 'validation',
     retryable: false,
   } as DomainError<
@@ -262,7 +262,7 @@ export const AppConfigErrors = {
   OUT_OF_RANGE_MAX_RETRY_ATTEMPTS: {
     code: 'APP_CONFIG.OUT_OF_RANGE_MAX_RETRY_ATTEMPTS',
     title: 'Value Out of Range',
-    detail: 'Max is outside the allowed range for App.',
+    detail: 'Max retry attempts is outside the allowed range for App config.',
     category: 'validation',
     retryable: false,
   } as DomainError<
@@ -272,7 +272,8 @@ export const AppConfigErrors = {
   OUT_OF_RANGE_RETRY_BACKOFF_SECONDS: {
     code: 'APP_CONFIG.OUT_OF_RANGE_RETRY_BACKOFF_SECONDS',
     title: 'Value Out of Range',
-    detail: 'Retry is outside the allowed range for App.',
+    detail:
+      'Retry backoff seconds is outside the allowed range for App config.',
     category: 'validation',
     retryable: false,
   } as DomainError<

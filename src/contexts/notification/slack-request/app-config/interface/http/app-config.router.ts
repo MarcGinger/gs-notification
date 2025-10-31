@@ -7,7 +7,7 @@ import { AppConfigModule } from '../../app-config.module';
 import { AppConfigProjectorModule } from '../../app-config-projector.module';
 
 /**
- * App Router Configuration
+ * App config Router Configuration
  *
  * Configures nested routing for app-config endpoints to follow
  * the module monolith structure: /notification/slack-request/api/v1/app-configs
@@ -39,7 +39,7 @@ const appConfigRoutes: Routes = [
 ];
 
 /**
- * App Router Module
+ * App config Router Module
  *
  * Provides nested routing configuration for app-config endpoints.
  * This module should be imported in the main app module to enable

@@ -55,12 +55,12 @@ export class MessageRequestController {
   @Get()
   @MessageRequestReadResource()
   @ApiOperation({
-    summary: 'List Messages',
+    summary: 'List Message requests',
     description:
-      'Retrieves a list of Messages with optional filtering. Supports pagination and filtering by name or category. Requires READ permission (LOW risk).',
+      'Retrieves a list of Message requests with optional filtering. Supports pagination and filtering by name or category. Requires READ permission (LOW risk).',
   })
   @ApiOkResponse({
-    description: 'List of Messages retrieved successfully',
+    description: 'List of Message requests retrieved successfully',
     type: MessageRequestPageResponse,
   })
   @ApiCommonErrors()
@@ -81,9 +81,9 @@ export class MessageRequestController {
   @Get(':id')
   @MessageRequestReadResource()
   @ApiOperation({
-    summary: 'Get Message by ID',
+    summary: 'Get Message request by ID',
     description:
-      'Retrieves a single Message by its unique identifier. Requires READ permission (LOW risk).',
+      'Retrieves a single Message request by its unique identifier. Requires READ permission (LOW risk).',
   })
   @ApiParam({
     name: 'id',
@@ -117,9 +117,9 @@ export class MessageRequestController {
   @MessageRequestCreateResource()
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({
-    summary: 'Create a new Message',
+    summary: 'Create a new Message request',
     description:
-      'Creates a new Message in the catalog. Requires CREATE permission (MEDIUM risk).',
+      'Creates a new Message request in the catalog. Requires CREATE permission (MEDIUM risk).',
   })
   @ApiHeader({
     name: 'Idempotency-Key',

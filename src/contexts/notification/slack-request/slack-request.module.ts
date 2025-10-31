@@ -7,15 +7,20 @@ import { Module } from '@nestjs/common';
 import { SlackRequestSharedModule } from './slack-request-shared.module';
 
 // Import all slack-request domain modules
-import { WorkspaceModule } from './workspace/workspace.module';
+import { WorkspaceRouterModule } from './workspace/interface/http/workspace.router';
+
 import { WorkspaceProjectorModule } from './workspace/workspace-projector.module';
-import { ChannelModule } from './channel/channel.module';
+import { ChannelRouterModule } from './channel/interface/http/channel.router';
+
 import { ChannelProjectorModule } from './channel/channel-projector.module';
-import { TemplateModule } from './template/template.module';
+import { TemplateRouterModule } from './template/interface/http/template.router';
+
 import { TemplateProjectorModule } from './template/template-projector.module';
-import { AppConfigModule } from './app-config/app-config.module';
+import { AppConfigRouterModule } from './app-config/interface/http/app-config.router';
+
 import { AppConfigProjectorModule } from './app-config/app-config-projector.module';
 import { MessageRequestRouterModule } from './message-request/interface/http/message-request.router';
+
 import { MessageRequestProjectorModule } from './message-request/message-request-projector.module';
 
 /**
@@ -39,26 +44,26 @@ import { MessageRequestProjectorModule } from './message-request/message-request
   imports: [
     // Shared infrastructure (imported once for all domains)
     SlackRequestSharedModule,
-    WorkspaceModule,
+    WorkspaceRouterModule,
     WorkspaceProjectorModule,
-    ChannelModule,
+    ChannelRouterModule,
     ChannelProjectorModule,
-    TemplateModule,
+    TemplateRouterModule,
     TemplateProjectorModule,
-    AppConfigModule,
+    AppConfigRouterModule,
     AppConfigProjectorModule,
     MessageRequestRouterModule,
     MessageRequestProjectorModule,
   ],
   exports: [
     // Export all modules for potential cross-domain dependencies
-    WorkspaceModule,
+    WorkspaceRouterModule,
     WorkspaceProjectorModule,
-    ChannelModule,
+    ChannelRouterModule,
     ChannelProjectorModule,
-    TemplateModule,
+    TemplateRouterModule,
     TemplateProjectorModule,
-    AppConfigModule,
+    AppConfigRouterModule,
     AppConfigProjectorModule,
     MessageRequestRouterModule,
     MessageRequestProjectorModule,

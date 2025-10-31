@@ -27,7 +27,7 @@ export const MessageRequestErrors = {
   CANNOT_DELETE_MESSAGE_REQUEST_WITH_DEPENDENCIES: {
     code: 'MESSAGE_REQUEST.CANNOT_DELETE_MESSAGE_REQUEST_WITH_DEPENDENCIES',
     title: 'Cannot Delete',
-    detail: 'Cannot delete Message with existing dependencies',
+    detail: 'Cannot delete Message request with existing dependencies',
     category: 'validation',
     retryable: false,
   } as DomainError<
@@ -37,7 +37,7 @@ export const MessageRequestErrors = {
   CONCURRENCY_CONFLICT: {
     code: 'MESSAGE_REQUEST.CONCURRENCY_CONFLICT',
     title: 'Concurrency Conflict',
-    detail: 'Concurrency conflict for Message',
+    detail: 'Concurrency conflict for Message request',
     category: 'validation',
     retryable: false,
   } as DomainError<
@@ -68,7 +68,7 @@ export const MessageRequestErrors = {
   INVALID_CHANNEL_CODE: {
     code: 'MESSAGE_REQUEST.INVALID_CHANNEL_CODE',
     title: 'Value Required',
-    detail: 'Channel is required for Message.',
+    detail: 'Channel code is required for Message request.',
     category: 'validation',
     retryable: false,
   } as DomainError<
@@ -78,7 +78,7 @@ export const MessageRequestErrors = {
   INVALID_CHANNEL_CODE_DATA: {
     code: 'MESSAGE_REQUEST.INVALID_CHANNEL_CODE_DATA',
     title: 'Value Required',
-    detail: 'Channel is required for Message.',
+    detail: 'Channel code is required for Message request.',
     category: 'validation',
     retryable: false,
   } as DomainError<
@@ -95,35 +95,35 @@ export const MessageRequestErrors = {
   INVALID_DATA: {
     code: 'MESSAGE_REQUEST.INVALID_DATA',
     title: 'Value Required',
-    detail: 'Data is required for Message.',
+    detail: 'Data is required for Message request.',
     category: 'validation',
     retryable: false,
   } as DomainError<'MESSAGE_REQUEST.INVALID_DATA', MessageRequestContext>,
   INVALID_DATA_DATA: {
     code: 'MESSAGE_REQUEST.INVALID_DATA_DATA',
     title: 'Value Required',
-    detail: 'Data is required for Message.',
+    detail: 'Data is required for Message request.',
     category: 'validation',
     retryable: false,
   } as DomainError<'MESSAGE_REQUEST.INVALID_DATA_DATA', MessageRequestContext>,
   INVALID_ID: {
     code: 'MESSAGE_REQUEST.INVALID_ID',
     title: 'Value Required',
-    detail: 'Id is required for Message.',
+    detail: 'Id is required for Message request.',
     category: 'validation',
     retryable: false,
   } as DomainError<'MESSAGE_REQUEST.INVALID_ID', MessageRequestContext>,
   INVALID_ID_DATA: {
     code: 'MESSAGE_REQUEST.INVALID_ID_DATA',
     title: 'Value Required',
-    detail: 'Id is required for Message.',
+    detail: 'Id is required for Message request.',
     category: 'validation',
     retryable: false,
   } as DomainError<'MESSAGE_REQUEST.INVALID_ID_DATA', MessageRequestContext>,
   INVALID_MESSAGE_REQUEST_DATA: {
     code: 'MESSAGE_REQUEST.INVALID_MESSAGE_REQUEST_DATA',
     title: 'Invalid Data',
-    detail: 'Invalid Message data provided',
+    detail: 'Invalid Message request data provided',
     category: 'validation',
     retryable: false,
   } as DomainError<
@@ -133,14 +133,14 @@ export const MessageRequestErrors = {
   INVALID_RECIPIENT: {
     code: 'MESSAGE_REQUEST.INVALID_RECIPIENT',
     title: 'Value Required',
-    detail: 'Recipient is required for Message.',
+    detail: 'Recipient is required for Message request.',
     category: 'validation',
     retryable: false,
   } as DomainError<'MESSAGE_REQUEST.INVALID_RECIPIENT', MessageRequestContext>,
   INVALID_RECIPIENT_DATA: {
     code: 'MESSAGE_REQUEST.INVALID_RECIPIENT_DATA',
     title: 'Value Required',
-    detail: 'Recipient is required for Message.',
+    detail: 'Recipient is required for Message request.',
     category: 'validation',
     retryable: false,
   } as DomainError<
@@ -150,14 +150,14 @@ export const MessageRequestErrors = {
   INVALID_STATUS: {
     code: 'MESSAGE_REQUEST.INVALID_STATUS',
     title: 'Value Required',
-    detail: 'Status is required for Message.',
+    detail: 'Status is required for Message request.',
     category: 'validation',
     retryable: false,
   } as DomainError<'MESSAGE_REQUEST.INVALID_STATUS', MessageRequestContext>,
   INVALID_STATUS_DATA: {
     code: 'MESSAGE_REQUEST.INVALID_STATUS_DATA',
     title: 'Value Required',
-    detail: 'Status is required for Message.',
+    detail: 'Status is required for Message request.',
     category: 'validation',
     retryable: false,
   } as DomainError<
@@ -177,7 +177,7 @@ export const MessageRequestErrors = {
   INVALID_TEMPLATE_CODE: {
     code: 'MESSAGE_REQUEST.INVALID_TEMPLATE_CODE',
     title: 'Value Required',
-    detail: 'Template is required for Message.',
+    detail: 'Template code is required for Message request.',
     category: 'validation',
     retryable: false,
   } as DomainError<
@@ -187,7 +187,7 @@ export const MessageRequestErrors = {
   INVALID_TEMPLATE_CODE_DATA: {
     code: 'MESSAGE_REQUEST.INVALID_TEMPLATE_CODE_DATA',
     title: 'Value Required',
-    detail: 'Template is required for Message.',
+    detail: 'Template code is required for Message request.',
     category: 'validation',
     retryable: false,
   } as DomainError<
@@ -197,7 +197,7 @@ export const MessageRequestErrors = {
   INVALID_WORKSPACE_CODE: {
     code: 'MESSAGE_REQUEST.INVALID_WORKSPACE_CODE',
     title: 'Value Required',
-    detail: 'Workspace is required for Message.',
+    detail: 'Workspace code is required for Message request.',
     category: 'validation',
     retryable: false,
   } as DomainError<
@@ -207,7 +207,7 @@ export const MessageRequestErrors = {
   INVALID_WORKSPACE_CODE_DATA: {
     code: 'MESSAGE_REQUEST.INVALID_WORKSPACE_CODE_DATA',
     title: 'Value Required',
-    detail: 'Workspace is required for Message.',
+    detail: 'Workspace code is required for Message request.',
     category: 'validation',
     retryable: false,
   } as DomainError<
@@ -217,7 +217,7 @@ export const MessageRequestErrors = {
   MESSAGE_REQUEST_ALREADY_ACTIVE: {
     code: 'MESSAGE_REQUEST.MESSAGE_REQUEST_ALREADY_ACTIVE',
     title: 'Already Active',
-    detail: 'Status is already active for Message.',
+    detail: 'Status is already active for Message request.',
     category: 'validation',
     retryable: false,
   } as DomainError<
@@ -227,7 +227,7 @@ export const MessageRequestErrors = {
   MESSAGE_REQUEST_ALREADY_EXISTS: {
     code: 'MESSAGE_REQUEST.MESSAGE_REQUEST_ALREADY_EXISTS',
     title: 'Already Exists',
-    detail: 'Message already exists',
+    detail: 'Message request already exists',
     category: 'validation',
     retryable: false,
   } as DomainError<
@@ -237,7 +237,7 @@ export const MessageRequestErrors = {
   MESSAGE_REQUEST_ALREADY_INACTIVE: {
     code: 'MESSAGE_REQUEST.MESSAGE_REQUEST_ALREADY_INACTIVE',
     title: 'Already Inactive',
-    detail: 'Status is already inactive for Message.',
+    detail: 'Status is already inactive for Message request.',
     category: 'validation',
     retryable: false,
   } as DomainError<
@@ -247,7 +247,7 @@ export const MessageRequestErrors = {
   MESSAGE_REQUEST_FACTORY_CREATION_FAILED: {
     code: 'MESSAGE_REQUEST.MESSAGE_REQUEST_FACTORY_CREATION_FAILED',
     title: 'Factory Creation Failed',
-    detail: 'Failed to create Message using factory.',
+    detail: 'Failed to create Message request using factory.',
     category: 'validation',
     retryable: false,
   } as DomainError<
@@ -257,7 +257,7 @@ export const MessageRequestErrors = {
   MESSAGE_REQUEST_INVARIANT_VIOLATION: {
     code: 'MESSAGE_REQUEST.MESSAGE_REQUEST_INVARIANT_VIOLATION',
     title: 'Invariant Violation',
-    detail: 'Business invariant violation for Message',
+    detail: 'Business invariant violation for Message request',
     category: 'validation',
     retryable: false,
   } as DomainError<
@@ -267,7 +267,7 @@ export const MessageRequestErrors = {
   MESSAGE_REQUEST_NOT_FOUND: {
     code: 'MESSAGE_REQUEST.MESSAGE_REQUEST_NOT_FOUND',
     title: 'Not Found',
-    detail: 'Message not found',
+    detail: 'Message request not found',
     category: 'validation',
     retryable: false,
   } as DomainError<
@@ -277,7 +277,7 @@ export const MessageRequestErrors = {
   NOT_IMPLEMENTED: {
     code: 'MESSAGE_REQUEST.NOT_IMPLEMENTED',
     title: 'Not Implemented',
-    detail: 'Method not implemented for Message.',
+    detail: 'Method not implemented for Message request.',
     category: 'validation',
     retryable: false,
   } as DomainError<'MESSAGE_REQUEST.NOT_IMPLEMENTED', MessageRequestContext>,
