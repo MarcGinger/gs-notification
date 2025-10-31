@@ -72,7 +72,7 @@ export function createMessageRequestAggregateFromProps(
     );
   }
 
-  const statusResult = createMessageRequestStatus(props.status);
+  const statusResult = createMessageRequestStatus('requested'); // Default initial status
   if (!statusResult.ok) {
     return err(
       withContext(statusResult.error, {
@@ -80,7 +80,7 @@ export function createMessageRequestAggregateFromProps(
         correlationId: metadata.correlationId,
         userId: metadata.userId,
         operation: 'create_message_request',
-        status: props.status,
+        status: 'requested',
       }),
     );
   }

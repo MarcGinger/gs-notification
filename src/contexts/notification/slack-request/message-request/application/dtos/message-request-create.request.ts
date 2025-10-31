@@ -19,9 +19,6 @@ export class CreateMessageRequestRequest implements CreateMessageRequestProps {
   @ApiMessageRequestData({ required: false })
   data?: Record<string, unknown>;
 
-  @ApiMessageRequestStatus({ required: false })
-  status?: MessageRequestStatusValue;
-
   @ApiMessageRequestWorkspaceCode()
   workspaceCode: string;
 
