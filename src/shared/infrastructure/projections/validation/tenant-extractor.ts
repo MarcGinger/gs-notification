@@ -27,7 +27,7 @@ export class TenantExtractor {
   ): string {
     // PRIMARY STRATEGY: Use standardized actor.tenant (this is the target state)
     if (
-      event.metadata?.tenant &&
+      event.metadata?.actor.tenant &&
       typeof event.metadata.actor.tenant === 'string'
     ) {
       return event.metadata.actor.tenant;

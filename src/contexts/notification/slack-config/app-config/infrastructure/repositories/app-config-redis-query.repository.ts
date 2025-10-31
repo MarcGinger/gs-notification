@@ -442,6 +442,7 @@ export class AppConfigQueryRepository implements IAppConfigQuery {
 
     const logContext = this.createLogContext(operation, correlationId, actor, {
       filterId: filter?.id,
+      filterWorkspaceId: filter?.workspaceId,
       page: filter?.page,
       size: filter?.size,
       sortBy: filter?.sortBy,
@@ -604,7 +605,7 @@ export class AppConfigQueryRepository implements IAppConfigQuery {
             filteredCount: filteredAppConfigs.length,
             page,
             size,
-            hasFilters: !!filter?.id,
+            hasFilters: !!(filter?.id !== undefined || filter?.workspaceId),
             sortFields: Object.keys(filter?.sortBy ?? {}),
           },
         },

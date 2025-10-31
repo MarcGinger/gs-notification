@@ -4,7 +4,7 @@ export interface IUserToken {
   email: string;
   preferred_username?: string;
   tenant: string;
-  tenant_id?: string;
+  tenant_id: string;
   client_id?: string;
   roles: string[];
   permissions?: string[];

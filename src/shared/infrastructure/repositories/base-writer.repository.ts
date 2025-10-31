@@ -101,8 +101,8 @@ export abstract class BaseWriterRepository {
         // Actor context (enhanced with role optimization)
         actor: {
           userId: actor.userId,
-          ...(actor.username && { username: actor.username }),
-          ...(actor.tenant_userId && { tenant: actor.tenant_userId }), // Use tenant consistently
+          tenant: actor.tenant,
+          tenant_userId: actor.tenant_userId,
           ...(actor.roles &&
             actor.roles.length > 0 && {
               roleHash: `sha256:${Buffer.from(actor.roles.sort().join(','))

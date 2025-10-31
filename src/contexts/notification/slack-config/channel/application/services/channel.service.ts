@@ -63,7 +63,7 @@ export class ChannelApplicationService {
     operation: string,
   ): ChannelAuthContext {
     return {
-      tenant: user.tenant_id,
+      tenant: user.tenant,
       roles: user.roles || [],
       operationType: operation,
       metadata: {

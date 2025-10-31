@@ -63,7 +63,8 @@ export class TemplateApplicationService {
     operation: string,
   ): TemplateAuthContext {
     return {
-      tenant: user.tenant_id,
+      tenant: user.tenant,
+      tenant_userId: user.tenant_id || '',
       roles: user.roles || [],
       operationType: operation,
       metadata: {

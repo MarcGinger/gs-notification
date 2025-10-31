@@ -8,6 +8,9 @@ export interface AuthContext {
   /** Tenant ID for multi-tenant authorization */
   tenant?: string;
 
+  /** Tenant-specific User ID for finer-grained access control */
+  tenant_userId?: string;
+
   /** User roles for role-based access control */
   roles?: string[];
 

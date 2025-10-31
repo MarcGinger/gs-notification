@@ -69,7 +69,7 @@ export class AppConfigApplicationService {
     operation: string,
   ): AppConfigAuthContext {
     return {
-      tenant: user.tenant_id,
+      tenant: user.tenant,
       roles: user.roles || [],
       operationType: operation,
       metadata: {
