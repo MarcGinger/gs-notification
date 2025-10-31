@@ -9,7 +9,6 @@ import { AppConfigEntity } from '../entities';
 import { AppConfigSnapshotProps, UpdateAppConfigProps } from '../props';
 import { ValidatedAppConfigUpdateFields } from '../types';
 import {
-  AppConfigWorkspaceCode,
   AppConfigMaxRetryAttempts,
   AppConfigRetryBackoffSeconds,
   AppConfigDefaultLocale,
@@ -59,24 +58,6 @@ export function updateAppConfigAggregateFromSnapshot(
 
   // 2. Validate and apply updates for each provided field
   const validatedFields: ValidatedAppConfigUpdateFields = {};
-
-  // Validate workspaceCode if provided
-  if (updateProps.workspaceCode !== undefined) {
-    const workspaceCodeResult = AppConfigWorkspaceCode.from(
-      updateProps.workspaceCode,
-    );
-    if (!workspaceCodeResult.ok) {
-      return err(
-        withContext(workspaceCodeResult.error, {
-          operation: 'update_app_config_workspace_code_validation',
-          correlationId: metadata.correlationId,
-          userId: metadata.actor?.userId,
-          providedWorkspaceCode: updateProps.workspaceCode,
-        }),
-      );
-    }
-    validatedFields.workspaceCode = workspaceCodeResult.value;
-  }
 
   // Validate maxRetryAttempts if provided
   if (updateProps.maxRetryAttempts !== undefined) {

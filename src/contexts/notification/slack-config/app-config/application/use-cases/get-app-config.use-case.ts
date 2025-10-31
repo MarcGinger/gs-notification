@@ -88,7 +88,7 @@ export class GetAppConfigUseCase implements IGetAppConfigUseCase {
 
   async execute(params: {
     user: IUserToken;
-    tenant: string;
+    workspaceCode: string;
     correlationId: string;
   }): Promise<Result<DetailAppConfigResponse, DomainError>> {
     const operation = 'get_app_config';
@@ -97,7 +97,7 @@ export class GetAppConfigUseCase implements IGetAppConfigUseCase {
 
     // Step 1: Extract raw properties for domain logic (no PII protection at domain level)
     const rawProps = {
-      tenant: params.tenant,
+      workspaceCode: params.workspaceCode,
     };
 
     // Step 2: Create safe logging context (no PII, deferred retention metadata)
@@ -107,7 +107,7 @@ export class GetAppConfigUseCase implements IGetAppConfigUseCase {
       operation,
       params as any, // Query doesn't extend BaseUseCaseCommand but has similar structure
       {
-        appConfigTenant: rawProps.tenant,
+        appConfigWorkspaceCode: rawProps.workspaceCode,
         operationRisk: UseCaseLoggingUtil.assessOperationRisk(operation),
         readOperation: true,
         cacheEnabled: true,
@@ -127,7 +127,7 @@ export class GetAppConfigUseCase implements IGetAppConfigUseCase {
     // Step 1: Check authorization first
     const authResult = await this.authorizationService.canReadResource(
       params.user.sub,
-      params.tenant, // Using tenant as appConfig identifier
+      params.workspaceCode, // Using workspaceCode as appConfig identifier
       correlationId,
       {
         tenant: params.user.tenant,
@@ -154,7 +154,7 @@ export class GetAppConfigUseCase implements IGetAppConfigUseCase {
         category: 'security' as const,
         context: {
           userId: params.user.sub,
-          appConfigTenant: params.tenant,
+          appConfigWorkspaceCode: params.workspaceCode,
           operation: 'read',
         },
       };
@@ -170,16 +170,16 @@ export class GetAppConfigUseCase implements IGetAppConfigUseCase {
 
     // Step 2: Simple validation for query-side operations (CQRS compliant)
     if (
-      !params.tenant ||
-      typeof params.tenant !== 'string' ||
-      params.tenant.trim().length === 0
+      !params.workspaceCode ||
+      typeof params.workspaceCode !== 'string' ||
+      params.workspaceCode.trim().length === 0
     ) {
       const validationError = {
         code: 'APP_CONFIG.INVALID_THE_CODE' as const,
-        title: 'Invalid appConfig tenant',
+        title: 'Invalid appConfig workspaceCode',
         category: 'validation' as const,
         context: {
-          tenant: params.tenant,
+          workspaceCode: params.workspaceCode,
           correlationId,
           userId: params.user.sub,
           operation: 'get_appConfig',
@@ -212,7 +212,7 @@ export class GetAppConfigUseCase implements IGetAppConfigUseCase {
         correlationId,
         userId: params.user.sub,
         operation: 'get_app_config',
-        tenant: params.tenant,
+        workspaceCode: params.workspaceCode,
       });
       UseCaseLoggingUtil.logOperationError(
         this.logger,
@@ -227,7 +227,7 @@ export class GetAppConfigUseCase implements IGetAppConfigUseCase {
 
     const appConfigResult = await this.query.findById(
       actor,
-      params.tenant,
+      params.workspaceCode,
       repositoryOptions,
     );
 
@@ -236,7 +236,7 @@ export class GetAppConfigUseCase implements IGetAppConfigUseCase {
         correlationId,
         userId: params.user.sub,
         operation: 'get_app_config',
-        tenant: params.tenant,
+        workspaceCode: params.workspaceCode,
       });
       UseCaseLoggingUtil.logOperationError(
         this.logger,
@@ -256,13 +256,12 @@ export class GetAppConfigUseCase implements IGetAppConfigUseCase {
     // Step 5.1: Return 404 error if appConfig not found
     if (!appConfigDto) {
       const notFoundError = withContext(AppConfigErrors.APP_CONFIG_NOT_FOUND, {
-        tenant: params.tenant,
-        workspaceCode: '', // Default values for required fields
+        workspaceCode: params.workspaceCode,
         maxRetryAttempts: 0, // Default values for required fields
         retryBackoffSeconds: 0, // Default values for required fields
         defaultLocale: '', // Default values for required fields
         loggingEnabled: false, // Default values for required fields
-        appConfigTenant: params.tenant,
+        appConfigWorkspaceCode: params.workspaceCode,
         correlationId,
         userId: params.user.sub,
         operation: 'get_app_config',
@@ -309,7 +308,7 @@ export class GetAppConfigUseCase implements IGetAppConfigUseCase {
       {
         executionTimeMs: executionTime,
         businessData: {
-          appConfigTenant: params.tenant,
+          appConfigWorkspaceCode: params.workspaceCode,
           found: true,
           cacheEnabled: true,
           cacheTtl: repositoryOptions.cache?.ttl,

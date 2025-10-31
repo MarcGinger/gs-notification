@@ -2,7 +2,6 @@
 // REMOVE THIS COMMENT TO STOP AUTOMATIC UPDATES TO THIS BLOCK
 
 export interface AppConfigProps {
-  tenant: string;
   workspaceCode: string;
   maxRetryAttempts: number;
   retryBackoffSeconds: number;

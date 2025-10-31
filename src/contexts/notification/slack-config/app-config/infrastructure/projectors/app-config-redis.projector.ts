@@ -77,7 +77,7 @@ interface AppConfigRowParams extends DetailAppConfigResponse {
  * Implements projection function pattern for event handling with Redis backend
  *
  * Redis Data Structure (managed by AppConfigProjectionKeys domain value object):
- * - AppConfig Hash: `app-config:projection:{tenant}:tenant` - stores all app-config fields
+ * - AppConfig Hash: `app-config:projection:{tenant}:workspaceCode` - stores all app-config fields
  * - Tenant Index: `app-config:index:by_tenant:{tenant}` - sorted set by updated timestamp
  *
  * Key Features:
@@ -263,7 +263,7 @@ export class AppConfigProjector
         this.redis,
         tenant,
         'app-config',
-        params.tenant,
+        params.workspaceCode,
         params.version,
         config.VERSION_KEY_PREFIX,
       );
@@ -271,7 +271,7 @@ export class AppConfigProjector
       if (alreadyProcessed) {
         this.logger.debug(
           'AppConfig already processed - using version hint optimization for ' +
-            params.tenant +
+            params.workspaceCode +
             ' version ' +
             params.version,
         );
@@ -288,7 +288,7 @@ export class AppConfigProjector
       // ✅ Generate cluster-safe keys using centralized AppConfigProjectionKeys
       const entityKey = AppConfigProjectionKeys.getRedisAppConfigKey(
         tenant,
-        params.tenant,
+        params.workspaceCode,
       );
       const indexKey =
         AppConfigProjectionKeys.getRedisAppConfigIndexKey(tenant);
@@ -306,7 +306,7 @@ export class AppConfigProjector
           pipeline,
           entityKey,
           indexKey,
-          params.tenant,
+          params.workspaceCode,
           params.deletedAt,
         );
 
@@ -317,7 +317,7 @@ export class AppConfigProjector
           pipeline,
           entityKey,
           indexKey,
-          params.tenant,
+          params.workspaceCode,
           params.version,
           params.updatedAt,
           fieldPairs,
@@ -340,7 +340,7 @@ export class AppConfigProjector
         this.redis,
         tenant,
         'app-config',
-        params.tenant,
+        params.workspaceCode,
         params.version,
         undefined, // Use default TTL
         config.VERSION_KEY_PREFIX,
@@ -421,7 +421,8 @@ export class AppConfigProjector
     indexKey: string;
   } {
     // ✅ Hash-tags ensure both keys route to same Redis Cluster slot
-    const entityKey = 'app-config:{' + params.tenant + '}:' + params.tenant;
+    const entityKey =
+      'app-config:{' + params.tenant + '}:' + params.workspaceCode;
     const indexKey = 'app-config:index:{' + params.tenant + '}';
 
     Log.debug(this.logger, 'Generated cluster-safe keys with hash-tags', {
@@ -429,6 +430,7 @@ export class AppConfigProjector
       entityKey,
       indexKey,
       tenant: params.tenant,
+      workspaceCode: params.workspaceCode,
     });
 
     return { entityKey, indexKey };

@@ -28,7 +28,6 @@ export class AppConfigDtoAssembler {
     const dto = new DetailAppConfigResponse();
 
     // Extract primitive values from VOs
-    dto.tenant = domainState.tenant.value;
     dto.workspaceCode = domainState.workspaceCode.value;
     dto.maxRetryAttempts = domainState.maxRetryAttempts.value;
     dto.retryBackoffSeconds = domainState.retryBackoffSeconds.value;

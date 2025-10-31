@@ -10,7 +10,7 @@ import { AppConfigEntity } from '../entities';
 import { AppConfigSnapshotProps } from '../props';
 import { ValidatedAppConfigUpdateFields } from '../types';
 import {
-  AppConfigTenant,
+  AppConfigWorkspaceCode,
   createAppConfigCreatedAt,
   createAppConfigUpdatedAt,
   createdAtNow,
@@ -135,7 +135,6 @@ export class AppConfigAggregate extends AggregateRootBase {
 
     // Create typed AppConfigCreatedEvent with only business data
     const createdEvent = AppConfigCreatedEvent.create({
-      tenant: entityProps.tenant.value,
       workspaceCode: entityProps.workspaceCode.value,
       maxRetryAttempts: entityProps.maxRetryAttempts.value,
       retryBackoffSeconds: entityProps.retryBackoffSeconds.value,
@@ -150,7 +149,7 @@ export class AppConfigAggregate extends AggregateRootBase {
       type: createdEvent.eventType,
       version: Number(createdEvent.eventVersion),
       occurredAt: clock.now(),
-      aggregateId: entityProps.tenant.value,
+      aggregateId: entityProps.workspaceCode.value,
       aggregateType: 'AppConfig',
       data: createdEvent.payload,
       metadata: eventMetadata,
@@ -189,7 +188,6 @@ export class AppConfigAggregate extends AggregateRootBase {
       case 'NotificationSlackConfigAppConfigUpdated.v1': {
         // Both events now have the same domain shape - simple merge
         const d = event.data as {
-          tenant: string;
           workspaceCode: string;
           maxRetryAttempts: number;
           retryBackoffSeconds: number;
@@ -204,7 +202,6 @@ export class AppConfigAggregate extends AggregateRootBase {
         const currentSnapshot = this._entity?.toSnapshot() || {};
 
         const entityResult = AppConfigEntity.fromSnapshot({
-          tenant: d.tenant,
           workspaceCode: d.workspaceCode,
           maxRetryAttempts: d.maxRetryAttempts,
           retryBackoffSeconds: d.retryBackoffSeconds,
@@ -251,7 +248,7 @@ export class AppConfigAggregate extends AggregateRootBase {
         retryable: false,
         context: {
           originalError: entityResult.error,
-          snapshotCode: snapshot.tenant,
+          snapshotCode: snapshot.workspaceCode,
         },
       });
     }
@@ -288,8 +285,8 @@ export class AppConfigAggregate extends AggregateRootBase {
   /**
    * Get the aggregate ID (required for aggregate identity)
    */
-  public get id(): AppConfigTenant {
-    return this._entity.tenant;
+  public get id(): AppConfigWorkspaceCode {
+    return this._entity.workspaceCode;
   }
 
   /**
@@ -313,16 +310,6 @@ export class AppConfigAggregate extends AggregateRootBase {
     validatedFields: ValidatedAppConfigUpdateFields,
   ): boolean {
     // Check each field for actual value changes using value object equality
-    if (validatedFields.workspaceCode !== undefined) {
-      if (
-        hasValueChanged(
-          this._entity.workspaceCode,
-          validatedFields.workspaceCode,
-        )
-      ) {
-        return true;
-      }
-    }
     if (validatedFields.maxRetryAttempts !== undefined) {
       if (
         hasValueChanged(
@@ -413,7 +400,7 @@ export class AppConfigAggregate extends AggregateRootBase {
         context: {
           expected: expectedVersion,
           actual: this._entity.version.value,
-          aggregateId: this._entity.tenant.value,
+          aggregateId: this._entity.workspaceCode.value,
         },
       });
     }
@@ -453,16 +440,6 @@ export class AppConfigAggregate extends AggregateRootBase {
     let currentEntity = this._entity;
 
     // Apply each validated field change with type safety
-    if (validatedFields.workspaceCode !== undefined) {
-      const entityResult = currentEntity.withWorkspaceCode(
-        validatedFields.workspaceCode,
-        updatedAt,
-        nextVersion,
-      );
-      if (!entityResult.ok) return err(entityResult.error);
-      currentEntity = entityResult.value;
-    }
-
     if (validatedFields.maxRetryAttempts !== undefined) {
       const entityResult = currentEntity.withMaxRetryAttempts(
         validatedFields.maxRetryAttempts,
@@ -528,7 +505,6 @@ export class AppConfigAggregate extends AggregateRootBase {
 
     // Create domain-shaped update event (same structure as created event)
     const updatedEvent = AppConfigUpdatedEvent.create({
-      tenant: this._entity.tenant.value,
       workspaceCode: this._entity.workspaceCode.value,
       maxRetryAttempts: this._entity.maxRetryAttempts.value,
       retryBackoffSeconds: this._entity.retryBackoffSeconds.value,
@@ -543,7 +519,7 @@ export class AppConfigAggregate extends AggregateRootBase {
       type: updatedEvent.eventType,
       version: Number(updatedEvent.eventVersion),
       occurredAt: updatedAt,
-      aggregateId: this._entity.tenant.value,
+      aggregateId: this._entity.workspaceCode.value,
       aggregateType: 'AppConfig',
       data: updatedEvent.payload,
       metadata: this.eventMetadata,
@@ -571,7 +547,7 @@ export class AppConfigAggregate extends AggregateRootBase {
       type: 'AppConfigDeleted',
       version: 1,
       occurredAt: deletedAtResult.value.value, // Extract Date from VO
-      aggregateId: this._entity.tenant.value,
+      aggregateId: this._entity.workspaceCode.value,
       aggregateType: 'AppConfig',
     };
 

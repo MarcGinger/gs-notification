@@ -50,7 +50,7 @@ interface AppConfigCacheData extends DetailAppConfigResponse {
  * Redis Features Used:
  * - Hash-based appConfig storage with cluster-safe keys
  * - Sorted set indexing for efficient pagination and sorting
- * - Pattern matching for tenant and name filtering
+ * - Pattern matching for workspaceCode and name filtering
  * - SCAN operations for tenant isolation
  * - Production-ready caching with metrics collection
  *
@@ -89,7 +89,7 @@ export class AppConfigQueryRepository implements IAppConfigQuery {
   }
 
   /**
-   * Find a single appConfig by tenant using Redis hash lookup
+   * Find a single appConfig by workspaceCode using Redis hash lookup
    *
    * Leverages the established Redis patterns from AppConfigProjector
    * with cluster-safe keys and production-ready caching.
@@ -103,13 +103,13 @@ export class AppConfigQueryRepository implements IAppConfigQuery {
    * - Soft delete awareness
    *
    * @param actor - The actor context containing authentication and request metadata.
-   * @param tenant - The appConfig tenant to search for.
+   * @param workspaceCode - The appConfig workspaceCode to search for.
    * @param options - Optional repository options (e.g., timeout, correlation).
    * @returns A promise resolving to a Result containing the AppConfig response or a DomainError.
    */
   async findById(
     actor: ActorContext,
-    tenant: string,
+    workspaceCode: string,
     options?: RepositoryOptions,
   ): Promise<Result<Option<DetailAppConfigResponse>, DomainError>> {
     const operation = 'findById';
@@ -118,7 +118,7 @@ export class AppConfigQueryRepository implements IAppConfigQuery {
       CorrelationUtil.generateForOperation('app-config-query-findById');
 
     const logContext = this.createLogContext(operation, correlationId, actor, {
-      appConfigTenant: tenant,
+      appConfigWorkspaceCode: workspaceCode,
       dataSource: 'redis-projector',
     });
 
@@ -151,7 +151,10 @@ export class AppConfigQueryRepository implements IAppConfigQuery {
 
     try {
       // Generate cluster-safe Redis key
-      const appConfigKey = this.generateAppConfigKey(actor.tenant, tenant);
+      const appConfigKey = this.generateAppConfigKey(
+        actor.tenant,
+        workspaceCode,
+      );
 
       Log.debug(this.logger, 'Executing Redis hash lookup', {
         ...logContext,
@@ -189,7 +192,6 @@ export class AppConfigQueryRepository implements IAppConfigQuery {
 
       // Transform to DetailAppConfigResponse DTO (excluding internal fields)
       const detailResponse: DetailAppConfigResponse = {
-        tenant: appConfig.tenant,
         workspaceCode: appConfig.workspaceCode,
         maxRetryAttempts: appConfig.maxRetryAttempts,
         retryBackoffSeconds: appConfig.retryBackoffSeconds,
@@ -202,7 +204,7 @@ export class AppConfigQueryRepository implements IAppConfigQuery {
       Log.debug(this.logger, 'AppConfig found successfully in Redis', {
         ...logContext,
         resultData: {
-          appConfigTenant: detailResponse.tenant,
+          appConfigWorkspaceCode: detailResponse.workspaceCode,
           cacheHit: true,
         },
       });
@@ -266,7 +268,6 @@ export class AppConfigQueryRepository implements IAppConfigQuery {
       // Extract basic fields directly from hash data
 
       return {
-        tenant: hashData.tenant,
         workspaceCode: hashData.workspaceCode,
         maxRetryAttempts: parseInt(hashData.maxRetryAttempts || '0', 10),
         retryBackoffSeconds: parseInt(hashData.retryBackoffSeconds || '0', 10),
@@ -285,7 +286,7 @@ export class AppConfigQueryRepository implements IAppConfigQuery {
         {
           method: 'parseRedisHashToAppConfig',
           error: (error as Error).message,
-          tenant: hashData?.tenant,
+          workspaceCode: hashData?.workspaceCode,
         },
       );
       return null;

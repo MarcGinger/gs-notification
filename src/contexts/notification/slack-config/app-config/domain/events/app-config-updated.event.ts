@@ -7,7 +7,6 @@
  * Same shape as Created event for consistent replayability
  */
 export interface AppConfigUpdatedEventPayload {
-  tenant: string;
   workspaceCode: string;
   maxRetryAttempts: number;
   retryBackoffSeconds: number;
@@ -32,10 +31,6 @@ export class AppConfigUpdatedEvent {
   // Factory method - simple domain data, no metadata in payload
   static create(data: AppConfigUpdatedEventPayload): AppConfigUpdatedEvent {
     return new AppConfigUpdatedEvent(data);
-  }
-
-  get tenant(): string {
-    return this.payload.tenant;
   }
 
   get workspaceCode(): string {

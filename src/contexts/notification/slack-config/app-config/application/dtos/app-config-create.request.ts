@@ -9,14 +9,10 @@ import {
   ApiAppConfigMaxRetryAttempts,
   ApiAppConfigMetadata,
   ApiAppConfigRetryBackoffSeconds,
-  ApiAppConfigTenant,
   ApiAppConfigWorkspaceCode,
 } from './decorators';
 
 export class CreateAppConfigRequest implements CreateAppConfigProps {
-  @ApiAppConfigTenant()
-  tenant: string;
-
   @ApiAppConfigWorkspaceCode()
   workspaceCode: string;
 

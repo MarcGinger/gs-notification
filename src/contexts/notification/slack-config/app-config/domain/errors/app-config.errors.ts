@@ -3,7 +3,6 @@
 import { DomainError } from 'src/shared/errors';
 
 export interface AppConfigContext extends Record<string, unknown> {
-  tenant: string;
   maxRetryAttempts: number;
   retryBackoffSeconds: number;
   defaultLocale: string;
@@ -212,20 +211,6 @@ export const AppConfigErrors = {
     'APP_CONFIG.INVALID_RETRY_BACKOFF_SECONDS_DATA',
     AppConfigContext
   >,
-  INVALID_TENANT: {
-    code: 'APP_CONFIG.INVALID_TENANT',
-    title: 'Value Required',
-    detail: 'Tenant is required for App.',
-    category: 'validation',
-    retryable: false,
-  } as DomainError<'APP_CONFIG.INVALID_TENANT', AppConfigContext>,
-  INVALID_TENANT_DATA: {
-    code: 'APP_CONFIG.INVALID_TENANT_DATA',
-    title: 'Value Required',
-    detail: 'Tenant is required for App.',
-    category: 'validation',
-    retryable: false,
-  } as DomainError<'APP_CONFIG.INVALID_TENANT_DATA', AppConfigContext>,
   INVALID_WORKSPACE_CODE: {
     code: 'APP_CONFIG.INVALID_WORKSPACE_CODE',
     title: 'Value Required',

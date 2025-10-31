@@ -51,7 +51,7 @@ export class AppConfigController {
     private readonly appConfigApplicationService: AppConfigApplicationService,
   ) {}
 
-  @Get(':tenant')
+  @Get(':workspaceCode')
   @AppConfigReadResource()
   @ApiOperation({
     summary: 'Get App by ID',
@@ -59,10 +59,10 @@ export class AppConfigController {
       'Retrieves a single App by its unique identifier. Requires READ permission (LOW risk).',
   })
   @ApiParam({
-    name: 'tenant',
+    name: 'workspaceCode',
     type: 'string',
     description: 'AppConfig unique identifier',
-    example: '1',
+    example: 'T01EXAMPLE123',
   })
   @ApiOkResponse({
     description: 'AppConfig details retrieved successfully',
@@ -71,11 +71,11 @@ export class AppConfigController {
   @ApiCommonErrors()
   async get(
     @CurrentUser() user: IUserToken,
-    @Param('tenant') tenant: string,
+    @Param('workspaceCode') workspaceCode: string,
   ): Promise<Result<DetailAppConfigResponse, DomainError>> {
     const result = await this.appConfigApplicationService.getAppConfigById(
       user,
-      tenant,
+      workspaceCode,
     );
 
     return result;
@@ -133,7 +133,7 @@ export class AppConfigController {
     return result;
   }
 
-  @Put(':tenant')
+  @Put(':workspaceCode')
   @AppConfigUpdateResource()
   @ApiOperation({
     summary: 'Update a App',
@@ -141,10 +141,10 @@ export class AppConfigController {
       'Updates an existing App with new data. Supports partial updates. Requires UPDATE permission (MEDIUM risk).',
   })
   @ApiParam({
-    name: 'tenant',
+    name: 'workspaceCode',
     type: 'string',
     description: 'AppConfig unique identifier',
-    example: '1',
+    example: 'T01EXAMPLE123',
   })
   @ApiResponse({
     status: HttpStatus.OK,
@@ -164,12 +164,12 @@ export class AppConfigController {
   })
   async update(
     @CurrentUser() user: IUserToken,
-    @Param('tenant') tenant: string,
+    @Param('workspaceCode') workspaceCode: string,
     @Body() updateAppConfigRequest: UpdateAppConfigRequest,
   ): Promise<Result<DetailAppConfigResponse, DomainError>> {
     const result = await this.appConfigApplicationService.updateAppConfig(
       user,
-      tenant,
+      workspaceCode,
       updateAppConfigRequest,
     );
 

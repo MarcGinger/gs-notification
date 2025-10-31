@@ -35,13 +35,12 @@ export const AppConfigResource = (permission: AppConfigPermission) =>
   Resource({
     type: 'app-config',
     action: permission,
-    extractId: (req: Request) => req.params?.tenant || req.params?.id,
+    extractId: (req: Request) => req.params?.workspaceCode || req.params?.id,
     extractAttributes: (req: Request) => {
       const body = req.body as Record<string, unknown> | undefined;
       const query = req.query as Record<string, unknown> | undefined;
 
       // Business data extraction
-      const workspaceCode = body?.workspaceCode || query?.workspaceCode;
       const maxRetryAttempts =
         body?.maxRetryAttempts || query?.maxRetryAttempts;
       const retryBackoffSeconds =
@@ -51,7 +50,6 @@ export const AppConfigResource = (permission: AppConfigPermission) =>
       const auditChannelId = body?.auditChannelId || query?.auditChannelId;
 
       const baseAttributes = {
-        workspaceCode,
         maxRetryAttempts,
         retryBackoffSeconds,
         defaultLocale,

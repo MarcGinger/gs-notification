@@ -16,7 +16,7 @@ import type { DetailAppConfigResponse } from '../dtos';
 export abstract class IUpsertAppConfigUseCase {
   abstract execute(params: {
     user: IUserToken;
-    tenant: string;
+    workspaceCode: string;
     props: UpsertAppConfigProps;
     correlationId: string;
     authorizationReason: string;
@@ -26,7 +26,7 @@ export abstract class IUpsertAppConfigUseCase {
 export abstract class IGetAppConfigUseCase {
   abstract execute(params: {
     user: IUserToken;
-    tenant: string;
+    workspaceCode: string;
     correlationId: string;
   }): Promise<Result<DetailAppConfigResponse, DomainError>>;
 }

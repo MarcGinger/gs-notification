@@ -5,5 +5,4 @@ export * from './logging-enabled.vo';
 export * from './max-retry-attempts.vo';
 export * from './metadata.vo';
 export * from './retry-backoff-seconds.vo';
-export * from './tenant.vo';
 export * from './workspace-code.vo';

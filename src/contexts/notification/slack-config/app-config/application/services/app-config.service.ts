@@ -94,14 +94,14 @@ export class AppConfigApplicationService {
   }
 
   /**
-   * Helper to validate required tenant input
+   * Helper to validate required workspaceCode input
    */
-  private validateTenant(
-    tenant: string,
+  private validateWorkspaceCode(
+    workspaceCode: string,
     operation: string,
     correlationId?: string,
   ): Result<string, DomainError> {
-    if (!tenant?.trim()) {
+    if (!workspaceCode?.trim()) {
       return err(
         withContext(AppConfigErrors.INVALID_APP_CONFIG_DATA, {
           operation,
@@ -111,7 +111,7 @@ export class AppConfigApplicationService {
         }),
       );
     }
-    return ok(tenant.trim());
+    return ok(workspaceCode.trim());
   }
 
   /**
@@ -120,7 +120,7 @@ export class AppConfigApplicationService {
   private async authorizeThenExecute<T>(args: {
     operation: 'create' | 'update' | 'read';
     user: IUserToken;
-    tenant?: string;
+    workspaceCode?: string;
     correlationIdPrefix: string;
     doAuthorize: () => Promise<Result<boolean, DomainError>>;
     doExecute: () => Promise<Result<T, DomainError>>;
@@ -156,7 +156,7 @@ export class AppConfigApplicationService {
           correlationId: corrId,
           userId: args.user.sub,
           operation: args.operation,
-          tenant: args.tenant,
+          workspaceCode: args.workspaceCode,
           category: 'security',
         }),
       );
@@ -181,7 +181,7 @@ export class AppConfigApplicationService {
         category: 'application',
         context: {
           correlationId: corrId,
-          tenant: args.tenant,
+          workspaceCode: args.workspaceCode,
           operation: `${args.operation}_app_config`,
         },
       });
@@ -214,7 +214,7 @@ export class AppConfigApplicationService {
       doExecute: () =>
         this.upsertAppConfigUseCase.execute({
           user,
-          tenant: props.tenant,
+          workspaceCode: props.workspaceCode,
           props,
           correlationId,
           authorizationReason: 'create_app_config',
@@ -230,17 +230,20 @@ export class AppConfigApplicationService {
    */
   async updateAppConfig(
     user: IUserToken,
-    tenant: string,
+    workspaceCode: string,
     props: UpdateAppConfigProps,
     options?: { idempotencyKey?: string; correlationId?: string },
   ): Promise<Result<DetailAppConfigResponse, DomainError>> {
     // Early input validation
-    const tenantValidation = this.validateTenant(tenant, 'update');
-    if (!tenantValidation.ok) {
-      return err(tenantValidation.error);
+    const workspaceCodeValidation = this.validateWorkspaceCode(
+      workspaceCode,
+      'update',
+    );
+    if (!workspaceCodeValidation.ok) {
+      return err(workspaceCodeValidation.error);
     }
 
-    const validatedtenant = tenantValidation.value;
+    const validatedworkspaceCode = workspaceCodeValidation.value;
     const authContext = this.createAuthContext(user, 'update');
     const correlationId =
       options?.correlationId ||
@@ -254,7 +257,7 @@ export class AppConfigApplicationService {
       user.sub, 
       'update', 
       CorrelationUtil.generateForOperation('app-config-update'), 
-      validatedtenant, 
+      validatedworkspaceCode, 
       fields, 
       authContext
     );
@@ -262,7 +265,7 @@ export class AppConfigApplicationService {
     if (!opAuth.value.authorized) {
       return err(withContext(AppConfigErrors.PERMISSION_DENIED, { 
         operation: 'update', 
-        tenant: validatedtenant, 
+        workspaceCode: validatedworkspaceCode, 
         userId: user.sub,
         category: 'security'
       }));
@@ -272,19 +275,19 @@ export class AppConfigApplicationService {
     return this.authorizeThenExecute<DetailAppConfigResponse>({
       operation: 'update',
       user,
-      tenant: validatedtenant,
+      workspaceCode: validatedworkspaceCode,
       correlationIdPrefix: 'app-config-update',
       doAuthorize: () =>
         this.appConfigAuthorizationService.canUpdateAppConfig(
           user.sub,
-          validatedtenant,
+          validatedworkspaceCode,
           correlationId,
           authContext,
         ),
       doExecute: () =>
         this.upsertAppConfigUseCase.execute({
           user,
-          tenant: validatedtenant,
+          workspaceCode: validatedworkspaceCode,
           props,
           correlationId,
           authorizationReason: 'update_app_config',
@@ -292,7 +295,7 @@ export class AppConfigApplicationService {
             idempotencyKey: options.idempotencyKey,
           }),
         }),
-      logContext: { tenant: validatedtenant },
+      logContext: { workspaceCode: validatedworkspaceCode },
     });
   }
 
@@ -301,37 +304,40 @@ export class AppConfigApplicationService {
    */
   async getAppConfigById(
     user: IUserToken,
-    tenant: string,
+    workspaceCode: string,
   ): Promise<Result<DetailAppConfigResponse, DomainError>> {
     // Early input validation
-    const tenantValidation = this.validateTenant(tenant, 'read');
-    if (!tenantValidation.ok) {
-      return err(tenantValidation.error);
+    const workspaceCodeValidation = this.validateWorkspaceCode(
+      workspaceCode,
+      'read',
+    );
+    if (!workspaceCodeValidation.ok) {
+      return err(workspaceCodeValidation.error);
     }
 
-    const validatedtenant = tenantValidation.value;
+    const validatedworkspaceCode = workspaceCodeValidation.value;
     const authContext = this.createAuthContext(user, 'read');
 
     return this.authorizeThenExecute<DetailAppConfigResponse>({
       operation: 'read',
       user,
-      tenant: validatedtenant,
+      workspaceCode: validatedworkspaceCode,
       correlationIdPrefix: 'app-config-read',
       doAuthorize: () =>
         this.appConfigAuthorizationService.canReadAppConfig(
           user.sub,
-          validatedtenant,
+          validatedworkspaceCode,
           CorrelationUtil.generateForOperation('app-config-read'),
           authContext,
         ),
       doExecute: () =>
         this.getAppConfigUseCase.execute({
           user,
-          tenant: validatedtenant,
+          workspaceCode: validatedworkspaceCode,
           correlationId:
             CorrelationUtil.generateForOperation('app-config-read'),
         }),
-      logContext: { tenant: validatedtenant },
+      logContext: { workspaceCode: validatedworkspaceCode },
     });
   }
 }

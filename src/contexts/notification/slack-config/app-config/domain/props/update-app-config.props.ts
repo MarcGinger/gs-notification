@@ -2,8 +2,7 @@
 // REMOVE THIS COMMENT TO STOP AUTOMATIC UPDATES TO THIS BLOCK
 
 export interface UpdateAppConfigProps {
-  tenant: string;
-  workspaceCode?: string;
+  workspaceCode: string;
   maxRetryAttempts?: number;
   retryBackoffSeconds?: number;
   defaultLocale?: string;

@@ -24,7 +24,7 @@ import { SlackConfigServiceConstants } from '../../../service-constants';
 // Domain types and errors
 import { AppConfigAggregate } from '../../domain/aggregates';
 import { CreateAppConfigProps, UpsertAppConfigProps } from '../../domain/props';
-import { AppConfigTenant } from '../../domain/value-objects';
+import { AppConfigWorkspaceCode } from '../../domain/value-objects';
 import {
   createAppConfigAggregateFromProps,
   updateAppConfigAggregateFromSnapshot,
@@ -87,7 +87,7 @@ export class UpsertAppConfigUseCase implements IUpsertAppConfigUseCase {
   }
   async execute(params: {
     user: IUserToken;
-    tenant: string;
+    workspaceCode: string;
     props: UpsertAppConfigProps;
     correlationId: string;
     authorizationReason: string;
@@ -98,7 +98,7 @@ export class UpsertAppConfigUseCase implements IUpsertAppConfigUseCase {
     // Create a command-like object for internal use
     const command = {
       user: params.user,
-      tenant: params.tenant,
+      workspaceCode: params.workspaceCode,
       props: params.props,
       correlationId: params.correlationId,
       authorizationReason: params.authorizationReason,
@@ -142,7 +142,7 @@ export class UpsertAppConfigUseCase implements IUpsertAppConfigUseCase {
         timestamp: command.timestamp,
       },
       {
-        appConfigTenant: command.tenant,
+        appConfigWorkspaceCode: command.workspaceCode,
         operationRisk: UseCaseLoggingUtil.assessOperationRisk(operation),
       },
     );
@@ -200,7 +200,7 @@ export class UpsertAppConfigUseCase implements IUpsertAppConfigUseCase {
     // We first try to load; if not found, we'll "create" instead of erroring.
 
     // Discover existence ahead of time to configure auth intent correctly
-    const codeR = AppConfigTenant.create(command.tenant);
+    const codeR = AppConfigWorkspaceCode.create(command.workspaceCode);
     if (!codeR.ok) return err(codeR.error);
 
     // Create actor context using the standard utility
@@ -258,7 +258,7 @@ export class UpsertAppConfigUseCase implements IUpsertAppConfigUseCase {
         : {
             type: 'update' as const,
             operation: 'update' as const,
-            resourceId: command.tenant,
+            resourceId: command.workspaceCode,
             fields: fieldsToUpdate.map(String),
           },
       authContext: {
@@ -316,7 +316,7 @@ export class UpsertAppConfigUseCase implements IUpsertAppConfigUseCase {
         // CREATE path - Validate and transform, no default creation
         const upsertProps = {
           ...(rawProps || {}),
-          tenant: command.tenant,
+          workspaceCode: command.workspaceCode,
         };
 
         const createProps = upsertProps as CreateAppConfigProps;

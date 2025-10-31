@@ -179,7 +179,8 @@
 			"relations": [
 				"d515b2cd-3739-435e-b4f6-2946449382a1",
 				"52716f73-4e5f-4243-b1bd-f2c339c4e2cd",
-				"c8858001-b702-4f41-9b7a-31625fd98548"
+				"c8858001-b702-4f41-9b7a-31625fd98548",
+				"38a4ceed-45b1-42ab-97c1-4e33b118423e"
 			],
 			"lines": [],
 			"keys": [
@@ -444,7 +445,8 @@
 				}
 			],
 			"relations": [
-				"d515b2cd-3739-435e-b4f6-2946449382a1"
+				"d515b2cd-3739-435e-b4f6-2946449382a1",
+				"23432c63-a4a1-4824-ab42-25b6f1c964b7"
 			],
 			"lines": [],
 			"keys": [
@@ -706,7 +708,8 @@
 				}
 			],
 			"relations": [
-				"52716f73-4e5f-4243-b1bd-f2c339c4e2cd"
+				"52716f73-4e5f-4243-b1bd-f2c339c4e2cd",
+				"a6fcb9ef-8f0f-4034-a4f5-12866afbd38b"
 			],
 			"lines": [],
 			"keys": [
@@ -976,6 +979,231 @@
 			"initautoinc": "",
 			"temporary": false,
 			"ifnotexists": false
+		},
+		"7d2c60c7-3d03-40f9-a36b-92dbb7c656bc": {
+			"id": "7d2c60c7-3d03-40f9-a36b-92dbb7c656bc",
+			"visible": true,
+			"name": "message_request",
+			"desc": "## 🧠 SlackWorkspace\n\n### **Purpose**\n\nThe `SlackWorkspace` aggregate represents the tenant’s connection to their Slack workspace. It acts as the foundational configuration point that defines the link between the system and the tenant’s Slack organization.\n\nThis aggregate holds sensitive integration credentials — including OAuth tokens, signing secrets, and app identifiers — and ensures they are securely managed and rotated when necessary. It also tracks which workspace belongs to which tenant and whether the connection is currently active.\n\n### **Responsibilities**\n\n* Maintain the tenant-to-Slack workspace mapping.\n* Securely store and reference OAuth credentials (e.g., `botToken`, `signingSecret`).\n* Enable or disable the Slack integration per tenant.\n* Manage the default posting channel for system notifications.\n* Emit events that notify other services when configuration changes occur.\n\n### **Why It Matters**\n\nWithout the `SlackWorkspace` aggregate, the platform wouldn’t know **where** to send Slack messages or which tokens to use for authentication. It ensures tenant isolation and provides a secure boundary for Slack API interactions.\n",
+			"estimatedSize": "",
+			"cols": [
+				{
+					"id": "e4827ca4-a4ca-4159-bcd2-f208ef2e8381",
+					"name": "id",
+					"datatype": "UUID",
+					"param": "36",
+					"pk": true,
+					"nn": true,
+					"fk": false,
+					"comment": "Unique ID for the message request (UUID).",
+					"defaultvalue": "",
+					"data": "",
+					"after": "",
+					"autoinc": true,
+					"collation": "",
+					"charset": "",
+					"binary": false,
+					"zerofill": false,
+					"unsigned": false,
+					"enum": "",
+					"estimatedSize": ""
+				},
+				{
+					"id": "164ecce1-8380-4845-bf7c-4942b84d5f98",
+					"name": "recipient",
+					"datatype": "VARCHAR",
+					"param": "10",
+					"pk": false,
+					"nn": false,
+					"fk": false,
+					"comment": "Channel ID or user ID.",
+					"defaultvalue": "",
+					"data": "",
+					"after": "",
+					"autoinc": false,
+					"collation": "",
+					"charset": "",
+					"binary": false,
+					"zerofill": false,
+					"unsigned": false,
+					"enum": "",
+					"estimatedSize": ""
+				},
+				{
+					"id": "a1dd6d61-b60c-4581-bbc7-d98835b98181",
+					"name": "data",
+					"datatype": "JSON",
+					"param": "",
+					"pk": false,
+					"nn": false,
+					"fk": false,
+					"comment": "Key-value data payload for template variables.",
+					"defaultvalue": "",
+					"data": "",
+					"after": "",
+					"autoinc": false,
+					"collation": "",
+					"charset": "",
+					"binary": false,
+					"zerofill": false,
+					"unsigned": false,
+					"enum": "",
+					"estimatedSize": ""
+				},
+				{
+					"id": "56341a7c-db84-4c7d-95d7-f86872c4f266",
+					"name": "status",
+					"datatype": "ENUM",
+					"param": "",
+					"pk": false,
+					"nn": false,
+					"fk": false,
+					"comment": "Current message lifecycle status.",
+					"defaultvalue": "requested",
+					"data": "",
+					"after": "hidden(true)",
+					"autoinc": false,
+					"collation": "",
+					"charset": "",
+					"binary": false,
+					"zerofill": false,
+					"unsigned": false,
+					"enum": "requested,validated,queued,failed,sent",
+					"estimatedSize": ""
+				},
+				{
+					"id": "34a2bcfb-3757-4ebd-8e39-cfeca5921b4e",
+					"name": "workspace_code",
+					"datatype": "VARCHAR",
+					"param": "32",
+					"pk": false,
+					"nn": true,
+					"fk": true,
+					"comment": "Unique identifier for the Slack workspace/team, provided by Slack API during OAuth installation. This is the primary key linking all workspace-specific configurations.",
+					"defaultvalue": "",
+					"data": "T01EXAMPLE123",
+					"after": "min(10)",
+					"autoinc": false,
+					"collation": "",
+					"charset": "",
+					"binary": false,
+					"zerofill": false,
+					"unsigned": false,
+					"enum": "",
+					"estimatedSize": ""
+				},
+				{
+					"id": "78d99d5b-4bca-41df-812a-fef0333be3ae",
+					"name": "template_code",
+					"datatype": "VARCHAR",
+					"param": "64",
+					"pk": false,
+					"nn": true,
+					"fk": true,
+					"comment": "Unique template identifier used for programmatic template selection. Must follow snake_case naming convention for consistency with application code.",
+					"defaultvalue": "",
+					"data": "payment_failure_alert",
+					"after": "",
+					"autoinc": false,
+					"collation": "",
+					"charset": "",
+					"binary": false,
+					"zerofill": false,
+					"unsigned": false,
+					"enum": "",
+					"estimatedSize": ""
+				},
+				{
+					"id": "f43f48d8-7488-453f-90b1-035e08626252",
+					"name": "channel_code",
+					"datatype": "VARCHAR",
+					"param": "32",
+					"pk": false,
+					"nn": true,
+					"fk": true,
+					"comment": "Unique Slack channel identifier provided by Slack API. Used for all channel-specific operations including message posting and permissions validation.",
+					"defaultvalue": "",
+					"data": "C01EXAMPLE001",
+					"after": "min(10)",
+					"autoinc": false,
+					"collation": "",
+					"charset": "",
+					"binary": false,
+					"zerofill": false,
+					"unsigned": false,
+					"enum": "",
+					"estimatedSize": ""
+				}
+			],
+			"relations": [
+				"38a4ceed-45b1-42ab-97c1-4e33b118423e",
+				"a6fcb9ef-8f0f-4034-a4f5-12866afbd38b",
+				"23432c63-a4a1-4824-ab42-25b6f1c964b7"
+			],
+			"lines": [],
+			"keys": [
+				{
+					"id": "ae2f96b9-5ec6-4464-a3f5-35158f316f43",
+					"name": "PRIMARY",
+					"isPk": true,
+					"cols": [
+						{
+							"id": "15e175eb-6eaa-42a9-877c-c692e8e15f16",
+							"colid": "e4827ca4-a4ca-4159-bcd2-f208ef2e8381"
+						}
+					]
+				}
+			],
+			"indexes": [
+				{
+					"id": "48242645-72b0-425f-8a1f-1c53f9fd7367",
+					"name": "message_request_ix_recipient",
+					"unique": false,
+					"fulltext": false,
+					"using": "na",
+					"algorithm": "na",
+					"lockoption": "na",
+					"cols": [
+						{
+							"id": "ff1cd42b-bd58-4689-bacf-ee2bc5cf0e11",
+							"colid": "164ecce1-8380-4845-bf7c-4942b84d5f98",
+							"mariadb": {
+								"desc": false
+							}
+						}
+					]
+				},
+				{
+					"id": "76276cd6-6e05-4b25-ac1a-bc9e12182943",
+					"name": "message_request_ix_status",
+					"unique": false,
+					"fulltext": false,
+					"using": "na",
+					"algorithm": "na",
+					"lockoption": "na",
+					"cols": [
+						{
+							"id": "cf0e5641-6959-4e02-82ea-1e5c97d0c6ee",
+							"colid": "56341a7c-db84-4c7d-95d7-f86872c4f266",
+							"mariadb": {
+								"desc": false
+							}
+						}
+					]
+				}
+			],
+			"embeddable": false,
+			"generate": true,
+			"generateCustomCode": true,
+			"customCode": "write('kurrentdb')\nread('redis')\nquery('none')\nprojector('redis')\nsoftDelete(false)\nupdate(false)\ncreate(true)",
+			"tabletype": "InnoDB",
+			"collation": "utf8mb4_general_ci",
+			"charset": "utf8mb4",
+			"rowformat": "",
+			"database": "service",
+			"initautoinc": "",
+			"temporary": false,
+			"ifnotexists": false
 		}
 	},
 	"relations": {
@@ -1059,6 +1287,87 @@
 			"customCode": "",
 			"relationColor": "transparent",
 			"linegraphics": "default"
+		},
+		"38a4ceed-45b1-42ab-97c1-4e33b118423e": {
+			"id": "38a4ceed-45b1-42ab-97c1-4e33b118423e",
+			"name": "workspace_message_request",
+			"desc": "",
+			"type": "identifying",
+			"parent_key": "9ad06bbc-a718-4190-8cd9-8ed68a449145",
+			"parent": "cd5f87d5-b86c-47eb-8bd6-6699ed90dc28",
+			"child": "7d2c60c7-3d03-40f9-a36b-92dbb7c656bc",
+			"c_mp": "true",
+			"c_mch": "true",
+			"c_p": "one",
+			"c_ch": "many",
+			"c_cp": "",
+			"c_cch": "",
+			"cols": [
+				{
+					"id": "1515a039-d0f6-439b-a295-c8e573f1e476",
+					"parentcol": "da5d4788-4185-4bb4-9b78-dee1102fd58b",
+					"childcol": "34a2bcfb-3757-4ebd-8e39-cfeca5921b4e"
+				}
+			],
+			"generate": true,
+			"generateCustomCode": true,
+			"customCode": "",
+			"relationColor": "transparent",
+			"linegraphics": "default"
+		},
+		"a6fcb9ef-8f0f-4034-a4f5-12866afbd38b": {
+			"id": "a6fcb9ef-8f0f-4034-a4f5-12866afbd38b",
+			"name": "template_message_request",
+			"desc": "",
+			"type": "identifying",
+			"parent_key": "a3d45335-dc84-4e1e-8315-d6838220fdcd",
+			"parent": "ba3870e2-44f1-4d0d-afa9-a7ca627637be",
+			"child": "7d2c60c7-3d03-40f9-a36b-92dbb7c656bc",
+			"c_mp": "true",
+			"c_mch": "true",
+			"c_p": "one",
+			"c_ch": "many",
+			"c_cp": "",
+			"c_cch": "",
+			"cols": [
+				{
+					"id": "252655d0-0c31-4320-81c9-7f41e5d929b9",
+					"parentcol": "f40096a6-874d-4a99-be31-1eb353c50d90",
+					"childcol": "78d99d5b-4bca-41df-812a-fef0333be3ae"
+				}
+			],
+			"generate": true,
+			"generateCustomCode": true,
+			"customCode": "",
+			"relationColor": "transparent",
+			"linegraphics": "default"
+		},
+		"23432c63-a4a1-4824-ab42-25b6f1c964b7": {
+			"id": "23432c63-a4a1-4824-ab42-25b6f1c964b7",
+			"name": "channel_message_request",
+			"desc": "",
+			"type": "identifying",
+			"parent_key": "45d374e9-f5ad-42ee-b99c-35d4416929d5",
+			"parent": "28bc4a23-c479-4f19-a1b4-9b81f20e3f40",
+			"child": "7d2c60c7-3d03-40f9-a36b-92dbb7c656bc",
+			"c_mp": "true",
+			"c_mch": "true",
+			"c_p": "one",
+			"c_ch": "many",
+			"c_cp": "",
+			"c_cch": "",
+			"cols": [
+				{
+					"id": "306704e0-ffae-445c-a6c8-f109b720183f",
+					"parentcol": "5b653803-b978-4195-adac-63584eb293c6",
+					"childcol": "f43f48d8-7488-453f-90b1-035e08626252"
+				}
+			],
+			"generate": true,
+			"generateCustomCode": true,
+			"customCode": "",
+			"relationColor": "transparent",
+			"linegraphics": "default"
 		}
 	},
 	"notes": {},
@@ -1088,7 +1397,7 @@
 		},
 		"type": "MARIADB",
 		"version": 1,
-		"lastSaved": 1761902163468,
+		"lastSaved": 1761903667534,
 		"beforeScript": "",
 		"afterScript": "",
 		"sqlSettings": {
@@ -1134,8 +1443,8 @@
 			"diagramItems": {
 				"cd5f87d5-b86c-47eb-8bd6-6699ed90dc28": {
 					"referencedItemId": "cd5f87d5-b86c-47eb-8bd6-6699ed90dc28",
-					"x": 45,
-					"y": 232,
+					"x": 229,
+					"y": 205,
 					"gHeight": 218,
 					"gWidth": 268,
 					"color": "#ffffff",
@@ -1147,8 +1456,8 @@
 				},
 				"28bc4a23-c479-4f19-a1b4-9b81f20e3f40": {
 					"referencedItemId": "28bc4a23-c479-4f19-a1b4-9b81f20e3f40",
-					"x": 523,
-					"y": 333,
+					"x": 803,
+					"y": 301,
 					"gHeight": 254,
 					"gWidth": 256,
 					"color": "#ffffff",
@@ -1160,8 +1469,8 @@
 				},
 				"ba3870e2-44f1-4d0d-afa9-a7ca627637be": {
 					"referencedItemId": "ba3870e2-44f1-4d0d-afa9-a7ca627637be",
-					"x": 527,
-					"y": 45,
+					"x": 803,
+					"y": 31,
 					"gHeight": 236,
 					"gWidth": 256,
 					"color": "#ffffff",
@@ -1173,10 +1482,23 @@
 				},
 				"00829685-51b5-4cea-a843-525855771acd": {
 					"referencedItemId": "00829685-51b5-4cea-a843-525855771acd",
-					"x": 45,
-					"y": 35,
+					"x": 229,
+					"y": 36,
 					"gHeight": 153,
 					"gWidth": 258,
+					"color": "#ffffff",
+					"background": "#03a9f4",
+					"resized": false,
+					"autoExpand": true,
+					"backgroundOpacity": "10",
+					"collapsed": false
+				},
+				"7d2c60c7-3d03-40f9-a36b-92dbb7c656bc": {
+					"referencedItemId": "7d2c60c7-3d03-40f9-a36b-92dbb7c656bc",
+					"x": 393,
+					"y": 459,
+					"gHeight": 200,
+					"gWidth": 256,
 					"color": "#ffffff",
 					"background": "#03a9f4",
 					"resized": false,
@@ -1234,13 +1556,17 @@
 	},
 	"diagramsOrder": [],
 	"order": [
-		"cd5f87d5-b86c-47eb-8bd6-6699ed90dc28",
-		"28bc4a23-c479-4f19-a1b4-9b81f20e3f40",
-		"ba3870e2-44f1-4d0d-afa9-a7ca627637be",
 		"00829685-51b5-4cea-a843-525855771acd",
+		"28bc4a23-c479-4f19-a1b4-9b81f20e3f40",
+		"7d2c60c7-3d03-40f9-a36b-92dbb7c656bc",
+		"ba3870e2-44f1-4d0d-afa9-a7ca627637be",
+		"cd5f87d5-b86c-47eb-8bd6-6699ed90dc28",
+		"c8858001-b702-4f41-9b7a-31625fd98548",
 		"d515b2cd-3739-435e-b4f6-2946449382a1",
 		"52716f73-4e5f-4243-b1bd-f2c339c4e2cd",
-		"c8858001-b702-4f41-9b7a-31625fd98548"
+		"38a4ceed-45b1-42ab-97c1-4e33b118423e",
+		"a6fcb9ef-8f0f-4034-a4f5-12866afbd38b",
+		"23432c63-a4a1-4824-ab42-25b6f1c964b7"
 	],
 	"collapsedTreeItems": [],
 	"reverseStats": {}

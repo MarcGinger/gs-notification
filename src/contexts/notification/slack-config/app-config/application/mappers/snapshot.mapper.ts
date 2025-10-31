@@ -16,7 +16,6 @@ export const mapAppConfigSnapshotToDto = (
   snapshot: AppConfigSnapshotProps,
 ): DetailAppConfigResponse => {
   return {
-    tenant: snapshot.tenant,
     workspaceCode: snapshot.workspaceCode,
     maxRetryAttempts: snapshot.maxRetryAttempts,
     retryBackoffSeconds: snapshot.retryBackoffSeconds,

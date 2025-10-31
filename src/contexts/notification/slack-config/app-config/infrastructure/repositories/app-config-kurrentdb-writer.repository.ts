@@ -22,7 +22,7 @@ import {
 import { SlackConfigServiceConstants } from '../../../service-constants';
 import { AppConfigAggregate } from '../../domain/aggregates';
 import { AppConfigProjectionKeys } from '../../app-config-projection-keys';
-import { AppConfigTenant } from '../../domain/value-objects';
+import { AppConfigWorkspaceCode } from '../../domain/value-objects';
 import { AppConfigDeletedEvent } from '../../domain/events';
 import { IAppConfigWriter } from '../../application/ports';
 
@@ -277,13 +277,13 @@ export class AppConfigWriterRepository
   /**
    * Delete a AppConfig by its unique identifier using EventStoreDB-first approach
    * @param actor - The authenticated user context
-   * @param tenant - The unique identifier of the AppConfig to delete
+   * @param workspaceCode - The unique identifier of the AppConfig to delete
    * @param opts - Optional parameters including expected version and metadata
    * @returns Result with SaveReceipt containing revision tracking or domain error
    */
   async delete(
     actor: ActorContext,
-    tenant: AppConfigTenant,
+    workspaceCode: AppConfigWorkspaceCode,
     opts?: {
       expectedVersion?: number;
       meta?: {
@@ -305,7 +305,7 @@ export class AppConfigWriterRepository
       correlationId,
       actor,
       {
-        appConfigTenant: tenant.value,
+        appConfigWorkspaceCode: workspaceCode.value,
         expectedVersion: opts?.expectedVersion,
         hasMetadata: !!opts?.meta,
       },
@@ -329,14 +329,14 @@ export class AppConfigWriterRepository
       {
         operationType: 'aggregate_delete',
         scope: 'app-config_deletion',
-        appConfigTenant: tenant.value,
+        appConfigWorkspaceCode: workspaceCode.value,
       },
     );
 
     const stream = this.buildStreamName(
       actor.tenant,
       AppConfigProjectionKeys.getEventStoreStreamPrefix(),
-      tenant.value,
+      workspaceCode.value,
     );
 
     // Create proper domain event metadata
@@ -359,7 +359,7 @@ export class AppConfigWriterRepository
     // Create proper AppConfigDeletedEvent
     const deletedEvent = AppConfigDeletedEvent.create(
       {
-        tenant: tenant.value,
+        workspaceCode: workspaceCode.value,
         deletedAt: this.clock.now(),
         version: opts?.expectedVersion ?? 1,
       },
@@ -371,7 +371,7 @@ export class AppConfigWriterRepository
       type: deletedEvent.eventType,
       version: 1, // Convert string version to number
       occurredAt: this.clock.now(),
-      aggregateId: tenant.value,
+      aggregateId: workspaceCode.value,
       aggregateType: 'AppConfig',
       data: deletedEvent.payload,
       metadata: eventMetadata,
@@ -392,7 +392,7 @@ export class AppConfigWriterRepository
         {
           ...logContext,
           stream,
-          appConfigTenant: tenant.value,
+          appConfigWorkspaceCode: workspaceCode.value,
           expectedRevision: expectedRevision.toString(),
           eventType: domainEvent.type,
         },
@@ -413,7 +413,7 @@ export class AppConfigWriterRepository
 
       const receipt: SaveReceipt = {
         stream,
-        aggregateId: tenant.value,
+        aggregateId: workspaceCode.value,
         tenant: actor.tenant ?? 'default',
         eventCount: 1,
         // newVersion omitted - we don't know it with ANY expectedRevision
@@ -432,7 +432,7 @@ export class AppConfigWriterRepository
           dataQuality: 'good',
           sampleData: {
             stream,
-            appConfigTenant: tenant.value,
+            appConfigWorkspaceCode: workspaceCode.value,
             streamRevision: appendResult?.nextExpectedRevision?.toString(),
             eventType: 'AppConfigDeletedEvent',
           },
