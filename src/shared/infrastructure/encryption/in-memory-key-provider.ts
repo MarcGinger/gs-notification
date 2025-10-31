@@ -68,21 +68,21 @@ export class InMemoryKeyProvider implements KeyProvider {
   /**
    * Set active key for a tenant
    */
-  setActiveKey(tenantId: string, keyId: string): void {
+  setActiveKey(tenant: string, keyId: string): void {
     if (!this.keys.has(keyId)) {
       throw new Error(`Cannot set active key: key ${keyId} does not exist`);
     }
-    this.tenantActiveKeys.set(tenantId, keyId);
+    this.tenantActiveKeys.set(tenant, keyId);
   }
 
   /**
    * Get active key for a specific tenant
    */
   async getActiveKeyForTenant(
-    tenantId: string,
+    tenant: string,
   ): Promise<{ id: string; key: Buffer }> {
     const activeKeyId =
-      this.tenantActiveKeys.get(tenantId) || 'default-key-2024-v1';
+      this.tenantActiveKeys.get(tenant) || 'default-key-2024-v1';
     const key = await this.getKey(activeKeyId);
     return { id: activeKeyId, key };
   }
@@ -100,14 +100,14 @@ export class InMemoryKeyProvider implements KeyProvider {
   /**
    * Rotate keys (create new active key)
    */
-  rotateKey(tenantId?: string): string {
+  rotateKey(tenant?: string): string {
     const timestamp = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
     const keyId = `key-${timestamp}-${crypto.randomUUID().slice(0, 8)}`;
 
     this.addKey(keyId, crypto.randomBytes(32));
 
-    if (tenantId) {
-      this.setActiveKey(tenantId, keyId);
+    if (tenant) {
+      this.setActiveKey(tenant, keyId);
     }
 
     return keyId;

@@ -65,7 +65,7 @@ export abstract class DomainEventBase {
 
   // Utility method to get tenant ID from metadata
   get tenantId(): string | undefined {
-    return this.metadata.actor.tenantId;
+    return this.metadata.actor.tenant;
   }
 
   // Method to check if event is PII protected

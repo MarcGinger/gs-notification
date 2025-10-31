@@ -10,8 +10,8 @@ export const RedisAtomicScripts = {
   upsert: {
     numberOfKeys: 2,
     lua: `
-      local key = KEYS[1]    -- Must contain {tenantId} hash-tag
-      local zkey = KEYS[2]   -- Must contain same {tenantId} hash-tag
+      local key = KEYS[1]    -- Must contain {tenant} hash-tag
+      local zkey = KEYS[2]   -- Must contain same {tenant} hash-tag
       local entityId = ARGV[1]
       local newVersion = tonumber(ARGV[2])
       local updatedAtMs = tonumber(ARGV[3])
@@ -36,8 +36,8 @@ export const RedisAtomicScripts = {
   softDelete: {
     numberOfKeys: 2,
     lua: `
-      local key = KEYS[1]    -- Entity hash key with {tenantId}
-      local zkey = KEYS[2]   -- Index sorted set with same {tenantId}
+      local key = KEYS[1]    -- Entity hash key with {tenant}
+      local zkey = KEYS[2]   -- Index sorted set with same {tenant}
       local entityId = ARGV[1]
       local deletedAtIso = ARGV[2]
       local ttl = tonumber(ARGV[3])  -- ✅ Configurable TTL (no hardcoded 2592000)

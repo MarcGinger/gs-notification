@@ -74,7 +74,7 @@ export class CorrelationUtil {
    * Gets the current tenant ID from CLS context.
    */
   static getTenantId(cls: ClsService): string | undefined {
-    return cls.get<string>('tenantId');
+    return cls.get<string>('tenant');
   }
 
   /**

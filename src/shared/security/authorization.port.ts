@@ -17,7 +17,7 @@ import type { PermissionTenantScope } from '../domain/permissions/base-permissio
  */
 export interface AuthorizationActor {
   readonly userId: string;
-  readonly tenantId?: string;
+  readonly tenant?: string;
   readonly roles?: readonly string[];
   readonly permissions?: readonly string[];
   readonly metadata?: Record<string, unknown>;
@@ -30,7 +30,7 @@ export interface AuthorizationResource {
   readonly type?: string;
   readonly id?: string;
   readonly ownerId?: string;
-  readonly tenantId?: string;
+  readonly tenant?: string;
   readonly attrs?: Record<string, unknown>;
 }
 
@@ -161,7 +161,7 @@ export function buildAuthorizationContext(
 export function buildAuthorizationActor(
   userId: string,
   options?: {
-    tenantId?: string;
+    tenant?: string;
     roles?: readonly string[];
     permissions?: readonly string[];
     metadata?: Record<string, unknown>;
@@ -169,7 +169,7 @@ export function buildAuthorizationActor(
 ): AuthorizationActor {
   return {
     userId,
-    tenantId: options?.tenantId,
+    tenant: options?.tenant,
     roles: options?.roles,
     permissions: options?.permissions,
     metadata: options?.metadata,
@@ -184,7 +184,7 @@ export function buildAuthorizationResource(
   options?: {
     id?: string;
     ownerId?: string;
-    tenantId?: string;
+    tenant?: string;
     attrs?: Record<string, unknown>;
   },
 ): AuthorizationResource {
@@ -192,7 +192,7 @@ export function buildAuthorizationResource(
     type,
     id: options?.id,
     ownerId: options?.ownerId,
-    tenantId: options?.tenantId,
+    tenant: options?.tenant,
     attrs: options?.attrs,
   };
 }

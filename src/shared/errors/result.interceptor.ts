@@ -23,7 +23,7 @@ import { domainErrorToProblem, httpStatusFor } from './http.problem';
  * - If Result is Err: sets appropriate HTTP status and returns Problem Details
  *
  * This interceptor also:
- * - Preserves request context (correlationId, tenantId, traceId) in error responses
+ * - Preserves request context (correlationId, tenant, traceId) in error responses
  * - Logs all errors consistently at the HTTP boundary
  * - Provides stricter Result type validation
  *
@@ -77,7 +77,7 @@ export class ResultInterceptor implements NestInterceptor {
             const existingCtx = data.error.context || {};
             const errorWithCtx = withContext(data.error, {
               correlationId: request.headers?.['x-correlation-id'] as string,
-              tenantId: request.headers?.['x-tenant-id'] as string,
+              tenant: request.headers?.['x-tenant-id'] as string,
               traceId: request.headers?.['x-trace-id'] as string,
               userAgent: request.headers?.['user-agent'] as string,
               ipAddress: request.ip || undefined,

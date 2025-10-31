@@ -22,7 +22,7 @@ export abstract class BaseCommand {
   ): SecurityMetadata {
     return {
       userId: user.sub,
-      tenantId: user.tenant_id,
+      tenant: user.tenant,
       sessionId: user.session_state,
       roles: user.roles || [],
       permissions: user.permissions || [],

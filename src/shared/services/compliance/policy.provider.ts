@@ -20,10 +20,10 @@ export function registerDomainPolicy(policy: PIIPolicyBundle): void {
 export class DefaultPIIPolicyProvider implements PIIPolicyProvider {
   getPolicy({
     domain,
-    tenantId,
+    tenant,
   }: {
     domain: string;
-    tenantId?: string;
+    tenant?: string;
   }): PIIPolicyBundle {
     const domainPolicy = DOMAIN_POLICY_REGISTRY.get(domain);
 
@@ -31,7 +31,7 @@ export class DefaultPIIPolicyProvider implements PIIPolicyProvider {
       // Fallback to baseline only if no domain policy registered
       return {
         domain,
-        tenantId,
+        tenant,
         keywords: DEFAULT_BASELINE,
         fieldHints: undefined,
         rules: undefined, // No domain-specific rules available
@@ -40,7 +40,7 @@ export class DefaultPIIPolicyProvider implements PIIPolicyProvider {
     }
 
     // TODO: Add tenant-specific overrides from database/KV store
-    // const tenantOverrides = await this.getTenantOverrides(tenantId, domain);
+    // const tenantOverrides = await this.getTenantOverrides(tenant, domain);
 
     // Merge baseline with domain-specific keywords
     const mergedInclude = [
@@ -59,7 +59,7 @@ export class DefaultPIIPolicyProvider implements PIIPolicyProvider {
 
     return {
       domain,
-      tenantId,
+      tenant,
       keywords: {
         include: effectiveKeywords,
         exclude: domainPolicy.keywords.exclude,
@@ -71,8 +71,8 @@ export class DefaultPIIPolicyProvider implements PIIPolicyProvider {
   }
 
   // Future: Add tenant-specific policy loading
-  // private async getTenantOverrides(tenantId?: string, domain?: string): Promise<Partial<PIIPolicyBundle>> {
-  //   if (!tenantId) return {};
+  // private async getTenantOverrides(tenant?: string, domain?: string): Promise<Partial<PIIPolicyBundle>> {
+  //   if (!tenant) return {};
   //   // Load from database/KV store
   //   return {};
   // }

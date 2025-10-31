@@ -56,9 +56,9 @@ export class RepositoryExecutionUtil {
    * const key = RepositoryExecutionUtil.generateCacheKey(
    *   'user-repository',
    *   'findByEmail',
-   *   { email: 'user@example.com', tenantId: '123' }
+   *   { email: 'user@example.com', tenant: '123' }
    * );
-   * // Result: "user-repository:findByEmail:{"email":"user@example.com","tenantId":"123"}"
+   * // Result: "user-repository:findByEmail:{"email":"user@example.com","tenant":"123"}"
    * ```
    */
   static generateCacheKey(

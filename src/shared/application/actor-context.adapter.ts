@@ -21,7 +21,9 @@ export class ActorContextAdapter {
   static fromUserToken(user: IUserToken): ActorContext {
     return {
       userId: user.sub,
-      tenantId: user.tenant,
+      tenant: user.tenant,
+      tenant_userId: user.tenant_id || '',
+      username: user.email || '',
       roles: user.roles,
     };
   }
@@ -33,7 +35,7 @@ export class ActorContextAdapter {
    * @returns true if valid, false otherwise
    */
   static isValid(actor: ActorContext): boolean {
-    return !!(actor.userId && actor.tenantId);
+    return !!(actor.userId && actor.tenant);
   }
 
   /**
@@ -45,7 +47,7 @@ export class ActorContextAdapter {
   static toLogContext(actor: ActorContext): Record<string, unknown> {
     return {
       userId: actor.userId,
-      tenantId: actor.tenantId,
+      tenant: actor.tenant,
       roleCount: actor.roles?.length || 0,
     };
   }

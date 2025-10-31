@@ -269,7 +269,7 @@ export const createAuthError = (
   statusCode: 401 | 403 = 401,
   context?: {
     correlationId?: string;
-    tenantId?: string;
+    tenant?: string;
     userId?: string;
     requestId?: string;
     traceId?: string;
@@ -294,7 +294,7 @@ export interface AuthErrorResponse {
   message: string;
   timestamp: string;
   correlationId?: string;
-  tenantId?: string;
+  tenant?: string;
   userId?: string;
   requestId?: string;
   traceId?: string;

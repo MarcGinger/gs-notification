@@ -71,7 +71,7 @@ export class OpaGuard implements CanActivate {
     const authContext = {
       correlationId,
       userId: user.sub,
-      tenantId: user.tenant,
+      tenant: user.tenant,
       resource: resourceOptions.type,
       action: resourceOptions.action,
       timestamp: ts,
@@ -89,7 +89,7 @@ export class OpaGuard implements CanActivate {
       const decision = await this.opaClient.evaluate(
         'authz.decisions.allow',
         opaInput,
-        { correlationId, tenantId: user.tenant, userId: user.sub },
+        { correlationId, tenant: user.tenant, userId: user.sub },
       );
 
       // Log authorization decision for audit trail

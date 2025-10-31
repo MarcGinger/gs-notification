@@ -34,7 +34,9 @@ export const buildEventMetadata = (
 ): EventMetadata => ({
   actor: {
     userId: cmd.user.sub,
-    tenantId: cmd.user.tenant_id,
+    tenant: cmd.user.tenant,
+    tenant_userId: cmd.user.tenant_id || '',
+    username: cmd.user.email || '',
     roles: cmd.user.roles ?? [],
   },
   correlationId: cmd.correlationId,

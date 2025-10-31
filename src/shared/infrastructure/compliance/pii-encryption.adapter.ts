@@ -38,7 +38,7 @@ export class PIIEncryptionAdapter {
   async encryptPIIFields(
     data: Record<string, unknown>,
     classification: DataClassification,
-    tenantId: string,
+    tenant: string,
     correlationId?: string,
   ): Promise<EncryptionResult> {
     const startTime = Date.now();
@@ -71,7 +71,7 @@ export class PIIEncryptionAdapter {
         if (fieldValue !== null && fieldValue !== undefined) {
           const encryptedField = await this.encryptionService.encrypt(
             this.safeStringify(fieldValue),
-            tenantId,
+            tenant,
           );
 
           this.setNestedFieldValue(
@@ -175,8 +175,8 @@ export class PIIEncryptionAdapter {
   /**
    * Create blind index for searchable PII fields
    */
-  async createSearchIndex(value: string, tenantId: string): Promise<string> {
-    return this.encryptionService.createBlindIndex(value, tenantId);
+  async createSearchIndex(value: string, tenant: string): Promise<string> {
+    return this.encryptionService.createBlindIndex(value, tenant);
   }
 
   /**

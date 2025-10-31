@@ -137,7 +137,7 @@ export class ProjectionWriter {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const { productId, name, description, price, categoryId, sku } = event.data;
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    const { tenantId } = event.metadata || {};
+    const { tenant } = event.metadata || {};
 
     await queryRunner.query(
       `
@@ -150,7 +150,7 @@ export class ProjectionWriter {
     `,
       [
         productId,
-        tenantId,
+        tenant,
         name,
         description,
         String(price * 100), // Convert to minor units

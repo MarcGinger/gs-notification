@@ -70,11 +70,11 @@ export class TenantAwareRepository<T> {
     private entityClass: EntityTarget<T>
   ) {}
 
-  async findByTenant(tenantId: string, criteria: any): Promise<T[]> {
+  async findByTenant(tenant: string, criteria: any): Promise<T[]> {
     const repository = this.dataSource
       .getRepository(this.entityClass)
       .createQueryBuilder()
-      .from(\`tenant_\${tenantId}.\${this.getTableName()}\`, 'entity');
+      .from(\`tenant_\${tenant}.\${this.getTableName()}\`, 'entity');
     
     return repository.where(criteria).getMany();
   }
@@ -155,10 +155,10 @@ SET app.current_tenant_id = '123';
 @Injectable()
 export class TenantContextMiddleware implements NestMiddleware {
   use(req: Request, res: Response, next: NextFunction) {
-    const tenantId = this.extractTenantId(req);
+    const tenant = this.extractTenantId(req);
     
     // Store tenant context for this request
-    req['tenantId'] = tenantId;
+    req['tenant'] = tenant;
     next();
   }
 
@@ -177,13 +177,13 @@ export class TenantAwareBaseRepository<T> {
     private entityClass: EntityTarget<T>
   ) {}
 
-  async withTenantContext<R>(tenantId: string, operation: () => Promise<R>): Promise<R> {
+  async withTenantContext<R>(tenant: string, operation: () => Promise<R>): Promise<R> {
     const queryRunner = this.dataSource.createQueryRunner();
     await queryRunner.connect();
     
     try {
       // Set tenant context for this session
-      await queryRunner.query(\`SET app.current_tenant_id = '\${tenantId}'\`);
+      await queryRunner.query(\`SET app.current_tenant_id = '\${tenant}'\`);
       
       // Execute operation within tenant context
       return await operation();
@@ -262,40 +262,40 @@ CREATE DATABASE tenant_456_banking_db
 export class TenantDatabaseManager {
   private connectionCache = new Map<string, DataSource>();
 
-  async getTenantDataSource(tenantId: string): Promise<DataSource> {
-    if (this.connectionCache.has(tenantId)) {
-      return this.connectionCache.get(tenantId)!;
+  async getTenantDataSource(tenant: string): Promise<DataSource> {
+    if (this.connectionCache.has(tenant)) {
+      return this.connectionCache.get(tenant)!;
     }
 
     const dataSource = new DataSource({
       type: 'postgres',
       host: AppConfigUtil.getDatabaseConfig().host,
       port: AppConfigUtil.getDatabaseConfig().port,
-      username: \`tenant_\${tenantId}_user\`,
-      password: await this.getTenantPassword(tenantId),
-      database: \`tenant_\${tenantId}_banking_db\`,
+      username: \`tenant_\${tenant}_user\`,
+      password: await this.getTenantPassword(tenant),
+      database: \`tenant_\${tenant}_banking_db\`,
       entities: [/* tenant entities */],
       synchronize: false,
       logging: AppConfigUtil.isDevelopment(),
     });
 
     await dataSource.initialize();
-    this.connectionCache.set(tenantId, dataSource);
+    this.connectionCache.set(tenant, dataSource);
     
     return dataSource;
   }
 
   async executeTenantOperation<T>(
-    tenantId: string, 
+    tenant: string, 
     operation: (dataSource: DataSource) => Promise<T>
   ): Promise<T> {
-    const dataSource = await this.getTenantDataSource(tenantId);
+    const dataSource = await this.getTenantDataSource(tenant);
     return await operation(dataSource);
   }
 
-  private async getTenantPassword(tenantId: string): Promise<string> {
+  private async getTenantPassword(tenant: string): Promise<string> {
     // Retrieve from secure configuration service
-    return this.configService.getTenantDbPassword(tenantId);
+    return this.configService.getTenantDbPassword(tenant);
   }
 }
 \`\`\`
@@ -310,9 +310,9 @@ export class TenantProvisioningService {
     private tenantManager: TenantDatabaseManager
   ) {}
 
-  async provisionNewTenant(tenantId: string, configuration: TenantConfig): Promise<void> {
-    const dbName = \`tenant_\${tenantId}_banking_db\`;
-    const username = \`tenant_\${tenantId}_user\`;
+  async provisionNewTenant(tenant: string, configuration: TenantConfig): Promise<void> {
+    const dbName = \`tenant_\${tenant}_banking_db\`;
+    const username = \`tenant_\${tenant}_user\`;
     const password = this.generateSecurePassword();
 
     // Create database and user
@@ -325,14 +325,14 @@ export class TenantProvisioningService {
     \`);
 
     // Store tenant credentials securely
-    await this.configService.storeTenantCredentials(tenantId, {
+    await this.configService.storeTenantCredentials(tenant, {
       database: dbName,
       username: username,
       password: password
     });
 
     // Run tenant-specific initialization
-    const tenantDataSource = await this.tenantManager.getTenantDataSource(tenantId);
+    const tenantDataSource = await this.tenantManager.getTenantDataSource(tenant);
     await this.initializeTenantData(tenantDataSource, configuration);
   }
 
@@ -368,7 +368,7 @@ export class TenantProvisioningService {
 \`\`\`typescript
 // Version-aware migration system
 interface MigrationContext {
-  tenantId?: string;
+  tenant?: string;
   strategy: 'schema-per-tenant' | 'rls' | 'database-per-tenant';
   version: string;
 }

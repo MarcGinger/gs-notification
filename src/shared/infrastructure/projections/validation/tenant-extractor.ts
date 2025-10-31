@@ -13,24 +13,24 @@ export class TenantExtractor {
   /**
    * Extract tenant ID from projection event using the standardized metadata structure
    *
-   * PRIMARY: event.metadata.actor.tenantId (standardized approach)
+   * PRIMARY: event.metadata.actor.tenant (standardized approach)
    * FALLBACKS: Legacy patterns for migration period only
    *
    * @param event - Projection event to extract tenant from
    * @param defaultTenant - Default tenant if none found (default: 'default')
-   * @param strictMode - If true, only use actor.tenantId (default: false for migration)
+   * @param strictMode - If true, only use actor.tenant (default: false for migration)
    * @returns Tenant identifier string
    */
   static extractTenant(
     event: ProjectionEvent,
     defaultTenant = 'default',
   ): string {
-    // PRIMARY STRATEGY: Use standardized actor.tenantId (this is the target state)
+    // PRIMARY STRATEGY: Use standardized actor.tenant (this is the target state)
     if (
-      event.metadata?.actor?.tenantId &&
-      typeof event.metadata.actor.tenantId === 'string'
+      event.metadata?.tenant &&
+      typeof event.metadata.actor.tenant === 'string'
     ) {
-      return event.metadata.actor.tenantId;
+      return event.metadata.actor.tenant;
     }
     return defaultTenant;
   }

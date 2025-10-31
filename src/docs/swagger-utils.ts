@@ -4,7 +4,7 @@
 import { INestApplication } from '@nestjs/common';
 import { AppConfigUtil } from 'src/shared/config/app-config.util';
 import { setupStandardSwaggerDocs } from './standard-swagger';
-import { setupNotificationSlackConfigDocs } from 'src/contexts/notification-slack/notification-slack.swagger.utils';
+import { setupNotificationConfigDocs } from 'src/contexts/notification/notification.swagger.utils';
 
 /**
  * Setup multiple Swagger documentation using modular documentation classes
@@ -19,13 +19,10 @@ export function setupMultipleSwaggerDocs(
 
   // Setup domain documentation (delegated to bounded context)
   const standardConfigUrls = setupStandardSwaggerDocs(app, port);
-  const notificationSlackConfigUrls = setupNotificationSlackConfigDocs(
-    app,
-    port,
-  );
+  const notificationConfigUrls = setupNotificationConfigDocs(app, port);
 
   return {
     ...standardConfigUrls,
-    ...notificationSlackConfigUrls,
+    ...notificationConfigUrls,
   };
 }

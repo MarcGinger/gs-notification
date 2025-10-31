@@ -1,0 +1,1629 @@
+{
+  "service": {
+    "name": "notification-slack-config",
+    "boundedContext": "notification",
+    "application": "slack-config",
+    "moduleName": "notification.slack",
+    "version": "1",
+    "hasRedis": true,
+    "hasSql": true,
+    "hasEventStream": true
+  },
+  "tables": [
+    {
+      "name": "workspace",
+      "description": "## 🧠 SlackWorkspace\n\n### **Purpose**\n\nThe \\`SlackWorkspace\\` aggregate represents the tenant’s connection to their Slack workspace. It acts as the foundational configuration point that defines the link between the system and the tenant’s Slack organization.\n\nThis aggregate holds sensitive integration credentials — including OAuth tokens, signing secrets, and app identifiers — and ensures they are securely managed and rotated when necessary. It also tracks which workspace belongs to which tenant and whether the connection is currently active.\n\n### **Responsibilities**\n\n* Maintain the tenant-to-Slack workspace mapping.\n* Securely store and reference OAuth credentials (e.g., \\`botToken\\`, \\`signingSecret\\`).\n* Enable or disable the Slack integration per tenant.\n* Manage the default posting channel for system notifications.\n* Emit events that notify other services when configuration changes occur.\n\n### **Why It Matters**\n\nWithout the \\`SlackWorkspace\\` aggregate, the platform wouldn’t know **where** to send Slack messages or which tokens to use for authentication. It ensures tenant isolation and provides a secure boundary for Slack API interactions.\n",
+      "columns": [
+        {
+          "name": "id",
+          "type": "string",
+          "childRelationshipType": "AppConfig",
+          "parentRelationshipType": "",
+          "datatype": "VARCHAR",
+          "primaryKey": true,
+          "required": true,
+          "description": "Unique identifier for the Slack workspace/team, provided by Slack API during OAuth installation. This is the primary key linking all workspace-specific configurations.",
+          "defaultvalue": "",
+          "example": "T01EXAMPLE123",
+          "autoIncrement": false,
+          "maxLength": "64",
+          "array": false,
+          "isPII": "",
+          "parentRelationship": "",
+          "childRelationship": "workspace_channel, workspace_template, workspace_app_config",
+          "meta": {
+            "kind": "string",
+            "maxLength": 64
+          }
+        },
+        {
+          "name": "name",
+          "type": "string",
+          "childRelationshipType": "",
+          "parentRelationshipType": "",
+          "datatype": "VARCHAR",
+          "primaryKey": false,
+          "required": true,
+          "description": "Human-readable display name of the Slack workspace as configured by workspace administrators. Used for identification and logging purposes.",
+          "defaultvalue": "",
+          "example": "Acme Corp Engineering",
+          "autoIncrement": false,
+          "maxLength": "255",
+          "array": false,
+          "isPII": "",
+          "parentRelationship": "",
+          "childRelationship": "",
+          "meta": {
+            "kind": "string",
+            "maxLength": 255
+          }
+        },
+        {
+          "name": "bot_token",
+          "type": "string",
+          "childRelationshipType": "",
+          "parentRelationshipType": "",
+          "datatype": "TEXT",
+          "primaryKey": false,
+          "required": false,
+          "description": "OAuth bot token with scope permissions for posting messages, reading channels, and accessing workspace information. Encrypted at rest using AES-256 encryption for security compliance.",
+          "defaultvalue": "",
+          "example": "xoxb-EXAMPLE-EXAMPLE-EXAMPLETOKEN123456",
+          "autoIncrement": false,
+          "array": false,
+          "isPII": "",
+          "parentRelationship": "",
+          "childRelationship": "",
+          "meta": {
+            "kind": "string",
+            "maxLength": 65535
+          }
+        },
+        {
+          "name": "signing_secret",
+          "type": "string",
+          "childRelationshipType": "",
+          "parentRelationshipType": "",
+          "datatype": "TEXT",
+          "primaryKey": false,
+          "required": false,
+          "description": "Slack application signing secret used to verify that incoming requests are genuinely from Slack. Required for webhook authentication and security validation. Encrypted using the same key as bot_token.",
+          "defaultvalue": "",
+          "example": "example_signing_secret_not_real_123",
+          "autoIncrement": false,
+          "array": false,
+          "isPII": "",
+          "parentRelationship": "",
+          "childRelationship": "",
+          "meta": {
+            "kind": "string",
+            "maxLength": 65535
+          }
+        },
+        {
+          "name": "app_id",
+          "type": "string",
+          "childRelationshipType": "",
+          "parentRelationshipType": "",
+          "datatype": "VARCHAR",
+          "primaryKey": false,
+          "required": false,
+          "description": "Unique identifier for the Slack application as registered in the Slack App Directory. Used for app-specific API calls and identifying the source of bot interactions.",
+          "defaultvalue": "",
+          "example": "A01EXAMPLE456",
+          "autoIncrement": false,
+          "maxLength": "64",
+          "array": false,
+          "isPII": "",
+          "parentRelationship": "",
+          "childRelationship": "",
+          "meta": {
+            "kind": "string",
+            "maxLength": 64
+          }
+        },
+        {
+          "name": "bot_user_id",
+          "type": "string",
+          "childRelationshipType": "",
+          "parentRelationshipType": "",
+          "datatype": "VARCHAR",
+          "primaryKey": false,
+          "required": false,
+          "description": "Unique user identifier for the bot within the workspace. Used to identify bot messages and prevent the bot from responding to its own messages in conversations.",
+          "defaultvalue": "",
+          "example": "U01EXAMPLE789",
+          "autoIncrement": false,
+          "maxLength": "64",
+          "array": false,
+          "isPII": "",
+          "parentRelationship": "",
+          "childRelationship": "",
+          "meta": {
+            "kind": "string",
+            "maxLength": 64
+          }
+        },
+        {
+          "name": "default_channel_id",
+          "type": "string",
+          "childRelationshipType": "",
+          "parentRelationshipType": "",
+          "datatype": "VARCHAR",
+          "primaryKey": false,
+          "required": false,
+          "description": "Fallback channel ID for notifications when no specific channel is configured or available. Must be a channel where the bot has posting permissions.",
+          "defaultvalue": "",
+          "example": "C01EXAMPLE000",
+          "autoIncrement": false,
+          "maxLength": "64",
+          "array": false,
+          "isPII": "",
+          "parentRelationship": "",
+          "childRelationship": "",
+          "meta": {
+            "kind": "string",
+            "maxLength": 64
+          }
+        },
+        {
+          "name": "enabled",
+          "type": "boolean",
+          "childRelationshipType": "",
+          "parentRelationshipType": "",
+          "datatype": "BOOLEAN",
+          "primaryKey": false,
+          "required": true,
+          "description": "Global toggle for Slack integration functionality. When false, all notifications to this workspace are disabled, useful for maintenance or temporary suspension.",
+          "defaultvalue": "true",
+          "example": "true",
+          "autoIncrement": false,
+          "array": false,
+          "isPII": "",
+          "parentRelationship": "",
+          "childRelationship": "",
+          "meta": {
+            "kind": "boolean"
+          }
+        }
+      ],
+      "relationships": [
+        {
+          "name": "workspace_channel",
+          "parentTable": "workspace",
+          "parentColumn": {
+            "name": "id",
+            "type": "string",
+            "childRelationshipType": "AppConfig",
+            "parentRelationshipType": "",
+            "datatype": "VARCHAR",
+            "primaryKey": true,
+            "required": true,
+            "description": "Unique identifier for the Slack workspace/team, provided by Slack API during OAuth installation. This is the primary key linking all workspace-specific configurations.",
+            "defaultvalue": "",
+            "example": "T01EXAMPLE123",
+            "autoIncrement": false,
+            "maxLength": "64",
+            "array": false,
+            "isPII": "",
+            "parentRelationship": "",
+            "childRelationship": "workspace_channel, workspace_template, workspace_app_config",
+            "meta": {
+              "kind": "string",
+              "maxLength": 64
+            }
+          },
+          "childTable": "channel",
+          "childColumn": {
+            "name": "workspace_id",
+            "type": "string",
+            "childRelationshipType": "",
+            "parentRelationshipType": "Workspace",
+            "datatype": "VARCHAR",
+            "primaryKey": false,
+            "required": true,
+            "description": "Foreign key reference to the workspace this channel belongs to. Establishes the parent-child relationship between workspace and channels for multi-tenant support.",
+            "defaultvalue": "",
+            "example": "T01EXAMPLE123",
+            "autoIncrement": false,
+            "maxLength": "64",
+            "array": false,
+            "isPII": "",
+            "relationship": "one",
+            "parentRelationship": "workspace_channel",
+            "childRelationship": "",
+            "meta": {
+              "kind": "string",
+              "maxLength": 64
+            }
+          },
+          "type": "one",
+          "complex": true
+        },
+        {
+          "name": "workspace_template",
+          "parentTable": "workspace",
+          "parentColumn": {
+            "name": "id",
+            "type": "string",
+            "childRelationshipType": "AppConfig",
+            "parentRelationshipType": "",
+            "datatype": "VARCHAR",
+            "primaryKey": true,
+            "required": true,
+            "description": "Unique identifier for the Slack workspace/team, provided by Slack API during OAuth installation. This is the primary key linking all workspace-specific configurations.",
+            "defaultvalue": "",
+            "example": "T01EXAMPLE123",
+            "autoIncrement": false,
+            "maxLength": "64",
+            "array": false,
+            "isPII": "",
+            "parentRelationship": "",
+            "childRelationship": "workspace_channel, workspace_template, workspace_app_config",
+            "meta": {
+              "kind": "string",
+              "maxLength": 64
+            }
+          },
+          "childTable": "template",
+          "childColumn": {
+            "name": "workspace_id",
+            "type": "string",
+            "childRelationshipType": "",
+            "parentRelationshipType": "Workspace",
+            "datatype": "VARCHAR",
+            "primaryKey": false,
+            "required": true,
+            "description": "Foreign key linking template to its workspace. Enables workspace-specific template customization and multi-tenant template isolation.",
+            "defaultvalue": "",
+            "example": "T01EXAMPLE123",
+            "autoIncrement": false,
+            "maxLength": "64",
+            "array": false,
+            "isPII": "",
+            "relationship": "one",
+            "parentRelationship": "workspace_template",
+            "childRelationship": "",
+            "meta": {
+              "kind": "string",
+              "maxLength": 64
+            }
+          },
+          "type": "one",
+          "complex": true
+        },
+        {
+          "name": "workspace_app_config",
+          "parentTable": "workspace",
+          "parentColumn": {
+            "name": "id",
+            "type": "string",
+            "childRelationshipType": "AppConfig",
+            "parentRelationshipType": "",
+            "datatype": "VARCHAR",
+            "primaryKey": true,
+            "required": true,
+            "description": "Unique identifier for the Slack workspace/team, provided by Slack API during OAuth installation. This is the primary key linking all workspace-specific configurations.",
+            "defaultvalue": "",
+            "example": "T01EXAMPLE123",
+            "autoIncrement": false,
+            "maxLength": "64",
+            "array": false,
+            "isPII": "",
+            "parentRelationship": "",
+            "childRelationship": "workspace_channel, workspace_template, workspace_app_config",
+            "meta": {
+              "kind": "string",
+              "maxLength": 64
+            }
+          },
+          "childTable": "app_config",
+          "childColumn": {
+            "name": "workspace_id",
+            "type": "string",
+            "childRelationshipType": "",
+            "parentRelationshipType": "Workspace",
+            "datatype": "VARCHAR",
+            "primaryKey": false,
+            "required": true,
+            "description": "Foreign key reference to the workspace these operational settings apply to. Allows per-workspace customization of retry logic and behavior.",
+            "defaultvalue": "",
+            "example": "T01EXAMPLE123",
+            "autoIncrement": false,
+            "maxLength": "64",
+            "array": false,
+            "isPII": "",
+            "relationship": "one",
+            "parentRelationship": "workspace_app_config",
+            "childRelationship": "",
+            "meta": {
+              "kind": "string",
+              "maxLength": 64
+            }
+          },
+          "type": "one",
+          "complex": true
+        }
+      ],
+      "lines": [],
+      "keys": [
+        {
+          "name": "id",
+          "type": "string",
+          "childRelationshipType": "AppConfig",
+          "parentRelationshipType": "",
+          "datatype": "VARCHAR",
+          "primaryKey": true,
+          "required": true,
+          "description": "Unique identifier for the Slack workspace/team, provided by Slack API during OAuth installation. This is the primary key linking all workspace-specific configurations.",
+          "defaultvalue": "",
+          "example": "T01EXAMPLE123",
+          "autoIncrement": false,
+          "maxLength": "64",
+          "array": false,
+          "isPII": "",
+          "parentRelationship": "",
+          "childRelationship": "workspace_channel, workspace_template, workspace_app_config",
+          "meta": {
+            "kind": "string",
+            "maxLength": 64
+          }
+        }
+      ],
+      "indexes": [
+        {
+          "name": "id",
+          "type": "string",
+          "childRelationshipType": "AppConfig",
+          "parentRelationshipType": "",
+          "datatype": "VARCHAR",
+          "primaryKey": true,
+          "required": true,
+          "description": "Unique identifier for the Slack workspace/team, provided by Slack API during OAuth installation. This is the primary key linking all workspace-specific configurations.",
+          "defaultvalue": "",
+          "example": "T01EXAMPLE123",
+          "autoIncrement": false,
+          "maxLength": "64",
+          "array": false,
+          "isPII": "",
+          "parentRelationship": "",
+          "childRelationship": "workspace_channel, workspace_template, workspace_app_config",
+          "meta": {
+            "kind": "string",
+            "maxLength": 64
+          }
+        },
+        {
+          "name": "name",
+          "type": "string",
+          "childRelationshipType": "",
+          "parentRelationshipType": "",
+          "datatype": "VARCHAR",
+          "primaryKey": false,
+          "required": true,
+          "description": "Human-readable display name of the Slack workspace as configured by workspace administrators. Used for identification and logging purposes.",
+          "defaultvalue": "",
+          "example": "Acme Corp Engineering",
+          "autoIncrement": false,
+          "maxLength": "255",
+          "array": false,
+          "isPII": "",
+          "parentRelationship": "",
+          "childRelationship": "",
+          "meta": {
+            "kind": "string",
+            "maxLength": 255
+          }
+        }
+      ],
+      "docs": {
+        "name": "Workspace",
+        "summary": "Configuration for workspace table",
+        "version": "1.0.0"
+      },
+      "apis": {},
+      "store": {
+        "read": "redis",
+        "write": "kurrentdb",
+        "query": "redis",
+        "projector": "redis"
+      },
+      "options": {
+        "command": true,
+        "create": true,
+        "update": true,
+        "read": "redis",
+        "write": "kurrentdb",
+        "query": "redis",
+        "projector": "redis",
+        "softDelete": false,
+        "timestamps": true,
+        "versioning": true,
+        "logging": true,
+        "auditing": true,
+        "caching": true,
+        "eventStreaming": false
+      },
+      "cancel": {
+        "create": false,
+        "update": false,
+        "delete": false,
+        "batch": false,
+        "get": false
+      },
+      "redis": {
+        "prefix": "",
+        "version": "1.0",
+        "category": "notification:slack-config.workspace.v1",
+        "ttl": 3600,
+        "hash": true,
+        "aggregate": "workspace"
+      },
+      "eventstream": {
+        "boundedContext": "notification",
+        "aggregate": "workspace",
+        "version": "v1",
+        "stream": "notification.slackConfig.workspace",
+        "createdEvent": "NotificationSlackConfigWorkspaceCreated.v1",
+        "updatedEvent": "NotificationSlackConfigWorkspaceUpdated.v1",
+        "deletedEvent": "NotificationSlackConfigWorkspaceDeleted.v1"
+      },
+      "permissions": {
+        "bulk": [
+          "update",
+          "delete",
+          "import"
+        ],
+        "adminOverride": true,
+        "auditView": true,
+        "custom": []
+      },
+      "domainName": "",
+      "parentPath": []
+    },
+    {
+      "name": "channel",
+      "description": "## 🧵 SlackChannel\n\n### **Purpose**\n\nThe \\`SlackChannel\\` aggregate defines which channels or direct message endpoints within a workspace are authorized for communication. Each entry in this aggregate corresponds to a Slack channel (\\`#alerts\\`, \\`#approvals\\`, etc.) or DM (\\`@username\\`) where notifications can be posted.\n\nThis aggregate allows fine-grained control over what events each channel receives and ensures that messages are routed to valid and approved destinations.\n\n### **Responsibilities**\n\n* Register and maintain authorized Slack channels per workspace.\n* Define subscription rules (e.g., which event types can post to which channels).\n* Store metadata about channels (e.g., \\`isPrivate\\`, \\`isDm\\`, \\`topic\\`, \\`purpose\\`).\n* Allow enabling/disabling individual channels without removing configuration.\n* Ensure messages are delivered only to permitted targets.\n\n### **Why It Matters**\n\n\\`SlackChannel\\` acts as the **delivery policy** layer. It prevents unauthorized posting, provides flexibility in event routing, and allows tenants to configure business-specific notification targets.\n",
+      "columns": [
+        {
+          "name": "id",
+          "type": "string",
+          "childRelationshipType": "",
+          "parentRelationshipType": "",
+          "datatype": "VARCHAR",
+          "primaryKey": true,
+          "required": true,
+          "description": "Unique Slack channel identifier provided by Slack API. Used for all channel-specific operations including message posting and permissions validation.",
+          "defaultvalue": "",
+          "example": "C01EXAMPLE001",
+          "autoIncrement": false,
+          "maxLength": "64",
+          "array": false,
+          "isPII": "",
+          "parentRelationship": "",
+          "childRelationship": "",
+          "meta": {
+            "kind": "string",
+            "maxLength": 64
+          }
+        },
+        {
+          "name": "name",
+          "type": "string",
+          "childRelationshipType": "",
+          "parentRelationshipType": "",
+          "datatype": "VARCHAR",
+          "primaryKey": false,
+          "required": true,
+          "description": "Human-readable channel name as displayed in Slack, including the # prefix for public channels. Used for display purposes and channel identification in logs.",
+          "defaultvalue": "",
+          "example": "#notifications",
+          "autoIncrement": false,
+          "maxLength": "255",
+          "array": false,
+          "isPII": "",
+          "parentRelationship": "",
+          "childRelationship": "",
+          "meta": {
+            "kind": "string",
+            "maxLength": 255
+          }
+        },
+        {
+          "name": "workspace_id",
+          "type": "string",
+          "childRelationshipType": "",
+          "parentRelationshipType": "Workspace",
+          "datatype": "VARCHAR",
+          "primaryKey": false,
+          "required": true,
+          "description": "Foreign key reference to the workspace this channel belongs to. Establishes the parent-child relationship between workspace and channels for multi-tenant support.",
+          "defaultvalue": "",
+          "example": "T01EXAMPLE123",
+          "autoIncrement": false,
+          "maxLength": "64",
+          "array": false,
+          "isPII": "",
+          "relationship": "one",
+          "parentRelationship": "workspace_channel",
+          "childRelationship": "",
+          "meta": {
+            "kind": "string",
+            "maxLength": 64
+          }
+        },
+        {
+          "name": "is_private",
+          "type": "boolean",
+          "childRelationshipType": "",
+          "parentRelationshipType": "",
+          "datatype": "BOOLEAN",
+          "primaryKey": false,
+          "required": true,
+          "description": "Indicates whether the channel is private (invitation-only) or public. Affects message visibility and bot permission requirements for posting notifications.",
+          "defaultvalue": "false",
+          "example": "false",
+          "autoIncrement": false,
+          "array": false,
+          "isPII": "",
+          "parentRelationship": "",
+          "childRelationship": "",
+          "meta": {
+            "kind": "boolean"
+          }
+        },
+        {
+          "name": "is_dm",
+          "type": "boolean",
+          "childRelationshipType": "",
+          "parentRelationshipType": "",
+          "datatype": "BOOLEAN",
+          "primaryKey": false,
+          "required": true,
+          "description": "Identifies direct message channels for one-on-one communication. DM channels require special handling and different permission scopes for bot access.",
+          "defaultvalue": "false",
+          "example": "false",
+          "autoIncrement": false,
+          "array": false,
+          "isPII": "",
+          "parentRelationship": "",
+          "childRelationship": "",
+          "meta": {
+            "kind": "boolean"
+          }
+        },
+        {
+          "name": "topic",
+          "type": "string",
+          "childRelationshipType": "",
+          "parentRelationshipType": "",
+          "datatype": "VARCHAR",
+          "primaryKey": false,
+          "required": false,
+          "description": "Optional channel topic/description as set by channel administrators. Provides context about the channel's intended use and notification types.",
+          "defaultvalue": "",
+          "example": "System notifications and alerts",
+          "autoIncrement": false,
+          "maxLength": "255",
+          "array": false,
+          "isPII": "",
+          "parentRelationship": "",
+          "childRelationship": "",
+          "meta": {
+            "kind": "string",
+            "maxLength": 255
+          }
+        },
+        {
+          "name": "purpose",
+          "type": "string",
+          "childRelationshipType": "",
+          "parentRelationshipType": "",
+          "datatype": "VARCHAR",
+          "primaryKey": false,
+          "required": false,
+          "description": "Channel purpose statement describing its primary function and usage guidelines. Helps administrators understand notification routing decisions.",
+          "defaultvalue": "",
+          "example": "Automated notifications for production systems",
+          "autoIncrement": false,
+          "maxLength": "255",
+          "array": false,
+          "isPII": "",
+          "parentRelationship": "",
+          "childRelationship": "",
+          "meta": {
+            "kind": "string",
+            "maxLength": 255
+          }
+        },
+        {
+          "name": "subscribed_events",
+          "type": "string",
+          "childRelationshipType": "",
+          "parentRelationshipType": "",
+          "datatype": "VARCHAR",
+          "primaryKey": false,
+          "required": false,
+          "description": "Array of event types this channel subscribes to receive notifications for. Supports filtering and routing specific events to appropriate channels based on business rules.",
+          "defaultvalue": "",
+          "example": "\"user.created\", \"payment.failed\", \"system.error\"",
+          "autoIncrement": false,
+          "array": true,
+          "isPII": "",
+          "parentRelationship": "",
+          "childRelationship": "",
+          "meta": {
+            "kind": "string"
+          }
+        },
+        {
+          "name": "enabled",
+          "type": "boolean",
+          "childRelationshipType": "",
+          "parentRelationshipType": "",
+          "datatype": "BOOLEAN",
+          "primaryKey": false,
+          "required": true,
+          "description": "Channel-level toggle for notification delivery. When disabled, notifications intended for this channel will be redirected to the workspace default channel.",
+          "defaultvalue": "true",
+          "example": "true",
+          "autoIncrement": false,
+          "array": false,
+          "isPII": "",
+          "parentRelationship": "",
+          "childRelationship": "",
+          "meta": {
+            "kind": "boolean"
+          }
+        }
+      ],
+      "relationships": [
+        {
+          "name": "workspace_channel",
+          "parentTable": "workspace",
+          "parentColumn": {
+            "name": "id",
+            "type": "string",
+            "childRelationshipType": "AppConfig",
+            "parentRelationshipType": "",
+            "datatype": "VARCHAR",
+            "primaryKey": true,
+            "required": true,
+            "description": "Unique identifier for the Slack workspace/team, provided by Slack API during OAuth installation. This is the primary key linking all workspace-specific configurations.",
+            "defaultvalue": "",
+            "example": "T01EXAMPLE123",
+            "autoIncrement": false,
+            "maxLength": "64",
+            "array": false,
+            "isPII": "",
+            "parentRelationship": "",
+            "childRelationship": "workspace_channel, workspace_template, workspace_app_config",
+            "meta": {
+              "kind": "string",
+              "maxLength": 64
+            }
+          },
+          "childTable": "channel",
+          "childColumn": {
+            "name": "workspace_id",
+            "type": "string",
+            "childRelationshipType": "",
+            "parentRelationshipType": "Workspace",
+            "datatype": "VARCHAR",
+            "primaryKey": false,
+            "required": true,
+            "description": "Foreign key reference to the workspace this channel belongs to. Establishes the parent-child relationship between workspace and channels for multi-tenant support.",
+            "defaultvalue": "",
+            "example": "T01EXAMPLE123",
+            "autoIncrement": false,
+            "maxLength": "64",
+            "array": false,
+            "isPII": "",
+            "relationship": "one",
+            "parentRelationship": "workspace_channel",
+            "childRelationship": "",
+            "meta": {
+              "kind": "string",
+              "maxLength": 64
+            }
+          },
+          "type": "one",
+          "complex": true
+        }
+      ],
+      "lines": [],
+      "keys": [
+        {
+          "name": "id",
+          "type": "string",
+          "childRelationshipType": "",
+          "parentRelationshipType": "",
+          "datatype": "VARCHAR",
+          "primaryKey": true,
+          "required": true,
+          "description": "Unique Slack channel identifier provided by Slack API. Used for all channel-specific operations including message posting and permissions validation.",
+          "defaultvalue": "",
+          "example": "C01EXAMPLE001",
+          "autoIncrement": false,
+          "maxLength": "64",
+          "array": false,
+          "isPII": "",
+          "parentRelationship": "",
+          "childRelationship": "",
+          "meta": {
+            "kind": "string",
+            "maxLength": 64
+          }
+        }
+      ],
+      "indexes": [],
+      "docs": {
+        "name": "Channel",
+        "summary": "Configuration for channel table",
+        "version": "1.0.0"
+      },
+      "apis": {},
+      "store": {
+        "read": "redis",
+        "write": "kurrentdb",
+        "query": "redis",
+        "projector": "redis"
+      },
+      "options": {
+        "command": true,
+        "create": true,
+        "update": true,
+        "read": "redis",
+        "write": "kurrentdb",
+        "query": "redis",
+        "projector": "redis",
+        "softDelete": false,
+        "timestamps": true,
+        "versioning": true,
+        "logging": true,
+        "auditing": true,
+        "caching": true,
+        "eventStreaming": false
+      },
+      "cancel": {
+        "create": false,
+        "update": false,
+        "delete": false,
+        "batch": false,
+        "get": false
+      },
+      "redis": {
+        "prefix": "",
+        "version": "1.0",
+        "category": "notification:slack-config.channel.v1",
+        "ttl": 3600,
+        "hash": true,
+        "aggregate": "channel"
+      },
+      "eventstream": {
+        "boundedContext": "notification",
+        "aggregate": "channel",
+        "version": "v1",
+        "stream": "notification.slackConfig.channel",
+        "createdEvent": "NotificationSlackConfigChannelCreated.v1",
+        "updatedEvent": "NotificationSlackConfigChannelUpdated.v1",
+        "deletedEvent": "NotificationSlackConfigChannelDeleted.v1"
+      },
+      "permissions": {
+        "bulk": [
+          "update",
+          "delete",
+          "import"
+        ],
+        "adminOverride": true,
+        "auditView": true,
+        "custom": []
+      },
+      "domainName": "",
+      "parentPath": []
+    },
+    {
+      "name": "template",
+      "description": "## 🧩 SlackTemplate\n\n### **Purpose**\n\nThe \\`SlackTemplate\\` aggregate defines reusable message templates that standardize the look and feel of Slack notifications. Templates are typically built using **Slack Block Kit** — Slack’s rich formatting system for interactive and visually appealing messages.\n\nThese templates can include placeholders (variables) for dynamic data, making them ideal for structured messages like approvals, alerts, and workflow completions.\n\n### **Responsibilities**\n\n* Define message layouts and content using Block Kit JSON.\n* Manage template metadata (e.g., name, description, version, and tenant).\n* Store variable definitions and validation rules.\n* Enable/disable templates per tenant for staged rollouts.\n* Emit events when templates are created, updated, or retired.\n\n### **Why It Matters**\n\n\\`SlackTemplate\\` enables **message consistency** and branding. Instead of ad-hoc message construction, all Slack notifications use predefined, validated templates — ensuring compliance, clarity, and maintainability.\n\n",
+      "columns": [
+        {
+          "name": "code",
+          "type": "string",
+          "childRelationshipType": "",
+          "parentRelationshipType": "",
+          "datatype": "VARCHAR",
+          "primaryKey": true,
+          "required": true,
+          "description": "Unique template identifier used for programmatic template selection. Must follow snake_case naming convention for consistency with application code.",
+          "defaultvalue": "",
+          "example": "payment_failure_alert",
+          "autoIncrement": false,
+          "maxLength": "64",
+          "array": false,
+          "isPII": "",
+          "parentRelationship": "",
+          "childRelationship": "",
+          "meta": {
+            "kind": "string",
+            "maxLength": 64
+          }
+        },
+        {
+          "name": "workspace_id",
+          "type": "string",
+          "childRelationshipType": "",
+          "parentRelationshipType": "Workspace",
+          "datatype": "VARCHAR",
+          "primaryKey": false,
+          "required": true,
+          "description": "Foreign key linking template to its workspace. Enables workspace-specific template customization and multi-tenant template isolation.",
+          "defaultvalue": "",
+          "example": "T01EXAMPLE123",
+          "autoIncrement": false,
+          "maxLength": "64",
+          "array": false,
+          "isPII": "",
+          "relationship": "one",
+          "parentRelationship": "workspace_template",
+          "childRelationship": "",
+          "meta": {
+            "kind": "string",
+            "maxLength": 64
+          }
+        },
+        {
+          "name": "name",
+          "type": "string",
+          "childRelationshipType": "",
+          "parentRelationshipType": "",
+          "datatype": "VARCHAR",
+          "primaryKey": false,
+          "required": true,
+          "description": "User-friendly template name displayed in admin interfaces and template selection menus. Should clearly describe the template's purpose and usage context.",
+          "defaultvalue": "",
+          "example": "Payment Failure Alert",
+          "autoIncrement": false,
+          "maxLength": "255",
+          "array": false,
+          "isPII": "",
+          "parentRelationship": "",
+          "childRelationship": "",
+          "meta": {
+            "kind": "string",
+            "maxLength": 255
+          }
+        },
+        {
+          "name": "description",
+          "type": "string",
+          "childRelationshipType": "",
+          "parentRelationshipType": "",
+          "datatype": "TEXT",
+          "primaryKey": false,
+          "required": false,
+          "description": "Detailed description of the template's purpose, when to use it, and any special considerations. Helps administrators choose appropriate templates for specific notification scenarios.",
+          "defaultvalue": "",
+          "example": "Alert template for payment processing failures requiring immediate attention",
+          "autoIncrement": false,
+          "array": false,
+          "isPII": "",
+          "parentRelationship": "",
+          "childRelationship": "",
+          "meta": {
+            "kind": "string",
+            "maxLength": 65535
+          }
+        },
+        {
+          "name": "content_blocks",
+          "type": "string",
+          "childRelationshipType": "",
+          "parentRelationshipType": "",
+          "datatype": "TEXT",
+          "primaryKey": false,
+          "required": true,
+          "description": "Slack Block Kit JSON structure defining the visual layout and interactive elements of the message. Supports rich formatting, buttons, and dynamic content replacement.",
+          "defaultvalue": "",
+          "example": "{\"type\":\"section\",\"text\":{\"type\":\"mrkdwn\",\"text\":\"*Payment Failed* \\n Transaction {{transactionId}} failed\"}}",
+          "autoIncrement": false,
+          "array": true,
+          "isPII": "",
+          "parentRelationship": "",
+          "childRelationship": "",
+          "meta": {
+            "kind": "string",
+            "maxLength": 65535
+          }
+        },
+        {
+          "name": "variables",
+          "type": "string",
+          "childRelationshipType": "",
+          "parentRelationshipType": "",
+          "datatype": "TEXT",
+          "primaryKey": false,
+          "required": false,
+          "description": "Array of variable names that can be dynamically replaced in the template content. Each variable corresponds to a placeholder in content_blocks using {{variableName}} syntax.",
+          "defaultvalue": "",
+          "example": "\"transactionId\", \"amount\", \"customerEmail\", \"errorCode\"",
+          "autoIncrement": false,
+          "array": true,
+          "isPII": "",
+          "parentRelationship": "",
+          "childRelationship": "",
+          "meta": {
+            "kind": "string",
+            "maxLength": 65535
+          }
+        },
+        {
+          "name": "sample_payload",
+          "type": "Record<string, unknown>",
+          "childRelationshipType": "",
+          "parentRelationshipType": "",
+          "datatype": "JSON",
+          "primaryKey": false,
+          "required": false,
+          "description": "Example data structure showing realistic values for all template variables. Used for template testing, preview generation, and developer documentation.",
+          "defaultvalue": "",
+          "example": "{\"transactionId\":\"TXN-EXAMPLE123\",\"amount\":\"$99.99\",\"customerEmail\":\"example@domain.com\",\"errorCode\":\"CARD_DECLINED\"}",
+          "autoIncrement": false,
+          "array": false,
+          "isPII": "",
+          "parentRelationship": "",
+          "childRelationship": "",
+          "meta": {
+            "kind": "json",
+            "jsonShape": "object"
+          }
+        },
+        {
+          "name": "enabled",
+          "type": "boolean",
+          "childRelationshipType": "",
+          "parentRelationshipType": "",
+          "datatype": "BOOLEAN",
+          "primaryKey": false,
+          "required": true,
+          "description": "Template availability toggle. Disabled templates cannot be used for new notifications but existing scheduled notifications will continue to use them.",
+          "defaultvalue": "true",
+          "example": "true",
+          "autoIncrement": false,
+          "array": false,
+          "isPII": "",
+          "parentRelationship": "",
+          "childRelationship": "",
+          "meta": {
+            "kind": "boolean"
+          }
+        }
+      ],
+      "relationships": [
+        {
+          "name": "workspace_template",
+          "parentTable": "workspace",
+          "parentColumn": {
+            "name": "id",
+            "type": "string",
+            "childRelationshipType": "AppConfig",
+            "parentRelationshipType": "",
+            "datatype": "VARCHAR",
+            "primaryKey": true,
+            "required": true,
+            "description": "Unique identifier for the Slack workspace/team, provided by Slack API during OAuth installation. This is the primary key linking all workspace-specific configurations.",
+            "defaultvalue": "",
+            "example": "T01EXAMPLE123",
+            "autoIncrement": false,
+            "maxLength": "64",
+            "array": false,
+            "isPII": "",
+            "parentRelationship": "",
+            "childRelationship": "workspace_channel, workspace_template, workspace_app_config",
+            "meta": {
+              "kind": "string",
+              "maxLength": 64
+            }
+          },
+          "childTable": "template",
+          "childColumn": {
+            "name": "workspace_id",
+            "type": "string",
+            "childRelationshipType": "",
+            "parentRelationshipType": "Workspace",
+            "datatype": "VARCHAR",
+            "primaryKey": false,
+            "required": true,
+            "description": "Foreign key linking template to its workspace. Enables workspace-specific template customization and multi-tenant template isolation.",
+            "defaultvalue": "",
+            "example": "T01EXAMPLE123",
+            "autoIncrement": false,
+            "maxLength": "64",
+            "array": false,
+            "isPII": "",
+            "relationship": "one",
+            "parentRelationship": "workspace_template",
+            "childRelationship": "",
+            "meta": {
+              "kind": "string",
+              "maxLength": 64
+            }
+          },
+          "type": "one",
+          "complex": true
+        }
+      ],
+      "lines": [],
+      "keys": [
+        {
+          "name": "code",
+          "type": "string",
+          "childRelationshipType": "",
+          "parentRelationshipType": "",
+          "datatype": "VARCHAR",
+          "primaryKey": true,
+          "required": true,
+          "description": "Unique template identifier used for programmatic template selection. Must follow snake_case naming convention for consistency with application code.",
+          "defaultvalue": "",
+          "example": "payment_failure_alert",
+          "autoIncrement": false,
+          "maxLength": "64",
+          "array": false,
+          "isPII": "",
+          "parentRelationship": "",
+          "childRelationship": "",
+          "meta": {
+            "kind": "string",
+            "maxLength": 64
+          }
+        }
+      ],
+      "indexes": [],
+      "docs": {
+        "name": "Template",
+        "summary": "Configuration for template table",
+        "version": "1.0.0"
+      },
+      "apis": {},
+      "store": {
+        "read": "redis",
+        "write": "kurrentdb",
+        "query": "redis",
+        "projector": "redis"
+      },
+      "options": {
+        "command": true,
+        "create": true,
+        "update": true,
+        "read": "redis",
+        "write": "kurrentdb",
+        "query": "redis",
+        "projector": "redis",
+        "softDelete": false,
+        "timestamps": true,
+        "versioning": true,
+        "logging": true,
+        "auditing": true,
+        "caching": true,
+        "eventStreaming": false
+      },
+      "cancel": {
+        "create": false,
+        "update": false,
+        "delete": false,
+        "batch": false,
+        "get": false
+      },
+      "redis": {
+        "prefix": "",
+        "version": "1.0",
+        "category": "notification:slack-config.template.v1",
+        "ttl": 3600,
+        "hash": true,
+        "aggregate": "template"
+      },
+      "eventstream": {
+        "boundedContext": "notification",
+        "aggregate": "template",
+        "version": "v1",
+        "stream": "notification.slackConfig.template",
+        "createdEvent": "NotificationSlackConfigTemplateCreated.v1",
+        "updatedEvent": "NotificationSlackConfigTemplateUpdated.v1",
+        "deletedEvent": "NotificationSlackConfigTemplateDeleted.v1"
+      },
+      "permissions": {
+        "bulk": [
+          "update",
+          "delete",
+          "import"
+        ],
+        "adminOverride": true,
+        "auditView": true,
+        "custom": []
+      },
+      "domainName": "",
+      "parentPath": []
+    },
+    {
+      "name": "app_config",
+      "description": "## ⚙️ SlackAppConfig\n\n### **Purpose**\n\nThe \\`SlackAppConfig\\` aggregate manages system-wide operational parameters for the Slack integration within a tenant’s workspace. It defines how the app behaves under various runtime conditions, such as retries, logging, and audit behavior.\n\nThis configuration ensures that message delivery is resilient and aligned with organizational policies (e.g., how many times to retry sending, whether to log every event, which audit channel to use, etc.).\n\n### **Responsibilities**\n\n* Manage retry and backoff policies for message delivery.\n* Enable or disable message-level logging for auditing.\n* Define the audit channel ID for operational or compliance logs.\n* Maintain default locale, metadata, and other operational flags.\n* Emit configuration change events for runtime synchronization.\n\n### **Why It Matters**\n\n\\`SlackAppConfig\\` provides the **operational backbone** for Slack messaging. It ensures reliability, compliance, and observability — allowing organizations to manage how Slack notifications behave at scale and during failures.\n\n",
+      "columns": [
+        {
+          "name": "id",
+          "type": "number",
+          "childRelationshipType": "",
+          "parentRelationshipType": "",
+          "datatype": "INT",
+          "primaryKey": true,
+          "required": true,
+          "description": "Auto-incrementing primary key for app configuration records. Each workspace typically has one configuration record.",
+          "defaultvalue": "",
+          "example": "1",
+          "autoIncrement": false,
+          "array": false,
+          "isPII": "",
+          "parentRelationship": "",
+          "childRelationship": "",
+          "meta": {
+            "kind": "number",
+            "autoIncrement": false
+          }
+        },
+        {
+          "name": "workspace_id",
+          "type": "string",
+          "childRelationshipType": "",
+          "parentRelationshipType": "Workspace",
+          "datatype": "VARCHAR",
+          "primaryKey": false,
+          "required": true,
+          "description": "Foreign key reference to the workspace these operational settings apply to. Allows per-workspace customization of retry logic and behavior.",
+          "defaultvalue": "",
+          "example": "T01EXAMPLE123",
+          "autoIncrement": false,
+          "maxLength": "64",
+          "array": false,
+          "isPII": "",
+          "relationship": "one",
+          "parentRelationship": "workspace_app_config",
+          "childRelationship": "",
+          "meta": {
+            "kind": "string",
+            "maxLength": 64
+          }
+        },
+        {
+          "name": "max_retry_attempts",
+          "type": "number",
+          "childRelationshipType": "",
+          "parentRelationshipType": "",
+          "datatype": "INT",
+          "primaryKey": false,
+          "required": true,
+          "description": "Maximum number of retry attempts for failed message deliveries before marking as permanently failed. Higher values increase reliability but consume more resources.",
+          "defaultvalue": "3",
+          "example": "3",
+          "autoIncrement": false,
+          "array": false,
+          "isPII": "",
+          "parentRelationship": "",
+          "childRelationship": "",
+          "meta": {
+            "kind": "number",
+            "autoIncrement": false
+          }
+        },
+        {
+          "name": "retry_backoff_seconds",
+          "type": "number",
+          "childRelationshipType": "",
+          "parentRelationshipType": "",
+          "datatype": "INT",
+          "primaryKey": false,
+          "required": true,
+          "description": "Initial delay in seconds between retry attempts. Actual delay may use exponential backoff strategy to avoid overwhelming Slack API rate limits.",
+          "defaultvalue": "5",
+          "example": "5",
+          "autoIncrement": false,
+          "array": false,
+          "isPII": "",
+          "parentRelationship": "",
+          "childRelationship": "",
+          "meta": {
+            "kind": "number",
+            "autoIncrement": false
+          }
+        },
+        {
+          "name": "default_locale",
+          "type": "string",
+          "childRelationshipType": "",
+          "parentRelationshipType": "",
+          "datatype": "VARCHAR",
+          "primaryKey": false,
+          "required": true,
+          "description": "Default language/locale for message content when user-specific locale is not available. Follows ISO 639-1 language codes combined with ISO 3166-1 country codes.",
+          "defaultvalue": "en_US",
+          "example": "en_US",
+          "autoIncrement": false,
+          "maxLength": "16",
+          "array": false,
+          "isPII": "",
+          "parentRelationship": "",
+          "childRelationship": "",
+          "meta": {
+            "kind": "string",
+            "maxLength": 16
+          }
+        },
+        {
+          "name": "logging_enabled",
+          "type": "boolean",
+          "childRelationshipType": "",
+          "parentRelationshipType": "",
+          "datatype": "BOOLEAN",
+          "primaryKey": false,
+          "required": true,
+          "description": "Controls whether detailed message delivery logs are recorded for audit and debugging purposes. Essential for compliance and troubleshooting failed deliveries.",
+          "defaultvalue": "true",
+          "example": "true",
+          "autoIncrement": false,
+          "array": false,
+          "isPII": "",
+          "parentRelationship": "",
+          "childRelationship": "",
+          "meta": {
+            "kind": "boolean"
+          }
+        },
+        {
+          "name": "audit_channel_id",
+          "type": "string",
+          "childRelationshipType": "",
+          "parentRelationshipType": "",
+          "datatype": "VARCHAR",
+          "primaryKey": false,
+          "required": false,
+          "description": "Optional dedicated channel for system operational logs, error reports, and delivery confirmations. Separate from business notification channels for administrative clarity.",
+          "defaultvalue": "",
+          "example": "C01EXAMPLE999",
+          "autoIncrement": false,
+          "maxLength": "64",
+          "array": false,
+          "isPII": "",
+          "parentRelationship": "",
+          "childRelationship": "",
+          "meta": {
+            "kind": "string",
+            "maxLength": 64
+          }
+        },
+        {
+          "name": "metadata",
+          "type": "Record<string, unknown>",
+          "childRelationshipType": "",
+          "parentRelationshipType": "",
+          "datatype": "JSON",
+          "primaryKey": false,
+          "required": false,
+          "description": "Flexible JSON object for storing additional workspace-specific configuration options, feature flags, and custom settings that don't warrant dedicated columns.",
+          "defaultvalue": "",
+          "example": "{\"timezone\":\"America/New_York\",\"businessHours\":{\"start\":\"09:00\",\"end\":\"17:00\"},\"features\":{\"threadedReplies\":true}}",
+          "autoIncrement": false,
+          "array": false,
+          "isPII": "",
+          "parentRelationship": "",
+          "childRelationship": "",
+          "meta": {
+            "kind": "json",
+            "jsonShape": "object"
+          }
+        }
+      ],
+      "relationships": [
+        {
+          "name": "workspace_app_config",
+          "parentTable": "workspace",
+          "parentColumn": {
+            "name": "id",
+            "type": "string",
+            "childRelationshipType": "AppConfig",
+            "parentRelationshipType": "",
+            "datatype": "VARCHAR",
+            "primaryKey": true,
+            "required": true,
+            "description": "Unique identifier for the Slack workspace/team, provided by Slack API during OAuth installation. This is the primary key linking all workspace-specific configurations.",
+            "defaultvalue": "",
+            "example": "T01EXAMPLE123",
+            "autoIncrement": false,
+            "maxLength": "64",
+            "array": false,
+            "isPII": "",
+            "parentRelationship": "",
+            "childRelationship": "workspace_channel, workspace_template, workspace_app_config",
+            "meta": {
+              "kind": "string",
+              "maxLength": 64
+            }
+          },
+          "childTable": "app_config",
+          "childColumn": {
+            "name": "workspace_id",
+            "type": "string",
+            "childRelationshipType": "",
+            "parentRelationshipType": "Workspace",
+            "datatype": "VARCHAR",
+            "primaryKey": false,
+            "required": true,
+            "description": "Foreign key reference to the workspace these operational settings apply to. Allows per-workspace customization of retry logic and behavior.",
+            "defaultvalue": "",
+            "example": "T01EXAMPLE123",
+            "autoIncrement": false,
+            "maxLength": "64",
+            "array": false,
+            "isPII": "",
+            "relationship": "one",
+            "parentRelationship": "workspace_app_config",
+            "childRelationship": "",
+            "meta": {
+              "kind": "string",
+              "maxLength": 64
+            }
+          },
+          "type": "one",
+          "complex": true
+        }
+      ],
+      "lines": [],
+      "keys": [
+        {
+          "name": "id",
+          "type": "number",
+          "childRelationshipType": "",
+          "parentRelationshipType": "",
+          "datatype": "INT",
+          "primaryKey": true,
+          "required": true,
+          "description": "Auto-incrementing primary key for app configuration records. Each workspace typically has one configuration record.",
+          "defaultvalue": "",
+          "example": "1",
+          "autoIncrement": false,
+          "array": false,
+          "isPII": "",
+          "parentRelationship": "",
+          "childRelationship": "",
+          "meta": {
+            "kind": "number",
+            "autoIncrement": false
+          }
+        }
+      ],
+      "indexes": [],
+      "docs": {
+        "name": "App_config",
+        "summary": "Configuration for app_config table",
+        "version": "1.0.0"
+      },
+      "apis": {},
+      "store": {
+        "read": "redis",
+        "write": "kurrentdb",
+        "query": "redis",
+        "projector": "redis"
+      },
+      "options": {
+        "command": true,
+        "create": true,
+        "update": true,
+        "read": "redis",
+        "write": "kurrentdb",
+        "query": "redis",
+        "projector": "redis",
+        "softDelete": false,
+        "timestamps": true,
+        "versioning": true,
+        "logging": true,
+        "auditing": true,
+        "caching": true,
+        "eventStreaming": false
+      },
+      "cancel": {
+        "create": false,
+        "update": false,
+        "delete": false,
+        "batch": false,
+        "get": false
+      },
+      "redis": {
+        "prefix": "",
+        "version": "1.0",
+        "category": "notification:slack-config.app.config.v1",
+        "ttl": 3600,
+        "hash": true,
+        "aggregate": "app_config"
+      },
+      "eventstream": {
+        "boundedContext": "notification",
+        "aggregate": "app_config",
+        "version": "v1",
+        "stream": "notification.slackConfig.appConfig",
+        "createdEvent": "NotificationSlackConfigAppConfigCreated.v1",
+        "updatedEvent": "NotificationSlackConfigAppConfigUpdated.v1",
+        "deletedEvent": "NotificationSlackConfigAppConfigDeleted.v1"
+      },
+      "permissions": {
+        "bulk": [
+          "update",
+          "delete",
+          "import"
+        ],
+        "adminOverride": true,
+        "auditView": true,
+        "custom": []
+      },
+      "domainName": "",
+      "parentPath": []
+    }
+  ],
+  "relationships": [
+    {
+      "name": "workspace_channel",
+      "parentTable": "workspace",
+      "parentColumn": {
+        "name": "id",
+        "type": "string",
+        "childRelationshipType": "AppConfig",
+        "parentRelationshipType": "",
+        "datatype": "VARCHAR",
+        "primaryKey": true,
+        "required": true,
+        "description": "Unique identifier for the Slack workspace/team, provided by Slack API during OAuth installation. This is the primary key linking all workspace-specific configurations.",
+        "defaultvalue": "",
+        "example": "T01EXAMPLE123",
+        "autoIncrement": false,
+        "maxLength": "64",
+        "array": false,
+        "isPII": "",
+        "parentRelationship": "",
+        "childRelationship": "workspace_channel, workspace_template, workspace_app_config",
+        "meta": {
+          "kind": "string",
+          "maxLength": 64
+        }
+      },
+      "childTable": "channel",
+      "childColumn": {
+        "name": "workspace_id",
+        "type": "string",
+        "childRelationshipType": "",
+        "parentRelationshipType": "Workspace",
+        "datatype": "VARCHAR",
+        "primaryKey": false,
+        "required": true,
+        "description": "Foreign key reference to the workspace this channel belongs to. Establishes the parent-child relationship between workspace and channels for multi-tenant support.",
+        "defaultvalue": "",
+        "example": "T01EXAMPLE123",
+        "autoIncrement": false,
+        "maxLength": "64",
+        "array": false,
+        "isPII": "",
+        "relationship": "one",
+        "parentRelationship": "workspace_channel",
+        "childRelationship": "",
+        "meta": {
+          "kind": "string",
+          "maxLength": 64
+        }
+      },
+      "type": "one",
+      "complex": true
+    },
+    {
+      "name": "workspace_template",
+      "parentTable": "workspace",
+      "parentColumn": {
+        "name": "id",
+        "type": "string",
+        "childRelationshipType": "AppConfig",
+        "parentRelationshipType": "",
+        "datatype": "VARCHAR",
+        "primaryKey": true,
+        "required": true,
+        "description": "Unique identifier for the Slack workspace/team, provided by Slack API during OAuth installation. This is the primary key linking all workspace-specific configurations.",
+        "defaultvalue": "",
+        "example": "T01EXAMPLE123",
+        "autoIncrement": false,
+        "maxLength": "64",
+        "array": false,
+        "isPII": "",
+        "parentRelationship": "",
+        "childRelationship": "workspace_channel, workspace_template, workspace_app_config",
+        "meta": {
+          "kind": "string",
+          "maxLength": 64
+        }
+      },
+      "childTable": "template",
+      "childColumn": {
+        "name": "workspace_id",
+        "type": "string",
+        "childRelationshipType": "",
+        "parentRelationshipType": "Workspace",
+        "datatype": "VARCHAR",
+        "primaryKey": false,
+        "required": true,
+        "description": "Foreign key linking template to its workspace. Enables workspace-specific template customization and multi-tenant template isolation.",
+        "defaultvalue": "",
+        "example": "T01EXAMPLE123",
+        "autoIncrement": false,
+        "maxLength": "64",
+        "array": false,
+        "isPII": "",
+        "relationship": "one",
+        "parentRelationship": "workspace_template",
+        "childRelationship": "",
+        "meta": {
+          "kind": "string",
+          "maxLength": 64
+        }
+      },
+      "type": "one",
+      "complex": true
+    },
+    {
+      "name": "workspace_app_config",
+      "parentTable": "workspace",
+      "parentColumn": {
+        "name": "id",
+        "type": "string",
+        "childRelationshipType": "AppConfig",
+        "parentRelationshipType": "",
+        "datatype": "VARCHAR",
+        "primaryKey": true,
+        "required": true,
+        "description": "Unique identifier for the Slack workspace/team, provided by Slack API during OAuth installation. This is the primary key linking all workspace-specific configurations.",
+        "defaultvalue": "",
+        "example": "T01EXAMPLE123",
+        "autoIncrement": false,
+        "maxLength": "64",
+        "array": false,
+        "isPII": "",
+        "parentRelationship": "",
+        "childRelationship": "workspace_channel, workspace_template, workspace_app_config",
+        "meta": {
+          "kind": "string",
+          "maxLength": 64
+        }
+      },
+      "childTable": "app_config",
+      "childColumn": {
+        "name": "workspace_id",
+        "type": "string",
+        "childRelationshipType": "",
+        "parentRelationshipType": "Workspace",
+        "datatype": "VARCHAR",
+        "primaryKey": false,
+        "required": true,
+        "description": "Foreign key reference to the workspace these operational settings apply to. Allows per-workspace customization of retry logic and behavior.",
+        "defaultvalue": "",
+        "example": "T01EXAMPLE123",
+        "autoIncrement": false,
+        "maxLength": "64",
+        "array": false,
+        "isPII": "",
+        "relationship": "one",
+        "parentRelationship": "workspace_app_config",
+        "childRelationship": "",
+        "meta": {
+          "kind": "string",
+          "maxLength": 64
+        }
+      },
+      "type": "one",
+      "complex": true
+    }
+  ],
+  "documentation": {
+    "name": "Core Slack Configuration",
+    "description": "# 🧩 Core Slack Config — General Overview\n\nThe **Core Slack Config** service is part of the broader **Notification Bounded Context**, responsible for managing all configuration aspects required to send Slack notifications within the platform. It provides the infrastructure and domain logic that connects a tenant’s Slack workspace to the notification ecosystem, ensuring secure, structured, and compliant communication between services and Slack.\n\n---\n\n## 🎯 Purpose\n\nThe primary purpose of **Core Slack Config** is to manage the lifecycle of Slack-related configuration for each tenant. It defines *how*, *where*, and *under what conditions* Slack messages are sent. By maintaining configurations in a domain-driven, event-sourced model, the service guarantees auditability, tenant isolation, and consistency across all Slack-related operations.\n\n---\n\n## 🧱 Architectural Role\n\n**Core Slack Config** acts as the **configuration source of truth** for all Slack integrations in the system. It is not responsible for sending messages (that’s handled by the **Core Slack Execute** service), but instead manages the metadata, tokens, templates, and operational policies that determine how Slack notifications are constructed and authorized.\n\n### Key Roles:\n\n* Acts as the *control plane* for Slack notification configuration.\n* Provides secure storage and rotation for OAuth tokens and signing secrets.\n* Defines approved channels and message templates per workspace.\n* Publishes events consumed by other services (e.g., executors, auditors, or workflow engines).\n* Ensures compliance with security and audit policies via event sourcing.\n\n---\n\n## ⚙️ Core Components\n\n| Aggregate          | Description                                                                                                           |\n| ------------------ | --------------------------------------------------------------------------------------------------------------------- |\n| **SlackWorkspace** | Represents a tenant’s Slack workspace connection, holding OAuth credentials, signing secrets, and workspace metadata. |\n| **SlackChannel**   | Defines the list of authorized channels and direct message endpoints available for message delivery.                  |\n| **SlackTemplate**  | Manages reusable message templates (text, block layouts, and variables) for structured notifications.                 |\n| **SlackAppConfig** | Contains global settings, retry/backoff parameters, logging preferences, and audit configurations.                    |\n\nEach aggregate is event-sourced and projected into Redis for fast reads. The system follows a **CQRS pattern**, separating command writes (EventStoreDB) from queries (Redis projections).\n\n---\n\n## 🧩 Data Flow Summary\n\n```\n[API Command] → [Use Case] → [ESDB Writer Repository] → [EventStoreDB]\n       ↓\n[Central Projection Service] → [Redis Snapshot] + [Redis Query Index]\n       ↓\n[Query API] → [Consumer Services / UI]\n```\n\nThis architecture provides full event auditability in **EventStoreDB**, real-time read performance in **Redis**, and flexible event-driven synchronization via **BullMQ** projectors.\n\n---\n\n## 🛡️ Security and Compliance\n\n* **Authentication:** Managed via Keycloak (OAuth2 / OpenID Connect).\n* **Authorization:** Governed by Open Policy Agent (OPA) Rego policies.\n* **Secret Storage:** Slack tokens and signing secrets are stored securely using Doppler or another approved secret manager.\n* **Auditability:** Every configuration change emits domain events stored in EventStoreDB, ensuring immutable history and traceability.\n\n---\n\n## 🚀 Example Use Cases\n\n| Use Case                | Description                                                                                                                        |\n| ----------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |\n| **Tenant Onboarding**   | When a new tenant connects their Slack workspace, `SlackWorkspaceConfigured.v1` and `SlackAppConfigUpdated.v1` events are emitted. |\n| **Channel Management**  | Admins can link or disable channels for specific event types (e.g., approvals, alerts).                                            |\n| **Template Management** | Teams can create reusable message templates with placeholders for workflow data.                                                   |\n| **Policy Updates**      | Changing retry or logging settings emits `SlackAppConfigUpdated.v1`, allowing other services to adjust behavior dynamically.       |\n\n---\n\n## ✅ Benefits\n\n* **Event-Sourced Reliability:** Every change is versioned, replayable, and fully auditable.\n* **Tenant Isolation:** Each Slack workspace and channel configuration is scoped to a tenant.\n* **High Performance:** Read models are served from Redis with millisecond-level latency.\n* **Extensible Design:** Supports additional configuration layers (e.g., threads, attachments, Slack workflows) in future iterations.\n* **Integration Friendly:** Easily integrates with other notification channels (email, SMS, webhook) through consistent event naming and structure.\n\n---\n\n## 🧩 Summary\n\nThe **Core Slack Config** service provides the configuration backbone for all Slack-based notifications. It ensures that every message sent through Slack is:\n\n* Securely authenticated.\n* Delivered through approved channels.\n* Formatted using consistent templates.\n* Managed under auditable, tenant-aware policies.\n\nThis service is a critical component of the Notification Bounded Context, enabling robust, enterprise-grade Slack integration within a modern, event-driven architecture.\n"
+  }
+}

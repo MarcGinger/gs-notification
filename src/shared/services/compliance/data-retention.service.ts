@@ -11,14 +11,14 @@ import { Clock, CLOCK } from 'src/shared/infrastructure/time';
  */
 export interface RetentionPolicyRepository {
   getRetentionPeriods(
-    tenantId?: string,
+    tenant?: string,
     domain?: string,
   ): Promise<RetentionPeriod[]>;
   updateRetentionPeriod(
     category: PIICategory,
     retentionDays: number,
     legalBasis: string,
-    tenantId?: string,
+    tenant?: string,
     domain?: string,
   ): Promise<void>;
 }
@@ -43,7 +43,7 @@ export interface RetentionPeriod {
  * Enhanced Data Deletion Request with legal hold support
  */
 export interface DeletionRequest {
-  tenantId: string;
+  tenant: string;
   entityId: string;
   entityType: string;
   domain: string;
@@ -57,7 +57,7 @@ export interface DeletionRequest {
  * Enhanced Retention Audit Record with rule versioning
  */
 export interface RetentionAudit {
-  tenantId: string;
+  tenant: string;
   entityId: string;
   entityType: string;
   domain: string;
@@ -139,7 +139,7 @@ export class DataRetentionService {
    */
   async calculateRetentionExpiry(
     classification: DataClassification,
-    tenantId?: string,
+    tenant?: string,
     domain?: string,
   ): Promise<{
     expiryDateUtc: Date;
@@ -150,7 +150,7 @@ export class DataRetentionService {
   }> {
     // Get tenant/domain-specific policies first, fallback to defaults
     const retentionPeriods = this.policyRepository
-      ? await this.policyRepository.getRetentionPeriods(tenantId, domain)
+      ? await this.policyRepository.getRetentionPeriods(tenant, domain)
       : this.defaultRetentionPeriods;
 
     let maxRetentionDays = 30; // Default for non-PII data
@@ -187,13 +187,13 @@ export class DataRetentionService {
   async isDataExpired(
     createdAt: Date,
     classification: DataClassification,
-    tenantId?: string,
+    tenant?: string,
     domain?: string,
     now?: Date,
   ): Promise<boolean> {
     const retention = await this.calculateRetentionExpiry(
       classification,
-      tenantId,
+      tenant,
       domain,
     );
     const actualExpiryDate = new Date(
@@ -209,7 +209,7 @@ export class DataRetentionService {
   async generateRetentionMetadata(
     classification: DataClassification,
     context: {
-      tenantId: string;
+      tenant: string;
       userId: string;
       entityType: string;
       entityId: string;
@@ -223,12 +223,12 @@ export class DataRetentionService {
   }> {
     const retention = await this.calculateRetentionExpiry(
       classification,
-      context.tenantId,
+      context.tenant,
       context.domain,
     );
 
     const auditRecord: RetentionAudit = {
-      tenantId: context.tenantId,
+      tenant: context.tenant,
       entityId: context.entityId,
       entityType: context.entityType,
       domain: context.domain,
@@ -274,7 +274,7 @@ export class DataRetentionService {
     // Check for legal hold first
     if (request.legalHold) {
       const auditRecord: RetentionAudit = {
-        tenantId: request.tenantId,
+        tenant: request.tenant,
         entityId: request.entityId,
         entityType: request.entityType,
         domain: request.domain,
@@ -305,7 +305,7 @@ export class DataRetentionService {
       request.reason === 'legal_requirement' ? 'retained' : 'deleted';
 
     const auditRecord: RetentionAudit = {
-      tenantId: request.tenantId,
+      tenant: request.tenant,
       entityId: request.entityId,
       entityType: request.entityType,
       domain: request.domain,
@@ -339,11 +339,11 @@ export class DataRetentionService {
   anonymizeExpiredData(
     entityId: string,
     entityType: string,
-    tenantId: string,
+    tenant: string,
     domain: string,
   ): RetentionAudit {
     const auditRecord: RetentionAudit = {
-      tenantId,
+      tenant,
       entityId,
       entityType,
       domain,
@@ -355,7 +355,7 @@ export class DataRetentionService {
       rulePack: this.currentRulePack,
       metadata: {
         anonymizationMethod: 'field_replacement',
-        preservedFields: ['id', 'createdAt', 'tenantId'],
+        preservedFields: ['id', 'createdAt', 'tenant'],
         anonymizationDate: this.clock.now().toISOString(),
       },
     };
@@ -364,7 +364,7 @@ export class DataRetentionService {
       entityId,
       entityType,
       domain,
-      tenantId,
+      tenant,
     });
 
     return auditRecord;

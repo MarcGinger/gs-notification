@@ -154,7 +154,7 @@ export class PIIClassificationService {
    */
   classifyData<T extends Record<string, unknown>>(
     data: T,
-    ctx: { domain: string; tenantId?: string },
+    ctx: { domain: string; tenant?: string },
   ): DataClassification {
     // Get domain/tenant-specific policy
     const policy = this.policyProvider.getPolicy(ctx);
@@ -532,7 +532,7 @@ export class PIIClassificationService {
       entityType: string;
       operation: string;
       userId: string;
-      tenantId: string;
+      tenant: string;
     },
   ) {
     return {
@@ -541,7 +541,7 @@ export class PIIClassificationService {
       entityType: context.entityType,
       operation: context.operation,
       userId: context.userId,
-      tenantId: context.tenantId,
+      tenant: context.tenant,
       classification: {
         containsPII: classification.containsPII,
         sensitiveFields: classification.sensitiveFields,

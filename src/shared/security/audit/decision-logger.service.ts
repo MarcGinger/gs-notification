@@ -101,7 +101,7 @@ export class DecisionLoggerService {
         input.context.correlationId ||
         this.idGenerator.generateCorrelationId(),
       userId: input.subject.id,
-      tenantId: input.subject.tenant || input.resource.tenant,
+      tenant: input.subject.tenant || input.resource.tenant,
       resourceType: input.resource.type,
       resourceId: input.resource.id,
       action: `${input.action.type}.${input.action.name}`,
@@ -150,7 +150,7 @@ export class DecisionLoggerService {
       correlationId:
         context?.correlationId || this.idGenerator.generateCorrelationId(),
       userId: user.sub,
-      tenantId: user.tenant,
+      tenant: user.tenant,
       decision: 'ALLOW',
       reasonCode: SecurityReasonCode.AUTHENTICATION_SUCCESS,
       ipAddressHash: this.redactionUtil.redactIpAddress(context?.ipAddress),
@@ -216,7 +216,7 @@ export class DecisionLoggerService {
     reason: string,
     context?: {
       correlationId?: string;
-      tenantId?: string;
+      tenant?: string;
       ipAddress?: string;
       userAgent?: string;
     },
@@ -227,7 +227,7 @@ export class DecisionLoggerService {
       correlationId:
         context?.correlationId || this.idGenerator.generateCorrelationId(),
       userId,
-      tenantId: context?.tenantId,
+      tenant: context?.tenant,
       resourceType: resource,
       action,
       decision: 'DENY',
@@ -253,7 +253,7 @@ export class DecisionLoggerService {
     action: string,
     context?: {
       correlationId?: string;
-      tenantId?: string;
+      tenant?: string;
       ipAddress?: string;
       userAgent?: string;
       approvalReference?: string;
@@ -265,7 +265,7 @@ export class DecisionLoggerService {
       correlationId:
         context?.correlationId || this.idGenerator.generateCorrelationId(),
       userId,
-      tenantId: context?.tenantId,
+      tenant: context?.tenant,
       resourceType: resource,
       action,
       decision: 'ALLOW',
@@ -399,7 +399,7 @@ export class DecisionLoggerService {
     // Create per-entry bindings for better querying
     const entryLogger = this.auditLogger.child({
       correlationId: entry.correlationId,
-      tenantId: entry.tenantId,
+      tenant: entry.tenant,
       userId: entry.userId,
       eventType: entry.eventType,
     });

@@ -41,9 +41,9 @@ export class AesGcmFieldEncryptionService implements FieldEncryptionService {
   /**
    * Encrypt a plaintext value with AES-256-GCM
    * @param plaintext The value to encrypt
-   * @param _tenantId Tenant identifier for isolation (currently unused in implementation)
+   * @param _tenant Tenant identifier for isolation (currently unused in implementation)
    */
-  async encrypt(plaintext: string, _tenantId: string): Promise<EncryptedField> {
+  async encrypt(plaintext: string, _tenant: string): Promise<EncryptedField> {
     try {
       const { id: keyId, key } = await this.keyProvider.getActiveKey();
 
@@ -89,11 +89,11 @@ export class AesGcmFieldEncryptionService implements FieldEncryptionService {
   /**
    * Decrypt an encrypted field back to plaintext
    * @param encryptedField The encrypted field to decrypt
-   * @param _tenantId Tenant identifier for isolation (currently unused in implementation)
+   * @param _tenant Tenant identifier for isolation (currently unused in implementation)
    */
   async decrypt(
     encryptedField: EncryptedField,
-    _tenantId: string,
+    _tenant: string,
   ): Promise<string> {
     try {
       const envelope = encryptedField.v;
@@ -164,10 +164,10 @@ export class AesGcmFieldEncryptionService implements FieldEncryptionService {
   /**
    * Create a blind index for equality searches using HMAC-SHA256
    */
-  createBlindIndex(value: string, tenantId: string): Promise<string> {
+  createBlindIndex(value: string, tenant: string): Promise<string> {
     try {
       // Use tenant-specific salt for key isolation
-      const salt = `tenant:${tenantId}:blind-index`;
+      const salt = `tenant:${tenant}:blind-index`;
 
       // Normalize value (trim, lowercase) for consistent indexing
       const normalizedValue = value.trim().toLowerCase();

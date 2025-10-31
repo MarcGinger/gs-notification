@@ -6,7 +6,7 @@ import { ActorContext } from 'src/shared/application/context/actor-context';
  */
 export interface SecurityMetadata {
   userId?: string;
-  tenantId?: string;
+  tenant?: string;
   sessionId?: string;
   ipAddress?: string;
   userAgent?: string;

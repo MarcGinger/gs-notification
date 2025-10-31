@@ -38,7 +38,7 @@ Redis offers several approaches to tenant isolation, each optimized for differen
 ### **Hierarchical Key Structure**
 \`\`\`redis
 # Standard tenant prefixing pattern
-tenant:{tenantId}:{domain}:{identifier}:{attribute}
+tenant:{tenant}:{domain}:{identifier}:{attribute}
 
 # Examples
 tenant:123:user:456:session
@@ -63,52 +63,52 @@ export class TenantRedisService {
   ) {}
 
   // Key generation utilities
-  private buildKey(tenantId: string, domain: string, ...parts: string[]): string {
-    return \`tenant:\${tenantId}:\${domain}:\${parts.join(':')}\`;
+  private buildKey(tenant: string, domain: string, ...parts: string[]): string {
+    return \`tenant:\${tenant}:\${domain}:\${parts.join(':')}\`;
   }
 
   // Session management
   async setUserSession(
-    tenantId: string, 
+    tenant: string, 
     userId: string, 
     sessionData: any, 
     ttl: number = 3600
   ): Promise<void> {
-    const key = this.buildKey(tenantId, 'user', userId, 'session');
+    const key = this.buildKey(tenant, 'user', userId, 'session');
     await this.redis.setex(key, ttl, JSON.stringify(sessionData));
   }
 
-  async getUserSession(tenantId: string, userId: string): Promise<any> {
-    const key = this.buildKey(tenantId, 'user', userId, 'session');
+  async getUserSession(tenant: string, userId: string): Promise<any> {
+    const key = this.buildKey(tenant, 'user', userId, 'session');
     const data = await this.redis.get(key);
     return data ? JSON.parse(data) : null;
   }
 
   // Product caching
   async cacheProduct(
-    tenantId: string, 
+    tenant: string, 
     productId: string, 
     productData: any,
     ttl: number = 1800
   ): Promise<void> {
-    const key = this.buildKey(tenantId, 'product', productId, 'cache');
+    const key = this.buildKey(tenant, 'product', productId, 'cache');
     await this.redis.setex(key, ttl, JSON.stringify(productData));
   }
 
-  async getCachedProduct(tenantId: string, productId: string): Promise<any> {
-    const key = this.buildKey(tenantId, 'product', productId, 'cache');
+  async getCachedProduct(tenant: string, productId: string): Promise<any> {
+    const key = this.buildKey(tenant, 'product', productId, 'cache');
     const data = await this.redis.get(key);
     return data ? JSON.parse(data) : null;
   }
 
   // Rate limiting
   async checkRateLimit(
-    tenantId: string, 
+    tenant: string, 
     resource: string, 
     limit: number, 
     window: number
   ): Promise<{ allowed: boolean; remaining: number }> {
-    const key = this.buildKey(tenantId, 'rate_limit', resource);
+    const key = this.buildKey(tenant, 'rate_limit', resource);
     
     const current = await this.redis.incr(key);
     if (current === 1) {
@@ -134,17 +134,17 @@ export class TenantBulkOperations {
   constructor(@Inject(IO_REDIS) private redis: Redis) {}
 
   // Get all tenant keys by pattern
-  async getTenantKeys(tenantId: string, domain?: string): Promise<string[]> {
+  async getTenantKeys(tenant: string, domain?: string): Promise<string[]> {
     const pattern = domain 
-      ? \`tenant:\${tenantId}:\${domain}:*\`
-      : \`tenant:\${tenantId}:*\`;
+      ? \`tenant:\${tenant}:\${domain}:*\`
+      : \`tenant:\${tenant}:*\`;
     
     return await this.redis.keys(pattern);
   }
 
   // Bulk delete tenant data
-  async deleteTenantData(tenantId: string, domain?: string): Promise<number> {
-    const keys = await this.getTenantKeys(tenantId, domain);
+  async deleteTenantData(tenant: string, domain?: string): Promise<number> {
+    const keys = await this.getTenantKeys(tenant, domain);
     
     if (keys.length === 0) return 0;
     
@@ -184,16 +184,16 @@ export class TenantBulkOperations {
   }
 
   // Tenant analytics
-  async getTenantStats(tenantId: string): Promise<TenantRedisStats> {
-    const keys = await this.getTenantKeys(tenantId);
+  async getTenantStats(tenant: string): Promise<TenantRedisStats> {
+    const keys = await this.getTenantKeys(tenant);
     const memory = await this.calculateMemoryUsage(keys);
-    const domains = await this.analyzeDomains(tenantId);
+    const domains = await this.analyzeDomains(tenant);
     
     return {
       totalKeys: keys.length,
       memoryUsage: memory,
       domains: domains,
-      lastActivity: await this.getLastActivity(tenantId)
+      lastActivity: await this.getLastActivity(tenant)
     };
   }
 }
@@ -251,9 +251,9 @@ export class TenantDatabaseManager {
     this.loadTenantMappings();
   }
 
-  async allocateDatabase(tenantId: string): Promise<number> {
-    if (this.tenantDatabaseMap.has(tenantId)) {
-      return this.tenantDatabaseMap.get(tenantId)!;
+  async allocateDatabase(tenant: string): Promise<number> {
+    if (this.tenantDatabaseMap.has(tenant)) {
+      return this.tenantDatabaseMap.get(tenant)!;
     }
 
     if (this.nextDatabase > 15) {
@@ -261,27 +261,27 @@ export class TenantDatabaseManager {
     }
 
     const dbNumber = this.nextDatabase++;
-    this.tenantDatabaseMap.set(tenantId, dbNumber);
-    this.databaseTenantMap.set(dbNumber, tenantId);
+    this.tenantDatabaseMap.set(tenant, dbNumber);
+    this.databaseTenantMap.set(dbNumber, tenant);
     
-    await this.persistTenantMapping(tenantId, dbNumber);
+    await this.persistTenantMapping(tenant, dbNumber);
     
     return dbNumber;
   }
 
-  async getTenantDatabase(tenantId: string): Promise<number> {
-    const dbNumber = this.tenantDatabaseMap.get(tenantId);
+  async getTenantDatabase(tenant: string): Promise<number> {
+    const dbNumber = this.tenantDatabaseMap.get(tenant);
     if (!dbNumber) {
-      return await this.allocateDatabase(tenantId);
+      return await this.allocateDatabase(tenant);
     }
     return dbNumber;
   }
 
   async withTenantDatabase<T>(
-    tenantId: string, 
+    tenant: string, 
     operation: (redis: Redis) => Promise<T>
   ): Promise<T> {
-    const dbNumber = await this.getTenantDatabase(tenantId);
+    const dbNumber = await this.getTenantDatabase(tenant);
     
     // Create isolated connection for this tenant
     const tenantRedis = this.redis.duplicate();
@@ -298,9 +298,9 @@ export class TenantDatabaseManager {
     // Load from persistent storage (database/config)
     const mappings = await this.configService.getTenantDatabaseMappings();
     
-    for (const { tenantId, databaseNumber } of mappings) {
-      this.tenantDatabaseMap.set(tenantId, databaseNumber);
-      this.databaseTenantMap.set(databaseNumber, tenantId);
+    for (const { tenant, databaseNumber } of mappings) {
+      this.tenantDatabaseMap.set(tenant, databaseNumber);
+      this.databaseTenantMap.set(databaseNumber, tenant);
       this.nextDatabase = Math.max(this.nextDatabase, databaseNumber + 1);
     }
   }
@@ -312,27 +312,27 @@ export class TenantIsolatedRedisService {
   constructor(private tenantDbManager: TenantDatabaseManager) {}
 
   async setUserSession(
-    tenantId: string, 
+    tenant: string, 
     userId: string, 
     sessionData: any, 
     ttl: number = 3600
   ): Promise<void> {
-    await this.tenantDbManager.withTenantDatabase(tenantId, async (redis) => {
+    await this.tenantDbManager.withTenantDatabase(tenant, async (redis) => {
       const key = \`user:\${userId}:session\`;
       await redis.setex(key, ttl, JSON.stringify(sessionData));
     });
   }
 
-  async getUserSession(tenantId: string, userId: string): Promise<any> {
-    return await this.tenantDbManager.withTenantDatabase(tenantId, async (redis) => {
+  async getUserSession(tenant: string, userId: string): Promise<any> {
+    return await this.tenantDbManager.withTenantDatabase(tenant, async (redis) => {
       const key = \`user:\${userId}:session\`;
       const data = await redis.get(key);
       return data ? JSON.parse(data) : null;
     });
   }
 
-  async flushTenantData(tenantId: string): Promise<void> {
-    await this.tenantDbManager.withTenantDatabase(tenantId, async (redis) => {
+  async flushTenantData(tenant: string): Promise<void> {
+    await this.tenantDbManager.withTenantDatabase(tenant, async (redis) => {
       await redis.flushdb();
     });
   }
@@ -385,20 +385,20 @@ export class ClusterTenantRedisService {
     private logger: Logger
   ) {}
 
-  private buildHashTagKey(tenantId: string, ...parts: string[]): string {
-    return \`{tenant_\${tenantId}}:\${parts.join(':')}\`;
+  private buildHashTagKey(tenant: string, ...parts: string[]): string {
+    return \`{tenant_\${tenant}}:\${parts.join(':')}\`;
   }
 
   // Multi-key operations guaranteed same slot
   async setUserSessionWithPreferences(
-    tenantId: string,
+    tenant: string,
     userId: string,
     sessionData: any,
     preferences: any,
     ttl: number = 3600
   ): Promise<void> {
-    const sessionKey = this.buildHashTagKey(tenantId, 'user', userId, 'session');
-    const prefsKey = this.buildHashTagKey(tenantId, 'user', userId, 'preferences');
+    const sessionKey = this.buildHashTagKey(tenant, 'user', userId, 'session');
+    const prefsKey = this.buildHashTagKey(tenant, 'user', userId, 'preferences');
     
     // Both keys guaranteed to be on same slot - can use pipeline
     const pipeline = this.cluster.pipeline();
@@ -410,13 +410,13 @@ export class ClusterTenantRedisService {
 
   // Atomic tenant operations
   async atomicTenantOperation(
-    tenantId: string,
+    tenant: string,
     operations: Array<{ key: string; operation: string; value?: any }>
   ): Promise<any[]> {
     const pipeline = this.cluster.pipeline();
     
     operations.forEach(({ key, operation, value }) => {
-      const hashTagKey = this.buildHashTagKey(tenantId, key);
+      const hashTagKey = this.buildHashTagKey(tenant, key);
       
       switch (operation) {
         case 'SET':
@@ -440,13 +440,13 @@ export class ClusterTenantRedisService {
 
   // Tenant-specific Lua scripts
   async executeTenantScript(
-    tenantId: string,
+    tenant: string,
     script: string,
     keys: string[],
     args: string[]
   ): Promise<any> {
     // Add hash tag to all keys
-    const hashTagKeys = keys.map(key => this.buildHashTagKey(tenantId, key));
+    const hashTagKeys = keys.map(key => this.buildHashTagKey(tenant, key));
     
     return await this.cluster.eval(script, hashTagKeys.length, ...hashTagKeys, ...args);
   }
@@ -468,7 +468,7 @@ export class AdvancedClusterOperations {
 
   // Distributed rate limiting per tenant
   async distributedRateLimit(
-    tenantId: string,
+    tenant: string,
     resource: string,
     limit: number,
     window: number
@@ -499,7 +499,7 @@ export class AdvancedClusterOperations {
       end
     \`;
 
-    const key = \`{tenant_\${tenantId}}:rate_limit:\${resource}\`;
+    const key = \`{tenant_\${tenant}}:rate_limit:\${resource}\`;
     const result = await this.cluster.eval(
       script, 
       1, 
@@ -517,8 +517,8 @@ export class AdvancedClusterOperations {
   }
 
   // Tenant analytics aggregation
-  async getTenantMetrics(tenantId: string): Promise<TenantMetrics> {
-    const baseKey = \`{tenant_\${tenantId}}\`;
+  async getTenantMetrics(tenant: string): Promise<TenantMetrics> {
+    const baseKey = \`{tenant_\${tenant}}\`;
     
     const pipeline = this.cluster.pipeline();
     pipeline.get(\`\${baseKey}:stats:sessions_active\`);
@@ -572,26 +572,26 @@ export class TenantInstanceManager {
 
   constructor(private configService: ConfigService) {}
 
-  async getTenantRedis(tenantId: string): Promise<Redis> {
-    if (this.tenantConnections.has(tenantId)) {
-      return this.tenantConnections.get(tenantId)!;
+  async getTenantRedis(tenant: string): Promise<Redis> {
+    if (this.tenantConnections.has(tenant)) {
+      return this.tenantConnections.get(tenant)!;
     }
 
-    const config = await this.getTenantRedisConfig(tenantId);
+    const config = await this.getTenantRedisConfig(tenant);
     const redis = new Redis(config);
     
-    this.tenantConnections.set(tenantId, redis);
+    this.tenantConnections.set(tenant, redis);
     return redis;
   }
 
-  private async getTenantRedisConfig(tenantId: string): Promise<RedisOptions> {
+  private async getTenantRedisConfig(tenant: string): Promise<RedisOptions> {
     // Get tenant-specific Redis configuration
     const baseConfig = this.configService.getRedisConfig();
-    const tenantConfig = await this.configService.getTenantRedisConfig(tenantId);
+    const tenantConfig = await this.configService.getTenantRedisConfig(tenant);
 
     return {
       ...baseConfig,
-      host: tenantConfig.host || \`tenant-\${tenantId}-redis.internal\`,
+      host: tenantConfig.host || \`tenant-\${tenant}-redis.internal\`,
       port: tenantConfig.port || 6379,
       password: tenantConfig.password,
       db: 0, // Always use database 0 for dedicated instances
@@ -602,10 +602,10 @@ export class TenantInstanceManager {
   }
 
   async executeTenantOperation<T>(
-    tenantId: string,
+    tenant: string,
     operation: (redis: Redis) => Promise<T>
   ): Promise<T> {
-    const redis = await this.getTenantRedis(tenantId);
+    const redis = await this.getTenantRedis(tenant);
     return await operation(redis);
   }
 
@@ -613,13 +613,13 @@ export class TenantInstanceManager {
   async healthCheck(): Promise<Map<string, boolean>> {
     const healthStatus = new Map<string, boolean>();
     
-    for (const [tenantId, redis] of this.tenantConnections) {
+    for (const [tenant, redis] of this.tenantConnections) {
       try {
         await redis.ping();
-        healthStatus.set(tenantId, true);
+        healthStatus.set(tenant, true);
       } catch (error) {
-        healthStatus.set(tenantId, false);
-        this.logger.error(\`Redis health check failed for tenant \${tenantId}\`, error);
+        healthStatus.set(tenant, false);
+        this.logger.error(\`Redis health check failed for tenant \${tenant}\`, error);
       }
     }
     
@@ -633,12 +633,12 @@ export class DedicatedInstanceRedisService {
   constructor(private instanceManager: TenantInstanceManager) {}
 
   async setUserSession(
-    tenantId: string,
+    tenant: string,
     userId: string,
     sessionData: any,
     ttl: number = 3600
   ): Promise<void> {
-    await this.instanceManager.executeTenantOperation(tenantId, async (redis) => {
+    await this.instanceManager.executeTenantOperation(tenant, async (redis) => {
       // Simple keys - no tenant prefixing needed
       const key = \`user:\${userId}:session\`;
       await redis.setex(key, ttl, JSON.stringify(sessionData));
@@ -646,26 +646,26 @@ export class DedicatedInstanceRedisService {
   }
 
   async cacheProduct(
-    tenantId: string,
+    tenant: string,
     productId: string,
     productData: any,
     ttl: number = 1800
   ): Promise<void> {
-    await this.instanceManager.executeTenantOperation(tenantId, async (redis) => {
+    await this.instanceManager.executeTenantOperation(tenant, async (redis) => {
       const key = \`product:\${productId}\`;
       await redis.setex(key, ttl, JSON.stringify(productData));
     });
   }
 
   // Instance-level operations
-  async flushTenantCache(tenantId: string): Promise<void> {
-    await this.instanceManager.executeTenantOperation(tenantId, async (redis) => {
+  async flushTenantCache(tenant: string): Promise<void> {
+    await this.instanceManager.executeTenantOperation(tenant, async (redis) => {
       await redis.flushdb();
     });
   }
 
-  async getTenantInfo(tenantId: string): Promise<any> {
-    return await this.instanceManager.executeTenantOperation(tenantId, async (redis) => {
+  async getTenantInfo(tenant: string): Promise<any> {
+    return await this.instanceManager.executeTenantOperation(tenant, async (redis) => {
       const info = await redis.info();
       const dbSize = await redis.dbsize();
       
@@ -741,8 +741,8 @@ export class OptimizedRedisService {
   private connectionPool: Map<string, Redis[]> = new Map();
   private readonly poolSize = 10;
 
-  async getOptimizedConnection(tenantId: string): Promise<Redis> {
-    const pool = this.connectionPool.get(tenantId) || [];
+  async getOptimizedConnection(tenant: string): Promise<Redis> {
+    const pool = this.connectionPool.get(tenant) || [];
     
     // Return available connection from pool
     const available = pool.find(conn => conn.status === 'ready');
@@ -750,26 +750,26 @@ export class OptimizedRedisService {
     
     // Create new connection if pool not full
     if (pool.length < this.poolSize) {
-      const newConnection = await this.createTenantConnection(tenantId);
+      const newConnection = await this.createTenantConnection(tenant);
       pool.push(newConnection);
-      this.connectionPool.set(tenantId, pool);
+      this.connectionPool.set(tenant, pool);
       return newConnection;
     }
     
     // Wait for available connection
-    return await this.waitForAvailableConnection(tenantId);
+    return await this.waitForAvailableConnection(tenant);
   }
 
   // Pipelining for bulk operations
   async bulkOperation(
-    tenantId: string,
+    tenant: string,
     operations: BulkOperation[]
   ): Promise<any[]> {
-    const redis = await this.getOptimizedConnection(tenantId);
+    const redis = await this.getOptimizedConnection(tenant);
     const pipeline = redis.pipeline();
     
     operations.forEach(op => {
-      const key = this.buildTenantKey(tenantId, op.key);
+      const key = this.buildTenantKey(tenant, op.key);
       
       switch (op.type) {
         case 'SET':

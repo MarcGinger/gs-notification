@@ -36,7 +36,7 @@ export type RoleHierarchy<
  */
 export interface AuthorizationActor {
   readonly userId: string;
-  readonly tenantId?: string;
+  readonly tenant?: string;
   readonly roles?: readonly string[];
   readonly permissions?: readonly string[];
 }
@@ -335,7 +335,7 @@ export function buildOpaInput<P extends string>(args: {
   return {
     subject: {
       id: args.actor.userId,
-      tenant: args.actor.tenantId,
+      tenant: args.actor.tenant,
       roles: args.actor.roles || [],
       permissions: args.actor.permissions,
     },
@@ -347,7 +347,7 @@ export function buildOpaInput<P extends string>(args: {
     },
     resource: {
       type: args.domain,
-      tenant: args.actor.tenantId,
+      tenant: args.actor.tenant,
       id: args.resource?.id,
       ownerId: args.resource?.ownerId,
       attributes: args.resource?.attrs,

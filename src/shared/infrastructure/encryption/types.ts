@@ -60,18 +60,18 @@ export interface FieldEncryptionService {
   /**
    * Encrypt a plaintext value using the active key
    * @param plaintext - The value to encrypt
-   * @param tenantId - Tenant context for key isolation
+   * @param tenant - Tenant context for key isolation
    * @returns Encrypted field envelope
    */
-  encrypt(plaintext: string, tenantId: string): Promise<EncryptedField>;
+  encrypt(plaintext: string, tenant: string): Promise<EncryptedField>;
 
   /**
    * Decrypt an encrypted field envelope
    * @param encryptedField - The encrypted field to decrypt
-   * @param tenantId - Tenant context for key isolation
+   * @param tenant - Tenant context for key isolation
    * @returns Decrypted plaintext value
    */
-  decrypt(encryptedField: EncryptedField, tenantId: string): Promise<string>;
+  decrypt(encryptedField: EncryptedField, tenant: string): Promise<string>;
 
   /**
    * Check if a value is encrypted
@@ -83,10 +83,10 @@ export interface FieldEncryptionService {
   /**
    * Create a blind index for equality searches (one-way hash)
    * @param value - The value to index
-   * @param tenantId - Tenant context for salt isolation
+   * @param tenant - Tenant context for salt isolation
    * @returns Blind index hash for equality matching
    */
-  createBlindIndex(value: string, tenantId: string): Promise<string>;
+  createBlindIndex(value: string, tenant: string): Promise<string>;
 }
 
 /**

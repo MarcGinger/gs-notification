@@ -77,7 +77,7 @@ export class UseCaseLoggingUtil {
       entityType: config.entityType,
       operation,
       correlationId: command.correlationId,
-      tenantId: command.user.tenant,
+      tenant: command.user.tenant,
       userId: command.user.sub,
       timestamp: clock.nowIso(),
       layer: 'application',
@@ -201,7 +201,7 @@ export class UseCaseLoggingUtil {
         code: 'VALIDATION.MISSING_TENANT_CONTEXT',
         title: 'Tenant context is required for multi-tenant isolation',
         category: 'security',
-        context: { tenantId: command.user?.tenant },
+        context: { tenant: command.user?.tenant },
       });
     }
 

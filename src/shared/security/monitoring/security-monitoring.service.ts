@@ -22,7 +22,7 @@ interface MutableSecurityMetrics {
 export interface SecurityMetrics {
   readonly timestamp: string;
   readonly correlationId?: string;
-  readonly tenantId?: string;
+  readonly tenant?: string;
   readonly metrics: {
     readonly authorizationRequests: number;
     readonly authorizationDenials: number;
@@ -105,7 +105,7 @@ export class SecurityMonitoringService {
     allowed: boolean,
     responseTime: number,
     correlationId?: string,
-    tenantId?: string,
+    tenant?: string,
   ): void {
     this.metrics.authorizationRequests++;
 
@@ -118,11 +118,11 @@ export class SecurityMonitoringService {
       allowed,
       responseTime,
       correlationId,
-      tenantId,
+      tenant,
     });
 
     // Check for alerts
-    this.checkAuthorizationAlerts(correlationId, tenantId);
+    this.checkAuthorizationAlerts(correlationId, tenant);
   }
 
   /**
@@ -131,17 +131,17 @@ export class SecurityMonitoringService {
   recordAuthenticationFailure(
     reason: string,
     correlationId?: string,
-    tenantId?: string,
+    tenant?: string,
   ): void {
     this.metrics.authenticationFailures++;
     this.addEvent('authentication_failure', {
       reason,
       correlationId,
-      tenantId,
+      tenant,
     });
 
     // Check for alerts
-    this.checkAuthenticationAlerts(correlationId, tenantId);
+    this.checkAuthenticationAlerts(correlationId, tenant);
   }
 
   /**
@@ -151,14 +151,14 @@ export class SecurityMonitoringService {
     userId: string,
     resource: string,
     correlationId?: string,
-    tenantId?: string,
+    tenant?: string,
   ): void {
     this.metrics.emergencyAccess++;
     this.addEvent('emergency_access', {
       userId,
       resource,
       correlationId,
-      tenantId,
+      tenant,
     });
 
     // Always alert on emergency access
@@ -168,7 +168,7 @@ export class SecurityMonitoringService {
         userId,
         resource,
         correlationId,
-        tenantId,
+        tenant,
         alertLevel: 'critical',
       });
     }
@@ -181,18 +181,18 @@ export class SecurityMonitoringService {
     fieldCount: number,
     riskScore: number,
     correlationId?: string,
-    tenantId?: string,
+    tenant?: string,
   ): void {
     this.metrics.piiFieldsDetected += fieldCount;
     this.addEvent('pii_detection', {
       fieldCount,
       riskScore,
       correlationId,
-      tenantId,
+      tenant,
     });
 
     // Check for PII detection alerts
-    this.checkPIIAlerts(fieldCount, riskScore, correlationId, tenantId);
+    this.checkPIIAlerts(fieldCount, riskScore, correlationId, tenant);
   }
 
   /**
@@ -202,14 +202,14 @@ export class SecurityMonitoringService {
     policyId: string,
     reason: string,
     correlationId?: string,
-    tenantId?: string,
+    tenant?: string,
   ): void {
     this.metrics.policyViolations++;
     this.addEvent('policy_violation', {
       policyId,
       reason,
       correlationId,
-      tenantId,
+      tenant,
     });
 
     this.triggerAlert('policy_violation', {
@@ -217,7 +217,7 @@ export class SecurityMonitoringService {
       policyId,
       reason,
       correlationId,
-      tenantId,
+      tenant,
       alertLevel: 'high',
     });
   }
@@ -229,31 +229,31 @@ export class SecurityMonitoringService {
     errorType: string,
     errorMessage: string,
     correlationId?: string,
-    tenantId?: string,
+    tenant?: string,
   ): void {
     this.addEvent('error', {
       errorType,
       errorMessage,
       correlationId,
-      tenantId,
+      tenant,
     });
     this.updateErrorRate();
 
     // Check for error rate alerts
-    this.checkErrorRateAlerts(correlationId, tenantId);
+    this.checkErrorRateAlerts(correlationId, tenant);
   }
 
   /**
    * Get current security metrics
    */
-  getMetrics(correlationId?: string, tenantId?: string): SecurityMetrics {
+  getMetrics(correlationId?: string, tenant?: string): SecurityMetrics {
     const trends = this.calculateTrends();
     const alertLevel = this.calculateAlertLevel(trends);
 
     return {
       timestamp: new Date().toISOString(),
       correlationId,
-      tenantId,
+      tenant,
       metrics: { ...this.metrics },
       alertLevel,
       trends,
@@ -288,7 +288,7 @@ export class SecurityMonitoringService {
    */
   private checkAuthorizationAlerts(
     correlationId?: string,
-    tenantId?: string,
+    tenant?: string,
   ): void {
     const denialRate = this.calculateDenialRate();
 
@@ -298,7 +298,7 @@ export class SecurityMonitoringService {
         denialRate,
         threshold: this.alertConfig.authDenialThreshold,
         correlationId,
-        tenantId,
+        tenant,
         alertLevel: 'high',
       });
     }
@@ -309,7 +309,7 @@ export class SecurityMonitoringService {
    */
   private checkAuthenticationAlerts(
     correlationId?: string,
-    tenantId?: string,
+    tenant?: string,
   ): void {
     const recentFailures = this.getRecentEventCount(
       'authentication_failure',
@@ -322,7 +322,7 @@ export class SecurityMonitoringService {
         failureCount: recentFailures,
         threshold: this.alertConfig.authFailureThreshold,
         correlationId,
-        tenantId,
+        tenant,
         alertLevel: 'medium',
       });
     }
@@ -335,7 +335,7 @@ export class SecurityMonitoringService {
     fieldCount: number,
     riskScore: number,
     correlationId?: string,
-    tenantId?: string,
+    tenant?: string,
   ): void {
     const hourlyPIICount = this.getRecentEventCount('pii_detection', 3600000); // last hour
 
@@ -345,7 +345,7 @@ export class SecurityMonitoringService {
         hourlyCount: hourlyPIICount,
         threshold: this.alertConfig.piiDetectionThreshold,
         correlationId,
-        tenantId,
+        tenant,
         alertLevel: 'medium',
       });
     }
@@ -356,7 +356,7 @@ export class SecurityMonitoringService {
         riskScore,
         fieldCount,
         correlationId,
-        tenantId,
+        tenant,
         alertLevel: 'high',
       });
     }
@@ -365,17 +365,14 @@ export class SecurityMonitoringService {
   /**
    * Check error rate alerts
    */
-  private checkErrorRateAlerts(
-    correlationId?: string,
-    tenantId?: string,
-  ): void {
+  private checkErrorRateAlerts(correlationId?: string, tenant?: string): void {
     if (this.metrics.errorRate > this.alertConfig.errorRateThreshold) {
       this.triggerAlert('high_error_rate', {
         message: `High error rate: ${this.metrics.errorRate.toFixed(1)}%`,
         errorRate: this.metrics.errorRate,
         threshold: this.alertConfig.errorRateThreshold,
         correlationId,
-        tenantId,
+        tenant,
         alertLevel: 'medium',
       });
     }

@@ -38,7 +38,7 @@ EventStoreDB provides multiple approaches to tenant isolation in event-sourced s
 ### **Stream Naming Convention**
 \`\`\`
 # Hierarchical stream naming
-tenant-{tenantId}-{domain}-{aggregateType}-{aggregateId}
+tenant-{tenant}-{domain}-{aggregateType}-{aggregateId}
 
 # Examples
 tenant-123-banking-product-456
@@ -59,31 +59,31 @@ export class TenantEventStoreService {
   ) {}
 
   private buildStreamName(
-    tenantId: string,
+    tenant: string,
     domain: string,
     aggregateType: string,
     aggregateId: string
   ): string {
-    return \`tenant-\${tenantId}-\${domain}-\${aggregateType}-\${aggregateId}\`;
+    return \`tenant-\${tenant}-\${domain}-\${aggregateType}-\${aggregateId}\`;
   }
 
   // Append events to tenant stream
   async appendToStream(
-    tenantId: string,
+    tenant: string,
     domain: string,
     aggregateType: string,
     aggregateId: string,
     events: EventData[],
     expectedRevision?: any
   ): Promise<AppendResult> {
-    const streamName = this.buildStreamName(tenantId, domain, aggregateType, aggregateId);
+    const streamName = this.buildStreamName(tenant, domain, aggregateType, aggregateId);
     
     // Add tenant metadata to all events
     const enrichedEvents = events.map(event => ({
       ...event,
       metadata: {
         ...event.metadata,
-        tenantId,
+        tenant,
         domain,
         aggregateType,
         aggregateId,
@@ -100,13 +100,13 @@ export class TenantEventStoreService {
 
   // Read tenant stream events
   async readStream(
-    tenantId: string,
+    tenant: string,
     domain: string,
     aggregateType: string,
     aggregateId: string,
     options?: ReadStreamOptions
   ): Promise<ResolvedEvent[]> {
-    const streamName = this.buildStreamName(tenantId, domain, aggregateType, aggregateId);
+    const streamName = this.buildStreamName(tenant, domain, aggregateType, aggregateId);
     
     const events: ResolvedEvent[] = [];
     const stream = this.eventStore.readStream(streamName, options);
@@ -120,13 +120,13 @@ export class TenantEventStoreService {
 
   // Read all tenant events by pattern
   async readTenantEvents(
-    tenantId: string,
+    tenant: string,
     domain?: string,
     options?: ReadAllOptions
   ): Promise<ResolvedEvent[]> {
     const filterPattern = domain 
-      ? \`tenant-\${tenantId}-\${domain}-\`
-      : \`tenant-\${tenantId}-\`;
+      ? \`tenant-\${tenant}-\${domain}-\`
+      : \`tenant-\${tenant}-\`;
 
     const events: ResolvedEvent[] = [];
     const stream = this.eventStore.readAll({
@@ -152,7 +152,7 @@ export class TenantEventStoreService {
 export abstract class TenantAggregateRepository<T extends AggregateRoot> {
   constructor(
     protected eventStore: TenantEventStoreService,
-    protected tenantId: string,
+    protected tenant: string,
     protected domain: string,
     protected aggregateType: string
   ) {}
@@ -173,7 +173,7 @@ export abstract class TenantAggregateRepository<T extends AggregateRoot> {
     }));
 
     await this.eventStore.appendToStream(
-      this.tenantId,
+      this.tenant,
       this.domain,
       this.aggregateType,
       aggregate.id,
@@ -186,7 +186,7 @@ export abstract class TenantAggregateRepository<T extends AggregateRoot> {
 
   async getById(aggregateId: string): Promise<T | null> {
     const events = await this.eventStore.readStream(
-      this.tenantId,
+      this.tenant,
       this.domain,
       this.aggregateType,
       aggregateId
@@ -210,7 +210,7 @@ export class BankingProductRepository extends TenantAggregateRepository<BankingP
     eventStore: TenantEventStoreService,
     @Inject('TENANT_CONTEXT') private tenantContext: TenantContext
   ) {
-    super(eventStore, tenantContext.tenantId, 'banking', 'product');
+    super(eventStore, tenantContext.tenant, 'banking', 'product');
   }
 
   protected createEmpty(): BankingProduct {
@@ -220,7 +220,7 @@ export class BankingProductRepository extends TenantAggregateRepository<BankingP
   // Domain-specific queries
   async findActiveProducts(): Promise<BankingProduct[]> {
     const events = await this.eventStore.readTenantEvents(
-      this.tenantId,
+      this.tenant,
       this.domain,
       {
         filter: {
@@ -276,7 +276,7 @@ export class BankingProductRepository extends TenantAggregateRepository<BankingP
 ### **Category-Based Stream Organization**
 \`\`\`
 # Category naming convention
-$category-tenant_{tenantId}_{domain}_{aggregateType}
+$category-tenant_{tenant}_{domain}_{aggregateType}
 
 # Stream examples within categories
 tenant_123_banking_product-456
@@ -297,19 +297,19 @@ export class TenantCategoryProjectionService {
 
   // Create tenant-specific category projection
   async createTenantProjection(
-    tenantId: string,
+    tenant: string,
     domain: string,
     aggregateType: string,
     projectionName: string
   ): Promise<void> {
-    const categoryName = \`tenant_\${tenantId}_\${domain}_\${aggregateType}\`;
+    const categoryName = \`tenant_\${tenant}_\${domain}_\${aggregateType}\`;
     
     const projectionSource = \`
       fromCategory('\${categoryName}')
         .when({
           $init: function() {
             return {
-              tenantId: '\${tenantId}',
+              tenant: '\${tenant}',
               aggregates: {},
               totalEvents: 0,
               lastUpdated: new Date().toISOString()
@@ -345,7 +345,7 @@ export class TenantCategoryProjectionService {
         .transformBy(function(state) {
           // Create read model suitable for queries
           return {
-            tenantId: state.tenantId,
+            tenant: state.tenant,
             summary: {
               totalAggregates: Object.keys(state.aggregates).length,
               totalEvents: state.totalEvents,
@@ -371,11 +371,11 @@ export class TenantCategoryProjectionService {
 
   // Query tenant-specific projections
   async queryTenantAggregates(
-    tenantId: string,
+    tenant: string,
     domain: string,
     aggregateType: string
   ): Promise<any> {
-    const projectionName = \`tenant_\${tenantId}_\${domain}_\${aggregateType}_projection\`;
+    const projectionName = \`tenant_\${tenant}_\${domain}_\${aggregateType}_projection\`;
     const state = await this.getTenantProjectionState(projectionName);
     
     return state?.aggregates || [];
@@ -388,15 +388,15 @@ export class AdvancedCategoryProjections {
   constructor(private projectionService: TenantCategoryProjectionService) {}
 
   // Banking-specific projections
-  async createBankingDashboardProjection(tenantId: string): Promise<void> {
-    const projectionName = \`tenant_\${tenantId}_banking_dashboard\`;
+  async createBankingDashboardProjection(tenant: string): Promise<void> {
+    const projectionName = \`tenant_\${tenant}_banking_dashboard\`;
     
     const projectionSource = \`
-      fromCategories(['tenant_\${tenantId}_banking_product', 'tenant_\${tenantId}_banking_account'])
+      fromCategories(['tenant_\${tenant}_banking_product', 'tenant_\${tenant}_banking_account'])
         .when({
           $init: function() {
             return {
-              tenantId: '\${tenantId}',
+              tenant: '\${tenant}',
               dashboard: {
                 totalProducts: 0,
                 activeAccounts: 0,
@@ -453,8 +453,8 @@ export class AdvancedCategoryProjections {
   }
 
   // Real-time tenant metrics
-  async getTenantDashboard(tenantId: string): Promise<TenantDashboard> {
-    const projectionName = \`tenant_\${tenantId}_banking_dashboard\`;
+  async getTenantDashboard(tenant: string): Promise<TenantDashboard> {
+    const projectionName = \`tenant_\${tenant}_banking_dashboard\`;
     const state = await this.projectionService.getTenantProjectionState(projectionName);
     
     return state?.dashboard || {
@@ -504,14 +504,14 @@ export class TenantProjectionManager {
 
   // Create tenant-specific projection with custom logic
   async createTenantSpecificProjection(
-    tenantId: string,
+    tenant: string,
     projectionName: string,
     customLogic: TenantProjectionLogic
   ): Promise<void> {
-    const fullProjectionName = \`tenant_\${tenantId}_\${projectionName}\`;
+    const fullProjectionName = \`tenant_\${tenant}_\${projectionName}\`;
     
     const projectionSource = \`
-      fromCategory('tenant_\${tenantId}')
+      fromCategory('tenant_\${tenant}')
         .when({
           $init: function() {
             return \${JSON.stringify(customLogic.initialState)};
@@ -534,12 +534,12 @@ export class TenantProjectionManager {
 
   // Banking-specific tenant projections
   async createBankingProductCatalog(
-    tenantId: string,
+    tenant: string,
     catalogConfig: ProductCatalogConfig
   ): Promise<void> {
     const projectionLogic: TenantProjectionLogic = {
       initialState: {
-        tenantId,
+        tenant,
         catalog: {
           products: {},
           categories: {},
@@ -613,7 +613,7 @@ export class TenantProjectionManager {
           .filter(p => p.status === 'active');
           
         return {
-          tenantId: state.tenantId,
+          tenant: state.tenant,
           lastUpdated: new Date().toISOString(),
           summary: {
             totalProducts: Object.keys(state.catalog.products).length,
@@ -629,17 +629,17 @@ export class TenantProjectionManager {
       \`
     };
 
-    await this.createTenantSpecificProjection(tenantId, 'product_catalog', projectionLogic);
+    await this.createTenantSpecificProjection(tenant, 'product_catalog', projectionLogic);
   }
 
   // Complex tenant-specific business logic
   async createRiskAssessmentProjection(
-    tenantId: string,
+    tenant: string,
     riskParameters: RiskAssessmentParameters
   ): Promise<void> {
     const projectionLogic: TenantProjectionLogic = {
       initialState: {
-        tenantId,
+        tenant,
         riskProfiles: {},
         alerts: [],
         parameters: riskParameters,
@@ -697,7 +697,7 @@ export class TenantProjectionManager {
       }
     };
 
-    await this.createTenantSpecificProjection(tenantId, 'risk_assessment', projectionLogic);
+    await this.createTenantSpecificProjection(tenant, 'risk_assessment', projectionLogic);
   }
 
   private generateEventHandlers(handlers: { [eventType: string]: string }): string {
@@ -752,25 +752,25 @@ export class TenantEventStoreManager {
 
   constructor(private configService: ConfigService) {}
 
-  async getTenantClient(tenantId: string): Promise<EventStoreDBClient> {
-    if (this.tenantClients.has(tenantId)) {
-      return this.tenantClients.get(tenantId)!;
+  async getTenantClient(tenant: string): Promise<EventStoreDBClient> {
+    if (this.tenantClients.has(tenant)) {
+      return this.tenantClients.get(tenant)!;
     }
 
-    const config = await this.getTenantEventStoreConfig(tenantId);
+    const config = await this.getTenantEventStoreConfig(tenant);
     const client = new EventStoreDBClient(config);
     
-    this.tenantClients.set(tenantId, client);
+    this.tenantClients.set(tenant, client);
     return client;
   }
 
-  private async getTenantEventStoreConfig(tenantId: string): Promise<any> {
-    const tenantConfig = await this.configService.getTenantEventStoreConfig(tenantId);
+  private async getTenantEventStoreConfig(tenant: string): Promise<any> {
+    const tenantConfig = await this.configService.getTenantEventStoreConfig(tenant);
 
     return {
-      endpoint: tenantConfig.endpoint || \`https://tenant-\${tenantId}-eventstore.internal:2113\`,
+      endpoint: tenantConfig.endpoint || \`https://tenant-\${tenant}-eventstore.internal:2113\`,
       credentials: {
-        username: tenantConfig.username || \`tenant_\${tenantId}_user\`,
+        username: tenantConfig.username || \`tenant_\${tenant}_user\`,
         password: tenantConfig.password
       },
       insecure: false,
@@ -779,23 +779,23 @@ export class TenantEventStoreManager {
   }
 
   async executeTenantOperation<T>(
-    tenantId: string,
+    tenant: string,
     operation: (client: EventStoreDBClient) => Promise<T>
   ): Promise<T> {
-    const client = await this.getTenantClient(tenantId);
+    const client = await this.getTenantClient(tenant);
     return await operation(client);
   }
 
   // Tenant provisioning
   async provisionTenantEventStore(
-    tenantId: string,
+    tenant: string,
     configuration: TenantEventStoreConfig
   ): Promise<void> {
     // This would typically involve infrastructure provisioning
     // For demonstration, we'll show the configuration
     
     const config = {
-      clusterId: \`tenant-\${tenantId}-cluster\`,
+      clusterId: \`tenant-\${tenant}-cluster\`,
       nodes: configuration.nodes || 3,
       diskSize: configuration.diskSize || '100GB',
       memorySize: configuration.memorySize || '8GB',
@@ -803,14 +803,14 @@ export class TenantEventStoreManager {
       retentionPolicy: configuration.retentionPolicy || '1 year'
     };
 
-    await this.configService.storeTenantEventStoreConfig(tenantId, config);
+    await this.configService.storeTenantEventStoreConfig(tenant, config);
     
     // Initialize tenant-specific projections
-    await this.initializeTenantProjections(tenantId);
+    await this.initializeTenantProjections(tenant);
   }
 
-  private async initializeTenantProjections(tenantId: string): Promise<void> {
-    const client = await this.getTenantClient(tenantId);
+  private async initializeTenantProjections(tenant: string): Promise<void> {
+    const client = await this.getTenantClient(tenant);
     
     // Standard projections for this tenant
     const standardProjections = [
@@ -831,23 +831,23 @@ export class DedicatedEventStoreService {
   constructor(private tenantManager: TenantEventStoreManager) {}
 
   async appendToStream(
-    tenantId: string,
+    tenant: string,
     streamName: string,
     events: EventData[],
     expectedRevision?: any
   ): Promise<AppendResult> {
-    return await this.tenantManager.executeTenantOperation(tenantId, async (client) => {
+    return await this.tenantManager.executeTenantOperation(tenant, async (client) => {
       // Simple stream names - no tenant prefixing needed
       return await client.appendToStream(streamName, events, { expectedRevision });
     });
   }
 
   async readStream(
-    tenantId: string,
+    tenant: string,
     streamName: string,
     options?: ReadStreamOptions
   ): Promise<ResolvedEvent[]> {
-    return await this.tenantManager.executeTenantOperation(tenantId, async (client) => {
+    return await this.tenantManager.executeTenantOperation(tenant, async (client) => {
       const events: ResolvedEvent[] = [];
       const stream = client.readStream(streamName, options);
 
@@ -860,8 +860,8 @@ export class DedicatedEventStoreService {
   }
 
   // Tenant-level operations
-  async getTenantStatistics(tenantId: string): Promise<TenantEventStoreStats> {
-    return await this.tenantManager.executeTenantOperation(tenantId, async (client) => {
+  async getTenantStatistics(tenant: string): Promise<TenantEventStoreStats> {
+    return await this.tenantManager.executeTenantOperation(tenant, async (client) => {
       // Get statistics from this tenant's EventStore
       const stats = await client.getStatistics();
       
@@ -876,11 +876,11 @@ export class DedicatedEventStoreService {
     });
   }
 
-  async backupTenantData(tenantId: string): Promise<string> {
-    return await this.tenantManager.executeTenantOperation(tenantId, async (client) => {
+  async backupTenantData(tenant: string): Promise<string> {
+    return await this.tenantManager.executeTenantOperation(tenant, async (client) => {
       // Initiate backup for this tenant's EventStore
       const backupResult = await client.createBackup({
-        destination: \`s3://tenant-\${tenantId}-backups/\${new Date().toISOString()}\`,
+        destination: \`s3://tenant-\${tenant}-backups/\${new Date().toISOString()}\`,
         includeIndexes: true,
         includeProjections: true
       });
@@ -931,7 +931,7 @@ interface TenantEventStoreStats {
 // Tenant-aware event base class
 export abstract class TenantEvent {
   abstract readonly eventType: string;
-  readonly tenantId: string;
+  readonly tenant: string;
   readonly aggregateId: string;
   readonly aggregateType: string;
   readonly version: number;
@@ -940,14 +940,14 @@ export abstract class TenantEvent {
   readonly causationId?: string;
 
   constructor(data: {
-    tenantId: string;
+    tenant: string;
     aggregateId: string;
     aggregateType: string;
     version: number;
     correlationId?: string;
     causationId?: string;
   }) {
-    this.tenantId = data.tenantId;
+    this.tenant = data.tenant;
     this.aggregateId = data.aggregateId;
     this.aggregateType = data.aggregateType;
     this.version = data.version;
@@ -999,7 +999,7 @@ export class OptimizedTenantEventStore {
 
   // Batch event appending
   async appendBatchEvents(
-    tenantId: string,
+    tenant: string,
     streamEvents: Array<{
       streamName: string;
       events: EventData[];
@@ -1009,7 +1009,7 @@ export class OptimizedTenantEventStore {
     const promises = streamEvents.map(({ streamName, events, expectedRevision }) => {
       const [domain, aggregateType, aggregateId] = this.parseStreamName(streamName);
       return this.eventStore.appendToStream(
-        tenantId,
+        tenant,
         domain,
         aggregateType,
         aggregateId,
@@ -1023,21 +1023,21 @@ export class OptimizedTenantEventStore {
 
   // Cached aggregate loading
   async loadAggregateWithCache<T extends AggregateRoot>(
-    tenantId: string,
+    tenant: string,
     domain: string,
     aggregateType: string,
     aggregateId: string,
     createEmpty: () => T,
     cacheTtl: number = 300 // 5 minutes
   ): Promise<T | null> {
-    const cacheKey = \`aggregate:\${tenantId}:\${domain}:\${aggregateType}:\${aggregateId}\`;
+    const cacheKey = \`aggregate:\${tenant}:\${domain}:\${aggregateType}:\${aggregateId}\`;
     
     // Try cache first
     const cached = await this.cacheService.get<T>(cacheKey);
     if (cached) return cached;
 
     // Load from event store
-    const events = await this.eventStore.readStream(tenantId, domain, aggregateType, aggregateId);
+    const events = await this.eventStore.readStream(tenant, domain, aggregateType, aggregateId);
     if (events.length === 0) return null;
 
     const aggregate = createEmpty();
@@ -1051,14 +1051,14 @@ export class OptimizedTenantEventStore {
 
   // Snapshot support
   async createSnapshot<T>(
-    tenantId: string,
+    tenant: string,
     domain: string,
     aggregateType: string,
     aggregateId: string,
     aggregate: T,
     version: number
   ): Promise<void> {
-    const snapshotStream = \`\${tenantId}-\${domain}-\${aggregateType}-\${aggregateId}-snapshots\`;
+    const snapshotStream = \`\${tenant}-\${domain}-\${aggregateType}-\${aggregateId}-snapshots\`;
     
     const snapshotEvent = {
       eventId: uuid(),
@@ -1073,7 +1073,7 @@ export class OptimizedTenantEventStore {
     };
 
     await this.eventStore.appendToStream(
-      tenantId,
+      tenant,
       domain,
       'snapshots',
       aggregateId,

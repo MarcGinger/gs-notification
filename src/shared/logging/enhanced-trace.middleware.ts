@@ -60,9 +60,9 @@ export class EnhancedTraceMiddleware {
       }
 
       // Set tenant context if provided
-      const tenantId = req.headers['x-tenant-id'] as string;
-      if (tenantId) {
-        this.cls.set('tenantId', tenantId);
+      const tenant = req.headers['x-tenant-id'] as string;
+      if (tenant) {
+        this.cls.set('tenant', tenant);
       }
 
       // Set user context if available (from auth)

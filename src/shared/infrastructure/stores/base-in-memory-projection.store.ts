@@ -18,7 +18,7 @@ import { Logger, Log } from 'src/shared/logging';
  */
 export interface BaseProjection {
   // Core identification
-  tenantId: string;
+  tenant: string;
   version: number;
 
   // Lifecycle metadata
@@ -59,7 +59,7 @@ export interface IProjectionStore<TProjection extends BaseProjection> {
   /**
    * Generate projection key for tenant and identifier
    */
-  buildProjectionKey(tenantId: string, identifier: string): string;
+  buildProjectionKey(tenant: string, identifier: string): string;
 
   /**
    * Health check - verify store is accessible
@@ -205,8 +205,8 @@ export abstract class BaseInMemoryProjectionStore<
    * Generate projection key for tenant and identifier
    * Override this in subclasses for domain-specific key formats
    */
-  buildProjectionKey(tenantId: string, identifier: string): string {
-    return `${tenantId}:${this.config.keyPrefix}:${identifier}`;
+  buildProjectionKey(tenant: string, identifier: string): string {
+    return `${tenant}:${this.config.keyPrefix}:${identifier}`;
   }
 
   /**
@@ -273,32 +273,32 @@ export class SimpleStore<T extends BaseProjection> {
   /**
    * Get projection by tenant and code
    */
-  get(tenantId: string, code: string): T | undefined {
-    return this.cache.get(this.buildKey(tenantId, code));
+  get(tenant: string, code: string): T | undefined {
+    return this.cache.get(this.buildKey(tenant, code));
   }
 
   /**
    * Set projection
    */
-  set(tenantId: string, code: string, projection: T): void {
-    this.cache.set(this.buildKey(tenantId, code), projection);
+  set(tenant: string, code: string, projection: T): void {
+    this.cache.set(this.buildKey(tenant, code), projection);
   }
 
   /**
    * Check if projection exists
    */
-  has(tenantId: string, code: string): boolean {
-    return this.cache.has(this.buildKey(tenantId, code));
+  has(tenant: string, code: string): boolean {
+    return this.cache.has(this.buildKey(tenant, code));
   }
 
   /**
    * Delete projection (mark as deleted)
    */
-  delete(tenantId: string, code: string): void {
-    const existing = this.get(tenantId, code);
+  delete(tenant: string, code: string): void {
+    const existing = this.get(tenant, code);
     if (existing) {
       existing.deletedAt = new Date();
-      this.set(tenantId, code, existing);
+      this.set(tenant, code, existing);
     }
   }
 
@@ -326,7 +326,7 @@ export class SimpleStore<T extends BaseProjection> {
   /**
    * Build consistent cache key
    */
-  private buildKey(tenantId: string, code: string): string {
-    return `${tenantId}:${this.storeName}:${code}`;
+  private buildKey(tenant: string, code: string): string {
+    return `${tenant}:${this.storeName}:${code}`;
   }
 }

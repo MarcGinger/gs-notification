@@ -492,7 +492,7 @@ export class PIIProtectionService {
     results: ProtectionResult[],
     context: {
       userId: string;
-      tenantId: string;
+      tenant: string;
       operation: string;
       domain?: string;
       entityType?: string;
@@ -501,7 +501,7 @@ export class PIIProtectionService {
     return {
       timestamp: new Date().toISOString(),
       userId: context.userId,
-      tenantId: context.tenantId,
+      tenant: context.tenant,
       operation: context.operation,
       domain: context.domain || 'unknown',
       entityType: context.entityType || 'unknown',

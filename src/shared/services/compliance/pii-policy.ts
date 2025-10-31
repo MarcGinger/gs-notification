@@ -27,7 +27,7 @@ export type PIIFieldHints = {
 
 export interface PIIPolicyBundle {
   domain: string; // e.g., "entity", "payment-hub"
-  tenantId?: string; // optional tenant override
+  tenant?: string; // optional tenant override
   keywords: PIIKeywordPack;
   fieldHints?: PIIFieldHints; // legacy/simple
   rules?: PIIRule[]; // NEW: path-aware rules (preferred)
@@ -36,7 +36,7 @@ export interface PIIPolicyBundle {
 }
 
 export interface PIIPolicyProvider {
-  getPolicy(ctx: { domain: string; tenantId?: string }): PIIPolicyBundle;
+  getPolicy(ctx: { domain: string; tenant?: string }): PIIPolicyBundle;
 }
 
 // DI token for PIIPolicyProvider

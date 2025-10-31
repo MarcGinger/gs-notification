@@ -177,9 +177,9 @@ export async function runUseCase<
   const metadata: EventMetadata = {
     actor: {
       userId: command.user.sub,
-      tenantId: command.user.tenant,
+      tenant: command.user.tenant,
       username: command.user.email,
-      tenant_userId: command.user.tenant_id,
+      tenant_userId: command.user.tenant_id || '',
       roles: command.user.roles ?? [],
     },
     correlationId: command.correlationId,
@@ -385,7 +385,7 @@ export async function runUseCaseWithSecurity<
 
   // Build default auth context
   const defaultAuthContext = {
-    tenantId: command.user.tenant,
+    tenant: command.user.tenant,
     userRoles: command.user.roles,
     operationType: authorization.operation,
     ...authContext,

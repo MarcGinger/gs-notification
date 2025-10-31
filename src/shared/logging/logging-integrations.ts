@@ -76,7 +76,7 @@ export function appendEventWithMetadata(
   const metadata: Record<string, unknown> = {
     traceId: cls.get('traceId'),
     correlationId: cls.get('correlationId'),
-    user: { id: cls.get('userId'), tenantId: cls.get('tenantId') },
+    user: { id: cls.get('userId'), tenant: cls.get('tenant') },
     source: AppConfigUtil.getLoggingConfig().appName,
   };
 
@@ -94,6 +94,6 @@ export function setClsFromEventMetadata(cls: ClsService, resolvedEvent: any) {
   const meta = resolvedEvent?.event?.metadata;
   cls.set('traceId', meta?.traceId);
   cls.set('correlationId', meta?.correlationId);
-  cls.set('tenantId', meta?.user?.tenantId);
+  cls.set('tenant', meta?.user?.tenant);
   cls.set('userId', meta?.user?.id);
 }

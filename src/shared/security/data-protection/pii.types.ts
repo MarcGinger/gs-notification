@@ -98,7 +98,7 @@ export interface PIIAuditEvent {
   readonly timestamp: string;
   readonly correlationId: string;
   readonly userId?: string;
-  readonly tenantId?: string;
+  readonly tenant?: string;
   readonly operation: 'scan' | 'protect' | 'access' | 'export';
   readonly fieldsProcessed: number;
   readonly piiFieldsDetected: number;

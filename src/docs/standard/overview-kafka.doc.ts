@@ -59,7 +59,7 @@ In software architecture, **"upstream"** and **"downstream"** describe the direc
 {
   "eventType": "AccountCreated",
   "version": "v1",
-  "tenantId": "tenant-123",
+  "tenant": "tenant-123",
   "aggregateId": "account-456",
   "timestamp": "2025-01-15T10:30:00Z",
   "data": {
@@ -86,7 +86,7 @@ class BankingProductAggregate {
   createAccount(accountData: CreateAccountData): void {
     // Domain logic...
     const event = new AccountCreatedEvent({
-      tenantId: this.tenantId,
+      tenant: this.tenant,
       accountId: this.accountId,
       productType: accountData.productType,
       customerId: accountData.customerId
@@ -181,11 +181,11 @@ class AccountOnboardingSaga {
 #### **Multi-Tenant Event Routing**
 \`\`\`typescript
 // Tenant-aware event publishing for distributed BCs
-const topicName = \`tenant-\${tenantId}-banking-events\`;
+const topicName = \`tenant-\${tenant}-banking-events\`;
 await eventPublisher.publish(topicName, event, {
   partition: hash(event.aggregateId) % partitionCount,
   headers: {
-    'tenant-id': tenantId,
+    'tenant-id': tenant,
     'event-type': event.constructor.name,
     'source-bc': 'banking',
     'target-bc': 'notification'
@@ -241,7 +241,7 @@ Kafka provides multiple approaches to tenant isolation in event-driven architect
 ### **Topic Naming Convention**
 \`\`\`
 # Hierarchical topic naming
-tenant-{tenantId}-{domain}-{eventType}
+tenant-{tenant}-{domain}-{eventType}
 
 # Examples
 tenant-123-banking-events
@@ -262,19 +262,19 @@ export class TenantKafkaService {
     private logger: Logger
   ) {}
 
-  private buildTopicName(tenantId: string, domain: string, eventType: string): string {
-    return \`tenant-\${tenantId}-\${domain}-\${eventType}\`;
+  private buildTopicName(tenant: string, domain: string, eventType: string): string {
+    return \`tenant-\${tenant}-\${domain}-\${eventType}\`;
   }
 
   // Publish tenant events
   async publishEvent(
-    tenantId: string,
+    tenant: string,
     domain: string,
     eventType: string,
     event: any,
     options?: PublishOptions
   ): Promise<RecordMetadata[]> {
-    const topic = this.buildTopicName(tenantId, domain, eventType);
+    const topic = this.buildTopicName(tenant, domain, eventType);
     
     const message = {
       key: options?.key || event.aggregateId,
@@ -282,7 +282,7 @@ export class TenantKafkaService {
         ...event,
         metadata: {
           ...event.metadata,
-          tenantId,
+          tenant,
           domain,
           eventType,
           publishedAt: new Date().toISOString(),
@@ -290,7 +290,7 @@ export class TenantKafkaService {
         }
       }),
       headers: {
-        'tenant-id': tenantId,
+        'tenant-id': tenant,
         'domain': domain,
         'event-type': eventType,
         'correlation-id': options?.correlationId || '',
@@ -306,18 +306,18 @@ export class TenantKafkaService {
 
   // Subscribe to tenant events
   async subscribeTenantEvents(
-    tenantId: string,
+    tenant: string,
     domain: string,
     eventTypes: string[],
     handler: EventHandler,
     consumerGroup: string
   ): Promise<void> {
     const topics = eventTypes.map(eventType => 
-      this.buildTopicName(tenantId, domain, eventType)
+      this.buildTopicName(tenant, domain, eventType)
     );
 
     const consumer = this.kafka.consumer({ 
-      groupId: \`\${consumerGroup}-\${tenantId}\`,
+      groupId: \`\${consumerGroup}-\${tenant}\`,
       sessionTimeout: 30000,
       heartbeatInterval: 3000
     });
@@ -349,7 +349,7 @@ export class TenantKafkaService {
 
   // Topic management
   async createTenantTopics(
-    tenantId: string,
+    tenant: string,
     domains: string[],
     eventTypes: string[]
   ): Promise<void> {
@@ -360,7 +360,7 @@ export class TenantKafkaService {
     for (const domain of domains) {
       for (const eventType of eventTypes) {
         topics.push({
-          topic: this.buildTopicName(tenantId, domain, eventType),
+          topic: this.buildTopicName(tenant, domain, eventType),
           numPartitions: 3,
           replicationFactor: 2,
           configEntries: [
@@ -405,11 +405,11 @@ export class TenantDomainEventPublisher {
 
   // Banking domain events
   async publishBankingEvent(
-    tenantId: string,
+    tenant: string,
     event: BankingDomainEvent
   ): Promise<void> {
     await this.kafkaService.publishEvent(
-      tenantId,
+      tenant,
       'banking',
       'events',
       event,
@@ -422,12 +422,12 @@ export class TenantDomainEventPublisher {
 
   // Cross-domain command publishing
   async publishCommand(
-    tenantId: string,
+    tenant: string,
     targetDomain: string,
     command: DomainCommand
   ): Promise<void> {
     await this.kafkaService.publishEvent(
-      tenantId,
+      tenant,
       targetDomain,
       'commands',
       command,
@@ -440,13 +440,13 @@ export class TenantDomainEventPublisher {
 
   // Integration events (cross-tenant if needed)
   async publishIntegrationEvent(
-    tenantId: string,
+    tenant: string,
     event: IntegrationEvent
   ): Promise<void> {
     // For cross-tenant events, use integration topic
     const topic = event.crossTenant 
       ? 'integration-events'
-      : \`tenant-\${tenantId}-integration-events\`;
+      : \`tenant-\${tenant}-integration-events\`;
       
     await this.producer.send({
       topic,
@@ -454,7 +454,7 @@ export class TenantDomainEventPublisher {
         key: event.eventId,
         value: JSON.stringify(event),
         headers: {
-          'source-tenant': tenantId,
+          'source-tenant': tenant,
           'event-type': event.eventType,
           'cross-tenant': event.crossTenant ? 'true' : 'false'
         }
@@ -466,7 +466,7 @@ export class TenantDomainEventPublisher {
 // Event consumer base class
 export abstract class TenantEventConsumer {
   constructor(
-    protected tenantId: string,
+    protected tenant: string,
     protected kafkaService: TenantKafkaService,
     protected logger: Logger
   ) {}
@@ -479,7 +479,7 @@ export abstract class TenantEventConsumer {
     
     for (const subscription of subscriptions) {
       await this.kafkaService.subscribeTenantEvents(
-        this.tenantId,
+        this.tenant,
         subscription.domain,
         subscription.eventTypes,
         {
@@ -541,12 +541,12 @@ export class BankingNotificationConsumer extends TenantEventConsumer {
 
   private async handleAccountCreated(event: any): Promise<void> {
     // Send welcome email, set up notifications, etc.
-    this.logger.info(\`Processing AccountCreated for tenant \${this.tenantId}\`);
+    this.logger.info(\`Processing AccountCreated for tenant \${this.tenant}\`);
   }
 
   private async handleTransactionProcessed(event: any): Promise<void> {
     // Send transaction notifications
-    this.logger.info(\`Processing TransactionProcessed for tenant \${this.tenantId}\`);
+    this.logger.info(\`Processing TransactionProcessed for tenant \${this.tenant}\`);
   }
 }
 \`\`\`
@@ -578,37 +578,37 @@ export class TenantPartitioningService {
   ) {}
 
   // Calculate tenant partition
-  private calculateTenantPartition(tenantId: string, totalPartitions: number): number {
+  private calculateTenantPartition(tenant: string, totalPartitions: number): number {
     // Consistent hashing to ensure same tenant always goes to same partition
-    const hash = this.hash(tenantId);
+    const hash = this.hash(tenant);
     return hash % totalPartitions;
   }
 
   // Publish with tenant-based partitioning
   async publishWithTenantPartitioning(
     topic: string,
-    tenantId: string,
+    tenant: string,
     event: any,
     options?: PartitioningOptions
   ): Promise<RecordMetadata[]> {
     const topicMetadata = await this.getTopicMetadata(topic);
     const partition = options?.customPartition ?? 
-      this.calculateTenantPartition(tenantId, topicMetadata.partitionCount);
+      this.calculateTenantPartition(tenant, topicMetadata.partitionCount);
 
     const message = {
-      key: tenantId, // Tenant ID as message key for ordering
+      key: tenant, // Tenant ID as message key for ordering
       value: JSON.stringify({
         ...event,
-        tenantId,
+        tenant,
         partitionInfo: {
           partition,
           totalPartitions: topicMetadata.partitionCount,
-          partitionKey: tenantId
+          partitionKey: tenant
         }
       }),
       partition, // Explicit partition assignment
       headers: {
-        'tenant-id': tenantId,
+        'tenant-id': tenant,
         'partition-strategy': 'tenant-based',
         'partition-number': partition.toString()
       }
@@ -623,7 +623,7 @@ export class TenantPartitioningService {
   // Advanced partitioning strategies
   async publishWithLoadBalancing(
     topic: string,
-    tenantId: string,
+    tenant: string,
     event: any,
     loadBalancingStrategy: LoadBalancingStrategy
   ): Promise<RecordMetadata[]> {
@@ -631,22 +631,22 @@ export class TenantPartitioningService {
 
     switch (loadBalancingStrategy.type) {
       case 'round-robin':
-        partition = await this.getRoundRobinPartition(topic, tenantId);
+        partition = await this.getRoundRobinPartition(topic, tenant);
         break;
       case 'least-loaded':
-        partition = await this.getLeastLoadedPartition(topic, tenantId);
+        partition = await this.getLeastLoadedPartition(topic, tenant);
         break;
       case 'consistent-hash':
         partition = this.calculateTenantPartition(
-          \`\${tenantId}-\${event.aggregateId}\`,
+          \`\${tenant}-\${event.aggregateId}\`,
           loadBalancingStrategy.totalPartitions
         );
         break;
       default:
-        partition = this.calculateTenantPartition(tenantId, loadBalancingStrategy.totalPartitions);
+        partition = this.calculateTenantPartition(tenant, loadBalancingStrategy.totalPartitions);
     }
 
-    return await this.publishWithTenantPartitioning(topic, tenantId, event, {
+    return await this.publishWithTenantPartitioning(topic, tenant, event, {
       customPartition: partition
     });
   }
@@ -654,17 +654,17 @@ export class TenantPartitioningService {
   // Tenant partition analytics
   async getTenantPartitionMetrics(
     topic: string,
-    tenantId: string,
+    tenant: string,
     timeRange: TimeRange
   ): Promise<PartitionMetrics> {
     const topicMetadata = await this.getTopicMetadata(topic);
-    const tenantPartition = this.calculateTenantPartition(tenantId, topicMetadata.partitionCount);
+    const tenantPartition = this.calculateTenantPartition(tenant, topicMetadata.partitionCount);
 
     // Get metrics for the tenant's partition
     const metrics = await this.getPartitionMetrics(topic, tenantPartition, timeRange);
 
     return {
-      tenantId,
+      tenant,
       partition: tenantPartition,
       messageCount: metrics.messageCount,
       bytesSize: metrics.bytesSize,
@@ -697,7 +697,7 @@ interface LoadBalancingStrategy {
 }
 
 interface PartitionMetrics {
-  tenantId: string;
+  tenant: string;
   partition: number;
   messageCount: number;
   bytesSize: number;
@@ -725,7 +725,7 @@ export class DynamicPartitionManager {
   // Allocate dedicated partitions for high-volume tenants
   async allocateDedicatedPartitions(
     topic: string,
-    tenantId: string,
+    tenant: string,
     partitionCount: number
   ): Promise<number[]> {
     const admin = this.kafka.admin();
@@ -751,7 +751,7 @@ export class DynamicPartitionManager {
       }
 
       // Store allocation in metadata
-      await this.storeTenantPartitionAllocation(tenantId, topic, allocatedPartitions);
+      await this.storeTenantPartitionAllocation(tenant, topic, allocatedPartitions);
 
       return allocatedPartitions;
 
@@ -765,21 +765,21 @@ export class DynamicPartitionManager {
     const tenantMetrics = await this.getTenantLoadMetrics(topic);
     const rebalanceActions: RebalanceAction[] = [];
 
-    for (const [tenantId, metrics] of tenantMetrics) {
+    for (const [tenant, metrics] of tenantMetrics) {
       if (metrics.averageLatency > 1000) { // High latency threshold
         // Allocate additional partition
-        const newPartitions = await this.allocateDedicatedPartitions(topic, tenantId, 1);
+        const newPartitions = await this.allocateDedicatedPartitions(topic, tenant, 1);
         rebalanceActions.push({
-          tenantId,
+          tenant,
           action: 'allocate',
           partitions: newPartitions,
           reason: 'High latency detected'
         });
       } else if (metrics.messageRate < 10 && metrics.allocatedPartitions > 1) {
         // Deallocate unused partition
-        const removedPartition = await this.deallocatePartition(topic, tenantId);
+        const removedPartition = await this.deallocatePartition(topic, tenant);
         rebalanceActions.push({
-          tenantId,
+          tenant,
           action: 'deallocate',
           partitions: [removedPartition],
           reason: 'Low message rate'
@@ -834,7 +834,7 @@ export class DynamicPartitionManager {
 }
 
 interface RebalanceAction {
-  tenantId: string;
+  tenant: string;
   action: 'allocate' | 'deallocate';
   partitions: number[];
   reason: string;
@@ -889,11 +889,11 @@ export class TenantConsumerGroupManager {
 
   // Create tenant-specific consumer group
   async createTenantConsumerGroup(
-    tenantId: string,
+    tenant: string,
     groupId: string,
     config?: ConsumerConfig
   ): Promise<Consumer> {
-    const tenantGroupId = \`tenant-\${tenantId}-\${groupId}\`;
+    const tenantGroupId = \`tenant-\${tenant}-\${groupId}\`;
     
     if (this.consumerGroups.has(tenantGroupId)) {
       return this.consumerGroups.get(tenantGroupId)!;
@@ -911,8 +911,8 @@ export class TenantConsumerGroupManager {
     
     // Set up error handling
     consumer.on('consumer.crash', (error) => {
-      this.logger.error(\`Consumer crashed for tenant \${tenantId}\`, error);
-      this.handleConsumerCrash(tenantId, groupId, error);
+      this.logger.error(\`Consumer crashed for tenant \${tenant}\`, error);
+      this.handleConsumerCrash(tenant, groupId, error);
     });
 
     return consumer;
@@ -920,12 +920,12 @@ export class TenantConsumerGroupManager {
 
   // Subscribe tenant consumer to topics
   async subscribeTenantConsumer(
-    tenantId: string,
+    tenant: string,
     groupId: string,
     topics: string[],
     handler: TenantMessageHandler
   ): Promise<void> {
-    const consumer = await this.createTenantConsumerGroup(tenantId, groupId);
+    const consumer = await this.createTenantConsumerGroup(tenant, groupId);
     
     await consumer.connect();
     await consumer.subscribe({ topics });
@@ -933,7 +933,7 @@ export class TenantConsumerGroupManager {
     await consumer.run({
       eachMessage: async ({ topic, partition, message }) => {
         const context: TenantMessageContext = {
-          tenantId,
+          tenant,
           topic,
           partition,
           offset: message.offset,
@@ -965,12 +965,12 @@ export class TenantConsumerGroupManager {
     message: KafkaMessage
   ): Promise<void> {
     this.logger.error(
-      \`Error processing message for tenant \${context.tenantId}\`, 
+      \`Error processing message for tenant \${context.tenant}\`, 
       { error, context, messageKey: message.key?.toString() }
     );
 
     // Tenant-specific dead letter queue
-    const dlqTopic = \`tenant-\${context.tenantId}-dlq\`;
+    const dlqTopic = \`tenant-\${context.tenant}-dlq\`;
     
     await this.sendToDeadLetterQueue(dlqTopic, message, error, context);
   }
@@ -1007,8 +1007,8 @@ export class TenantConsumerGroupManager {
   }
 
   // Consumer group monitoring
-  async getConsumerGroupMetrics(tenantId: string, groupId: string): Promise<ConsumerGroupMetrics> {
-    const tenantGroupId = \`tenant-\${tenantId}-\${groupId}\`;
+  async getConsumerGroupMetrics(tenant: string, groupId: string): Promise<ConsumerGroupMetrics> {
+    const tenantGroupId = \`tenant-\${tenant}-\${groupId}\`;
     const admin = this.kafka.admin();
     await admin.connect();
 
@@ -1017,7 +1017,7 @@ export class TenantConsumerGroupManager {
       const offsets = await admin.fetchOffsets({ groupId: tenantGroupId });
 
       return {
-        tenantId,
+        tenant,
         groupId: tenantGroupId,
         state: description.groups[0]?.state || 'Unknown',
         memberCount: description.groups[0]?.members.length || 0,
@@ -1036,7 +1036,7 @@ interface TenantMessageHandler {
 }
 
 interface TenantMessageContext {
-  tenantId: string;
+  tenant: string;
   topic: string;
   partition: number;
   offset: string;
@@ -1045,7 +1045,7 @@ interface TenantMessageContext {
 }
 
 interface ConsumerGroupMetrics {
-  tenantId: string;
+  tenant: string;
   groupId: string;
   state: string;
   memberCount: number;
@@ -1084,37 +1084,37 @@ export class BankingEventProcessor implements TenantMessageHandler {
 
   private async handleAccountCreated(event: any, context: TenantMessageContext): Promise<void> {
     // Update read models
-    await this.bankingService.updateAccountReadModel(context.tenantId, event);
+    await this.bankingService.updateAccountReadModel(context.tenant, event);
     
     // Send notifications
     await this.notificationService.sendAccountCreatedNotification(
-      context.tenantId,
+      context.tenant,
       event.customerId,
       event.accountId
     );
     
-    this.logger.info(\`Processed AccountCreated for tenant \${context.tenantId}\`);
+    this.logger.info(\`Processed AccountCreated for tenant \${context.tenant}\`);
   }
 
   private async handleTransactionProcessed(event: any, context: TenantMessageContext): Promise<void> {
     // Update balances and transaction history
-    await this.bankingService.updateTransactionReadModel(context.tenantId, event);
+    await this.bankingService.updateTransactionReadModel(context.tenant, event);
     
     // Real-time balance updates
     await this.bankingService.updateAccountBalance(
-      context.tenantId,
+      context.tenant,
       event.accountId,
       event.amount
     );
     
-    this.logger.info(\`Processed TransactionProcessed for tenant \${context.tenantId}\`);
+    this.logger.info(\`Processed TransactionProcessed for tenant \${context.tenant}\`);
   }
 
   private async handleProductCreated(event: any, context: TenantMessageContext): Promise<void> {
     // Update product catalog
-    await this.bankingService.updateProductCatalog(context.tenantId, event);
+    await this.bankingService.updateProductCatalog(context.tenant, event);
     
-    this.logger.info(\`Processed ProductCreated for tenant \${context.tenantId}\`);
+    this.logger.info(\`Processed ProductCreated for tenant \${context.tenant}\`);
   }
 }
 \`\`\`
@@ -1144,24 +1144,24 @@ export class TenantKafkaClusterManager {
 
   constructor(private configService: ConfigService) {}
 
-  async getTenantKafka(tenantId: string): Promise<Kafka> {
-    if (this.tenantClusters.has(tenantId)) {
-      return this.tenantClusters.get(tenantId)!;
+  async getTenantKafka(tenant: string): Promise<Kafka> {
+    if (this.tenantClusters.has(tenant)) {
+      return this.tenantClusters.get(tenant)!;
     }
 
-    const config = await this.getTenantKafkaConfig(tenantId);
+    const config = await this.getTenantKafkaConfig(tenant);
     const kafka = new Kafka(config);
     
-    this.tenantClusters.set(tenantId, kafka);
+    this.tenantClusters.set(tenant, kafka);
     return kafka;
   }
 
-  private async getTenantKafkaConfig(tenantId: string): Promise<KafkaConfig> {
-    const tenantConfig = await this.configService.getTenantKafkaConfig(tenantId);
+  private async getTenantKafkaConfig(tenant: string): Promise<KafkaConfig> {
+    const tenantConfig = await this.configService.getTenantKafkaConfig(tenant);
 
     return {
-      clientId: \`tenant-\${tenantId}-client\`,
-      brokers: tenantConfig.brokers || [\`tenant-\${tenantId}-kafka.internal:9092\`],
+      clientId: \`tenant-\${tenant}-client\`,
+      brokers: tenantConfig.brokers || [\`tenant-\${tenant}-kafka.internal:9092\`],
       ssl: tenantConfig.ssl || {
         rejectUnauthorized: false,
         ca: [tenantConfig.caCert],
@@ -1180,21 +1180,21 @@ export class TenantKafkaClusterManager {
   }
 
   async executeTenantOperation<T>(
-    tenantId: string,
+    tenant: string,
     operation: (kafka: Kafka) => Promise<T>
   ): Promise<T> {
-    const kafka = await this.getTenantKafka(tenantId);
+    const kafka = await this.getTenantKafka(tenant);
     return await operation(kafka);
   }
 
   // Cluster provisioning
   async provisionTenantKafkaCluster(
-    tenantId: string,
+    tenant: string,
     configuration: TenantKafkaClusterConfig
   ): Promise<void> {
     // This would typically involve infrastructure provisioning
     const config = {
-      clusterId: \`tenant-\${tenantId}-kafka\`,
+      clusterId: \`tenant-\${tenant}-kafka\`,
       brokers: configuration.brokerCount || 3,
       partitions: configuration.defaultPartitions || 6,
       replicationFactor: configuration.replicationFactor || 2,
@@ -1202,14 +1202,14 @@ export class TenantKafkaClusterManager {
       retentionPolicy: configuration.retentionPolicy || '7d'
     };
 
-    await this.configService.storeTenantKafkaConfig(tenantId, config);
+    await this.configService.storeTenantKafkaConfig(tenant, config);
     
     // Initialize standard topics
-    await this.initializeTenantTopics(tenantId);
+    await this.initializeTenantTopics(tenant);
   }
 
-  private async initializeTenantTopics(tenantId: string): Promise<void> {
-    const kafka = await this.getTenantKafka(tenantId);
+  private async initializeTenantTopics(tenant: string): Promise<void> {
+    const kafka = await this.getTenantKafka(tenant);
     const admin = kafka.admin();
     await admin.connect();
 
@@ -1248,8 +1248,8 @@ export class TenantKafkaClusterManager {
   }
 
   // Cluster monitoring
-  async getClusterHealth(tenantId: string): Promise<ClusterHealthReport> {
-    return await this.executeTenantOperation(tenantId, async (kafka) => {
+  async getClusterHealth(tenant: string): Promise<ClusterHealthReport> {
+    return await this.executeTenantOperation(tenant, async (kafka) => {
       const admin = kafka.admin();
       await admin.connect();
 
@@ -1258,7 +1258,7 @@ export class TenantKafkaClusterManager {
         const brokers = metadata.brokers;
         
         return {
-          tenantId,
+          tenant,
           brokerCount: brokers.length,
           onlineBrokers: brokers.filter(b => b.host).length,
           totalTopics: metadata.topics.length,
@@ -1280,12 +1280,12 @@ export class DedicatedClusterKafkaService {
   constructor(private clusterManager: TenantKafkaClusterManager) {}
 
   async publishEvent(
-    tenantId: string,
+    tenant: string,
     topic: string,
     event: any,
     options?: PublishOptions
   ): Promise<RecordMetadata[]> {
-    return await this.clusterManager.executeTenantOperation(tenantId, async (kafka) => {
+    return await this.clusterManager.executeTenantOperation(tenant, async (kafka) => {
       const producer = kafka.producer();
       await producer.connect();
 
@@ -1308,12 +1308,12 @@ export class DedicatedClusterKafkaService {
   }
 
   async subscribeToEvents(
-    tenantId: string,
+    tenant: string,
     topics: string[],
     consumerGroup: string,
     handler: EventHandler
   ): Promise<void> {
-    await this.clusterManager.executeTenantOperation(tenantId, async (kafka) => {
+    await this.clusterManager.executeTenantOperation(tenant, async (kafka) => {
       const consumer = kafka.consumer({ groupId: consumerGroup });
       await consumer.connect();
       await consumer.subscribe({ topics });
@@ -1328,8 +1328,8 @@ export class DedicatedClusterKafkaService {
   }
 
   // Cluster-level operations
-  async getTopicList(tenantId: string): Promise<string[]> {
-    return await this.clusterManager.executeTenantOperation(tenantId, async (kafka) => {
+  async getTopicList(tenant: string): Promise<string[]> {
+    return await this.clusterManager.executeTenantOperation(tenant, async (kafka) => {
       const admin = kafka.admin();
       await admin.connect();
 
@@ -1343,10 +1343,10 @@ export class DedicatedClusterKafkaService {
   }
 
   async createTopic(
-    tenantId: string,
+    tenant: string,
     topicConfig: TopicConfig
   ): Promise<void> {
-    await this.clusterManager.executeTenantOperation(tenantId, async (kafka) => {
+    await this.clusterManager.executeTenantOperation(tenant, async (kafka) => {
       const admin = kafka.admin();
       await admin.connect();
 
@@ -1370,7 +1370,7 @@ interface TenantKafkaClusterConfig {
 }
 
 interface ClusterHealthReport {
-  tenantId: string;
+  tenant: string;
   brokerCount: number;
   onlineBrokers: number;
   totalTopics: number;

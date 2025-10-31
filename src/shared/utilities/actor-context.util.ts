@@ -69,8 +69,8 @@ export class ActorContextUtil {
 
     const actor: ActorContext = {
       userId: user.sub,
-      tenantId: user.tenant,
-      tenant_userId: user.tenant_id,
+      tenant: user.tenant,
+      tenant_userId: user.tenant_id || '',
       username: user.email,
       roles: user.roles,
     };
@@ -118,7 +118,7 @@ export class ActorContextUtil {
           operation: 'ActorContextUtil.createValidated',
           reason: 'Generated ActorContext failed validation',
           userId: actor.userId,
-          tenantId: actor.tenantId,
+          tenant: actor.tenant,
           hasRoles: Boolean(actor.roles),
         }),
       );
@@ -137,7 +137,7 @@ export class ActorContextUtil {
     actor: ActorContext,
     fallback: string = 'default',
   ): string {
-    return actor.tenantId || fallback;
+    return actor.tenant || fallback;
   }
 
   /**

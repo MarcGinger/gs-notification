@@ -261,34 +261,34 @@ export class RedisKeyPatterns {
    * Generate entity hash key
    *
    * @param projectorPrefix - Projector name prefix
-   * @param tenantId - Tenant identifier
+   * @param tenant - Tenant identifier
    * @param entityType - Entity type (e.g., 'product', 'channel')
    * @param entityCode - Entity code/identifier
    * @returns Redis key for entity hash
    */
   static entityKey(
     projectorPrefix: string,
-    tenantId: string,
+    tenant: string,
     entityType: string,
     entityCode: string,
   ): string {
-    return `${projectorPrefix}:${entityType}:${tenantId}:${entityCode}`;
+    return `${projectorPrefix}:${entityType}:${tenant}:${entityCode}`;
   }
 
   /**
    * Generate tenant index key (sorted set)
    *
    * @param projectorPrefix - Projector name prefix
-   * @param tenantId - Tenant identifier
+   * @param tenant - Tenant identifier
    * @param entityType - Entity type (e.g., 'product', 'channel')
    * @returns Redis key for tenant index sorted set
    */
   static tenantIndexKey(
     projectorPrefix: string,
-    tenantId: string,
+    tenant: string,
     entityType: string,
   ): string {
-    return `${projectorPrefix}:index:${entityType}:${tenantId}`;
+    return `${projectorPrefix}:index:${entityType}:${tenant}`;
   }
 
   /**

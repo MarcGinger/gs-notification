@@ -60,7 +60,7 @@ export class RepositoryLoggingUtil {
       component: config.component,
       operation,
       correlationId,
-      tenantId: actor.tenantId,
+      tenant: actor.tenant,
       userId: actor.userId,
       timestamp: clock.nowIso(),
       layer: 'repository',
@@ -118,7 +118,7 @@ export class RepositoryLoggingUtil {
     actor: ActorContext,
     logContext: Record<string, unknown>,
   ): Result<void, DomainError> {
-    if (!actor.tenantId) {
+    if (!actor.tenant) {
       Log.warn(logger, 'Actor validation failed: Missing tenant ID', {
         ...logContext,
         validationError: 'MISSING_TENANT_ID',

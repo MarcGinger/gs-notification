@@ -15,7 +15,7 @@ import { LOGGER_FACTORY, APP_LOGGER } from './logger.tokens'; // ✅ Import symb
 /**
  * Creates a CLS-aware logger provider that automatically enriches logs with:
  * - Base metadata (app, environment, version, service)
- * - CLS context (traceId, correlationId, tenantId, userId)
+ * - CLS context (traceId, correlationId, tenant, userId)
  *
  * This means services only need to pass method-specific context.
  */
@@ -47,7 +47,7 @@ export const createAppLoggerProvider = (serviceName?: string) => ({
           return {
             traceId: cls.get<string>('traceId'),
             correlationId: cls.get<string>('correlationId'),
-            tenantId: cls.get<string>('tenantId'),
+            tenant: cls.get<string>('tenant'),
             userId: cls.get<string>('userId'),
           };
         },

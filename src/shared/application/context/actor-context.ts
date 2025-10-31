@@ -4,8 +4,8 @@
  */
 export interface ActorContext {
   userId: string; // from token.sub
-  tenantId?: string; // multi-tenant support
-  tenant_userId?: string; // optional, from token.tenant_user_id
+  tenant: string; // multi-tenant support
+  tenant_userId: string; // optional, from token.tenant_user_id
   username?: string; // optional, from token.username
   roles?: string[]; // optional, keep minimal for performance
 }
@@ -14,7 +14,7 @@ export interface ActorContext {
  * Enhanced tenant context with stronger tenant isolation
  */
 export interface TenantContext extends ActorContext {
-  tenantId: string; // Make required for multi-tenant systems
+  tenant: string; // Make required for multi-tenant systems
   permissions: TenantPermission[];
   dataClassification?: 'public' | 'internal' | 'confidential' | 'restricted';
   region?: string; // Data residency requirements

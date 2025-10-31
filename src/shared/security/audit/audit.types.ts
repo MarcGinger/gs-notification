@@ -51,7 +51,7 @@ export interface TypedAuditLogEntry {
   readonly timestamp: string;
   readonly correlationId: string;
   readonly userId?: string;
-  readonly tenantId?: string;
+  readonly tenant?: string;
   readonly resourceType?: string;
   readonly resourceId?: string;
   readonly action?: string;

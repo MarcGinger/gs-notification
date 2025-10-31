@@ -75,7 +75,7 @@ export class OpaAuthorizationService<P extends string>
       // Use existing OPA client with all its resilience patterns
       const decision = await this.opaClient.evaluate(policyPath, opaInput, {
         correlationId: request.context?.correlationId || '',
-        tenantId: request.actor.tenantId,
+        tenant: request.actor.tenant,
         userId: request.actor.userId,
       });
 
@@ -164,7 +164,7 @@ export class OpaAuthorizationService<P extends string>
         opaInputs,
         {
           correlationId: requests[0]?.context?.correlationId || '',
-          tenantId: requests[0]?.actor.tenantId,
+          tenant: requests[0]?.actor.tenant,
           userId: requests[0]?.actor.userId,
         },
       );

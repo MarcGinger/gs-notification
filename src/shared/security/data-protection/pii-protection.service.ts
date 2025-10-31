@@ -340,7 +340,7 @@ export class PIIProtectionService {
       piiFieldsDetected: event.piiFieldsDetected || 0,
       protectionActions: event.protectionActions || [],
       userId: event.userId,
-      tenantId: event.tenantId,
+      tenant: event.tenant,
       complianceRequirement: event.complianceRequirement,
       dataSubjectId: event.dataSubjectId,
       legalBasis: event.legalBasis,

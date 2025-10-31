@@ -1,6 +1,7 @@
 import { ActorContext } from '../context/actor-context';
 import { RequestContext } from '../context/request-context';
 import { EventMetadata } from '../../domain/events/event-metadata';
+import { IUserToken } from 'src/shared/security';
 
 export interface Clock {
   now(): Date;
@@ -21,18 +22,15 @@ export class MetadataFactory {
    * Map raw JWT token to ActorContext (done once, outside repositories)
    * This keeps JWT structure knowledge out of repositories and domain
    */
-  toActorContext(token: {
-    sub: string;
-    tenant_id?: string;
-    realm_access?: { roles?: string[] };
-    resource_access?: Record<string, { roles?: string[] }>;
-  }): ActorContext {
+  toActorContext(token: IUserToken): ActorContext {
     const kcRoles =
       token?.realm_access?.roles ??
       Object.values(token?.resource_access ?? {}).flatMap((r) => r.roles ?? []);
     return {
       userId: token.sub,
-      tenantId: token.tenant_id,
+      tenant: token.tenant || 'default',
+      tenant_userId: token.tenant_id || '',
+      username: token.email || '',
       roles: kcRoles?.slice(0, 20), // Limit roles for performance
     };
   }
@@ -49,7 +47,8 @@ export class MetadataFactory {
     return {
       actor: {
         userId: actor.userId,
-        tenantId: actor.tenantId,
+        tenant: actor.tenant,
+        tenant_userId: actor.tenant_userId || '',
         roles: actor.roles,
       },
       correlationId: req.correlationId,

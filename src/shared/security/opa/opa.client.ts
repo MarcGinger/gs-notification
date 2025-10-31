@@ -125,7 +125,7 @@ export class OpaClient {
     input: OpaInput,
     ctx?: {
       correlationId?: string;
-      tenantId?: string;
+      tenant?: string;
       userId?: string;
     },
   ): Promise<OpaDecision> {
@@ -149,7 +149,7 @@ export class OpaClient {
               timeout: this.requestTimeout,
               headers: {
                 'x-correlation-id': ctx?.correlationId ?? '',
-                'x-tenant-id': ctx?.tenantId ?? '',
+                'x-tenant-id': ctx?.tenant ?? '',
                 'x-user-id': ctx?.userId ?? '',
               },
             },
@@ -198,7 +198,7 @@ export class OpaClient {
       return this.handleOpaError(err, {
         operation: 'evaluate',
         correlationId: ctx?.correlationId,
-        tenantId: ctx?.tenantId,
+        tenant: ctx?.tenant,
         userId: ctx?.userId,
       });
     }
@@ -216,7 +216,7 @@ export class OpaClient {
     inputs: OpaInput[],
     ctx?: {
       correlationId?: string;
-      tenantId?: string;
+      tenant?: string;
       userId?: string;
     },
   ): Promise<OpaDecision[]> {
@@ -241,7 +241,7 @@ export class OpaClient {
               timeout: this.requestTimeout * 2, // batch operations get more time
               headers: {
                 'x-correlation-id': ctx?.correlationId ?? '',
-                'x-tenant-id': ctx?.tenantId ?? '',
+                'x-tenant-id': ctx?.tenant ?? '',
                 'x-user-id': ctx?.userId ?? '',
               },
             },
@@ -285,7 +285,7 @@ export class OpaClient {
       const errorDecision = this.handleOpaError(err, {
         operation: 'evaluateBatch',
         correlationId: ctx?.correlationId,
-        tenantId: ctx?.tenantId,
+        tenant: ctx?.tenant,
         userId: ctx?.userId,
       });
       return inputs.map(() => errorDecision);
@@ -575,7 +575,7 @@ export class OpaClient {
     context: {
       operation: string;
       correlationId?: string;
-      tenantId?: string;
+      tenant?: string;
       userId?: string;
     },
   ): OpaDecision {
@@ -583,7 +583,7 @@ export class OpaClient {
     Log.error(this.logger, `OPA ${context.operation} failed`, {
       method: context.operation,
       correlationId: context.correlationId,
-      tenantId: context.tenantId,
+      tenant: context.tenant,
       userId: context.userId,
       timestamp: new Date().toISOString(),
       error: error instanceof Error ? error.message : String(error),
@@ -599,7 +599,7 @@ export class OpaClient {
    */
   private createUnavailableDecision(context?: {
     correlationId?: string;
-    tenantId?: string;
+    tenant?: string;
     userId?: string;
   }): OpaDecision {
     Log.warn(this.logger, 'authorization.unavailable', {
@@ -607,7 +607,7 @@ export class OpaClient {
       component: 'OpaClient',
       method: 'createUnavailableDecision',
       correlationId: context?.correlationId,
-      tenantId: context?.tenantId,
+      tenant: context?.tenant,
       userId: context?.userId,
       circuitBreakerState: this.circuitBreakerState,
       timestamp: new Date().toISOString(),

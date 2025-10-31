@@ -103,9 +103,9 @@ export class Log {
     }
 
     // Auto-inject tenant context if available and not already provided
-    const tenantId = CorrelationUtil.getTenantId(cls);
-    if (tenantId && !baseFields.tenantId) {
-      baseFields.tenantId = tenantId;
+    const tenant = CorrelationUtil.getTenantId(cls);
+    if (tenant && !baseFields.tenant) {
+      baseFields.tenant = tenant;
     }
 
     return baseFields;

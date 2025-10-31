@@ -29,11 +29,11 @@ export abstract class BaseWriterRepository {
    * @protected
    */
   protected buildStreamName(
-    tenantId: string | undefined | null,
+    tenant: string | undefined | null,
     aggregateType: string,
     id: string,
   ): string {
-    return `${aggregateType.toLowerCase()}-${tenantId ?? 'default'}-${id}`;
+    return `${aggregateType.toLowerCase()}-${tenant ?? 'default'}-${id}`;
   }
 
   /**
@@ -90,7 +90,7 @@ export abstract class BaseWriterRepository {
         correlationId: traceId,
         causationId: meta?.causationId ?? traceId, // Use correlation as causation if not provided
         commandId: meta?.commandId ?? randomUUID(), // Generate proper UUID for command
-        tenant: actor.tenantId ?? 'default',
+        tenant: actor.tenant ?? 'default',
         source: `service://${serviceName}/${evt.aggregateType?.toLowerCase() ?? 'unknown'}`,
         occurredAt: now,
         contentType: 'application/json+domain' as const, // Keep compatible type
@@ -102,7 +102,7 @@ export abstract class BaseWriterRepository {
         actor: {
           userId: actor.userId,
           ...(actor.username && { username: actor.username }),
-          ...(actor.tenant_userId && { tenantId: actor.tenant_userId }), // Use tenantId consistently
+          ...(actor.tenant_userId && { tenant: actor.tenant_userId }), // Use tenant consistently
           ...(actor.roles &&
             actor.roles.length > 0 && {
               roleHash: `sha256:${Buffer.from(actor.roles.sort().join(','))

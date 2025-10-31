@@ -210,7 +210,7 @@ export class CommandHandlerUtil {
     return {
       correlationId: command.correlationId,
       userId: command.user.sub,
-      tenantId: command.user.tenant_id || 'unknown',
+      tenant: command.user.tenant_id || 'unknown',
       timestamp: command.timestamp,
       executionTime: Date.now() - command.timestamp.getTime(),
     };

@@ -10,7 +10,6 @@ export interface TokenMapperOptions {
   ignoreRolePrefixes?: string[]; // default ['uma_', 'default-']
   ignoreRoles?: string[]; // default ['offline_access']
   tenantClaimOrder?: string[]; // default ['tenant', 'organization', 'custom_tenant']
-  tenantIdClaimOrder?: string[]; // default ['tenant_id', 'organization_id', 'org_id']
   transformGroupPaths?: boolean; // default false - transform /tenant/admin → tenant:admin
   maxRolesCount?: number; // default 100 - cap role arrays to prevent pathological tokens
   maxGroupsCount?: number; // default 50 - cap groups arrays
@@ -26,7 +25,6 @@ const DEFAULT_OPTS: Required<TokenMapperOptions> = {
   ignoreRolePrefixes: ['uma_', 'default-'],
   ignoreRoles: ['offline_access'],
   tenantClaimOrder: ['tenant', 'organization', 'custom_tenant'],
-  tenantIdClaimOrder: ['tenant_id', 'organization_id', 'org_id'],
   transformGroupPaths: false,
   maxRolesCount: 100,
   maxGroupsCount: 50,
@@ -170,7 +168,7 @@ export class TokenToUserMapper {
   ): { tenant?: string; tenant_id?: string } {
     const tenant = this.firstString(payload, opts.tenantClaimOrder);
     const tenant_id =
-      this.firstString(payload, opts.tenantIdClaimOrder) ??
+      this.firstString(payload, opts.tenantClaimOrder) ??
       // fallback if only one present
       (tenant ? tenant : undefined);
 

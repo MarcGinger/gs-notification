@@ -3,7 +3,7 @@ import { Result, DomainError } from '../../errors';
 export interface SaveReceipt {
   stream: string;
   aggregateId: string;
-  tenantId: string;
+  tenant: string;
   eventCount: number;
   /** Domain version after append, if known (e.g., when caller supplies expectedVersion) */
   newVersion?: number;
