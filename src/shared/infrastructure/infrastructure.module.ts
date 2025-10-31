@@ -61,19 +61,6 @@ import {
             },
           },
         },
-        {
-          name: 'MessageRequestQueue',
-          defaultJobOptions: {
-            removeOnComplete: 100,
-            removeOnFail: 50,
-            attempts: 3,
-            backoff: {
-              type: 'exponential',
-              delay: 2000,
-            },
-            delay: 0, // Process immediately by default
-          },
-        },
       ], // Configure the required queues
     }), // Must export 'BullMQ_Redis_Client' and queue tokens
   ],

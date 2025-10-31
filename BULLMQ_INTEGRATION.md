@@ -10,25 +10,48 @@ The message-request module now includes BullMQ integration for asynchronous job 
 - **Delayed Jobs**: Schedule jobs to run at specific times
 - **Monitoring**: Built-in metrics and logging
 
-## Queue Configuration
+## Architecture
 
-The `MessageRequestQueue` is configured in the infrastructure module with:
+### Domain-Specific Queue Registration
+
+The `MessageRequestQueue` is registered directly in the message-request module instead of the shared infrastructure module. This provides better domain separation and follows Domain-Driven Design principles:
 
 ```typescript
-{
-  name: 'MessageRequestQueue',
-  defaultJobOptions: {
-    removeOnComplete: 100,
-    removeOnFail: 50,
-    attempts: 3,
-    backoff: {
-      type: 'exponential',
-      delay: 2000,
-    },
-    delay: 0, // Process immediately by default
-  },
-}
+// In message-request.module.ts
+@Module({
+  imports: [
+    SlackRequestSharedModule,
+    BullMQModule.register({
+      redisUrl: AppConfigUtil.getRedisConfig().url,
+      keyPrefix: `${AppConfigUtil.getEnvironment()}:message-request:`,
+      enableMetrics: true,
+      queues: [
+        {
+          name: 'MessageRequestQueue',
+          defaultJobOptions: {
+            removeOnComplete: 100,
+            removeOnFail: 50,
+            attempts: 3,
+            backoff: {
+              type: 'exponential',
+              delay: 2000,
+            },
+            delay: 0, // Process immediately by default
+          },
+        },
+      ],
+    }),
+  ],
+  // ... rest of module
+})
 ```
+
+### Benefits of Domain-Specific Registration
+
+1. **Domain Isolation**: Queue configuration stays with the domain that owns it
+2. **Independent Scaling**: Each domain can configure its queues independently
+3. **Clear Ownership**: No confusion about which module owns which queue
+4. **Custom Configuration**: Domain-specific settings (key prefix, retry policies)
 
 ## Services
 

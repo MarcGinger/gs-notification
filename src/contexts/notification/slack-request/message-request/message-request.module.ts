@@ -2,6 +2,8 @@
 // REMOVE THIS COMMENT TO STOP AUTOMATIC UPDATES TO THIS BLOCK
 
 import { Module } from '@nestjs/common';
+import { BullMQModule } from 'src/shared/infrastructure/queue/bullmq.module';
+import { AppConfigUtil } from 'src/shared/config/app-config.util';
 import { SlackRequestSharedModule } from '../slack-request-shared.module';
 import { MessageRequestController } from './interface/http/controllers';
 import {
@@ -43,6 +45,27 @@ import {
 @Module({
   imports: [
     SlackRequestSharedModule, // Provides all common infrastructure and services
+    // Domain-specific BullMQ queue registration
+    BullMQModule.register({
+      redisUrl: AppConfigUtil.getRedisConfig().url,
+      keyPrefix: `${AppConfigUtil.getEnvironment()}:message-request:`,
+      enableMetrics: true,
+      queues: [
+        {
+          name: 'MessageRequestQueue',
+          defaultJobOptions: {
+            removeOnComplete: 100,
+            removeOnFail: 50,
+            attempts: 3,
+            backoff: {
+              type: 'exponential',
+              delay: 2000,
+            },
+            delay: 0, // Process immediately by default
+          },
+        },
+      ],
+    }),
   ],
   controllers: [MessageRequestController],
   providers: [
