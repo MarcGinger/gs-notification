@@ -15,7 +15,7 @@ import { TemplateModule } from './template/template.module';
 import { TemplateProjectorModule } from './template/template-projector.module';
 import { AppConfigModule } from './app-config/app-config.module';
 import { AppConfigProjectorModule } from './app-config/app-config-projector.module';
-import { MessageRequestModule } from './message-request/message-request.module';
+import { MessageRequestRouterModule } from './message-request/interface/http/message-request.router';
 import { MessageRequestProjectorModule } from './message-request/message-request-projector.module';
 
 /**
@@ -47,7 +47,7 @@ import { MessageRequestProjectorModule } from './message-request/message-request
     TemplateProjectorModule,
     AppConfigModule,
     AppConfigProjectorModule,
-    MessageRequestModule,
+    MessageRequestRouterModule,
     MessageRequestProjectorModule,
   ],
   exports: [
@@ -60,7 +60,7 @@ import { MessageRequestProjectorModule } from './message-request/message-request
     TemplateProjectorModule,
     AppConfigModule,
     AppConfigProjectorModule,
-    MessageRequestModule,
+    MessageRequestRouterModule,
     MessageRequestProjectorModule,
   ],
 })
