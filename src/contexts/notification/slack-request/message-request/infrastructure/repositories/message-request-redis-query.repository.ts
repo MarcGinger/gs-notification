@@ -331,14 +331,13 @@ export class MessageRequestQueryRepository implements IMessageRequestQuery {
     // Filter by recipient (partial match)
     if (filter.recipient) {
       if (
-        !messageRequest.recipient
+        messageRequest.recipient
           ?.toLowerCase()
           .includes(filter.recipient.toLowerCase())
       ) {
         return false;
       }
     }
-
     // Filter by status (exact match)
     if (filter.status !== undefined) {
       if (messageRequest.status !== filter.status) {
