@@ -4,8 +4,6 @@
 import { Module } from '@nestjs/common';
 import { RouterModule, Routes } from '@nestjs/core';
 import { AppConfigModule } from '../../app-config.module';
-import { AppConfigProjectorModule } from '../../app-config-projector.module';
-
 /**
  * App config Router Configuration
  *
@@ -28,10 +26,6 @@ const appConfigRoutes: Routes = [
             path: 'api/v1',
             module: AppConfigModule,
           },
-          {
-            path: 'health',
-            module: AppConfigProjectorModule,
-          },
         ],
       },
     ],
@@ -51,11 +45,7 @@ const appConfigRoutes: Routes = [
  * - /notification/slack-request/health/projectors/app-config/metrics (GET)
  */
 @Module({
-  imports: [
-    AppConfigModule,
-    AppConfigProjectorModule,
-    RouterModule.register(appConfigRoutes),
-  ],
-  exports: [AppConfigModule, AppConfigProjectorModule],
+  imports: [AppConfigModule, RouterModule.register(appConfigRoutes)],
+  exports: [AppConfigModule],
 })
 export class AppConfigRouterModule {}

@@ -4,8 +4,6 @@
 import { Module } from '@nestjs/common';
 import { RouterModule, Routes } from '@nestjs/core';
 import { TemplateModule } from '../../template.module';
-import { TemplateProjectorModule } from '../../template-projector.module';
-
 /**
  * Template Router Configuration
  *
@@ -28,10 +26,6 @@ const templateRoutes: Routes = [
             path: 'api/v1',
             module: TemplateModule,
           },
-          {
-            path: 'health',
-            module: TemplateProjectorModule,
-          },
         ],
       },
     ],
@@ -52,11 +46,7 @@ const templateRoutes: Routes = [
  * - /notification/slack-request/health/projectors/template/metrics (GET)
  */
 @Module({
-  imports: [
-    TemplateModule,
-    TemplateProjectorModule,
-    RouterModule.register(templateRoutes),
-  ],
-  exports: [TemplateModule, TemplateProjectorModule],
+  imports: [TemplateModule, RouterModule.register(templateRoutes)],
+  exports: [TemplateModule],
 })
 export class TemplateRouterModule {}

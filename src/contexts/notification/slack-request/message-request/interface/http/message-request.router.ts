@@ -5,7 +5,6 @@ import { Module } from '@nestjs/common';
 import { RouterModule, Routes } from '@nestjs/core';
 import { MessageRequestModule } from '../../message-request.module';
 import { MessageRequestProjectorModule } from '../../message-request-projector.module';
-
 /**
  * Message request Router Configuration
  *

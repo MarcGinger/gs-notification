@@ -28,6 +28,8 @@ import {
   TemplateReaderRepository,
   ChannelReaderRepository,
 } from './infrastructure/repositories';
+import { MessageRequestQueueService } from './infrastructure/services';
+import { MessageRequestProcessor } from './infrastructure/processors';
 
 // Tokens for injection - imported directly from port files
 import {
@@ -78,6 +80,10 @@ import {
     MessageRequestAuthorizationAdapter,
     MessageRequestForeignKeyValidatorService,
 
+    // Queue and processing services
+    MessageRequestQueueService,
+    MessageRequestProcessor,
+
     // Use case implementations
     {
       provide: ICreateMessageRequestUseCase,
@@ -101,6 +107,8 @@ import {
     WORKSPACE_REFERENCE_READER_TOKEN,
     TEMPLATE_REFERENCE_READER_TOKEN,
     CHANNEL_REFERENCE_READER_TOKEN,
+    // Queue service for external access
+    MessageRequestQueueService,
   ],
 })
 export class MessageRequestModule {}

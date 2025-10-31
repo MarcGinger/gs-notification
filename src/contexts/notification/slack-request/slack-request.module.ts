@@ -9,16 +9,12 @@ import { SlackRequestSharedModule } from './slack-request-shared.module';
 // Import all slack-request domain modules
 import { WorkspaceRouterModule } from './workspace/interface/http/workspace.router';
 
-import { WorkspaceProjectorModule } from './workspace/workspace-projector.module';
 import { ChannelRouterModule } from './channel/interface/http/channel.router';
 
-import { ChannelProjectorModule } from './channel/channel-projector.module';
 import { TemplateRouterModule } from './template/interface/http/template.router';
 
-import { TemplateProjectorModule } from './template/template-projector.module';
 import { AppConfigRouterModule } from './app-config/interface/http/app-config.router';
 
-import { AppConfigProjectorModule } from './app-config/app-config-projector.module';
 import { MessageRequestRouterModule } from './message-request/interface/http/message-request.router';
 
 import { MessageRequestProjectorModule } from './message-request/message-request-projector.module';
@@ -45,26 +41,18 @@ import { MessageRequestProjectorModule } from './message-request/message-request
     // Shared infrastructure (imported once for all domains)
     SlackRequestSharedModule,
     WorkspaceRouterModule,
-    WorkspaceProjectorModule,
     ChannelRouterModule,
-    ChannelProjectorModule,
     TemplateRouterModule,
-    TemplateProjectorModule,
     AppConfigRouterModule,
-    AppConfigProjectorModule,
     MessageRequestRouterModule,
     MessageRequestProjectorModule,
   ],
   exports: [
     // Export all modules for potential cross-domain dependencies
     WorkspaceRouterModule,
-    WorkspaceProjectorModule,
     ChannelRouterModule,
-    ChannelProjectorModule,
     TemplateRouterModule,
-    TemplateProjectorModule,
     AppConfigRouterModule,
-    AppConfigProjectorModule,
     MessageRequestRouterModule,
     MessageRequestProjectorModule,
   ],

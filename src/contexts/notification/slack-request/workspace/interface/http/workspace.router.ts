@@ -4,8 +4,6 @@
 import { Module } from '@nestjs/common';
 import { RouterModule, Routes } from '@nestjs/core';
 import { WorkspaceModule } from '../../workspace.module';
-import { WorkspaceProjectorModule } from '../../workspace-projector.module';
-
 /**
  * Workspace Router Configuration
  *
@@ -28,10 +26,6 @@ const workspaceRoutes: Routes = [
             path: 'api/v1',
             module: WorkspaceModule,
           },
-          {
-            path: 'health',
-            module: WorkspaceProjectorModule,
-          },
         ],
       },
     ],
@@ -52,11 +46,7 @@ const workspaceRoutes: Routes = [
  * - /notification/slack-request/health/projectors/workspace/metrics (GET)
  */
 @Module({
-  imports: [
-    WorkspaceModule,
-    WorkspaceProjectorModule,
-    RouterModule.register(workspaceRoutes),
-  ],
-  exports: [WorkspaceModule, WorkspaceProjectorModule],
+  imports: [WorkspaceModule, RouterModule.register(workspaceRoutes)],
+  exports: [WorkspaceModule],
 })
 export class WorkspaceRouterModule {}

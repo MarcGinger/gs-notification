@@ -4,8 +4,6 @@
 import { Module } from '@nestjs/common';
 import { RouterModule, Routes } from '@nestjs/core';
 import { ChannelModule } from '../../channel.module';
-import { ChannelProjectorModule } from '../../channel-projector.module';
-
 /**
  * Channel Router Configuration
  *
@@ -28,10 +26,6 @@ const channelRoutes: Routes = [
             path: 'api/v1',
             module: ChannelModule,
           },
-          {
-            path: 'health',
-            module: ChannelProjectorModule,
-          },
         ],
       },
     ],
@@ -52,11 +46,7 @@ const channelRoutes: Routes = [
  * - /notification/slack-request/health/projectors/channel/metrics (GET)
  */
 @Module({
-  imports: [
-    ChannelModule,
-    ChannelProjectorModule,
-    RouterModule.register(channelRoutes),
-  ],
-  exports: [ChannelModule, ChannelProjectorModule],
+  imports: [ChannelModule, RouterModule.register(channelRoutes)],
+  exports: [ChannelModule],
 })
 export class ChannelRouterModule {}

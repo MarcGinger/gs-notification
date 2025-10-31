@@ -34,14 +34,45 @@ import {
     EventStoreModule, // Must export EventStoreService and EventStoreDBClient
     BullMQModule.register({
       redisUrl: AppConfigUtil.getRedisConfig().url,
+      keyPrefix: `${AppConfigUtil.getEnvironment()}:queue:`,
+      enableMetrics: true,
       queues: [
         {
           name: 'NotificationQueue',
-          defaultJobOptions: { removeOnComplete: 100, removeOnFail: 50 },
+          defaultJobOptions: {
+            removeOnComplete: 100,
+            removeOnFail: 50,
+            attempts: 3,
+            backoff: {
+              type: 'exponential',
+              delay: 2000,
+            },
+          },
         },
         {
           name: 'ProjectionQueue',
-          defaultJobOptions: { removeOnComplete: 100, removeOnFail: 50 },
+          defaultJobOptions: {
+            removeOnComplete: 100,
+            removeOnFail: 50,
+            attempts: 5,
+            backoff: {
+              type: 'exponential',
+              delay: 1000,
+            },
+          },
+        },
+        {
+          name: 'MessageRequestQueue',
+          defaultJobOptions: {
+            removeOnComplete: 100,
+            removeOnFail: 50,
+            attempts: 3,
+            backoff: {
+              type: 'exponential',
+              delay: 2000,
+            },
+            delay: 0, // Process immediately by default
+          },
         },
       ], // Configure the required queues
     }), // Must export 'BullMQ_Redis_Client' and queue tokens
