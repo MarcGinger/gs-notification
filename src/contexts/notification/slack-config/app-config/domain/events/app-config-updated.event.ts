@@ -7,7 +7,7 @@
  * Same shape as Created event for consistent replayability
  */
 export interface AppConfigUpdatedEventPayload {
-  code: string;
+  tenant: string;
   workspaceCode: string;
   maxRetryAttempts: number;
   retryBackoffSeconds: number;
@@ -34,8 +34,8 @@ export class AppConfigUpdatedEvent {
     return new AppConfigUpdatedEvent(data);
   }
 
-  get code(): string {
-    return this.payload.code;
+  get tenant(): string {
+    return this.payload.tenant;
   }
 
   get workspaceCode(): string {

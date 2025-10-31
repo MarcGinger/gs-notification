@@ -42,7 +42,7 @@ export class AppConfigFieldValidatorUtil {
       'metadata',
     );
     // Extract simple fields directly from event data
-    const code = aggregateData.code as string;
+    const tenant = aggregateData.tenant as string;
     const workspaceCode = aggregateData.workspaceCode as string;
     const maxRetryAttempts =
       typeof aggregateData.maxRetryAttempts === 'string'
@@ -75,7 +75,7 @@ export class AppConfigFieldValidatorUtil {
     // safeParseJSON utilities provide error handling for invalid JSON,
     // direct field access provides type safety and truthful representation
     return {
-      code,
+      tenant,
       workspaceCode,
       maxRetryAttempts,
       retryBackoffSeconds,

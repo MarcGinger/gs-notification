@@ -11,7 +11,7 @@ import {
   AppConfigCreatedAt,
   AppConfigUpdatedAt,
   AppConfigVersion,
-  AppConfigCode,
+  AppConfigTenant,
   AppConfigWorkspaceCode,
   AppConfigMaxRetryAttempts,
   AppConfigRetryBackoffSeconds,
@@ -34,15 +34,15 @@ export function createAppConfigAggregateFromProps(
   // },
 ): Result<AppConfigAggregate, DomainError> {
   // Validate each property by creating value objects
-  const codeResult = AppConfigCode.from(props.code);
-  if (!codeResult.ok) {
+  const tenantResult = AppConfigTenant.from(props.tenant);
+  if (!tenantResult.ok) {
     return err(
-      withContext(codeResult.error, {
-        ...codeResult.error.context,
+      withContext(tenantResult.error, {
+        ...tenantResult.error.context,
         correlationId: metadata.correlationId,
         userId: metadata.userId,
         operation: 'create_app_config',
-        code: props.code,
+        tenant: props.tenant,
       }),
     );
   }
@@ -163,7 +163,7 @@ export function createAppConfigAggregateFromProps(
 
   // Create the entity properties with validated value objects
   const entityProps: AppConfigDomainState = {
-    code: codeResult.value,
+    tenant: tenantResult.value,
     workspaceCode: workspaceCodeResult.value,
     maxRetryAttempts: maxRetryAttemptsResult.value,
     retryBackoffSeconds: retryBackoffSecondsResult.value,

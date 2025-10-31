@@ -94,14 +94,14 @@ export class AppConfigApplicationService {
   }
 
   /**
-   * Helper to validate required code input
+   * Helper to validate required tenant input
    */
-  private validateCode(
-    code: string,
+  private validateTenant(
+    tenant: string,
     operation: string,
     correlationId?: string,
   ): Result<string, DomainError> {
-    if (!code?.trim()) {
+    if (!tenant?.trim()) {
       return err(
         withContext(AppConfigErrors.INVALID_APP_CONFIG_DATA, {
           operation,
@@ -111,7 +111,7 @@ export class AppConfigApplicationService {
         }),
       );
     }
-    return ok(code.trim());
+    return ok(tenant.trim());
   }
 
   /**
@@ -120,7 +120,7 @@ export class AppConfigApplicationService {
   private async authorizeThenExecute<T>(args: {
     operation: 'create' | 'update' | 'read';
     user: IUserToken;
-    code?: string;
+    tenant?: string;
     correlationIdPrefix: string;
     doAuthorize: () => Promise<Result<boolean, DomainError>>;
     doExecute: () => Promise<Result<T, DomainError>>;
@@ -156,7 +156,7 @@ export class AppConfigApplicationService {
           correlationId: corrId,
           userId: args.user.sub,
           operation: args.operation,
-          code: args.code,
+          tenant: args.tenant,
           category: 'security',
         }),
       );
@@ -181,7 +181,7 @@ export class AppConfigApplicationService {
         category: 'application',
         context: {
           correlationId: corrId,
-          code: args.code,
+          tenant: args.tenant,
           operation: `${args.operation}_app_config`,
         },
       });
@@ -214,7 +214,7 @@ export class AppConfigApplicationService {
       doExecute: () =>
         this.upsertAppConfigUseCase.execute({
           user,
-          code: props.code,
+          tenant: props.tenant,
           props,
           correlationId,
           authorizationReason: 'create_app_config',
@@ -230,17 +230,17 @@ export class AppConfigApplicationService {
    */
   async updateAppConfig(
     user: IUserToken,
-    code: string,
+    tenant: string,
     props: UpdateAppConfigProps,
     options?: { idempotencyKey?: string; correlationId?: string },
   ): Promise<Result<DetailAppConfigResponse, DomainError>> {
     // Early input validation
-    const codeValidation = this.validateCode(code, 'update');
-    if (!codeValidation.ok) {
-      return err(codeValidation.error);
+    const tenantValidation = this.validateTenant(tenant, 'update');
+    if (!tenantValidation.ok) {
+      return err(tenantValidation.error);
     }
 
-    const validatedcode = codeValidation.value;
+    const validatedtenant = tenantValidation.value;
     const authContext = this.createAuthContext(user, 'update');
     const correlationId =
       options?.correlationId ||
@@ -254,7 +254,7 @@ export class AppConfigApplicationService {
       user.sub, 
       'update', 
       CorrelationUtil.generateForOperation('app-config-update'), 
-      validatedcode, 
+      validatedtenant, 
       fields, 
       authContext
     );
@@ -262,7 +262,7 @@ export class AppConfigApplicationService {
     if (!opAuth.value.authorized) {
       return err(withContext(AppConfigErrors.PERMISSION_DENIED, { 
         operation: 'update', 
-        code: validatedcode, 
+        tenant: validatedtenant, 
         userId: user.sub,
         category: 'security'
       }));
@@ -272,19 +272,19 @@ export class AppConfigApplicationService {
     return this.authorizeThenExecute<DetailAppConfigResponse>({
       operation: 'update',
       user,
-      code: validatedcode,
+      tenant: validatedtenant,
       correlationIdPrefix: 'app-config-update',
       doAuthorize: () =>
         this.appConfigAuthorizationService.canUpdateAppConfig(
           user.sub,
-          validatedcode,
+          validatedtenant,
           correlationId,
           authContext,
         ),
       doExecute: () =>
         this.upsertAppConfigUseCase.execute({
           user,
-          code: validatedcode,
+          tenant: validatedtenant,
           props,
           correlationId,
           authorizationReason: 'update_app_config',
@@ -292,7 +292,7 @@ export class AppConfigApplicationService {
             idempotencyKey: options.idempotencyKey,
           }),
         }),
-      logContext: { code: validatedcode },
+      logContext: { tenant: validatedtenant },
     });
   }
 
@@ -301,37 +301,37 @@ export class AppConfigApplicationService {
    */
   async getAppConfigById(
     user: IUserToken,
-    code: string,
+    tenant: string,
   ): Promise<Result<DetailAppConfigResponse, DomainError>> {
     // Early input validation
-    const codeValidation = this.validateCode(code, 'read');
-    if (!codeValidation.ok) {
-      return err(codeValidation.error);
+    const tenantValidation = this.validateTenant(tenant, 'read');
+    if (!tenantValidation.ok) {
+      return err(tenantValidation.error);
     }
 
-    const validatedcode = codeValidation.value;
+    const validatedtenant = tenantValidation.value;
     const authContext = this.createAuthContext(user, 'read');
 
     return this.authorizeThenExecute<DetailAppConfigResponse>({
       operation: 'read',
       user,
-      code: validatedcode,
+      tenant: validatedtenant,
       correlationIdPrefix: 'app-config-read',
       doAuthorize: () =>
         this.appConfigAuthorizationService.canReadAppConfig(
           user.sub,
-          validatedcode,
+          validatedtenant,
           CorrelationUtil.generateForOperation('app-config-read'),
           authContext,
         ),
       doExecute: () =>
         this.getAppConfigUseCase.execute({
           user,
-          code: validatedcode,
+          tenant: validatedtenant,
           correlationId:
             CorrelationUtil.generateForOperation('app-config-read'),
         }),
-      logContext: { code: validatedcode },
+      logContext: { tenant: validatedtenant },
     });
   }
 }

@@ -9,7 +9,10 @@
  */
 
 import {
-  AppConfigCode,
+  AppConfigCreatedAt,
+  AppConfigUpdatedAt,
+  AppConfigVersion,
+  AppConfigTenant,
   AppConfigWorkspaceCode,
   AppConfigMaxRetryAttempts,
   AppConfigRetryBackoffSeconds,
@@ -17,9 +20,6 @@ import {
   AppConfigLoggingEnabled,
   AppConfigAuditChannelId,
   AppConfigMetadata,
-  AppConfigCreatedAt,
-  AppConfigUpdatedAt,
-  AppConfigVersion,
 } from '../../domain/value-objects';
 import { Result, ok, err, DomainError } from 'src/shared/errors';
 import { AppConfigDomainState } from '../../domain/state/app-config.state';
@@ -57,7 +57,10 @@ export class AppConfigStateMapper {
     };
 
     // Convert each primitive to its corresponding VO with error collection
-    const code = validateField('code', AppConfigCode.from(snapshot.code));
+    const tenant = validateField(
+      'tenant',
+      AppConfigTenant.from(snapshot.tenant),
+    );
     const workspaceCode = validateField(
       'workspaceCode',
       AppConfigWorkspaceCode.from(snapshot.workspaceCode),
@@ -114,14 +117,14 @@ export class AppConfigStateMapper {
             errorCode: e.error.code,
             errorMessage: e.error.detail,
           })),
-          snapshotCode: snapshot.code,
+          snapshotCode: snapshot.tenant,
         },
       });
     }
 
     // All validations passed, construct the rich domain state
     const domainState: AppConfigDomainState = {
-      code: code!,
+      tenant: tenant!,
       workspaceCode: workspaceCode!,
       maxRetryAttempts: maxRetryAttempts!,
       retryBackoffSeconds: retryBackoffSeconds!,
@@ -146,7 +149,7 @@ export class AppConfigStateMapper {
   static toSnapshot(domainState: AppConfigDomainState): AppConfigSnapshotProps {
     return {
       // Extract primitive values from VOs
-      code: domainState.code.value,
+      tenant: domainState.tenant.value,
       workspaceCode: domainState.workspaceCode.value,
       maxRetryAttempts: domainState.maxRetryAttempts.value,
       retryBackoffSeconds: domainState.retryBackoffSeconds.value,

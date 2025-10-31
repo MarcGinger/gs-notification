@@ -16,7 +16,7 @@ export class GetAppConfigHandler implements IQueryHandler<GetAppConfigQuery> {
   ): Promise<Result<DetailAppConfigResponse | null, DomainError>> {
     return this.getAppConfigUseCase.execute({
       user: query.user,
-      code: query.code,
+      tenant: query.tenant,
       correlationId: query.correlationId || 'query-handler',
     });
   }

@@ -6,12 +6,12 @@ import {
   AppConfigUpdatedAt,
   AppConfigVersion,
   AppConfigAuditChannelId,
-  AppConfigCode,
   AppConfigDefaultLocale,
   AppConfigLoggingEnabled,
   AppConfigMaxRetryAttempts,
   AppConfigMetadata,
   AppConfigRetryBackoffSeconds,
+  AppConfigTenant,
   AppConfigWorkspaceCode,
 } from '../value-objects';
 
@@ -29,7 +29,7 @@ import {
  */
 
 export interface AppConfigDomainState {
-  code: AppConfigCode;
+  tenant: AppConfigTenant;
   workspaceCode: AppConfigWorkspaceCode;
   maxRetryAttempts: AppConfigMaxRetryAttempts;
   retryBackoffSeconds: AppConfigRetryBackoffSeconds;

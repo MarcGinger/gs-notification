@@ -3,17 +3,17 @@
 
 import {
   AppConfigAuditChannelId,
-  AppConfigCode,
   AppConfigDefaultLocale,
   AppConfigLoggingEnabled,
   AppConfigMaxRetryAttempts,
   AppConfigMetadata,
   AppConfigRetryBackoffSeconds,
+  AppConfigTenant,
   AppConfigWorkspaceCode,
 } from '../value-objects';
 
 export interface ValidatedAppConfigUpdateFields {
-  code?: AppConfigCode;
+  tenant?: AppConfigTenant;
   workspaceCode?: AppConfigWorkspaceCode;
   maxRetryAttempts?: AppConfigMaxRetryAttempts;
   retryBackoffSeconds?: AppConfigRetryBackoffSeconds;

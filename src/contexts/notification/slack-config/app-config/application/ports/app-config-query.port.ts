@@ -32,13 +32,13 @@ export interface IAppConfigQuery {
   /**
    * Find a single AppConfig by its unique identifier (for CQRS query operations)
    * @param actor - The actor context containing authentication and request metadata
-   * @param code - The unique identifier of the AppConfig
+   * @param tenant - The unique identifier of the AppConfig
    * @param options - Optional repository options
    * @returns A promise resolving to a Result containing the AppConfig or null if not found
    */
   findById(
     actor: ActorContext,
-    code: string,
+    tenant: string,
     options?: RepositoryOptions,
   ): Promise<Result<Option<DetailAppConfigResponse>, DomainError>>;
 }

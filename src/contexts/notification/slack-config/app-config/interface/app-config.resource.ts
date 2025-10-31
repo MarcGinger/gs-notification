@@ -35,7 +35,7 @@ export const AppConfigResource = (permission: AppConfigPermission) =>
   Resource({
     type: 'app-config',
     action: permission,
-    extractId: (req: Request) => req.params?.code || req.params?.id,
+    extractId: (req: Request) => req.params?.tenant || req.params?.id,
     extractAttributes: (req: Request) => {
       const body = req.body as Record<string, unknown> | undefined;
       const query = req.query as Record<string, unknown> | undefined;

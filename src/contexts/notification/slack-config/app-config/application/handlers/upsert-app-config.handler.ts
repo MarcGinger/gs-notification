@@ -47,7 +47,7 @@ export class UpsertAppConfigHandler
     // Transform command to use case parameters
     const result = await this.upsertAppConfigUseCase.execute({
       user: command.user,
-      code: command.code,
+      tenant: command.tenant,
       props: command.props,
       correlationId: command.correlationId,
       authorizationReason: 'CQRS Command Handler',

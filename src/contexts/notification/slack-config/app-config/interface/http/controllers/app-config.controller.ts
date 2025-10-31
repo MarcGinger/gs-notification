@@ -51,7 +51,7 @@ export class AppConfigController {
     private readonly appConfigApplicationService: AppConfigApplicationService,
   ) {}
 
-  @Get(':code')
+  @Get(':tenant')
   @AppConfigReadResource()
   @ApiOperation({
     summary: 'Get App by ID',
@@ -59,7 +59,7 @@ export class AppConfigController {
       'Retrieves a single App by its unique identifier. Requires READ permission (LOW risk).',
   })
   @ApiParam({
-    name: 'code',
+    name: 'tenant',
     type: 'string',
     description: 'AppConfig unique identifier',
     example: '1',
@@ -71,11 +71,11 @@ export class AppConfigController {
   @ApiCommonErrors()
   async get(
     @CurrentUser() user: IUserToken,
-    @Param('code') code: string,
+    @Param('tenant') tenant: string,
   ): Promise<Result<DetailAppConfigResponse, DomainError>> {
     const result = await this.appConfigApplicationService.getAppConfigById(
       user,
-      code,
+      tenant,
     );
 
     return result;
@@ -133,7 +133,7 @@ export class AppConfigController {
     return result;
   }
 
-  @Put(':code')
+  @Put(':tenant')
   @AppConfigUpdateResource()
   @ApiOperation({
     summary: 'Update a App',
@@ -141,7 +141,7 @@ export class AppConfigController {
       'Updates an existing App with new data. Supports partial updates. Requires UPDATE permission (MEDIUM risk).',
   })
   @ApiParam({
-    name: 'code',
+    name: 'tenant',
     type: 'string',
     description: 'AppConfig unique identifier',
     example: '1',
@@ -164,12 +164,12 @@ export class AppConfigController {
   })
   async update(
     @CurrentUser() user: IUserToken,
-    @Param('code') code: string,
+    @Param('tenant') tenant: string,
     @Body() updateAppConfigRequest: UpdateAppConfigRequest,
   ): Promise<Result<DetailAppConfigResponse, DomainError>> {
     const result = await this.appConfigApplicationService.updateAppConfig(
       user,
-      code,
+      tenant,
       updateAppConfigRequest,
     );
 

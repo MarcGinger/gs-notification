@@ -192,8 +192,8 @@
         "logging_enabled": {},
         "audit_channel_id": {},
         "metadata": {},
-        "code": {},
-        "workspace_code": {}
+        "workspace_code": {},
+        "tenant": {}
       },
       "permissions": {
         "bulk": [

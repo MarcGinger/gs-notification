@@ -3,13 +3,7 @@
 
 import { applyDecorators } from '@nestjs/common';
 import { ApiProperty } from '@nestjs/swagger';
-import {
-  IsOptional,
-  IsNotEmpty,
-  IsString,
-  MinLength,
-  MaxLength,
-} from 'class-validator';
+import { IsOptional, IsNotEmpty, IsString, MaxLength } from 'class-validator';
 
 /**
  * Options for property decorators
@@ -34,8 +28,7 @@ export function ApiTemplateCode(options: PropOptions = {}) {
       required,
     }),
     IsString(),
-    MinLength(10),
-    MaxLength(11),
+    MaxLength(64),
     required ? IsNotEmpty() : IsOptional(),
   );
 }

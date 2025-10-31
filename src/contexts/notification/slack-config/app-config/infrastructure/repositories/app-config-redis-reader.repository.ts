@@ -22,7 +22,7 @@ import { RepositoryErrorFactory } from 'src/shared/domain/errors/repository.erro
 import { SLACK_CONFIG_DI_TOKENS } from '../../../slack-config.constants';
 import { AppConfigProjectionKeys } from '../../app-config-projection-keys';
 import { AppConfigSnapshotProps } from '../../domain/props';
-import { AppConfigCode } from '../../domain/value-objects';
+import { AppConfigTenant } from '../../domain/value-objects';
 import { IAppConfigReader } from '../../application/ports';
 
 /**
@@ -108,7 +108,7 @@ export class AppConfigReaderRepository implements IAppConfigReader {
       // Extract basic fields directly from hash data
 
       return {
-        code: hashData.code,
+        tenant: hashData.tenant,
         workspaceCode: hashData.workspaceCode,
         maxRetryAttempts: parseInt(hashData.maxRetryAttempts, 10),
         retryBackoffSeconds: parseInt(hashData.retryBackoffSeconds, 10),
@@ -127,7 +127,7 @@ export class AppConfigReaderRepository implements IAppConfigReader {
         {
           method: 'parseRedisHashToAppConfig',
           error: (error as Error).message,
-          code: hashData?.code,
+          tenant: hashData?.tenant,
         },
       );
       return null;
@@ -163,13 +163,13 @@ export class AppConfigReaderRepository implements IAppConfigReader {
   /**
    * Find a AppConfig by its unique identifier
    * @param actor - The authenticated user context
-   * @param code - The unique identifier of the AppConfig
+   * @param tenant - The unique identifier of the AppConfig
    * @param options - Optional repository options
    * @returns Result containing the AppConfig snapshot or null if not found
    */
   async findById(
     actor: ActorContext,
-    code: AppConfigCode,
+    tenant: AppConfigTenant,
     options?: RepositoryOptions,
   ): Promise<Result<Option<AppConfigSnapshotProps>, DomainError>> {
     const operation = 'findById';
@@ -180,7 +180,7 @@ export class AppConfigReaderRepository implements IAppConfigReader {
 
     const logContext = this.createLogContext(operation, correlationId, actor, {
       riskLevel,
-      targetCode: code.value,
+      targetTenant: tenant.value,
       customCorrelationId: !!options?.correlationId,
       source: options?.source,
       requestId: options?.requestId,
@@ -214,7 +214,7 @@ export class AppConfigReaderRepository implements IAppConfigReader {
 
     try {
       // Generate cluster-safe Redis key
-      const redisKey = this.generateAppConfigKey(actor.tenant, code.value);
+      const redisKey = this.generateAppConfigKey(actor.tenant, tenant.value);
 
       Log.debug(this.logger, 'Finding app-config by ID in Redis', {
         ...logContext,
@@ -267,7 +267,7 @@ export class AppConfigReaderRepository implements IAppConfigReader {
           resultCount: 1,
           dataQuality: 'good',
           sampleData: {
-            code: appConfigSnapshot.code,
+            tenant: appConfigSnapshot.tenant,
             version: appConfigSnapshot.version,
           },
         },
@@ -292,13 +292,13 @@ export class AppConfigReaderRepository implements IAppConfigReader {
   /**
    * Check if a app-config exists by ID (for write-path validation)
    * @param actor - The authenticated user context
-   * @param code - The unique identifier of the AppConfig
+   * @param tenant - The unique identifier of the AppConfig
    * @param options - Optional repository options
    * @returns Result containing boolean indicating existence
    */
   async exists(
     actor: ActorContext,
-    code: AppConfigCode,
+    tenant: AppConfigTenant,
     options?: RepositoryOptions,
   ): Promise<Result<boolean, DomainError>> {
     const operation = 'exists';
@@ -309,7 +309,7 @@ export class AppConfigReaderRepository implements IAppConfigReader {
 
     const logContext = this.createLogContext(operation, correlationId, actor, {
       riskLevel,
-      targetCode: code.value,
+      targetTenant: tenant.value,
       customCorrelationId: !!options?.correlationId,
       source: options?.source,
       requestId: options?.requestId,
@@ -334,7 +334,7 @@ export class AppConfigReaderRepository implements IAppConfigReader {
 
     try {
       // Generate cluster-safe Redis key
-      const redisKey = this.generateAppConfigKey(actor.tenant, code.value);
+      const redisKey = this.generateAppConfigKey(actor.tenant, tenant.value);
 
       Log.debug(this.logger, 'Checking app-config existence in Redis', {
         ...logContext,
@@ -364,7 +364,7 @@ export class AppConfigReaderRepository implements IAppConfigReader {
         {
           resultCount: isActive ? 1 : 0,
           dataQuality: 'good',
-          sampleData: { exists: isActive, code: code.value },
+          sampleData: { exists: isActive, tenant: tenant.value },
         },
       );
 
@@ -387,13 +387,13 @@ export class AppConfigReaderRepository implements IAppConfigReader {
   /**
    * Get app-config version for optimistic concurrency control
    * @param actor - The authenticated user context
-   * @param code - The unique identifier of the AppConfig
+   * @param tenant - The unique identifier of the AppConfig
    * @param options - Optional repository options
    * @returns Result containing version number or null if not found
    */
   async getVersion(
     actor: ActorContext,
-    code: AppConfigCode,
+    tenant: AppConfigTenant,
     options?: RepositoryOptions,
   ): Promise<Result<Option<number>, DomainError>> {
     const operation = 'getVersion';
@@ -404,7 +404,7 @@ export class AppConfigReaderRepository implements IAppConfigReader {
 
     const logContext = this.createLogContext(operation, correlationId, actor, {
       riskLevel,
-      targetCode: code.value,
+      targetTenant: tenant.value,
       customCorrelationId: !!options?.correlationId,
       source: options?.source,
       requestId: options?.requestId,
@@ -429,7 +429,7 @@ export class AppConfigReaderRepository implements IAppConfigReader {
 
     try {
       // Generate cluster-safe Redis key
-      const redisKey = this.generateAppConfigKey(actor.tenant, code.value);
+      const redisKey = this.generateAppConfigKey(actor.tenant, tenant.value);
 
       Log.debug(this.logger, 'Getting app-config version from Redis', {
         ...logContext,
@@ -472,7 +472,7 @@ export class AppConfigReaderRepository implements IAppConfigReader {
         {
           resultCount: 1,
           dataQuality: 'good',
-          sampleData: { code: code.value, version },
+          sampleData: { tenant: tenant.value, version },
         },
       );
 
@@ -495,15 +495,15 @@ export class AppConfigReaderRepository implements IAppConfigReader {
   /**
    * Get minimal app-config data for write-path operations
    * @param actor - The authenticated user context
-   * @param code - The unique identifier of the AppConfig
+   * @param tenant - The unique identifier of the AppConfig
    * @param options - Optional repository options
    * @returns Result containing minimal app-config data or null if not found
    */
   async getMinimal(
     actor: ActorContext,
-    code: AppConfigCode,
+    tenant: AppConfigTenant,
     options?: RepositoryOptions,
-  ): Promise<Result<Option<{ code: string; version: number }>, DomainError>> {
+  ): Promise<Result<Option<{ tenant: string; version: number }>, DomainError>> {
     const operation = 'getMinimal';
     const riskLevel = this.assessOperationRisk(operation);
     const correlationId =
@@ -512,7 +512,7 @@ export class AppConfigReaderRepository implements IAppConfigReader {
 
     const logContext = this.createLogContext(operation, correlationId, actor, {
       riskLevel,
-      targetCode: code.value,
+      targetTenant: tenant.value,
       customCorrelationId: !!options?.correlationId,
       source: options?.source,
       requestId: options?.requestId,
@@ -537,7 +537,7 @@ export class AppConfigReaderRepository implements IAppConfigReader {
 
     try {
       // Generate cluster-safe Redis key
-      const redisKey = this.generateAppConfigKey(actor.tenant, code.value);
+      const redisKey = this.generateAppConfigKey(actor.tenant, tenant.value);
 
       Log.debug(this.logger, 'Getting minimal app-config data from Redis', {
         ...logContext,
@@ -545,20 +545,20 @@ export class AppConfigReaderRepository implements IAppConfigReader {
           scope: 'redis_hash',
           method: 'redis.hmget',
           key: redisKey,
-          fields: ['code', 'version', 'deletedAt'],
+          fields: ['tenant', 'version', 'deletedAt'],
           optimized: true,
         },
       });
 
       // Get minimal fields from Redis efficiently
-      const [codeStr, versionStr, deletedAt] = await this.redis.hmget(
+      const [tenantStr, versionStr, deletedAt] = await this.redis.hmget(
         redisKey,
-        'code',
+        'tenant',
         'version',
         'deletedAt',
       );
 
-      if (!codeStr || !versionStr || deletedAt) {
+      if (!tenantStr || !versionStr || deletedAt) {
         RepositoryLoggingUtil.logQueryMetrics(
           this.logger,
           operation,
@@ -572,7 +572,7 @@ export class AppConfigReaderRepository implements IAppConfigReader {
       }
 
       const minimal = {
-        code: codeStr,
+        tenant: tenantStr,
         version: parseInt(versionStr, 10),
       };
 

@@ -3,7 +3,7 @@
 import { DomainError } from 'src/shared/errors';
 
 export interface AppConfigContext extends Record<string, unknown> {
-  code: string;
+  tenant: string;
   maxRetryAttempts: number;
   retryBackoffSeconds: number;
   defaultLocale: string;
@@ -126,17 +126,10 @@ export const AppConfigErrors = {
     'APP_CONFIG.INVALID_AUDIT_CHANNEL_ID_DATA',
     AppConfigContext
   >,
-  INVALID_CODE: {
-    code: 'APP_CONFIG.INVALID_CODE',
-    title: 'Value Required',
-    detail: 'Code is required for App.',
-    category: 'validation',
-    retryable: false,
-  } as DomainError<'APP_CONFIG.INVALID_CODE', AppConfigContext>,
   INVALID_CODE_DATA: {
     code: 'APP_CONFIG.INVALID_CODE_DATA',
-    title: 'Value Required',
-    detail: 'Code is required for App.',
+    title: 'Invalid Version Data',
+    detail: 'The app_config version data is invalid.',
     category: 'validation',
     retryable: false,
   } as DomainError<'APP_CONFIG.INVALID_CODE_DATA', AppConfigContext>,
@@ -219,6 +212,20 @@ export const AppConfigErrors = {
     'APP_CONFIG.INVALID_RETRY_BACKOFF_SECONDS_DATA',
     AppConfigContext
   >,
+  INVALID_TENANT: {
+    code: 'APP_CONFIG.INVALID_TENANT',
+    title: 'Value Required',
+    detail: 'Tenant is required for App.',
+    category: 'validation',
+    retryable: false,
+  } as DomainError<'APP_CONFIG.INVALID_TENANT', AppConfigContext>,
+  INVALID_TENANT_DATA: {
+    code: 'APP_CONFIG.INVALID_TENANT_DATA',
+    title: 'Value Required',
+    detail: 'Tenant is required for App.',
+    category: 'validation',
+    retryable: false,
+  } as DomainError<'APP_CONFIG.INVALID_TENANT_DATA', AppConfigContext>,
   INVALID_WORKSPACE_CODE: {
     code: 'APP_CONFIG.INVALID_WORKSPACE_CODE',
     title: 'Value Required',

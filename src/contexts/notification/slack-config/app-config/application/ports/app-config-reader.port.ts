@@ -6,7 +6,7 @@ import { RepositoryOptions } from 'src/shared/infrastructure/repositories';
 import { ActorContext } from 'src/shared/application/context';
 import { Option } from 'src/shared/domain/types';
 import { AppConfigSnapshotProps } from '../../domain/props';
-import { AppConfigCode } from '../../domain/value-objects';
+import { AppConfigTenant } from '../../domain/value-objects';
 
 /**
  * Token for injecting IAppConfigReader port implementation
@@ -33,52 +33,52 @@ export interface IAppConfigReader {
   /**
    * Find a AppConfig by its unique identifier
    * @param actor - The authenticated user context
-   * @param code - The unique identifier of the AppConfig
+   * @param tenant - The unique identifier of the AppConfig
    * @param options - Optional repository options
    * @returns Result containing the AppConfig snapshot or null if not found
    */
   findById(
     actor: ActorContext,
-    code: AppConfigCode,
+    tenant: AppConfigTenant,
     options?: RepositoryOptions,
   ): Promise<Result<Option<AppConfigSnapshotProps>, DomainError>>;
 
   /**
    * Check if a appConfig exists by ID (for write-path validation)
    * @param actor - The authenticated user context
-   * @param code - The unique identifier of the AppConfig
+   * @param tenant - The unique identifier of the AppConfig
    * @param options - Optional repository options
    * @returns Result containing boolean indicating existence
    */
   exists(
     actor: ActorContext,
-    code: AppConfigCode,
+    tenant: AppConfigTenant,
     options?: RepositoryOptions,
   ): Promise<Result<boolean, DomainError>>;
 
   /**
    * Get appConfig version for optimistic concurrency control
    * @param actor - The authenticated user context
-   * @param code - The unique identifier of the AppConfig
+   * @param tenant - The unique identifier of the AppConfig
    * @param options - Optional repository options
    * @returns Result containing version number or null if not found
    */
   getVersion(
     actor: ActorContext,
-    code: AppConfigCode,
+    tenant: AppConfigTenant,
     options?: RepositoryOptions,
   ): Promise<Result<Option<number>, DomainError>>;
 
   /**
    * Get minimal appConfig data for write-path operations
    * @param actor - The authenticated user context
-   * @param code - The unique identifier of the AppConfig
+   * @param tenant - The unique identifier of the AppConfig
    * @param options - Optional repository options
    * @returns Result containing minimal appConfig data or null if not found
    */
   getMinimal(
     actor: ActorContext,
-    code: AppConfigCode,
+    tenant: AppConfigTenant,
     options?: RepositoryOptions,
-  ): Promise<Result<Option<{ code: string; version: number }>, DomainError>>;
+  ): Promise<Result<Option<{ tenant: string; version: number }>, DomainError>>;
 }

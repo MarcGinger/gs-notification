@@ -6,7 +6,7 @@ import { IUserToken } from 'src/shared/security';
 export class GetAppConfigQuery {
   constructor(
     public readonly user: IUserToken,
-    public readonly code: string,
+    public readonly tenant: string,
     // Metadata
     public readonly correlationId?: string,
   ) {}

@@ -9,29 +9,29 @@ import {
 import { AppConfigErrors } from '../errors/app-config.errors';
 
 /**
- * Code Value Object
- * Represents a validated code with business rules
+ * Tenant Value Object
+ * Represents a validated tenant with business rules
  */
-export const AppConfigCode = createStringVO({
-  name: 'Code',
+export const AppConfigTenant = createStringVO({
+  name: 'Tenant',
   trim: true,
   caseTransform: 'none',
   allowEmpty: false,
-  minLength: 10,
-  maxLength: 11,
+
+  maxLength: 64,
 
   // Optional: declarative refinements for advanced validation
   // refinements: [
   // ],
 
-  errors: createStringVOErrors(AppConfigErrors.INVALID_CODE, 'Code'),
+  errors: createStringVOErrors(AppConfigErrors.INVALID_TENANT, 'Tenant'),
 });
 
 /**
- * Public instance type for Code
+ * Public instance type for Tenant
  */
-export type AppConfigCode = StringVOInstance;
+export type AppConfigTenant = StringVOInstance;
 
 // Convenience creators
-export const createAppConfigCode = (s: string) => AppConfigCode.create(s);
-export const appConfigCodeFrom = (v: unknown) => AppConfigCode.from(v);
+export const createAppConfigTenant = (s: string) => AppConfigTenant.create(s);
+export const appConfigTenantFrom = (v: unknown) => AppConfigTenant.from(v);

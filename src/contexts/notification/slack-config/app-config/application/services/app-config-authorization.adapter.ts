@@ -83,7 +83,7 @@ export class AppConfigAuthorizationAdapter
       return err({
         ...AppConfigErrors.NOT_IMPLEMENTED,
         context: {
-          codes: resourceId,
+          tenants: resourceId,
           userId,
           correlationId,
           operation,
@@ -108,22 +108,22 @@ export class AppConfigAuthorizationAdapter
    * Useful for list operations where you need to filter results.
    *
    * @param userId - User identifier
-   * @param codes - Array of appConfig codes to authorize
+   * @param tenants - Array of appConfig tenants to authorize
    * @param correlationId - Request correlation ID
    * @param operation - Operation type (read, update, delete)
    * @param context - AppConfig authorization context
-   * @returns Result containing authorized and denied appConfig codes
+   * @returns Result containing authorized and denied appConfig tenants
    */
   async authorizeAppConfigList(
     userId: string,
-    codes: string[],
+    tenants: string[],
     correlationId: string,
     operation: BatchOperation = 'read',
     context?: AppConfigAuthContext,
   ): Promise<Result<{ authorized: string[]; denied: string[] }, DomainError>> {
     return this.appConfigAuthorizationService.authorizeAppConfigList(
       userId,
-      codes,
+      tenants,
       correlationId,
       operation,
       context,

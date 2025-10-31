@@ -926,16 +926,14 @@
           "defaultvalue": "",
           "example": "payment_failure_alert",
           "autoIncrement": false,
-          "maxLength": "11",
-          "minLength": "10",
+          "maxLength": "64",
           "array": false,
           "isPII": "",
           "parentRelationship": "",
           "childRelationship": "",
           "meta": {
             "kind": "string",
-            "minLength": 10,
-            "maxLength": 11
+            "maxLength": 64
           }
         },
         {
@@ -1158,16 +1156,14 @@
           "defaultvalue": "",
           "example": "payment_failure_alert",
           "autoIncrement": false,
-          "maxLength": "11",
-          "minLength": "10",
+          "maxLength": "64",
           "array": false,
           "isPII": "",
           "parentRelationship": "",
           "childRelationship": "",
           "meta": {
             "kind": "string",
-            "minLength": 10,
-            "maxLength": 11
+            "maxLength": 64
           }
         }
       ],
@@ -1184,16 +1180,14 @@
           "defaultvalue": "",
           "example": "payment_failure_alert",
           "autoIncrement": false,
-          "maxLength": "11",
-          "minLength": "10",
+          "maxLength": "64",
           "array": false,
           "isPII": "",
           "parentRelationship": "",
           "childRelationship": "",
           "meta": {
             "kind": "string",
-            "minLength": 10,
-            "maxLength": 11
+            "maxLength": 64
           }
         },
         {
@@ -1312,7 +1306,7 @@
       "description": "## ⚙️ SlackAppConfig\n\n### **Purpose**\n\nThe \\`SlackAppConfig\\` aggregate manages system-wide operational parameters for the Slack integration within a tenant’s workspace. It defines how the app behaves under various runtime conditions, such as retries, logging, and audit behavior.\n\nThis configuration ensures that message delivery is resilient and aligned with organizational policies (e.g., how many times to retry sending, whether to log every event, which audit channel to use, etc.).\n\n### **Responsibilities**\n\n* Manage retry and backoff policies for message delivery.\n* Enable or disable message-level logging for auditing.\n* Define the audit channel ID for operational or compliance logs.\n* Maintain default locale, metadata, and other operational flags.\n* Emit configuration change events for runtime synchronization.\n\n### **Why It Matters**\n\n\\`SlackAppConfig\\` provides the **operational backbone** for Slack messaging. It ensures reliability, compliance, and observability — allowing organizations to manage how Slack notifications behave at scale and during failures.\n\n",
       "columns": [
         {
-          "name": "code",
+          "name": "tenant",
           "type": "string",
           "childRelationshipType": "",
           "parentRelationshipType": "",
@@ -1323,16 +1317,14 @@
           "defaultvalue": "",
           "example": "1",
           "autoIncrement": false,
-          "maxLength": "11",
-          "minLength": "10",
+          "maxLength": "64",
           "array": false,
           "isPII": "",
           "parentRelationship": "",
           "childRelationship": "",
           "meta": {
             "kind": "string",
-            "minLength": 10,
-            "maxLength": 11
+            "maxLength": 64
           }
         },
         {
@@ -1545,7 +1537,7 @@
       "lines": [],
       "keys": [
         {
-          "name": "code",
+          "name": "tenant",
           "type": "string",
           "childRelationshipType": "",
           "parentRelationshipType": "",
@@ -1556,16 +1548,14 @@
           "defaultvalue": "",
           "example": "1",
           "autoIncrement": false,
-          "maxLength": "11",
-          "minLength": "10",
+          "maxLength": "64",
           "array": false,
           "isPII": "",
           "parentRelationship": "",
           "childRelationship": "",
           "meta": {
             "kind": "string",
-            "minLength": 10,
-            "maxLength": 11
+            "maxLength": 64
           }
         }
       ],

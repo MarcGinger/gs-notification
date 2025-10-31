@@ -3,13 +3,7 @@
 
 import { applyDecorators } from '@nestjs/common';
 import { ApiProperty } from '@nestjs/swagger';
-import {
-  IsOptional,
-  IsNotEmpty,
-  IsString,
-  MinLength,
-  MaxLength,
-} from 'class-validator';
+import { IsOptional, IsNotEmpty, IsString, MaxLength } from 'class-validator';
 
 /**
  * Options for property decorators
@@ -19,11 +13,11 @@ interface PropOptions {
 }
 
 /**
- * Property decorator for AppConfig Code
+ * Property decorator for AppConfig Tenant
  * @param {Object} options - Options for the decorator
  * @returns {PropertyDecorator}
  */
-export function ApiAppConfigCode(options: PropOptions = {}) {
+export function ApiAppConfigTenant(options: PropOptions = {}) {
   const { required = true } = options;
 
   return applyDecorators(
@@ -34,8 +28,7 @@ export function ApiAppConfigCode(options: PropOptions = {}) {
       required,
     }),
     IsString(),
-    MinLength(10),
-    MaxLength(11),
+    MaxLength(64),
     required ? IsNotEmpty() : IsOptional(),
   );
 }

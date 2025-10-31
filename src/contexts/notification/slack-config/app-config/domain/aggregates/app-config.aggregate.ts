@@ -10,7 +10,7 @@ import { AppConfigEntity } from '../entities';
 import { AppConfigSnapshotProps } from '../props';
 import { ValidatedAppConfigUpdateFields } from '../types';
 import {
-  AppConfigCode,
+  AppConfigTenant,
   createAppConfigCreatedAt,
   createAppConfigUpdatedAt,
   createdAtNow,
@@ -135,7 +135,7 @@ export class AppConfigAggregate extends AggregateRootBase {
 
     // Create typed AppConfigCreatedEvent with only business data
     const createdEvent = AppConfigCreatedEvent.create({
-      code: entityProps.code.value,
+      tenant: entityProps.tenant.value,
       workspaceCode: entityProps.workspaceCode.value,
       maxRetryAttempts: entityProps.maxRetryAttempts.value,
       retryBackoffSeconds: entityProps.retryBackoffSeconds.value,
@@ -150,7 +150,7 @@ export class AppConfigAggregate extends AggregateRootBase {
       type: createdEvent.eventType,
       version: Number(createdEvent.eventVersion),
       occurredAt: clock.now(),
-      aggregateId: entityProps.code.value,
+      aggregateId: entityProps.tenant.value,
       aggregateType: 'AppConfig',
       data: createdEvent.payload,
       metadata: eventMetadata,
@@ -189,7 +189,7 @@ export class AppConfigAggregate extends AggregateRootBase {
       case 'NotificationSlackConfigAppConfigUpdated.v1': {
         // Both events now have the same domain shape - simple merge
         const d = event.data as {
-          code: string;
+          tenant: string;
           workspaceCode: string;
           maxRetryAttempts: number;
           retryBackoffSeconds: number;
@@ -204,7 +204,7 @@ export class AppConfigAggregate extends AggregateRootBase {
         const currentSnapshot = this._entity?.toSnapshot() || {};
 
         const entityResult = AppConfigEntity.fromSnapshot({
-          code: d.code,
+          tenant: d.tenant,
           workspaceCode: d.workspaceCode,
           maxRetryAttempts: d.maxRetryAttempts,
           retryBackoffSeconds: d.retryBackoffSeconds,
@@ -251,7 +251,7 @@ export class AppConfigAggregate extends AggregateRootBase {
         retryable: false,
         context: {
           originalError: entityResult.error,
-          snapshotCode: snapshot.code,
+          snapshotCode: snapshot.tenant,
         },
       });
     }
@@ -288,8 +288,8 @@ export class AppConfigAggregate extends AggregateRootBase {
   /**
    * Get the aggregate ID (required for aggregate identity)
    */
-  public get id(): AppConfigCode {
-    return this._entity.code;
+  public get id(): AppConfigTenant {
+    return this._entity.tenant;
   }
 
   /**
@@ -413,7 +413,7 @@ export class AppConfigAggregate extends AggregateRootBase {
         context: {
           expected: expectedVersion,
           actual: this._entity.version.value,
-          aggregateId: this._entity.code.value,
+          aggregateId: this._entity.tenant.value,
         },
       });
     }
@@ -528,7 +528,7 @@ export class AppConfigAggregate extends AggregateRootBase {
 
     // Create domain-shaped update event (same structure as created event)
     const updatedEvent = AppConfigUpdatedEvent.create({
-      code: this._entity.code.value,
+      tenant: this._entity.tenant.value,
       workspaceCode: this._entity.workspaceCode.value,
       maxRetryAttempts: this._entity.maxRetryAttempts.value,
       retryBackoffSeconds: this._entity.retryBackoffSeconds.value,
@@ -543,7 +543,7 @@ export class AppConfigAggregate extends AggregateRootBase {
       type: updatedEvent.eventType,
       version: Number(updatedEvent.eventVersion),
       occurredAt: updatedAt,
-      aggregateId: this._entity.code.value,
+      aggregateId: this._entity.tenant.value,
       aggregateType: 'AppConfig',
       data: updatedEvent.payload,
       metadata: this.eventMetadata,
@@ -571,7 +571,7 @@ export class AppConfigAggregate extends AggregateRootBase {
       type: 'AppConfigDeleted',
       version: 1,
       occurredAt: deletedAtResult.value.value, // Extract Date from VO
-      aggregateId: this._entity.code.value,
+      aggregateId: this._entity.tenant.value,
       aggregateType: 'AppConfig',
     };
 

@@ -6,7 +6,7 @@
  * Contains only business facts - no envelope metadata, timestamps, or versioning
  */
 export interface AppConfigCreatedEventPayload {
-  code: string;
+  tenant: string;
   workspaceCode: string;
   maxRetryAttempts: number;
   retryBackoffSeconds: number;
@@ -34,8 +34,8 @@ export class AppConfigCreatedEvent {
     return new AppConfigCreatedEvent(data);
   }
 
-  get code(): string {
-    return this.payload.code;
+  get tenant(): string {
+    return this.payload.tenant;
   }
 
   get workspaceCode(): string {

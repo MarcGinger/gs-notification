@@ -8,7 +8,6 @@ import { AppConfigDomainState } from '../state';
 import { AppConfigErrors } from '../errors/app-config.errors';
 import {
   AppConfigAuditChannelId,
-  AppConfigCode,
   AppConfigCreatedAt,
   AppConfigUpdatedAt,
   AppConfigVersion,
@@ -17,6 +16,7 @@ import {
   AppConfigMaxRetryAttempts,
   AppConfigMetadata,
   AppConfigRetryBackoffSeconds,
+  AppConfigTenant,
   AppConfigWorkspaceCode,
 } from '../value-objects';
 
@@ -27,7 +27,7 @@ import {
  * Encapsulates appConfig data, identity, and basic entity behavior.
  *
  * This entity follows DDD principles:
- * - Identity: Code as unique identifier
+ * - Identity: Tenant as unique identifier
  * - Immutability: Changes create new instances
  * - Encapsulation: Private state with controlled access
  * - Business validation: Domain rules enforced
@@ -44,7 +44,7 @@ import {
  */
 export class AppConfigEntity extends EntityIdBase<
   AppConfigDomainState,
-  AppConfigCode
+  AppConfigTenant
 > {
   private static clock: { now: () => Date } = { now: () => new Date() };
 
@@ -113,7 +113,7 @@ export class AppConfigEntity extends EntityIdBase<
   }
 
   private constructor(props: AppConfigDomainState) {
-    super(props, props.code);
+    super(props, props.tenant);
   }
 
   /**
@@ -153,9 +153,9 @@ export class AppConfigEntity extends EntityIdBase<
   public static fromSnapshot(
     snapshot: AppConfigSnapshotProps,
   ): Result<AppConfigEntity, DomainError> {
-    const codeResult = AppConfigCode.from(snapshot.code);
-    if (!codeResult.ok) {
-      return err(codeResult.error);
+    const tenantResult = AppConfigTenant.from(snapshot.tenant);
+    if (!tenantResult.ok) {
+      return err(tenantResult.error);
     }
     const workspaceCodeResult = AppConfigWorkspaceCode.from(
       snapshot.workspaceCode,
@@ -213,7 +213,7 @@ export class AppConfigEntity extends EntityIdBase<
     }
 
     const props: AppConfigDomainState = {
-      code: codeResult.value,
+      tenant: tenantResult.value,
       workspaceCode: workspaceCodeResult.value,
       maxRetryAttempts: maxRetryAttemptsResult.value,
       retryBackoffSeconds: retryBackoffSecondsResult.value,
@@ -239,8 +239,8 @@ export class AppConfigEntity extends EntityIdBase<
     props: AppConfigDomainState,
   ): Result<void, DomainError> {
     // Basic validation
-    if (!props.code) {
-      return err(AppConfigErrors.INVALID_CODE_DATA);
+    if (!props.tenant) {
+      return err(AppConfigErrors.INVALID_TENANT_DATA);
     }
     if (!props.workspaceCode) {
       return err(AppConfigErrors.INVALID_WORKSPACE_CODE_DATA);
@@ -265,8 +265,8 @@ export class AppConfigEntity extends EntityIdBase<
   // Getters (Public API)
   // ======================
 
-  public get code(): AppConfigCode {
-    return this.props.code;
+  public get tenant(): AppConfigTenant {
+    return this.props.tenant;
   }
 
   public get workspaceCode(): AppConfigWorkspaceCode {
@@ -432,7 +432,7 @@ export class AppConfigEntity extends EntityIdBase<
    * @param other - Other appConfig to compare
    */
   public sameAs(other: AppConfigEntity): boolean {
-    return this.props.code.equals(other.props.code);
+    return this.props.tenant.equals(other.props.tenant);
   }
 
   /**
@@ -440,7 +440,7 @@ export class AppConfigEntity extends EntityIdBase<
    */
   public toSnapshot(): AppConfigSnapshotProps {
     return {
-      code: this.props.code.value,
+      tenant: this.props.tenant.value,
       workspaceCode: this.props.workspaceCode.value,
       maxRetryAttempts: this.props.maxRetryAttempts.value,
       retryBackoffSeconds: this.props.retryBackoffSeconds.value,
