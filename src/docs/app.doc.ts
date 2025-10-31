@@ -43,7 +43,7 @@ export class ApiDocumentationHub {
   ## Bounded Context
   | Documentation |
   |---------------|
-  | [**Notification**](/api/docs/notification) |
+  | [**NotificationSlack**](/api/docs/notification-slack) |
   ---
  
   *💬 **Need Help?** Start with the **[Getting Started Guide](/api/docs/getting-started)** or contact the platform engineering team for infrastructure guidance.*

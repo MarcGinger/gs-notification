@@ -1,8 +1,9 @@
 {
   "service": {
-    "name": "notification-slack-request",
-    "boundedContext": "notification",
+    "name": "notification-slack-slack-request",
+    "boundedContext": "notification-slack",
     "application": "slack-request",
+    "moduleName": "notification-slack",
     "version": "1",
     "hasRedis": true,
     "hasSql": true,

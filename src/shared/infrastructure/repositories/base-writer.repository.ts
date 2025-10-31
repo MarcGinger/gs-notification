@@ -102,7 +102,7 @@ export abstract class BaseWriterRepository {
         actor: {
           userId: actor.userId,
           ...(actor.username && { username: actor.username }),
-          ...(actor.tenantId && { tenantId: actor.tenantId }), // Use tenantId consistently
+          ...(actor.tenant_userId && { tenantId: actor.tenant_userId }), // Use tenantId consistently
           ...(actor.roles &&
             actor.roles.length > 0 && {
               roleHash: `sha256:${Buffer.from(actor.roles.sort().join(','))
