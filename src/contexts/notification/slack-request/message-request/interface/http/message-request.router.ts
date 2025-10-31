@@ -7,7 +7,7 @@ import { MessageRequestModule } from '../../message-request.module';
 import { MessageRequestProjectorModule } from '../../message-request-projector.module';
 
 /**
- * Message Request Router Configuration
+ * Message Router Configuration
  *
  * Configures nested routing for message-request endpoints to follow
  * the module monolith structure: /notification/slack-request/api/v1/message-requests
@@ -39,7 +39,7 @@ const messageRequestRoutes: Routes = [
 ];
 
 /**
- * Message Request Router Module
+ * Message Router Module
  *
  * Provides nested routing configuration for message-request endpoints.
  * This module should be imported in the main app module to enable
