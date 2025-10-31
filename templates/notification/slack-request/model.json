@@ -570,7 +570,7 @@
         "read": "redis",
         "write": "kurrentdb",
         "query": "redis",
-        "projector": "redis"
+        "projector": "none"
       },
       "options": {
         "command": false,
@@ -579,7 +579,7 @@
         "read": "redis",
         "write": "kurrentdb",
         "query": "redis",
-        "projector": "redis",
+        "projector": "none",
         "softDelete": false,
         "timestamps": true,
         "versioning": true,
@@ -1111,7 +1111,7 @@
         "read": "redis",
         "write": "kurrentdb",
         "query": "redis",
-        "projector": "redis"
+        "projector": "none"
       },
       "options": {
         "command": false,
@@ -1120,7 +1120,7 @@
         "read": "redis",
         "write": "kurrentdb",
         "query": "redis",
-        "projector": "redis",
+        "projector": "none",
         "softDelete": false,
         "timestamps": true,
         "versioning": true,
@@ -1618,7 +1618,7 @@
         "read": "redis",
         "write": "kurrentdb",
         "query": "redis",
-        "projector": "redis"
+        "projector": "none"
       },
       "options": {
         "command": false,
@@ -1627,7 +1627,7 @@
         "read": "redis",
         "write": "kurrentdb",
         "query": "redis",
-        "projector": "redis",
+        "projector": "none",
         "softDelete": false,
         "timestamps": true,
         "versioning": true,
@@ -1961,7 +1961,7 @@
         "read": "redis",
         "write": "kurrentdb",
         "query": "redis",
-        "projector": "redis"
+        "projector": "none"
       },
       "options": {
         "command": false,
@@ -1970,7 +1970,7 @@
         "read": "redis",
         "write": "kurrentdb",
         "query": "redis",
-        "projector": "redis",
+        "projector": "none",
         "softDelete": false,
         "timestamps": true,
         "versioning": true,
