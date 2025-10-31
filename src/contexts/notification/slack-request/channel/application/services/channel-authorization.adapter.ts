@@ -29,18 +29,6 @@ export class ChannelAuthorizationAdapter
     private readonly channelAuthorizationService: ChannelAuthorizationService,
   ) {}
 
-  async canCreateResource(
-    userId: string,
-    correlationId: string,
-    context: ChannelAuthContext,
-  ): Promise<Result<boolean, DomainError>> {
-    return this.channelAuthorizationService.canCreateChannel(
-      userId,
-      correlationId,
-      context,
-    );
-  }
-
   async canReadResource(
     userId: string,
     resourceId: string,
@@ -73,12 +61,7 @@ export class ChannelAuthorizationAdapter
     >
   > {
     // Type-safe operation validation
-    const allowedOperations = new Set<string>([
-      'read',
-      'create',
-      'update',
-      'delete',
-    ]);
+    const allowedOperations = new Set<string>(['read']);
     if (!allowedOperations.has(operation)) {
       return err({
         ...ChannelErrors.NOT_IMPLEMENTED,

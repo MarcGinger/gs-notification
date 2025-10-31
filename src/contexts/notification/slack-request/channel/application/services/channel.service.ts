@@ -22,10 +22,6 @@ import { SlackRequestServiceConstants } from '../../../service-constants';
 
 // Domain types and errors
 import { ChannelErrors } from '../../domain/errors/channel.errors';
-import type {
-  CreateChannelProps,
-  UpdateChannelProps,
-} from '../../domain/props';
 import {
   DetailChannelResponse,
   ListChannelFilterRequest,
@@ -38,7 +34,6 @@ import { ChannelAuthContext } from '../types/channel-auth-context';
 
 // Use case contracts
 import {
-  IUpsertChannelUseCase,
   IGetChannelUseCase,
   IListChannelUseCase,
 } from '../use-cases/contracts';
@@ -52,7 +47,6 @@ export class ChannelApplicationService {
 
   constructor(
     private readonly channelAuthorizationService: ChannelAuthorizationService,
-    private readonly upsertChannelUseCase: IUpsertChannelUseCase,
     private readonly getChannelUseCase: IGetChannelUseCase,
     private readonly listChannelUseCase: IListChannelUseCase,
     @Inject(CLOCK) private readonly clock: Clock,
@@ -124,7 +118,7 @@ export class ChannelApplicationService {
    * Centralized auth → log → execute → catch pattern
    */
   private async authorizeThenExecute<T>(args: {
-    operation: 'create' | 'update' | 'read';
+    operation: 'read';
     user: IUserToken;
     code?: string;
     correlationIdPrefix: string;
@@ -192,114 +186,6 @@ export class ChannelApplicationService {
         },
       });
     }
-  }
-
-  /**
-   * Create a new channel with authorization
-   */
-  async createChannel(
-    user: IUserToken,
-    props: CreateChannelProps,
-    options?: { idempotencyKey?: string; correlationId?: string },
-  ): Promise<Result<DetailChannelResponse, DomainError>> {
-    const authContext = this.createAuthContext(user, 'create');
-    const correlationId =
-      options?.correlationId ||
-      CorrelationUtil.generateForOperation('channel-create');
-
-    return this.authorizeThenExecute<DetailChannelResponse>({
-      operation: 'create',
-      user,
-      correlationIdPrefix: 'channel-create',
-      doAuthorize: () =>
-        this.channelAuthorizationService.canCreateChannel(
-          user.sub,
-          correlationId,
-          authContext,
-        ),
-      doExecute: () =>
-        this.upsertChannelUseCase.execute({
-          user,
-          code: props.code,
-          props,
-          correlationId,
-          authorizationReason: 'create_channel',
-          ...(options?.idempotencyKey && {
-            idempotencyKey: options.idempotencyKey,
-          }),
-        }),
-    });
-  }
-
-  /**
-   * Update an existing channel with authorization
-   */
-  async updateChannel(
-    user: IUserToken,
-    code: string,
-    props: UpdateChannelProps,
-    options?: { idempotencyKey?: string; correlationId?: string },
-  ): Promise<Result<DetailChannelResponse, DomainError>> {
-    // Early input validation
-    const codeValidation = this.validateCode(code, 'update');
-    if (!codeValidation.ok) {
-      return err(codeValidation.error);
-    }
-
-    const validatedcode = codeValidation.value;
-    const authContext = this.createAuthContext(user, 'update');
-    const correlationId =
-      options?.correlationId ||
-      CorrelationUtil.generateForOperation('channel-update');
-
-    // Optional: Field-level authorization
-    // Uncomment when ChannelAuthorizationService supports authorizeChannelOperation
-    /*
-    const fields = extractDefinedFields(props); // Use shared utility
-    const opAuth = await this.channelAuthorizationService.authorizeChannelOperation(
-      user.sub, 
-      'update', 
-      CorrelationUtil.generateForOperation('channel-update'), 
-      validatedcode, 
-      fields, 
-      authContext
-    );
-    if (!opAuth.ok) return err(opAuth.error);
-    if (!opAuth.value.authorized) {
-      return err(withContext(ChannelErrors.PERMISSION_DENIED, { 
-        operation: 'update', 
-        code: validatedcode, 
-        userId: user.sub,
-        category: 'security'
-      }));
-    }
-    */
-
-    return this.authorizeThenExecute<DetailChannelResponse>({
-      operation: 'update',
-      user,
-      code: validatedcode,
-      correlationIdPrefix: 'channel-update',
-      doAuthorize: () =>
-        this.channelAuthorizationService.canUpdateChannel(
-          user.sub,
-          validatedcode,
-          correlationId,
-          authContext,
-        ),
-      doExecute: () =>
-        this.upsertChannelUseCase.execute({
-          user,
-          code: validatedcode,
-          props,
-          correlationId,
-          authorizationReason: 'update_channel',
-          ...(options?.idempotencyKey && {
-            idempotencyKey: options.idempotencyKey,
-          }),
-        }),
-      logContext: { code: validatedcode },
-    });
   }
 
   /**

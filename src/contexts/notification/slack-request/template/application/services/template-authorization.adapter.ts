@@ -29,18 +29,6 @@ export class TemplateAuthorizationAdapter
     private readonly templateAuthorizationService: TemplateAuthorizationService,
   ) {}
 
-  async canCreateResource(
-    userId: string,
-    correlationId: string,
-    context: TemplateAuthContext,
-  ): Promise<Result<boolean, DomainError>> {
-    return this.templateAuthorizationService.canCreateTemplate(
-      userId,
-      correlationId,
-      context,
-    );
-  }
-
   async canReadResource(
     userId: string,
     resourceId: string,
@@ -73,12 +61,7 @@ export class TemplateAuthorizationAdapter
     >
   > {
     // Type-safe operation validation
-    const allowedOperations = new Set<string>([
-      'read',
-      'create',
-      'update',
-      'delete',
-    ]);
+    const allowedOperations = new Set<string>(['read']);
     if (!allowedOperations.has(operation)) {
       return err({
         ...TemplateErrors.NOT_IMPLEMENTED,

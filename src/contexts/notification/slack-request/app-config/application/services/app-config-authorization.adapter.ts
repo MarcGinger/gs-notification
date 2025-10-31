@@ -29,18 +29,6 @@ export class AppConfigAuthorizationAdapter
     private readonly appConfigAuthorizationService: AppConfigAuthorizationService,
   ) {}
 
-  async canCreateResource(
-    userId: string,
-    correlationId: string,
-    context: AppConfigAuthContext,
-  ): Promise<Result<boolean, DomainError>> {
-    return this.appConfigAuthorizationService.canCreateAppConfig(
-      userId,
-      correlationId,
-      context,
-    );
-  }
-
   async canReadResource(
     userId: string,
     resourceId: string,
@@ -73,12 +61,7 @@ export class AppConfigAuthorizationAdapter
     >
   > {
     // Type-safe operation validation
-    const allowedOperations = new Set<string>([
-      'read',
-      'create',
-      'update',
-      'delete',
-    ]);
+    const allowedOperations = new Set<string>(['read']);
     if (!allowedOperations.has(operation)) {
       return err({
         ...AppConfigErrors.NOT_IMPLEMENTED,

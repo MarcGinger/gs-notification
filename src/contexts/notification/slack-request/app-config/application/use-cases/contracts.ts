@@ -10,18 +10,7 @@
 
 import { Result, DomainError } from 'src/shared/errors';
 import type { IUserToken } from 'src/shared/security';
-import type { UpsertAppConfigProps } from '../../domain/props';
 import type { DetailAppConfigResponse } from '../dtos';
-
-export abstract class IUpsertAppConfigUseCase {
-  abstract execute(params: {
-    user: IUserToken;
-    workspaceCode: string;
-    props: UpsertAppConfigProps;
-    correlationId: string;
-    authorizationReason: string;
-  }): Promise<Result<DetailAppConfigResponse, DomainError>>;
-}
 
 export abstract class IGetAppConfigUseCase {
   abstract execute(params: {

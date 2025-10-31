@@ -18,7 +18,6 @@ import { TemplateErrors } from '../../domain/errors/template.errors';
 import { SLACK_REQUEST_DI_TOKENS } from '../../../slack-request.constants';
 
 // Application layer
-import { TemplateFieldPermissionMatrix } from '../security/template-field-permission-matrix';
 import {
   TemplateAuthContext,
   CrudOperation,
@@ -105,236 +104,6 @@ export class TemplateAuthorizationService {
   }
 
   /**
-   * Check if user can create templates
-   */
-  async canCreateTemplate(
-    userId: string,
-    correlationId: string,
-    context?: TemplateAuthContext,
-  ): Promise<Result<boolean, DomainError>> {
-    const actor = {
-      userId,
-      tenant: context?.tenant,
-      roles: context?.roles,
-    };
-
-    const request: AuthorizationRequest<TemplatePermission> = {
-      domain: 'template',
-      permissions: [TemplatePermission.DOMAIN_TEMPLATE_CREATE],
-      actor,
-      resource: { type: 'template' },
-      context: buildAuthorizationContext(correlationId, {
-        metadata: context?.metadata,
-      }),
-    };
-
-    const result = await this.authorizationPort.check(request);
-    return result.ok ? ok(result.value.allowed) : err(result.error);
-  }
-
-  /**
-   * Check if user can update a specific template
-   */
-  async canUpdateTemplate(
-    userId: string,
-    templates: string,
-    correlationId: string,
-    context?: TemplateAuthContext,
-  ): Promise<Result<boolean, DomainError>> {
-    if (!templates) {
-      return err(
-        withContext(TemplateErrors.PERMISSION_DENIED, {
-          templates: templates || '',
-          userId,
-          correlationId,
-          operation: 'update',
-        }),
-      );
-    }
-
-    const actor = {
-      userId,
-      tenant: context?.tenant,
-      roles: context?.roles,
-    };
-
-    const request: AuthorizationRequest<TemplatePermission> = {
-      domain: 'template',
-      permissions: [TemplatePermission.DOMAIN_TEMPLATE_UPDATE],
-      actor,
-      resource: { type: 'template', id: templates },
-      context: buildAuthorizationContext(correlationId, {
-        metadata: context?.metadata,
-      }),
-    };
-
-    const result = await this.authorizationPort.check(request);
-    return result.ok ? ok(result.value.allowed) : err(result.error);
-  }
-
-  /**
-   * Check if user can delete a specific template
-   */
-  async canDeleteTemplate(
-    userId: string,
-    templates: string,
-    correlationId: string,
-    context?: TemplateAuthContext,
-  ): Promise<Result<boolean, DomainError>> {
-    if (!templates) {
-      return err(
-        withContext(TemplateErrors.PERMISSION_DENIED, {
-          templates: templates || '',
-          userId,
-          correlationId,
-          operation: 'delete',
-        }),
-      );
-    }
-
-    const actor = {
-      userId,
-      tenant: context?.tenant,
-      roles: context?.roles,
-    };
-
-    const request: AuthorizationRequest<TemplatePermission> = {
-      domain: 'template',
-      permissions: [TemplatePermission.DOMAIN_TEMPLATE_DELETE],
-      actor,
-      resource: { type: 'template', id: templates },
-      context: buildAuthorizationContext(correlationId, {
-        metadata: context?.metadata,
-      }),
-    };
-
-    const result = await this.authorizationPort.check(request);
-    return result.ok ? ok(result.value.allowed) : err(result.error);
-  }
-
-  /**
-   * Check if user can perform admin operations on templates
-   */
-  async canAdministerTemplate(
-    userId: string,
-    correlationId: string,
-    templates?: string,
-    context?: TemplateAuthContext,
-  ): Promise<Result<boolean, DomainError>> {
-    const actor = {
-      userId,
-      tenant: context?.tenant,
-      roles: context?.roles,
-    };
-
-    const request: AuthorizationRequest<TemplatePermission> = {
-      domain: 'template',
-      permissions: [TemplatePermission.DOMAIN_TEMPLATE_ADMIN],
-      actor,
-      resource: { type: 'template', id: templates },
-      context: buildAuthorizationContext(correlationId, {
-        metadata: context?.metadata,
-      }),
-    };
-
-    const result = await this.authorizationPort.check(request);
-    return result.ok ? ok(result.value.allowed) : err(result.error);
-  }
-
-  /**
-   * Check field-level permissions for template updates.
-   * Returns which fields the user can modify based on the permission matrix.
-   *
-   * Optimizations:
-   * - Uses anyOf pattern to reduce OPA calls
-   * - Parallel processing of field checks
-   * - Proper actor context with tenant/role information
-   */
-  async checkFieldPermissions(
-    userId: string,
-    templates: string,
-    requestedFields: string[],
-    correlationId: string,
-    context?: TemplateAuthContext,
-  ): Promise<
-    Result<{ allowedFields: string[]; deniedFields: string[] }, DomainError>
-  > {
-    if (!templates) {
-      return err(
-        withContext(TemplateErrors.PERMISSION_DENIED, {
-          templates: templates || '',
-          userId,
-          correlationId,
-          operation: 'checkFieldPermissions',
-        }),
-      );
-    }
-
-    try {
-      const actor = {
-        userId,
-        tenant: context?.tenant,
-        roles: context?.roles,
-      };
-
-      // Process fields in parallel for better performance
-      const results = await Promise.all(
-        requestedFields.map(async (field) => {
-          const requiredPermissions =
-            TemplateFieldPermissionMatrix.getRequiredPermissions(field);
-
-          // Use basic UPDATE permission if no special permissions required
-          const permissions = requiredPermissions.length
-            ? requiredPermissions
-            : [TemplatePermission.DOMAIN_TEMPLATE_UPDATE];
-
-          const request: AuthorizationRequest<TemplatePermission> = {
-            domain: 'template',
-            permissions,
-            anyOf: true, // User needs ANY of the required permissions
-            actor,
-            resource: { type: 'template', id: templates },
-            context: buildAuthorizationContext(correlationId, {
-              metadata: { ...context?.metadata, field },
-            }),
-          };
-
-          const result = await this.authorizationPort.check(request);
-          return { field, allowed: result.ok && result.value.allowed };
-        }),
-      );
-
-      const allowedFields = results
-        .filter((r) => r.allowed)
-        .map((r) => r.field);
-      const deniedFields = results
-        .filter((r) => !r.allowed)
-        .map((r) => r.field);
-
-      return ok({ allowedFields, deniedFields });
-    } catch (error: unknown) {
-      this.logger.error(
-        'Error checking field permissions',
-        this.createLogContext('checkFieldPermissions', correlationId, userId, {
-          templates,
-          requestedFields,
-          error: error instanceof Error ? error.message : String(error),
-        }),
-      );
-
-      return err(
-        withContext(TemplateErrors.AUTHORIZATION_FAILED, {
-          templates: templates || '',
-          userId,
-          correlationId,
-          operation: 'checkFieldPermissions',
-          reason: error instanceof Error ? error.message : String(error),
-        }),
-      );
-    }
-  }
-
-  /**
    * Comprehensive authorization check for template operations.
    * Validates both operation-level and field-level permissions.
    *
@@ -362,7 +131,7 @@ export class TemplateAuthorizationService {
   > {
     try {
       // Validate required templates for operations that need it
-      if (['read', 'update', 'delete'].includes(operation) && !templates) {
+      if (['read'].includes(operation) && !templates) {
         return err(
           withContext(TemplateErrors.PERMISSION_DENIED, {
             templates: templates || '',
@@ -379,29 +148,6 @@ export class TemplateAuthorizationService {
       switch (operation) {
         case 'read':
           operationResult = await this.canReadTemplate(
-            userId,
-            templates!,
-            correlationId,
-            context,
-          );
-          break;
-        case 'create':
-          operationResult = await this.canCreateTemplate(
-            userId,
-            correlationId,
-            context,
-          );
-          break;
-        case 'update':
-          operationResult = await this.canUpdateTemplate(
-            userId,
-            templates!,
-            correlationId,
-            context,
-          );
-          break;
-        case 'delete':
-          operationResult = await this.canDeleteTemplate(
             userId,
             templates!,
             correlationId,
@@ -425,30 +171,6 @@ export class TemplateAuthorizationService {
 
       if (!operationResult.value) {
         return ok({ authorized: false });
-      }
-
-      // For update operations with field specifications, check field-level permissions
-      if (operation === 'update' && fields && fields.length > 0 && templates) {
-        const fieldResult = await this.checkFieldPermissions(
-          userId,
-          templates,
-          fields,
-          correlationId,
-          context,
-        );
-
-        if (!fieldResult.ok) {
-          return err(fieldResult.error);
-        }
-
-        const { allowedFields, deniedFields } = fieldResult.value;
-
-        // Operation is authorized, but some fields might be denied
-        return ok({
-          authorized: allowedFields.length > 0,
-          allowedFields,
-          deniedFields,
-        });
       }
 
       // Simple operation authorization without field-level checks
@@ -511,22 +233,6 @@ export class TemplateAuthorizationService {
             switch (operation) {
               case 'read':
                 result = await this.canReadTemplate(
-                  userId,
-                  templates,
-                  correlationId,
-                  context,
-                );
-                break;
-              case 'update':
-                result = await this.canUpdateTemplate(
-                  userId,
-                  templates,
-                  correlationId,
-                  context,
-                );
-                break;
-              case 'delete':
-                result = await this.canDeleteTemplate(
                   userId,
                   templates,
                   correlationId,

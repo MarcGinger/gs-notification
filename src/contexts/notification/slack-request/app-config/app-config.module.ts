@@ -8,30 +8,17 @@ import {
   AppConfigApplicationService,
   AppConfigAuthorizationService,
   AppConfigAuthorizationAdapter,
-  AppConfigForeignKeyValidatorService,
 } from './application/services';
 import {
-  IUpsertAppConfigUseCase,
-  UpsertAppConfigUseCase,
   IGetAppConfigUseCase,
   GetAppConfigUseCase,
 } from './application/use-cases';
 
 // import { IAppConfigRepository } from './application/ports';
-import {
-  AppConfigQueryRepository,
-  AppConfigReaderRepository,
-  AppConfigWriterRepository,
-  WorkspaceReaderRepository,
-} from './infrastructure/repositories';
+import { AppConfigQueryRepository } from './infrastructure/repositories';
 
 // Tokens for injection - imported directly from port files
-import {
-  APP_CONFIG_READER_TOKEN,
-  APP_CONFIG_WRITER_TOKEN,
-  WORKSPACE_REFERENCE_READER_TOKEN,
-  APP_CONFIG_QUERY_TOKEN,
-} from './application/ports';
+import { APP_CONFIG_QUERY_TOKEN } from './application/ports';
 @Module({
   imports: [
     SlackRequestSharedModule, // Provides all common infrastructure and services
@@ -40,35 +27,14 @@ import {
   providers: [
     // Repository implementations with tokens (before services that depend on them)
     {
-      provide: APP_CONFIG_READER_TOKEN,
-      useClass: AppConfigReaderRepository,
-    },
-    {
-      provide: APP_CONFIG_WRITER_TOKEN,
-      useClass: AppConfigWriterRepository,
-    },
-    {
       provide: APP_CONFIG_QUERY_TOKEN,
       useClass: AppConfigQueryRepository,
-    },
-
-    // Bounded Context Reader Repositories
-    {
-      provide: WORKSPACE_REFERENCE_READER_TOKEN,
-      useClass: WorkspaceReaderRepository,
     },
 
     // Services that depend on repositories
     AppConfigApplicationService,
     AppConfigAuthorizationService,
     AppConfigAuthorizationAdapter,
-    AppConfigForeignKeyValidatorService,
-
-    // Use case implementations
-    {
-      provide: IUpsertAppConfigUseCase,
-      useClass: UpsertAppConfigUseCase,
-    },
     {
       provide: IGetAppConfigUseCase,
       useClass: GetAppConfigUseCase,
@@ -76,11 +42,7 @@ import {
   ],
   exports: [
     // Repository tokens for external module consumption
-    APP_CONFIG_READER_TOKEN,
-    APP_CONFIG_WRITER_TOKEN,
     APP_CONFIG_QUERY_TOKEN,
-    // Bounded Context Reader tokens
-    WORKSPACE_REFERENCE_READER_TOKEN,
   ],
 })
 export class AppConfigModule {}

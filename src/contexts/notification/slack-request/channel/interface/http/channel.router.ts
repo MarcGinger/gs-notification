@@ -46,8 +46,8 @@ const channelRoutes: Routes = [
  * the nested route structure.
  *
  * Routes configured:
- * - /notification/slack-request/api/v1/channels (GET, POST)
- * - /notification/slack-request/api/v1/channels/:code (GET, PUT)
+ * - /notification/slack-request/api/v1/channels (GET)
+ * - /notification/slack-request/api/v1/channels/:code (GET)
  * - /notification/slack-request/health/projectors/channel (GET)
  * - /notification/slack-request/health/projectors/channel/metrics (GET)
  */

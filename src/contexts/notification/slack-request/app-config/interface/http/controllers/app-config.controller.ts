@@ -4,11 +4,6 @@
 import {
   Controller,
   Get,
-  Post,
-  Body,
-  Put,
-  HttpStatus,
-  HttpCode,
   Param,
   UseInterceptors,
   UseGuards,
@@ -16,29 +11,15 @@ import {
 import {
   ApiTags,
   ApiOperation,
-  ApiResponse,
-  ApiCreatedResponse,
-  ApiBody,
-  ApiHeader,
   ApiParam,
   ApiOkResponse,
   ApiBearerAuth,
 } from '@nestjs/swagger';
-import { IdempotencyKey } from 'src/shared/interfaces/decorators';
-import { IdempotencyKeyPipe } from 'src/shared/interfaces/pipes';
 import { AppConfigApplicationService } from '../../../application/services';
 import { CurrentUser, IUserToken, JwtAuthGuard } from 'src/shared/security';
-import {
-  DetailAppConfigResponse,
-  CreateAppConfigRequest,
-  UpdateAppConfigRequest,
-} from '../../../application/dtos';
+import { DetailAppConfigResponse } from '../../../application/dtos';
 import { Result, ResultInterceptor, DomainError } from 'src/shared/errors';
-import {
-  AppConfigReadResource,
-  AppConfigCreateResource,
-  AppConfigUpdateResource,
-} from '../../app-config.resource';
+import { AppConfigReadResource } from '../../app-config.resource';
 import { ApiCommonErrors } from 'src/shared/interfaces/http';
 
 @Controller('app-configs')
@@ -76,101 +57,6 @@ export class AppConfigController {
     const result = await this.appConfigApplicationService.getAppConfigById(
       user,
       workspaceCode,
-    );
-
-    return result;
-  }
-  // ========================================
-  // Core CRUD Operations
-  // ========================================
-
-  @Post()
-  @AppConfigCreateResource()
-  @HttpCode(HttpStatus.CREATED)
-  @ApiOperation({
-    summary: 'Create a new App config',
-    description:
-      'Creates a new App config in the catalog. Requires CREATE permission (MEDIUM risk).',
-  })
-  @ApiHeader({
-    name: 'Idempotency-Key',
-    required: false,
-    description:
-      'Ensures the request is processed only once. Accepts both Idempotency-Key and x-idempotency-key headers.',
-  })
-  @ApiCreatedResponse({
-    type: DetailAppConfigResponse,
-    description: 'AppConfig successfully created',
-    headers: {
-      Location: {
-        description: 'URI of the newly created resource',
-        schema: {
-          type: 'string',
-          example: '/app-configs/123e4567-e89b-12d3-a456-426614174000',
-        },
-      },
-    },
-  })
-  @ApiCommonErrors()
-  @ApiBody({ type: CreateAppConfigRequest })
-  async create(
-    @CurrentUser() user: IUserToken,
-    @Body() createAppConfigRequest: CreateAppConfigRequest,
-    @IdempotencyKey(new IdempotencyKeyPipe())
-    idempotencyKey: string | undefined,
-  ): Promise<Result<DetailAppConfigResponse, DomainError>> {
-    // idempotencyKey is validated by the IdempotencyKeyPipe
-
-    // Call service with options including idempotency key
-    const result = await this.appConfigApplicationService.createAppConfig(
-      user,
-      createAppConfigRequest,
-      {
-        idempotencyKey,
-      },
-    );
-
-    return result;
-  }
-
-  @Put(':workspaceCode')
-  @AppConfigUpdateResource()
-  @ApiOperation({
-    summary: 'Update a App config',
-    description:
-      'Updates an existing App config with new data. Supports partial updates. Requires UPDATE permission (MEDIUM risk).',
-  })
-  @ApiParam({
-    name: 'workspaceCode',
-    type: 'string',
-    description: 'AppConfig unique identifier',
-    example: 'T01EXAMPLE123',
-  })
-  @ApiResponse({
-    status: HttpStatus.OK,
-    description: 'AppConfig updated successfully',
-    type: DetailAppConfigResponse,
-  })
-  @ApiCommonErrors({
-    include422: true,
-    extra: [
-      { status: 429, description: 'Too Many Requests' },
-      { status: 503, description: 'Upstream dependency unavailable' },
-    ],
-  })
-  @ApiBody({
-    type: UpdateAppConfigRequest,
-    description: 'AppConfig update data. Only provided fields will be updated.',
-  })
-  async update(
-    @CurrentUser() user: IUserToken,
-    @Param('workspaceCode') workspaceCode: string,
-    @Body() updateAppConfigRequest: UpdateAppConfigRequest,
-  ): Promise<Result<DetailAppConfigResponse, DomainError>> {
-    const result = await this.appConfigApplicationService.updateAppConfig(
-      user,
-      workspaceCode,
-      updateAppConfigRequest,
     );
 
     return result;

@@ -18,7 +18,6 @@ import { AppConfigErrors } from '../../domain/errors/app-config.errors';
 import { SLACK_REQUEST_DI_TOKENS } from '../../../slack-request.constants';
 
 // Application layer
-import { AppConfigFieldPermissionMatrix } from '../security/app-config-field-permission-matrix';
 import {
   AppConfigAuthContext,
   CrudOperation,
@@ -105,236 +104,6 @@ export class AppConfigAuthorizationService {
   }
 
   /**
-   * Check if user can create appConfigs
-   */
-  async canCreateAppConfig(
-    userId: string,
-    correlationId: string,
-    context?: AppConfigAuthContext,
-  ): Promise<Result<boolean, DomainError>> {
-    const actor = {
-      userId,
-      tenant: context?.tenant,
-      roles: context?.roles,
-    };
-
-    const request: AuthorizationRequest<AppConfigPermission> = {
-      domain: 'app_config',
-      permissions: [AppConfigPermission.DOMAIN_APP_CONFIG_CREATE],
-      actor,
-      resource: { type: 'app_config' },
-      context: buildAuthorizationContext(correlationId, {
-        metadata: context?.metadata,
-      }),
-    };
-
-    const result = await this.authorizationPort.check(request);
-    return result.ok ? ok(result.value.allowed) : err(result.error);
-  }
-
-  /**
-   * Check if user can update a specific appConfig
-   */
-  async canUpdateAppConfig(
-    userId: string,
-    appConfigs: string,
-    correlationId: string,
-    context?: AppConfigAuthContext,
-  ): Promise<Result<boolean, DomainError>> {
-    if (!appConfigs) {
-      return err(
-        withContext(AppConfigErrors.PERMISSION_DENIED, {
-          appConfigs: appConfigs || '',
-          userId,
-          correlationId,
-          operation: 'update',
-        }),
-      );
-    }
-
-    const actor = {
-      userId,
-      tenant: context?.tenant,
-      roles: context?.roles,
-    };
-
-    const request: AuthorizationRequest<AppConfigPermission> = {
-      domain: 'app_config',
-      permissions: [AppConfigPermission.DOMAIN_APP_CONFIG_UPDATE],
-      actor,
-      resource: { type: 'app_config', id: appConfigs },
-      context: buildAuthorizationContext(correlationId, {
-        metadata: context?.metadata,
-      }),
-    };
-
-    const result = await this.authorizationPort.check(request);
-    return result.ok ? ok(result.value.allowed) : err(result.error);
-  }
-
-  /**
-   * Check if user can delete a specific appConfig
-   */
-  async canDeleteAppConfig(
-    userId: string,
-    appConfigs: string,
-    correlationId: string,
-    context?: AppConfigAuthContext,
-  ): Promise<Result<boolean, DomainError>> {
-    if (!appConfigs) {
-      return err(
-        withContext(AppConfigErrors.PERMISSION_DENIED, {
-          appConfigs: appConfigs || '',
-          userId,
-          correlationId,
-          operation: 'delete',
-        }),
-      );
-    }
-
-    const actor = {
-      userId,
-      tenant: context?.tenant,
-      roles: context?.roles,
-    };
-
-    const request: AuthorizationRequest<AppConfigPermission> = {
-      domain: 'app_config',
-      permissions: [AppConfigPermission.DOMAIN_APP_CONFIG_DELETE],
-      actor,
-      resource: { type: 'app_config', id: appConfigs },
-      context: buildAuthorizationContext(correlationId, {
-        metadata: context?.metadata,
-      }),
-    };
-
-    const result = await this.authorizationPort.check(request);
-    return result.ok ? ok(result.value.allowed) : err(result.error);
-  }
-
-  /**
-   * Check if user can perform admin operations on appConfigs
-   */
-  async canAdministerAppConfig(
-    userId: string,
-    correlationId: string,
-    appConfigs?: string,
-    context?: AppConfigAuthContext,
-  ): Promise<Result<boolean, DomainError>> {
-    const actor = {
-      userId,
-      tenant: context?.tenant,
-      roles: context?.roles,
-    };
-
-    const request: AuthorizationRequest<AppConfigPermission> = {
-      domain: 'app_config',
-      permissions: [AppConfigPermission.DOMAIN_APP_CONFIG_ADMIN],
-      actor,
-      resource: { type: 'app_config', id: appConfigs },
-      context: buildAuthorizationContext(correlationId, {
-        metadata: context?.metadata,
-      }),
-    };
-
-    const result = await this.authorizationPort.check(request);
-    return result.ok ? ok(result.value.allowed) : err(result.error);
-  }
-
-  /**
-   * Check field-level permissions for appConfig updates.
-   * Returns which fields the user can modify based on the permission matrix.
-   *
-   * Optimizations:
-   * - Uses anyOf pattern to reduce OPA calls
-   * - Parallel processing of field checks
-   * - Proper actor context with tenant/role information
-   */
-  async checkFieldPermissions(
-    userId: string,
-    appConfigs: string,
-    requestedFields: string[],
-    correlationId: string,
-    context?: AppConfigAuthContext,
-  ): Promise<
-    Result<{ allowedFields: string[]; deniedFields: string[] }, DomainError>
-  > {
-    if (!appConfigs) {
-      return err(
-        withContext(AppConfigErrors.PERMISSION_DENIED, {
-          appConfigs: appConfigs || '',
-          userId,
-          correlationId,
-          operation: 'checkFieldPermissions',
-        }),
-      );
-    }
-
-    try {
-      const actor = {
-        userId,
-        tenant: context?.tenant,
-        roles: context?.roles,
-      };
-
-      // Process fields in parallel for better performance
-      const results = await Promise.all(
-        requestedFields.map(async (field) => {
-          const requiredPermissions =
-            AppConfigFieldPermissionMatrix.getRequiredPermissions(field);
-
-          // Use basic UPDATE permission if no special permissions required
-          const permissions = requiredPermissions.length
-            ? requiredPermissions
-            : [AppConfigPermission.DOMAIN_APP_CONFIG_UPDATE];
-
-          const request: AuthorizationRequest<AppConfigPermission> = {
-            domain: 'app_config',
-            permissions,
-            anyOf: true, // User needs ANY of the required permissions
-            actor,
-            resource: { type: 'app_config', id: appConfigs },
-            context: buildAuthorizationContext(correlationId, {
-              metadata: { ...context?.metadata, field },
-            }),
-          };
-
-          const result = await this.authorizationPort.check(request);
-          return { field, allowed: result.ok && result.value.allowed };
-        }),
-      );
-
-      const allowedFields = results
-        .filter((r) => r.allowed)
-        .map((r) => r.field);
-      const deniedFields = results
-        .filter((r) => !r.allowed)
-        .map((r) => r.field);
-
-      return ok({ allowedFields, deniedFields });
-    } catch (error: unknown) {
-      this.logger.error(
-        'Error checking field permissions',
-        this.createLogContext('checkFieldPermissions', correlationId, userId, {
-          appConfigs,
-          requestedFields,
-          error: error instanceof Error ? error.message : String(error),
-        }),
-      );
-
-      return err(
-        withContext(AppConfigErrors.AUTHORIZATION_FAILED, {
-          appConfigs: appConfigs || '',
-          userId,
-          correlationId,
-          operation: 'checkFieldPermissions',
-          reason: error instanceof Error ? error.message : String(error),
-        }),
-      );
-    }
-  }
-
-  /**
    * Comprehensive authorization check for appConfig operations.
    * Validates both operation-level and field-level permissions.
    *
@@ -362,7 +131,7 @@ export class AppConfigAuthorizationService {
   > {
     try {
       // Validate required appConfigs for operations that need it
-      if (['read', 'update', 'delete'].includes(operation) && !appConfigs) {
+      if (['read'].includes(operation) && !appConfigs) {
         return err(
           withContext(AppConfigErrors.PERMISSION_DENIED, {
             appConfigs: appConfigs || '',
@@ -379,29 +148,6 @@ export class AppConfigAuthorizationService {
       switch (operation) {
         case 'read':
           operationResult = await this.canReadAppConfig(
-            userId,
-            appConfigs!,
-            correlationId,
-            context,
-          );
-          break;
-        case 'create':
-          operationResult = await this.canCreateAppConfig(
-            userId,
-            correlationId,
-            context,
-          );
-          break;
-        case 'update':
-          operationResult = await this.canUpdateAppConfig(
-            userId,
-            appConfigs!,
-            correlationId,
-            context,
-          );
-          break;
-        case 'delete':
-          operationResult = await this.canDeleteAppConfig(
             userId,
             appConfigs!,
             correlationId,
@@ -425,30 +171,6 @@ export class AppConfigAuthorizationService {
 
       if (!operationResult.value) {
         return ok({ authorized: false });
-      }
-
-      // For update operations with field specifications, check field-level permissions
-      if (operation === 'update' && fields && fields.length > 0 && appConfigs) {
-        const fieldResult = await this.checkFieldPermissions(
-          userId,
-          appConfigs,
-          fields,
-          correlationId,
-          context,
-        );
-
-        if (!fieldResult.ok) {
-          return err(fieldResult.error);
-        }
-
-        const { allowedFields, deniedFields } = fieldResult.value;
-
-        // Operation is authorized, but some fields might be denied
-        return ok({
-          authorized: allowedFields.length > 0,
-          allowedFields,
-          deniedFields,
-        });
       }
 
       // Simple operation authorization without field-level checks
@@ -511,22 +233,6 @@ export class AppConfigAuthorizationService {
             switch (operation) {
               case 'read':
                 result = await this.canReadAppConfig(
-                  userId,
-                  appConfigs,
-                  correlationId,
-                  context,
-                );
-                break;
-              case 'update':
-                result = await this.canUpdateAppConfig(
-                  userId,
-                  appConfigs,
-                  correlationId,
-                  context,
-                );
-                break;
-              case 'delete':
-                result = await this.canDeleteAppConfig(
                   userId,
                   appConfigs,
                   correlationId,

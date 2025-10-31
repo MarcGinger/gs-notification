@@ -22,10 +22,6 @@ import { SlackRequestServiceConstants } from '../../../service-constants';
 
 // Domain types and errors
 import { AppConfigErrors } from '../../domain/errors/app-config.errors';
-import type {
-  CreateAppConfigProps,
-  UpdateAppConfigProps,
-} from '../../domain/props';
 import { DetailAppConfigResponse } from '../dtos';
 
 // Application layer
@@ -33,10 +29,7 @@ import { AppConfigAuthorizationService } from './app-config-authorization.servic
 import { AppConfigAuthContext } from '../types/app-config-auth-context';
 
 // Use case contracts
-import {
-  IUpsertAppConfigUseCase,
-  IGetAppConfigUseCase,
-} from '../use-cases/contracts';
+import { IGetAppConfigUseCase } from '../use-cases/contracts';
 
 /**
  * Application Service for AppConfig operations with integrated authorization
@@ -47,7 +40,6 @@ export class AppConfigApplicationService {
 
   constructor(
     private readonly appConfigAuthorizationService: AppConfigAuthorizationService,
-    private readonly upsertAppConfigUseCase: IUpsertAppConfigUseCase,
     private readonly getAppConfigUseCase: IGetAppConfigUseCase,
     @Inject(CLOCK) private readonly clock: Clock,
     @Inject(APP_LOGGER) moduleLogger: Logger,
@@ -118,7 +110,7 @@ export class AppConfigApplicationService {
    * Centralized auth → log → execute → catch pattern
    */
   private async authorizeThenExecute<T>(args: {
-    operation: 'create' | 'update' | 'read';
+    operation: 'read';
     user: IUserToken;
     workspaceCode?: string;
     correlationIdPrefix: string;
@@ -186,117 +178,6 @@ export class AppConfigApplicationService {
         },
       });
     }
-  }
-
-  /**
-   * Create a new appConfig with authorization
-   */
-  async createAppConfig(
-    user: IUserToken,
-    props: CreateAppConfigProps,
-    options?: { idempotencyKey?: string; correlationId?: string },
-  ): Promise<Result<DetailAppConfigResponse, DomainError>> {
-    const authContext = this.createAuthContext(user, 'create');
-    const correlationId =
-      options?.correlationId ||
-      CorrelationUtil.generateForOperation('app-config-create');
-
-    return this.authorizeThenExecute<DetailAppConfigResponse>({
-      operation: 'create',
-      user,
-      correlationIdPrefix: 'app-config-create',
-      doAuthorize: () =>
-        this.appConfigAuthorizationService.canCreateAppConfig(
-          user.sub,
-          correlationId,
-          authContext,
-        ),
-      doExecute: () =>
-        this.upsertAppConfigUseCase.execute({
-          user,
-          workspaceCode: props.workspaceCode,
-          props,
-          correlationId,
-          authorizationReason: 'create_app_config',
-          ...(options?.idempotencyKey && {
-            idempotencyKey: options.idempotencyKey,
-          }),
-        }),
-    });
-  }
-
-  /**
-   * Update an existing appConfig with authorization
-   */
-  async updateAppConfig(
-    user: IUserToken,
-    workspaceCode: string,
-    props: UpdateAppConfigProps,
-    options?: { idempotencyKey?: string; correlationId?: string },
-  ): Promise<Result<DetailAppConfigResponse, DomainError>> {
-    // Early input validation
-    const workspaceCodeValidation = this.validateWorkspaceCode(
-      workspaceCode,
-      'update',
-    );
-    if (!workspaceCodeValidation.ok) {
-      return err(workspaceCodeValidation.error);
-    }
-
-    const validatedworkspaceCode = workspaceCodeValidation.value;
-    const authContext = this.createAuthContext(user, 'update');
-    const correlationId =
-      options?.correlationId ||
-      CorrelationUtil.generateForOperation('app-config-update');
-
-    // Optional: Field-level authorization
-    // Uncomment when AppConfigAuthorizationService supports authorizeAppConfigOperation
-    /*
-    const fields = extractDefinedFields(props); // Use shared utility
-    const opAuth = await this.appConfigAuthorizationService.authorizeAppConfigOperation(
-      user.sub, 
-      'update', 
-      CorrelationUtil.generateForOperation('app-config-update'), 
-      validatedworkspaceCode, 
-      fields, 
-      authContext
-    );
-    if (!opAuth.ok) return err(opAuth.error);
-    if (!opAuth.value.authorized) {
-      return err(withContext(AppConfigErrors.PERMISSION_DENIED, { 
-        operation: 'update', 
-        workspaceCode: validatedworkspaceCode, 
-        userId: user.sub,
-        category: 'security'
-      }));
-    }
-    */
-
-    return this.authorizeThenExecute<DetailAppConfigResponse>({
-      operation: 'update',
-      user,
-      workspaceCode: validatedworkspaceCode,
-      correlationIdPrefix: 'app-config-update',
-      doAuthorize: () =>
-        this.appConfigAuthorizationService.canUpdateAppConfig(
-          user.sub,
-          validatedworkspaceCode,
-          correlationId,
-          authContext,
-        ),
-      doExecute: () =>
-        this.upsertAppConfigUseCase.execute({
-          user,
-          workspaceCode: validatedworkspaceCode,
-          props,
-          correlationId,
-          authorizationReason: 'update_app_config',
-          ...(options?.idempotencyKey && {
-            idempotencyKey: options.idempotencyKey,
-          }),
-        }),
-      logContext: { workspaceCode: validatedworkspaceCode },
-    });
   }
 
   /**

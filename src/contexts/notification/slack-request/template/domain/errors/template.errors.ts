@@ -24,51 +24,6 @@ export const TemplateErrors = {
     category: 'domain',
     retryable: false,
   } as DomainError<'TEMPLATE.AUTHORIZATION_FAILED', TemplateContext>,
-  CANNOT_DELETE_TEMPLATE_WITH_DEPENDENCIES: {
-    code: 'TEMPLATE.CANNOT_DELETE_TEMPLATE_WITH_DEPENDENCIES',
-    title: 'Cannot Delete',
-    detail: 'Cannot delete Template with existing dependencies',
-    category: 'validation',
-    retryable: false,
-  } as DomainError<
-    'TEMPLATE.CANNOT_DELETE_TEMPLATE_WITH_DEPENDENCIES',
-    TemplateContext
-  >,
-  CONCURRENCY_CONFLICT: {
-    code: 'TEMPLATE.CONCURRENCY_CONFLICT',
-    title: 'Concurrency Conflict',
-    detail: 'Concurrency conflict for Template',
-    category: 'validation',
-    retryable: false,
-  } as DomainError<'TEMPLATE.CONCURRENCY_CONFLICT', TemplateContext>,
-  CREATED_AT_REQUIRED: {
-    code: 'TEMPLATE.CREATED_AT_REQUIRED',
-    title: 'Created At Required',
-    detail: 'The template creation timestamp is required.',
-    category: 'validation',
-    retryable: false,
-  } as DomainError<'TEMPLATE.CREATED_AT_REQUIRED', TemplateContext>,
-  DUPLICATE_CONTENT_BLOCKS: {
-    code: 'TEMPLATE.DUPLICATE_CONTENT_BLOCKS',
-    title: 'Duplicate Values',
-    detail: 'Content blocks contains duplicate values for Template.',
-    category: 'validation',
-    retryable: false,
-  } as DomainError<'TEMPLATE.DUPLICATE_CONTENT_BLOCKS', TemplateContext>,
-  DUPLICATE_VARIABLES: {
-    code: 'TEMPLATE.DUPLICATE_VARIABLES',
-    title: 'Duplicate Values',
-    detail: 'Variables contains duplicate values for Template.',
-    category: 'validation',
-    retryable: false,
-  } as DomainError<'TEMPLATE.DUPLICATE_VARIABLES', TemplateContext>,
-  INVALID_CODE: {
-    code: 'TEMPLATE.INVALID_CODE',
-    title: 'Value Required',
-    detail: 'Code is required for Template.',
-    category: 'validation',
-    retryable: false,
-  } as DomainError<'TEMPLATE.INVALID_CODE', TemplateContext>,
   INVALID_CODE_DATA: {
     code: 'TEMPLATE.INVALID_CODE_DATA',
     title: 'Value Required',
@@ -76,13 +31,6 @@ export const TemplateErrors = {
     category: 'validation',
     retryable: false,
   } as DomainError<'TEMPLATE.INVALID_CODE_DATA', TemplateContext>,
-  INVALID_CONTENT_BLOCKS: {
-    code: 'TEMPLATE.INVALID_CONTENT_BLOCKS',
-    title: 'Value Required',
-    detail: 'Content blocks is required for Template.',
-    category: 'validation',
-    retryable: false,
-  } as DomainError<'TEMPLATE.INVALID_CONTENT_BLOCKS', TemplateContext>,
   INVALID_CONTENT_BLOCKS_DATA: {
     code: 'TEMPLATE.INVALID_CONTENT_BLOCKS_DATA',
     title: 'Value Required',
@@ -90,13 +38,6 @@ export const TemplateErrors = {
     category: 'validation',
     retryable: false,
   } as DomainError<'TEMPLATE.INVALID_CONTENT_BLOCKS_DATA', TemplateContext>,
-  INVALID_DESCRIPTION: {
-    code: 'TEMPLATE.INVALID_DESCRIPTION',
-    title: 'Value Required',
-    detail: 'Description is required for Template.',
-    category: 'validation',
-    retryable: false,
-  } as DomainError<'TEMPLATE.INVALID_DESCRIPTION', TemplateContext>,
   INVALID_DESCRIPTION_DATA: {
     code: 'TEMPLATE.INVALID_DESCRIPTION_DATA',
     title: 'Value Required',
@@ -104,13 +45,6 @@ export const TemplateErrors = {
     category: 'validation',
     retryable: false,
   } as DomainError<'TEMPLATE.INVALID_DESCRIPTION_DATA', TemplateContext>,
-  INVALID_ENABLED: {
-    code: 'TEMPLATE.INVALID_ENABLED',
-    title: 'Value Required',
-    detail: 'Enabled is required for Template.',
-    category: 'validation',
-    retryable: false,
-  } as DomainError<'TEMPLATE.INVALID_ENABLED', TemplateContext>,
   INVALID_ENABLED_DATA: {
     code: 'TEMPLATE.INVALID_ENABLED_DATA',
     title: 'Value Required',
@@ -118,13 +52,6 @@ export const TemplateErrors = {
     category: 'validation',
     retryable: false,
   } as DomainError<'TEMPLATE.INVALID_ENABLED_DATA', TemplateContext>,
-  INVALID_NAME: {
-    code: 'TEMPLATE.INVALID_NAME',
-    title: 'Value Required',
-    detail: 'Name is required for Template.',
-    category: 'validation',
-    retryable: false,
-  } as DomainError<'TEMPLATE.INVALID_NAME', TemplateContext>,
   INVALID_NAME_DATA: {
     code: 'TEMPLATE.INVALID_NAME_DATA',
     title: 'Value Required',
@@ -132,13 +59,6 @@ export const TemplateErrors = {
     category: 'validation',
     retryable: false,
   } as DomainError<'TEMPLATE.INVALID_NAME_DATA', TemplateContext>,
-  INVALID_SAMPLE_PAYLOAD: {
-    code: 'TEMPLATE.INVALID_SAMPLE_PAYLOAD',
-    title: 'Value Required',
-    detail: 'Sample payload is required for Template.',
-    category: 'validation',
-    retryable: false,
-  } as DomainError<'TEMPLATE.INVALID_SAMPLE_PAYLOAD', TemplateContext>,
   INVALID_SAMPLE_PAYLOAD_DATA: {
     code: 'TEMPLATE.INVALID_SAMPLE_PAYLOAD_DATA',
     title: 'Value Required',
@@ -148,18 +68,11 @@ export const TemplateErrors = {
   } as DomainError<'TEMPLATE.INVALID_SAMPLE_PAYLOAD_DATA', TemplateContext>,
   INVALID_TEMPLATE_DATA: {
     code: 'TEMPLATE.INVALID_TEMPLATE_DATA',
-    title: 'Invalid Data',
-    detail: 'Invalid Template data provided',
+    title: 'Template Invalid Data',
+    detail: 'The provided data for Template is invalid.',
     category: 'validation',
     retryable: false,
   } as DomainError<'TEMPLATE.INVALID_TEMPLATE_DATA', TemplateContext>,
-  INVALID_VARIABLES: {
-    code: 'TEMPLATE.INVALID_VARIABLES',
-    title: 'Value Required',
-    detail: 'Variables is required for Template.',
-    category: 'validation',
-    retryable: false,
-  } as DomainError<'TEMPLATE.INVALID_VARIABLES', TemplateContext>,
   INVALID_VARIABLES_DATA: {
     code: 'TEMPLATE.INVALID_VARIABLES_DATA',
     title: 'Value Required',
@@ -167,13 +80,6 @@ export const TemplateErrors = {
     category: 'validation',
     retryable: false,
   } as DomainError<'TEMPLATE.INVALID_VARIABLES_DATA', TemplateContext>,
-  INVALID_WORKSPACE_CODE: {
-    code: 'TEMPLATE.INVALID_WORKSPACE_CODE',
-    title: 'Value Required',
-    detail: 'Workspace code is required for Template.',
-    category: 'validation',
-    retryable: false,
-  } as DomainError<'TEMPLATE.INVALID_WORKSPACE_CODE', TemplateContext>,
   INVALID_WORKSPACE_CODE_DATA: {
     code: 'TEMPLATE.INVALID_WORKSPACE_CODE_DATA',
     title: 'Value Required',
@@ -181,13 +87,6 @@ export const TemplateErrors = {
     category: 'validation',
     retryable: false,
   } as DomainError<'TEMPLATE.INVALID_WORKSPACE_CODE_DATA', TemplateContext>,
-  NOT_BOOLEAN_ENABLED: {
-    code: 'TEMPLATE.NOT_BOOLEAN_ENABLED',
-    title: 'Not a Boolean',
-    detail: 'Enabled must be true or false.',
-    category: 'validation',
-    retryable: false,
-  } as DomainError<'TEMPLATE.NOT_BOOLEAN_ENABLED', TemplateContext>,
   NOT_IMPLEMENTED: {
     code: 'TEMPLATE.NOT_IMPLEMENTED',
     title: 'Not Implemented',
@@ -218,85 +117,16 @@ export const TemplateErrors = {
   } as DomainError<'TEMPLATE.PERMISSION_NOT_FOUND', TemplateContext>,
   TEMPLATE_ALREADY_EXISTS: {
     code: 'TEMPLATE.TEMPLATE_ALREADY_EXISTS',
-    title: 'Already Exists',
-    detail: 'Template already exists',
+    title: 'Template Already Exists',
+    detail: 'A Template with these details already exists.',
     category: 'validation',
     retryable: false,
   } as DomainError<'TEMPLATE.TEMPLATE_ALREADY_EXISTS', TemplateContext>,
-  TEMPLATE_FACTORY_CREATION_FAILED: {
-    code: 'TEMPLATE.TEMPLATE_FACTORY_CREATION_FAILED',
-    title: 'Factory Creation Failed',
-    detail: 'Failed to create Template using factory.',
-    category: 'validation',
-    retryable: false,
-  } as DomainError<
-    'TEMPLATE.TEMPLATE_FACTORY_CREATION_FAILED',
-    TemplateContext
-  >,
-  TEMPLATE_INVARIANT_VIOLATION: {
-    code: 'TEMPLATE.TEMPLATE_INVARIANT_VIOLATION',
-    title: 'Invariant Violation',
-    detail: 'Business invariant violation for Template',
-    category: 'validation',
-    retryable: false,
-  } as DomainError<'TEMPLATE.TEMPLATE_INVARIANT_VIOLATION', TemplateContext>,
   TEMPLATE_NOT_FOUND: {
     code: 'TEMPLATE.TEMPLATE_NOT_FOUND',
-    title: 'Not Found',
-    detail: 'Template not found',
+    title: 'Template Not Found',
+    detail: 'The requested Template could not be found.',
     category: 'validation',
     retryable: false,
   } as DomainError<'TEMPLATE.TEMPLATE_NOT_FOUND', TemplateContext>,
-  TEMPLATE_UPDATE_FACTORY_FAILED: {
-    code: 'TEMPLATE.TEMPLATE_UPDATE_FACTORY_FAILED',
-    title: 'Update Factory Failed',
-    detail: 'Failed to update Template using factory.',
-    category: 'validation',
-    retryable: false,
-  } as DomainError<'TEMPLATE.TEMPLATE_UPDATE_FACTORY_FAILED', TemplateContext>,
-  TEMPLATE_UPDATE_RECONSTITUTE_FAILED: {
-    code: 'TEMPLATE.TEMPLATE_UPDATE_RECONSTITUTE_FAILED',
-    title: 'Update Reconstitute Failed',
-    detail: 'Failed to reconstitute Template from snapshot for update.',
-    category: 'validation',
-    retryable: false,
-  } as DomainError<
-    'TEMPLATE.TEMPLATE_UPDATE_RECONSTITUTE_FAILED',
-    TemplateContext
-  >,
-  TOO_FEW_CONTENT_BLOCKS: {
-    code: 'TEMPLATE.TOO_FEW_CONTENT_BLOCKS',
-    title: 'Too Few Items',
-    detail: 'Content blocks has fewer items than required for Template.',
-    category: 'validation',
-    retryable: false,
-  } as DomainError<'TEMPLATE.TOO_FEW_CONTENT_BLOCKS', TemplateContext>,
-  TOO_FEW_VARIABLES: {
-    code: 'TEMPLATE.TOO_FEW_VARIABLES',
-    title: 'Too Few Items',
-    detail: 'Variables has fewer items than required for Template.',
-    category: 'validation',
-    retryable: false,
-  } as DomainError<'TEMPLATE.TOO_FEW_VARIABLES', TemplateContext>,
-  TOO_MANY_CONTENT_BLOCKS: {
-    code: 'TEMPLATE.TOO_MANY_CONTENT_BLOCKS',
-    title: 'Too Many Items',
-    detail: 'Content blocks exceeds maximum allowed count for Template.',
-    category: 'validation',
-    retryable: false,
-  } as DomainError<'TEMPLATE.TOO_MANY_CONTENT_BLOCKS', TemplateContext>,
-  TOO_MANY_VARIABLES: {
-    code: 'TEMPLATE.TOO_MANY_VARIABLES',
-    title: 'Too Many Items',
-    detail: 'Variables exceeds maximum allowed count for Template.',
-    category: 'validation',
-    retryable: false,
-  } as DomainError<'TEMPLATE.TOO_MANY_VARIABLES', TemplateContext>,
-  UPDATED_AT_REQUIRED: {
-    code: 'TEMPLATE.UPDATED_AT_REQUIRED',
-    title: 'Updated At Required',
-    detail: 'The template update timestamp is required.',
-    category: 'validation',
-    retryable: false,
-  } as DomainError<'TEMPLATE.UPDATED_AT_REQUIRED', TemplateContext>,
 } as const;

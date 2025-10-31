@@ -72,7 +72,7 @@ export function createMessageRequestAggregateFromProps(
     );
   }
 
-  const statusResult = createMessageRequestStatus('requested'); // Default initial status
+  const statusResult = createMessageRequestStatus('requested');
   if (!statusResult.ok) {
     return err(
       withContext(statusResult.error, {

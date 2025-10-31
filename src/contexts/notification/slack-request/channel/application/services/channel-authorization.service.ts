@@ -18,7 +18,6 @@ import { ChannelErrors } from '../../domain/errors/channel.errors';
 import { SLACK_REQUEST_DI_TOKENS } from '../../../slack-request.constants';
 
 // Application layer
-import { ChannelFieldPermissionMatrix } from '../security/channel-field-permission-matrix';
 import {
   ChannelAuthContext,
   CrudOperation,
@@ -105,236 +104,6 @@ export class ChannelAuthorizationService {
   }
 
   /**
-   * Check if user can create channels
-   */
-  async canCreateChannel(
-    userId: string,
-    correlationId: string,
-    context?: ChannelAuthContext,
-  ): Promise<Result<boolean, DomainError>> {
-    const actor = {
-      userId,
-      tenant: context?.tenant,
-      roles: context?.roles,
-    };
-
-    const request: AuthorizationRequest<ChannelPermission> = {
-      domain: 'channel',
-      permissions: [ChannelPermission.DOMAIN_CHANNEL_CREATE],
-      actor,
-      resource: { type: 'channel' },
-      context: buildAuthorizationContext(correlationId, {
-        metadata: context?.metadata,
-      }),
-    };
-
-    const result = await this.authorizationPort.check(request);
-    return result.ok ? ok(result.value.allowed) : err(result.error);
-  }
-
-  /**
-   * Check if user can update a specific channel
-   */
-  async canUpdateChannel(
-    userId: string,
-    channels: string,
-    correlationId: string,
-    context?: ChannelAuthContext,
-  ): Promise<Result<boolean, DomainError>> {
-    if (!channels) {
-      return err(
-        withContext(ChannelErrors.PERMISSION_DENIED, {
-          channels: channels || '',
-          userId,
-          correlationId,
-          operation: 'update',
-        }),
-      );
-    }
-
-    const actor = {
-      userId,
-      tenant: context?.tenant,
-      roles: context?.roles,
-    };
-
-    const request: AuthorizationRequest<ChannelPermission> = {
-      domain: 'channel',
-      permissions: [ChannelPermission.DOMAIN_CHANNEL_UPDATE],
-      actor,
-      resource: { type: 'channel', id: channels },
-      context: buildAuthorizationContext(correlationId, {
-        metadata: context?.metadata,
-      }),
-    };
-
-    const result = await this.authorizationPort.check(request);
-    return result.ok ? ok(result.value.allowed) : err(result.error);
-  }
-
-  /**
-   * Check if user can delete a specific channel
-   */
-  async canDeleteChannel(
-    userId: string,
-    channels: string,
-    correlationId: string,
-    context?: ChannelAuthContext,
-  ): Promise<Result<boolean, DomainError>> {
-    if (!channels) {
-      return err(
-        withContext(ChannelErrors.PERMISSION_DENIED, {
-          channels: channels || '',
-          userId,
-          correlationId,
-          operation: 'delete',
-        }),
-      );
-    }
-
-    const actor = {
-      userId,
-      tenant: context?.tenant,
-      roles: context?.roles,
-    };
-
-    const request: AuthorizationRequest<ChannelPermission> = {
-      domain: 'channel',
-      permissions: [ChannelPermission.DOMAIN_CHANNEL_DELETE],
-      actor,
-      resource: { type: 'channel', id: channels },
-      context: buildAuthorizationContext(correlationId, {
-        metadata: context?.metadata,
-      }),
-    };
-
-    const result = await this.authorizationPort.check(request);
-    return result.ok ? ok(result.value.allowed) : err(result.error);
-  }
-
-  /**
-   * Check if user can perform admin operations on channels
-   */
-  async canAdministerChannel(
-    userId: string,
-    correlationId: string,
-    channels?: string,
-    context?: ChannelAuthContext,
-  ): Promise<Result<boolean, DomainError>> {
-    const actor = {
-      userId,
-      tenant: context?.tenant,
-      roles: context?.roles,
-    };
-
-    const request: AuthorizationRequest<ChannelPermission> = {
-      domain: 'channel',
-      permissions: [ChannelPermission.DOMAIN_CHANNEL_ADMIN],
-      actor,
-      resource: { type: 'channel', id: channels },
-      context: buildAuthorizationContext(correlationId, {
-        metadata: context?.metadata,
-      }),
-    };
-
-    const result = await this.authorizationPort.check(request);
-    return result.ok ? ok(result.value.allowed) : err(result.error);
-  }
-
-  /**
-   * Check field-level permissions for channel updates.
-   * Returns which fields the user can modify based on the permission matrix.
-   *
-   * Optimizations:
-   * - Uses anyOf pattern to reduce OPA calls
-   * - Parallel processing of field checks
-   * - Proper actor context with tenant/role information
-   */
-  async checkFieldPermissions(
-    userId: string,
-    channels: string,
-    requestedFields: string[],
-    correlationId: string,
-    context?: ChannelAuthContext,
-  ): Promise<
-    Result<{ allowedFields: string[]; deniedFields: string[] }, DomainError>
-  > {
-    if (!channels) {
-      return err(
-        withContext(ChannelErrors.PERMISSION_DENIED, {
-          channels: channels || '',
-          userId,
-          correlationId,
-          operation: 'checkFieldPermissions',
-        }),
-      );
-    }
-
-    try {
-      const actor = {
-        userId,
-        tenant: context?.tenant,
-        roles: context?.roles,
-      };
-
-      // Process fields in parallel for better performance
-      const results = await Promise.all(
-        requestedFields.map(async (field) => {
-          const requiredPermissions =
-            ChannelFieldPermissionMatrix.getRequiredPermissions(field);
-
-          // Use basic UPDATE permission if no special permissions required
-          const permissions = requiredPermissions.length
-            ? requiredPermissions
-            : [ChannelPermission.DOMAIN_CHANNEL_UPDATE];
-
-          const request: AuthorizationRequest<ChannelPermission> = {
-            domain: 'channel',
-            permissions,
-            anyOf: true, // User needs ANY of the required permissions
-            actor,
-            resource: { type: 'channel', id: channels },
-            context: buildAuthorizationContext(correlationId, {
-              metadata: { ...context?.metadata, field },
-            }),
-          };
-
-          const result = await this.authorizationPort.check(request);
-          return { field, allowed: result.ok && result.value.allowed };
-        }),
-      );
-
-      const allowedFields = results
-        .filter((r) => r.allowed)
-        .map((r) => r.field);
-      const deniedFields = results
-        .filter((r) => !r.allowed)
-        .map((r) => r.field);
-
-      return ok({ allowedFields, deniedFields });
-    } catch (error: unknown) {
-      this.logger.error(
-        'Error checking field permissions',
-        this.createLogContext('checkFieldPermissions', correlationId, userId, {
-          channels,
-          requestedFields,
-          error: error instanceof Error ? error.message : String(error),
-        }),
-      );
-
-      return err(
-        withContext(ChannelErrors.AUTHORIZATION_FAILED, {
-          channels: channels || '',
-          userId,
-          correlationId,
-          operation: 'checkFieldPermissions',
-          reason: error instanceof Error ? error.message : String(error),
-        }),
-      );
-    }
-  }
-
-  /**
    * Comprehensive authorization check for channel operations.
    * Validates both operation-level and field-level permissions.
    *
@@ -362,7 +131,7 @@ export class ChannelAuthorizationService {
   > {
     try {
       // Validate required channels for operations that need it
-      if (['read', 'update', 'delete'].includes(operation) && !channels) {
+      if (['read'].includes(operation) && !channels) {
         return err(
           withContext(ChannelErrors.PERMISSION_DENIED, {
             channels: channels || '',
@@ -379,29 +148,6 @@ export class ChannelAuthorizationService {
       switch (operation) {
         case 'read':
           operationResult = await this.canReadChannel(
-            userId,
-            channels!,
-            correlationId,
-            context,
-          );
-          break;
-        case 'create':
-          operationResult = await this.canCreateChannel(
-            userId,
-            correlationId,
-            context,
-          );
-          break;
-        case 'update':
-          operationResult = await this.canUpdateChannel(
-            userId,
-            channels!,
-            correlationId,
-            context,
-          );
-          break;
-        case 'delete':
-          operationResult = await this.canDeleteChannel(
             userId,
             channels!,
             correlationId,
@@ -425,30 +171,6 @@ export class ChannelAuthorizationService {
 
       if (!operationResult.value) {
         return ok({ authorized: false });
-      }
-
-      // For update operations with field specifications, check field-level permissions
-      if (operation === 'update' && fields && fields.length > 0 && channels) {
-        const fieldResult = await this.checkFieldPermissions(
-          userId,
-          channels,
-          fields,
-          correlationId,
-          context,
-        );
-
-        if (!fieldResult.ok) {
-          return err(fieldResult.error);
-        }
-
-        const { allowedFields, deniedFields } = fieldResult.value;
-
-        // Operation is authorized, but some fields might be denied
-        return ok({
-          authorized: allowedFields.length > 0,
-          allowedFields,
-          deniedFields,
-        });
       }
 
       // Simple operation authorization without field-level checks
@@ -511,22 +233,6 @@ export class ChannelAuthorizationService {
             switch (operation) {
               case 'read':
                 result = await this.canReadChannel(
-                  userId,
-                  channels,
-                  correlationId,
-                  context,
-                );
-                break;
-              case 'update':
-                result = await this.canUpdateChannel(
-                  userId,
-                  channels,
-                  correlationId,
-                  context,
-                );
-                break;
-              case 'delete':
-                result = await this.canDeleteChannel(
                   userId,
                   channels,
                   correlationId,

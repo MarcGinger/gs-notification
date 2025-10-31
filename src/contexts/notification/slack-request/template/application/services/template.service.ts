@@ -22,10 +22,6 @@ import { SlackRequestServiceConstants } from '../../../service-constants';
 
 // Domain types and errors
 import { TemplateErrors } from '../../domain/errors/template.errors';
-import type {
-  CreateTemplateProps,
-  UpdateTemplateProps,
-} from '../../domain/props';
 import {
   DetailTemplateResponse,
   ListTemplateFilterRequest,
@@ -38,7 +34,6 @@ import { TemplateAuthContext } from '../types/template-auth-context';
 
 // Use case contracts
 import {
-  IUpsertTemplateUseCase,
   IGetTemplateUseCase,
   IListTemplateUseCase,
 } from '../use-cases/contracts';
@@ -52,7 +47,6 @@ export class TemplateApplicationService {
 
   constructor(
     private readonly templateAuthorizationService: TemplateAuthorizationService,
-    private readonly upsertTemplateUseCase: IUpsertTemplateUseCase,
     private readonly getTemplateUseCase: IGetTemplateUseCase,
     private readonly listTemplateUseCase: IListTemplateUseCase,
     @Inject(CLOCK) private readonly clock: Clock,
@@ -124,7 +118,7 @@ export class TemplateApplicationService {
    * Centralized auth → log → execute → catch pattern
    */
   private async authorizeThenExecute<T>(args: {
-    operation: 'create' | 'update' | 'read';
+    operation: 'read';
     user: IUserToken;
     code?: string;
     correlationIdPrefix: string;
@@ -192,114 +186,6 @@ export class TemplateApplicationService {
         },
       });
     }
-  }
-
-  /**
-   * Create a new template with authorization
-   */
-  async createTemplate(
-    user: IUserToken,
-    props: CreateTemplateProps,
-    options?: { idempotencyKey?: string; correlationId?: string },
-  ): Promise<Result<DetailTemplateResponse, DomainError>> {
-    const authContext = this.createAuthContext(user, 'create');
-    const correlationId =
-      options?.correlationId ||
-      CorrelationUtil.generateForOperation('template-create');
-
-    return this.authorizeThenExecute<DetailTemplateResponse>({
-      operation: 'create',
-      user,
-      correlationIdPrefix: 'template-create',
-      doAuthorize: () =>
-        this.templateAuthorizationService.canCreateTemplate(
-          user.sub,
-          correlationId,
-          authContext,
-        ),
-      doExecute: () =>
-        this.upsertTemplateUseCase.execute({
-          user,
-          code: props.code,
-          props,
-          correlationId,
-          authorizationReason: 'create_template',
-          ...(options?.idempotencyKey && {
-            idempotencyKey: options.idempotencyKey,
-          }),
-        }),
-    });
-  }
-
-  /**
-   * Update an existing template with authorization
-   */
-  async updateTemplate(
-    user: IUserToken,
-    code: string,
-    props: UpdateTemplateProps,
-    options?: { idempotencyKey?: string; correlationId?: string },
-  ): Promise<Result<DetailTemplateResponse, DomainError>> {
-    // Early input validation
-    const codeValidation = this.validateCode(code, 'update');
-    if (!codeValidation.ok) {
-      return err(codeValidation.error);
-    }
-
-    const validatedcode = codeValidation.value;
-    const authContext = this.createAuthContext(user, 'update');
-    const correlationId =
-      options?.correlationId ||
-      CorrelationUtil.generateForOperation('template-update');
-
-    // Optional: Field-level authorization
-    // Uncomment when TemplateAuthorizationService supports authorizeTemplateOperation
-    /*
-    const fields = extractDefinedFields(props); // Use shared utility
-    const opAuth = await this.templateAuthorizationService.authorizeTemplateOperation(
-      user.sub, 
-      'update', 
-      CorrelationUtil.generateForOperation('template-update'), 
-      validatedcode, 
-      fields, 
-      authContext
-    );
-    if (!opAuth.ok) return err(opAuth.error);
-    if (!opAuth.value.authorized) {
-      return err(withContext(TemplateErrors.PERMISSION_DENIED, { 
-        operation: 'update', 
-        code: validatedcode, 
-        userId: user.sub,
-        category: 'security'
-      }));
-    }
-    */
-
-    return this.authorizeThenExecute<DetailTemplateResponse>({
-      operation: 'update',
-      user,
-      code: validatedcode,
-      correlationIdPrefix: 'template-update',
-      doAuthorize: () =>
-        this.templateAuthorizationService.canUpdateTemplate(
-          user.sub,
-          validatedcode,
-          correlationId,
-          authContext,
-        ),
-      doExecute: () =>
-        this.upsertTemplateUseCase.execute({
-          user,
-          code: validatedcode,
-          props,
-          correlationId,
-          authorizationReason: 'update_template',
-          ...(options?.idempotencyKey && {
-            idempotencyKey: options.idempotencyKey,
-          }),
-        }),
-      logContext: { code: validatedcode },
-    });
   }
 
   /**

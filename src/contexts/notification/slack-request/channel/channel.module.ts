@@ -8,11 +8,8 @@ import {
   ChannelApplicationService,
   ChannelAuthorizationService,
   ChannelAuthorizationAdapter,
-  ChannelForeignKeyValidatorService,
 } from './application/services';
 import {
-  IUpsertChannelUseCase,
-  UpsertChannelUseCase,
   IGetChannelUseCase,
   GetChannelUseCase,
   IListChannelUseCase,
@@ -20,20 +17,10 @@ import {
 } from './application/use-cases';
 
 // import { IChannelRepository } from './application/ports';
-import {
-  ChannelQueryRepository,
-  ChannelReaderRepository,
-  ChannelWriterRepository,
-  WorkspaceReaderRepository,
-} from './infrastructure/repositories';
+import { ChannelQueryRepository } from './infrastructure/repositories';
 
 // Tokens for injection - imported directly from port files
-import {
-  CHANNEL_READER_TOKEN,
-  CHANNEL_WRITER_TOKEN,
-  WORKSPACE_REFERENCE_READER_TOKEN,
-  CHANNEL_QUERY_TOKEN,
-} from './application/ports';
+import { CHANNEL_QUERY_TOKEN } from './application/ports';
 @Module({
   imports: [
     SlackRequestSharedModule, // Provides all common infrastructure and services
@@ -42,35 +29,14 @@ import {
   providers: [
     // Repository implementations with tokens (before services that depend on them)
     {
-      provide: CHANNEL_READER_TOKEN,
-      useClass: ChannelReaderRepository,
-    },
-    {
-      provide: CHANNEL_WRITER_TOKEN,
-      useClass: ChannelWriterRepository,
-    },
-    {
       provide: CHANNEL_QUERY_TOKEN,
       useClass: ChannelQueryRepository,
-    },
-
-    // Bounded Context Reader Repositories
-    {
-      provide: WORKSPACE_REFERENCE_READER_TOKEN,
-      useClass: WorkspaceReaderRepository,
     },
 
     // Services that depend on repositories
     ChannelApplicationService,
     ChannelAuthorizationService,
     ChannelAuthorizationAdapter,
-    ChannelForeignKeyValidatorService,
-
-    // Use case implementations
-    {
-      provide: IUpsertChannelUseCase,
-      useClass: UpsertChannelUseCase,
-    },
     {
       provide: IGetChannelUseCase,
       useClass: GetChannelUseCase,
@@ -82,11 +48,7 @@ import {
   ],
   exports: [
     // Repository tokens for external module consumption
-    CHANNEL_READER_TOKEN,
-    CHANNEL_WRITER_TOKEN,
     CHANNEL_QUERY_TOKEN,
-    // Bounded Context Reader tokens
-    WORKSPACE_REFERENCE_READER_TOKEN,
   ],
 })
 export class ChannelModule {}

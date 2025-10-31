@@ -18,7 +18,6 @@ import { WorkspaceErrors } from '../../domain/errors/workspace.errors';
 import { SLACK_REQUEST_DI_TOKENS } from '../../../slack-request.constants';
 
 // Application layer
-import { WorkspaceFieldPermissionMatrix } from '../security/workspace-field-permission-matrix';
 import {
   WorkspaceAuthContext,
   CrudOperation,
@@ -105,236 +104,6 @@ export class WorkspaceAuthorizationService {
   }
 
   /**
-   * Check if user can create workspaces
-   */
-  async canCreateWorkspace(
-    userId: string,
-    correlationId: string,
-    context?: WorkspaceAuthContext,
-  ): Promise<Result<boolean, DomainError>> {
-    const actor = {
-      userId,
-      tenant: context?.tenant,
-      roles: context?.roles,
-    };
-
-    const request: AuthorizationRequest<WorkspacePermission> = {
-      domain: 'workspace',
-      permissions: [WorkspacePermission.DOMAIN_WORKSPACE_CREATE],
-      actor,
-      resource: { type: 'workspace' },
-      context: buildAuthorizationContext(correlationId, {
-        metadata: context?.metadata,
-      }),
-    };
-
-    const result = await this.authorizationPort.check(request);
-    return result.ok ? ok(result.value.allowed) : err(result.error);
-  }
-
-  /**
-   * Check if user can update a specific workspace
-   */
-  async canUpdateWorkspace(
-    userId: string,
-    workspaces: string,
-    correlationId: string,
-    context?: WorkspaceAuthContext,
-  ): Promise<Result<boolean, DomainError>> {
-    if (!workspaces) {
-      return err(
-        withContext(WorkspaceErrors.PERMISSION_DENIED, {
-          workspaces: workspaces || '',
-          userId,
-          correlationId,
-          operation: 'update',
-        }),
-      );
-    }
-
-    const actor = {
-      userId,
-      tenant: context?.tenant,
-      roles: context?.roles,
-    };
-
-    const request: AuthorizationRequest<WorkspacePermission> = {
-      domain: 'workspace',
-      permissions: [WorkspacePermission.DOMAIN_WORKSPACE_UPDATE],
-      actor,
-      resource: { type: 'workspace', id: workspaces },
-      context: buildAuthorizationContext(correlationId, {
-        metadata: context?.metadata,
-      }),
-    };
-
-    const result = await this.authorizationPort.check(request);
-    return result.ok ? ok(result.value.allowed) : err(result.error);
-  }
-
-  /**
-   * Check if user can delete a specific workspace
-   */
-  async canDeleteWorkspace(
-    userId: string,
-    workspaces: string,
-    correlationId: string,
-    context?: WorkspaceAuthContext,
-  ): Promise<Result<boolean, DomainError>> {
-    if (!workspaces) {
-      return err(
-        withContext(WorkspaceErrors.PERMISSION_DENIED, {
-          workspaces: workspaces || '',
-          userId,
-          correlationId,
-          operation: 'delete',
-        }),
-      );
-    }
-
-    const actor = {
-      userId,
-      tenant: context?.tenant,
-      roles: context?.roles,
-    };
-
-    const request: AuthorizationRequest<WorkspacePermission> = {
-      domain: 'workspace',
-      permissions: [WorkspacePermission.DOMAIN_WORKSPACE_DELETE],
-      actor,
-      resource: { type: 'workspace', id: workspaces },
-      context: buildAuthorizationContext(correlationId, {
-        metadata: context?.metadata,
-      }),
-    };
-
-    const result = await this.authorizationPort.check(request);
-    return result.ok ? ok(result.value.allowed) : err(result.error);
-  }
-
-  /**
-   * Check if user can perform admin operations on workspaces
-   */
-  async canAdministerWorkspace(
-    userId: string,
-    correlationId: string,
-    workspaces?: string,
-    context?: WorkspaceAuthContext,
-  ): Promise<Result<boolean, DomainError>> {
-    const actor = {
-      userId,
-      tenant: context?.tenant,
-      roles: context?.roles,
-    };
-
-    const request: AuthorizationRequest<WorkspacePermission> = {
-      domain: 'workspace',
-      permissions: [WorkspacePermission.DOMAIN_WORKSPACE_ADMIN],
-      actor,
-      resource: { type: 'workspace', id: workspaces },
-      context: buildAuthorizationContext(correlationId, {
-        metadata: context?.metadata,
-      }),
-    };
-
-    const result = await this.authorizationPort.check(request);
-    return result.ok ? ok(result.value.allowed) : err(result.error);
-  }
-
-  /**
-   * Check field-level permissions for workspace updates.
-   * Returns which fields the user can modify based on the permission matrix.
-   *
-   * Optimizations:
-   * - Uses anyOf pattern to reduce OPA calls
-   * - Parallel processing of field checks
-   * - Proper actor context with tenant/role information
-   */
-  async checkFieldPermissions(
-    userId: string,
-    workspaces: string,
-    requestedFields: string[],
-    correlationId: string,
-    context?: WorkspaceAuthContext,
-  ): Promise<
-    Result<{ allowedFields: string[]; deniedFields: string[] }, DomainError>
-  > {
-    if (!workspaces) {
-      return err(
-        withContext(WorkspaceErrors.PERMISSION_DENIED, {
-          workspaces: workspaces || '',
-          userId,
-          correlationId,
-          operation: 'checkFieldPermissions',
-        }),
-      );
-    }
-
-    try {
-      const actor = {
-        userId,
-        tenant: context?.tenant,
-        roles: context?.roles,
-      };
-
-      // Process fields in parallel for better performance
-      const results = await Promise.all(
-        requestedFields.map(async (field) => {
-          const requiredPermissions =
-            WorkspaceFieldPermissionMatrix.getRequiredPermissions(field);
-
-          // Use basic UPDATE permission if no special permissions required
-          const permissions = requiredPermissions.length
-            ? requiredPermissions
-            : [WorkspacePermission.DOMAIN_WORKSPACE_UPDATE];
-
-          const request: AuthorizationRequest<WorkspacePermission> = {
-            domain: 'workspace',
-            permissions,
-            anyOf: true, // User needs ANY of the required permissions
-            actor,
-            resource: { type: 'workspace', id: workspaces },
-            context: buildAuthorizationContext(correlationId, {
-              metadata: { ...context?.metadata, field },
-            }),
-          };
-
-          const result = await this.authorizationPort.check(request);
-          return { field, allowed: result.ok && result.value.allowed };
-        }),
-      );
-
-      const allowedFields = results
-        .filter((r) => r.allowed)
-        .map((r) => r.field);
-      const deniedFields = results
-        .filter((r) => !r.allowed)
-        .map((r) => r.field);
-
-      return ok({ allowedFields, deniedFields });
-    } catch (error: unknown) {
-      this.logger.error(
-        'Error checking field permissions',
-        this.createLogContext('checkFieldPermissions', correlationId, userId, {
-          workspaces,
-          requestedFields,
-          error: error instanceof Error ? error.message : String(error),
-        }),
-      );
-
-      return err(
-        withContext(WorkspaceErrors.AUTHORIZATION_FAILED, {
-          workspaces: workspaces || '',
-          userId,
-          correlationId,
-          operation: 'checkFieldPermissions',
-          reason: error instanceof Error ? error.message : String(error),
-        }),
-      );
-    }
-  }
-
-  /**
    * Comprehensive authorization check for workspace operations.
    * Validates both operation-level and field-level permissions.
    *
@@ -362,7 +131,7 @@ export class WorkspaceAuthorizationService {
   > {
     try {
       // Validate required workspaces for operations that need it
-      if (['read', 'update', 'delete'].includes(operation) && !workspaces) {
+      if (['read'].includes(operation) && !workspaces) {
         return err(
           withContext(WorkspaceErrors.PERMISSION_DENIED, {
             workspaces: workspaces || '',
@@ -379,29 +148,6 @@ export class WorkspaceAuthorizationService {
       switch (operation) {
         case 'read':
           operationResult = await this.canReadWorkspace(
-            userId,
-            workspaces!,
-            correlationId,
-            context,
-          );
-          break;
-        case 'create':
-          operationResult = await this.canCreateWorkspace(
-            userId,
-            correlationId,
-            context,
-          );
-          break;
-        case 'update':
-          operationResult = await this.canUpdateWorkspace(
-            userId,
-            workspaces!,
-            correlationId,
-            context,
-          );
-          break;
-        case 'delete':
-          operationResult = await this.canDeleteWorkspace(
             userId,
             workspaces!,
             correlationId,
@@ -425,30 +171,6 @@ export class WorkspaceAuthorizationService {
 
       if (!operationResult.value) {
         return ok({ authorized: false });
-      }
-
-      // For update operations with field specifications, check field-level permissions
-      if (operation === 'update' && fields && fields.length > 0 && workspaces) {
-        const fieldResult = await this.checkFieldPermissions(
-          userId,
-          workspaces,
-          fields,
-          correlationId,
-          context,
-        );
-
-        if (!fieldResult.ok) {
-          return err(fieldResult.error);
-        }
-
-        const { allowedFields, deniedFields } = fieldResult.value;
-
-        // Operation is authorized, but some fields might be denied
-        return ok({
-          authorized: allowedFields.length > 0,
-          allowedFields,
-          deniedFields,
-        });
       }
 
       // Simple operation authorization without field-level checks
@@ -511,22 +233,6 @@ export class WorkspaceAuthorizationService {
             switch (operation) {
               case 'read':
                 result = await this.canReadWorkspace(
-                  userId,
-                  workspaces,
-                  correlationId,
-                  context,
-                );
-                break;
-              case 'update':
-                result = await this.canUpdateWorkspace(
-                  userId,
-                  workspaces,
-                  correlationId,
-                  context,
-                );
-                break;
-              case 'delete':
-                result = await this.canDeleteWorkspace(
                   userId,
                   workspaces,
                   correlationId,

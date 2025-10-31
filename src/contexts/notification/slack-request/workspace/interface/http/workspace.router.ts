@@ -46,8 +46,8 @@ const workspaceRoutes: Routes = [
  * the nested route structure.
  *
  * Routes configured:
- * - /notification/slack-request/api/v1/workspaces (GET, POST)
- * - /notification/slack-request/api/v1/workspaces/:code (GET, PUT)
+ * - /notification/slack-request/api/v1/workspaces (GET)
+ * - /notification/slack-request/api/v1/workspaces/:code (GET)
  * - /notification/slack-request/health/projectors/workspace (GET)
  * - /notification/slack-request/health/projectors/workspace/metrics (GET)
  */

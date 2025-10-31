@@ -8,11 +8,8 @@ import {
   TemplateApplicationService,
   TemplateAuthorizationService,
   TemplateAuthorizationAdapter,
-  TemplateForeignKeyValidatorService,
 } from './application/services';
 import {
-  IUpsertTemplateUseCase,
-  UpsertTemplateUseCase,
   IGetTemplateUseCase,
   GetTemplateUseCase,
   IListTemplateUseCase,
@@ -20,20 +17,10 @@ import {
 } from './application/use-cases';
 
 // import { ITemplateRepository } from './application/ports';
-import {
-  TemplateQueryRepository,
-  TemplateReaderRepository,
-  TemplateWriterRepository,
-  WorkspaceReaderRepository,
-} from './infrastructure/repositories';
+import { TemplateQueryRepository } from './infrastructure/repositories';
 
 // Tokens for injection - imported directly from port files
-import {
-  TEMPLATE_READER_TOKEN,
-  TEMPLATE_WRITER_TOKEN,
-  WORKSPACE_REFERENCE_READER_TOKEN,
-  TEMPLATE_QUERY_TOKEN,
-} from './application/ports';
+import { TEMPLATE_QUERY_TOKEN } from './application/ports';
 @Module({
   imports: [
     SlackRequestSharedModule, // Provides all common infrastructure and services
@@ -42,35 +29,14 @@ import {
   providers: [
     // Repository implementations with tokens (before services that depend on them)
     {
-      provide: TEMPLATE_READER_TOKEN,
-      useClass: TemplateReaderRepository,
-    },
-    {
-      provide: TEMPLATE_WRITER_TOKEN,
-      useClass: TemplateWriterRepository,
-    },
-    {
       provide: TEMPLATE_QUERY_TOKEN,
       useClass: TemplateQueryRepository,
-    },
-
-    // Bounded Context Reader Repositories
-    {
-      provide: WORKSPACE_REFERENCE_READER_TOKEN,
-      useClass: WorkspaceReaderRepository,
     },
 
     // Services that depend on repositories
     TemplateApplicationService,
     TemplateAuthorizationService,
     TemplateAuthorizationAdapter,
-    TemplateForeignKeyValidatorService,
-
-    // Use case implementations
-    {
-      provide: IUpsertTemplateUseCase,
-      useClass: UpsertTemplateUseCase,
-    },
     {
       provide: IGetTemplateUseCase,
       useClass: GetTemplateUseCase,
@@ -82,11 +48,7 @@ import {
   ],
   exports: [
     // Repository tokens for external module consumption
-    TEMPLATE_READER_TOKEN,
-    TEMPLATE_WRITER_TOKEN,
     TEMPLATE_QUERY_TOKEN,
-    // Bounded Context Reader tokens
-    WORKSPACE_REFERENCE_READER_TOKEN,
   ],
 })
 export class TemplateModule {}

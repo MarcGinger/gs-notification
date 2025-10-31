@@ -10,22 +10,11 @@
 
 import { Result, DomainError } from 'src/shared/errors';
 import type { IUserToken } from 'src/shared/security';
-import type { UpsertWorkspaceProps } from '../../domain/props';
 import type {
   DetailWorkspaceResponse,
   WorkspacePageResponse,
   ListWorkspaceFilterRequest,
 } from '../dtos';
-
-export abstract class IUpsertWorkspaceUseCase {
-  abstract execute(params: {
-    user: IUserToken;
-    code: string;
-    props: UpsertWorkspaceProps;
-    correlationId: string;
-    authorizationReason: string;
-  }): Promise<Result<DetailWorkspaceResponse, DomainError>>;
-}
 
 export abstract class IGetWorkspaceUseCase {
   abstract execute(params: {

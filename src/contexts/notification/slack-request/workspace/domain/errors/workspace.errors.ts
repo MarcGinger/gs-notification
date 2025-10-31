@@ -25,37 +25,6 @@ export const WorkspaceErrors = {
     category: 'domain',
     retryable: false,
   } as DomainError<'WORKSPACE.AUTHORIZATION_FAILED', WorkspaceContext>,
-  CANNOT_DELETE_WORKSPACE_WITH_DEPENDENCIES: {
-    code: 'WORKSPACE.CANNOT_DELETE_WORKSPACE_WITH_DEPENDENCIES',
-    title: 'Cannot Delete',
-    detail: 'Cannot delete Workspace with existing dependencies',
-    category: 'validation',
-    retryable: false,
-  } as DomainError<
-    'WORKSPACE.CANNOT_DELETE_WORKSPACE_WITH_DEPENDENCIES',
-    WorkspaceContext
-  >,
-  CONCURRENCY_CONFLICT: {
-    code: 'WORKSPACE.CONCURRENCY_CONFLICT',
-    title: 'Concurrency Conflict',
-    detail: 'Concurrency conflict for Workspace',
-    category: 'validation',
-    retryable: false,
-  } as DomainError<'WORKSPACE.CONCURRENCY_CONFLICT', WorkspaceContext>,
-  CREATED_AT_REQUIRED: {
-    code: 'WORKSPACE.CREATED_AT_REQUIRED',
-    title: 'Created At Required',
-    detail: 'The workspace creation timestamp is required.',
-    category: 'validation',
-    retryable: false,
-  } as DomainError<'WORKSPACE.CREATED_AT_REQUIRED', WorkspaceContext>,
-  INVALID_APP_ID: {
-    code: 'WORKSPACE.INVALID_APP_ID',
-    title: 'Value Required',
-    detail: 'App id is required for Workspace.',
-    category: 'validation',
-    retryable: false,
-  } as DomainError<'WORKSPACE.INVALID_APP_ID', WorkspaceContext>,
   INVALID_APP_ID_DATA: {
     code: 'WORKSPACE.INVALID_APP_ID_DATA',
     title: 'Value Required',
@@ -63,13 +32,6 @@ export const WorkspaceErrors = {
     category: 'validation',
     retryable: false,
   } as DomainError<'WORKSPACE.INVALID_APP_ID_DATA', WorkspaceContext>,
-  INVALID_BOT_TOKEN: {
-    code: 'WORKSPACE.INVALID_BOT_TOKEN',
-    title: 'Value Required',
-    detail: 'Bot token is required for Workspace.',
-    category: 'validation',
-    retryable: false,
-  } as DomainError<'WORKSPACE.INVALID_BOT_TOKEN', WorkspaceContext>,
   INVALID_BOT_TOKEN_DATA: {
     code: 'WORKSPACE.INVALID_BOT_TOKEN_DATA',
     title: 'Value Required',
@@ -77,13 +39,6 @@ export const WorkspaceErrors = {
     category: 'validation',
     retryable: false,
   } as DomainError<'WORKSPACE.INVALID_BOT_TOKEN_DATA', WorkspaceContext>,
-  INVALID_BOT_USER_ID: {
-    code: 'WORKSPACE.INVALID_BOT_USER_ID',
-    title: 'Value Required',
-    detail: 'Bot user id is required for Workspace.',
-    category: 'validation',
-    retryable: false,
-  } as DomainError<'WORKSPACE.INVALID_BOT_USER_ID', WorkspaceContext>,
   INVALID_BOT_USER_ID_DATA: {
     code: 'WORKSPACE.INVALID_BOT_USER_ID_DATA',
     title: 'Value Required',
@@ -91,13 +46,6 @@ export const WorkspaceErrors = {
     category: 'validation',
     retryable: false,
   } as DomainError<'WORKSPACE.INVALID_BOT_USER_ID_DATA', WorkspaceContext>,
-  INVALID_CODE: {
-    code: 'WORKSPACE.INVALID_CODE',
-    title: 'Value Required',
-    detail: 'Code is required for Workspace.',
-    category: 'validation',
-    retryable: false,
-  } as DomainError<'WORKSPACE.INVALID_CODE', WorkspaceContext>,
   INVALID_CODE_DATA: {
     code: 'WORKSPACE.INVALID_CODE_DATA',
     title: 'Value Required',
@@ -105,13 +53,6 @@ export const WorkspaceErrors = {
     category: 'validation',
     retryable: false,
   } as DomainError<'WORKSPACE.INVALID_CODE_DATA', WorkspaceContext>,
-  INVALID_DEFAULT_CHANNEL_ID: {
-    code: 'WORKSPACE.INVALID_DEFAULT_CHANNEL_ID',
-    title: 'Value Required',
-    detail: 'Default channel id is required for Workspace.',
-    category: 'validation',
-    retryable: false,
-  } as DomainError<'WORKSPACE.INVALID_DEFAULT_CHANNEL_ID', WorkspaceContext>,
   INVALID_DEFAULT_CHANNEL_ID_DATA: {
     code: 'WORKSPACE.INVALID_DEFAULT_CHANNEL_ID_DATA',
     title: 'Value Required',
@@ -122,13 +63,6 @@ export const WorkspaceErrors = {
     'WORKSPACE.INVALID_DEFAULT_CHANNEL_ID_DATA',
     WorkspaceContext
   >,
-  INVALID_ENABLED: {
-    code: 'WORKSPACE.INVALID_ENABLED',
-    title: 'Value Required',
-    detail: 'Enabled is required for Workspace.',
-    category: 'validation',
-    retryable: false,
-  } as DomainError<'WORKSPACE.INVALID_ENABLED', WorkspaceContext>,
   INVALID_ENABLED_DATA: {
     code: 'WORKSPACE.INVALID_ENABLED_DATA',
     title: 'Value Required',
@@ -136,13 +70,6 @@ export const WorkspaceErrors = {
     category: 'validation',
     retryable: false,
   } as DomainError<'WORKSPACE.INVALID_ENABLED_DATA', WorkspaceContext>,
-  INVALID_NAME: {
-    code: 'WORKSPACE.INVALID_NAME',
-    title: 'Value Required',
-    detail: 'Name is required for Workspace.',
-    category: 'validation',
-    retryable: false,
-  } as DomainError<'WORKSPACE.INVALID_NAME', WorkspaceContext>,
   INVALID_NAME_DATA: {
     code: 'WORKSPACE.INVALID_NAME_DATA',
     title: 'Value Required',
@@ -150,13 +77,6 @@ export const WorkspaceErrors = {
     category: 'validation',
     retryable: false,
   } as DomainError<'WORKSPACE.INVALID_NAME_DATA', WorkspaceContext>,
-  INVALID_SIGNING_SECRET: {
-    code: 'WORKSPACE.INVALID_SIGNING_SECRET',
-    title: 'Value Required',
-    detail: 'Signing secret is required for Workspace.',
-    category: 'validation',
-    retryable: false,
-  } as DomainError<'WORKSPACE.INVALID_SIGNING_SECRET', WorkspaceContext>,
   INVALID_SIGNING_SECRET_DATA: {
     code: 'WORKSPACE.INVALID_SIGNING_SECRET_DATA',
     title: 'Value Required',
@@ -166,18 +86,11 @@ export const WorkspaceErrors = {
   } as DomainError<'WORKSPACE.INVALID_SIGNING_SECRET_DATA', WorkspaceContext>,
   INVALID_WORKSPACE_DATA: {
     code: 'WORKSPACE.INVALID_WORKSPACE_DATA',
-    title: 'Invalid Data',
-    detail: 'Invalid Workspace data provided',
+    title: 'Workspace Invalid Data',
+    detail: 'The provided data for Workspace is invalid.',
     category: 'validation',
     retryable: false,
   } as DomainError<'WORKSPACE.INVALID_WORKSPACE_DATA', WorkspaceContext>,
-  NOT_BOOLEAN_ENABLED: {
-    code: 'WORKSPACE.NOT_BOOLEAN_ENABLED',
-    title: 'Not a Boolean',
-    detail: 'Enabled must be true or false.',
-    category: 'validation',
-    retryable: false,
-  } as DomainError<'WORKSPACE.NOT_BOOLEAN_ENABLED', WorkspaceContext>,
   NOT_IMPLEMENTED: {
     code: 'WORKSPACE.NOT_IMPLEMENTED',
     title: 'Not Implemented',
@@ -206,62 +119,18 @@ export const WorkspaceErrors = {
     category: 'domain',
     retryable: false,
   } as DomainError<'WORKSPACE.PERMISSION_NOT_FOUND', WorkspaceContext>,
-  UPDATED_AT_REQUIRED: {
-    code: 'WORKSPACE.UPDATED_AT_REQUIRED',
-    title: 'Updated At Required',
-    detail: 'The workspace update timestamp is required.',
-    category: 'validation',
-    retryable: false,
-  } as DomainError<'WORKSPACE.UPDATED_AT_REQUIRED', WorkspaceContext>,
   WORKSPACE_ALREADY_EXISTS: {
     code: 'WORKSPACE.WORKSPACE_ALREADY_EXISTS',
-    title: 'Already Exists',
-    detail: 'Workspace already exists',
+    title: 'Workspace Already Exists',
+    detail: 'A Workspace with these details already exists.',
     category: 'validation',
     retryable: false,
   } as DomainError<'WORKSPACE.WORKSPACE_ALREADY_EXISTS', WorkspaceContext>,
-  WORKSPACE_FACTORY_CREATION_FAILED: {
-    code: 'WORKSPACE.WORKSPACE_FACTORY_CREATION_FAILED',
-    title: 'Factory Creation Failed',
-    detail: 'Failed to create Workspace using factory.',
-    category: 'validation',
-    retryable: false,
-  } as DomainError<
-    'WORKSPACE.WORKSPACE_FACTORY_CREATION_FAILED',
-    WorkspaceContext
-  >,
-  WORKSPACE_INVARIANT_VIOLATION: {
-    code: 'WORKSPACE.WORKSPACE_INVARIANT_VIOLATION',
-    title: 'Invariant Violation',
-    detail: 'Business invariant violation for Workspace',
-    category: 'validation',
-    retryable: false,
-  } as DomainError<'WORKSPACE.WORKSPACE_INVARIANT_VIOLATION', WorkspaceContext>,
   WORKSPACE_NOT_FOUND: {
     code: 'WORKSPACE.WORKSPACE_NOT_FOUND',
-    title: 'Not Found',
-    detail: 'Workspace not found',
+    title: 'Workspace Not Found',
+    detail: 'The requested Workspace could not be found.',
     category: 'validation',
     retryable: false,
   } as DomainError<'WORKSPACE.WORKSPACE_NOT_FOUND', WorkspaceContext>,
-  WORKSPACE_UPDATE_FACTORY_FAILED: {
-    code: 'WORKSPACE.WORKSPACE_UPDATE_FACTORY_FAILED',
-    title: 'Update Factory Failed',
-    detail: 'Failed to update Workspace using factory.',
-    category: 'validation',
-    retryable: false,
-  } as DomainError<
-    'WORKSPACE.WORKSPACE_UPDATE_FACTORY_FAILED',
-    WorkspaceContext
-  >,
-  WORKSPACE_UPDATE_RECONSTITUTE_FAILED: {
-    code: 'WORKSPACE.WORKSPACE_UPDATE_RECONSTITUTE_FAILED',
-    title: 'Update Reconstitute Failed',
-    detail: 'Failed to reconstitute Workspace from snapshot for update.',
-    category: 'validation',
-    retryable: false,
-  } as DomainError<
-    'WORKSPACE.WORKSPACE_UPDATE_RECONSTITUTE_FAILED',
-    WorkspaceContext
-  >,
 } as const;

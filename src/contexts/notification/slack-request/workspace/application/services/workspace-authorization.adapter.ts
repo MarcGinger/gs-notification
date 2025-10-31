@@ -29,18 +29,6 @@ export class WorkspaceAuthorizationAdapter
     private readonly workspaceAuthorizationService: WorkspaceAuthorizationService,
   ) {}
 
-  async canCreateResource(
-    userId: string,
-    correlationId: string,
-    context: WorkspaceAuthContext,
-  ): Promise<Result<boolean, DomainError>> {
-    return this.workspaceAuthorizationService.canCreateWorkspace(
-      userId,
-      correlationId,
-      context,
-    );
-  }
-
   async canReadResource(
     userId: string,
     resourceId: string,
@@ -73,12 +61,7 @@ export class WorkspaceAuthorizationAdapter
     >
   > {
     // Type-safe operation validation
-    const allowedOperations = new Set<string>([
-      'read',
-      'create',
-      'update',
-      'delete',
-    ]);
+    const allowedOperations = new Set<string>(['read']);
     if (!allowedOperations.has(operation)) {
       return err({
         ...WorkspaceErrors.NOT_IMPLEMENTED,

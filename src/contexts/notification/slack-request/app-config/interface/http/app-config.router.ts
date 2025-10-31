@@ -46,7 +46,7 @@ const appConfigRoutes: Routes = [
  * the nested route structure.
  *
  * Routes configured:
- * - /notification/slack-request/api/v1/app-configs/:workspaceCode (GET, PUT)
+ * - /notification/slack-request/api/v1/app-configs/:workspaceCode (GET)
  * - /notification/slack-request/health/projectors/appConfig (GET)
  * - /notification/slack-request/health/projectors/app-config/metrics (GET)
  */

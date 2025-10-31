@@ -22,10 +22,6 @@ import { SlackRequestServiceConstants } from '../../../service-constants';
 
 // Domain types and errors
 import { WorkspaceErrors } from '../../domain/errors/workspace.errors';
-import type {
-  CreateWorkspaceProps,
-  UpdateWorkspaceProps,
-} from '../../domain/props';
 import {
   DetailWorkspaceResponse,
   ListWorkspaceFilterRequest,
@@ -38,7 +34,6 @@ import { WorkspaceAuthContext } from '../types/workspace-auth-context';
 
 // Use case contracts
 import {
-  IUpsertWorkspaceUseCase,
   IGetWorkspaceUseCase,
   IListWorkspaceUseCase,
 } from '../use-cases/contracts';
@@ -52,7 +47,6 @@ export class WorkspaceApplicationService {
 
   constructor(
     private readonly workspaceAuthorizationService: WorkspaceAuthorizationService,
-    private readonly upsertWorkspaceUseCase: IUpsertWorkspaceUseCase,
     private readonly getWorkspaceUseCase: IGetWorkspaceUseCase,
     private readonly listWorkspaceUseCase: IListWorkspaceUseCase,
     @Inject(CLOCK) private readonly clock: Clock,
@@ -124,7 +118,7 @@ export class WorkspaceApplicationService {
    * Centralized auth → log → execute → catch pattern
    */
   private async authorizeThenExecute<T>(args: {
-    operation: 'create' | 'update' | 'read';
+    operation: 'read';
     user: IUserToken;
     code?: string;
     correlationIdPrefix: string;
@@ -192,114 +186,6 @@ export class WorkspaceApplicationService {
         },
       });
     }
-  }
-
-  /**
-   * Create a new workspace with authorization
-   */
-  async createWorkspace(
-    user: IUserToken,
-    props: CreateWorkspaceProps,
-    options?: { idempotencyKey?: string; correlationId?: string },
-  ): Promise<Result<DetailWorkspaceResponse, DomainError>> {
-    const authContext = this.createAuthContext(user, 'create');
-    const correlationId =
-      options?.correlationId ||
-      CorrelationUtil.generateForOperation('workspace-create');
-
-    return this.authorizeThenExecute<DetailWorkspaceResponse>({
-      operation: 'create',
-      user,
-      correlationIdPrefix: 'workspace-create',
-      doAuthorize: () =>
-        this.workspaceAuthorizationService.canCreateWorkspace(
-          user.sub,
-          correlationId,
-          authContext,
-        ),
-      doExecute: () =>
-        this.upsertWorkspaceUseCase.execute({
-          user,
-          code: props.code,
-          props,
-          correlationId,
-          authorizationReason: 'create_workspace',
-          ...(options?.idempotencyKey && {
-            idempotencyKey: options.idempotencyKey,
-          }),
-        }),
-    });
-  }
-
-  /**
-   * Update an existing workspace with authorization
-   */
-  async updateWorkspace(
-    user: IUserToken,
-    code: string,
-    props: UpdateWorkspaceProps,
-    options?: { idempotencyKey?: string; correlationId?: string },
-  ): Promise<Result<DetailWorkspaceResponse, DomainError>> {
-    // Early input validation
-    const codeValidation = this.validateCode(code, 'update');
-    if (!codeValidation.ok) {
-      return err(codeValidation.error);
-    }
-
-    const validatedcode = codeValidation.value;
-    const authContext = this.createAuthContext(user, 'update');
-    const correlationId =
-      options?.correlationId ||
-      CorrelationUtil.generateForOperation('workspace-update');
-
-    // Optional: Field-level authorization
-    // Uncomment when WorkspaceAuthorizationService supports authorizeWorkspaceOperation
-    /*
-    const fields = extractDefinedFields(props); // Use shared utility
-    const opAuth = await this.workspaceAuthorizationService.authorizeWorkspaceOperation(
-      user.sub, 
-      'update', 
-      CorrelationUtil.generateForOperation('workspace-update'), 
-      validatedcode, 
-      fields, 
-      authContext
-    );
-    if (!opAuth.ok) return err(opAuth.error);
-    if (!opAuth.value.authorized) {
-      return err(withContext(WorkspaceErrors.PERMISSION_DENIED, { 
-        operation: 'update', 
-        code: validatedcode, 
-        userId: user.sub,
-        category: 'security'
-      }));
-    }
-    */
-
-    return this.authorizeThenExecute<DetailWorkspaceResponse>({
-      operation: 'update',
-      user,
-      code: validatedcode,
-      correlationIdPrefix: 'workspace-update',
-      doAuthorize: () =>
-        this.workspaceAuthorizationService.canUpdateWorkspace(
-          user.sub,
-          validatedcode,
-          correlationId,
-          authContext,
-        ),
-      doExecute: () =>
-        this.upsertWorkspaceUseCase.execute({
-          user,
-          code: validatedcode,
-          props,
-          correlationId,
-          authorizationReason: 'update_workspace',
-          ...(options?.idempotencyKey && {
-            idempotencyKey: options.idempotencyKey,
-          }),
-        }),
-      logContext: { code: validatedcode },
-    });
   }
 
   /**

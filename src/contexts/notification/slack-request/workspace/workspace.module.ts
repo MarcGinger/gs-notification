@@ -10,8 +10,6 @@ import {
   WorkspaceAuthorizationAdapter,
 } from './application/services';
 import {
-  IUpsertWorkspaceUseCase,
-  UpsertWorkspaceUseCase,
   IGetWorkspaceUseCase,
   GetWorkspaceUseCase,
   IListWorkspaceUseCase,
@@ -19,18 +17,10 @@ import {
 } from './application/use-cases';
 
 // import { IWorkspaceRepository } from './application/ports';
-import {
-  WorkspaceQueryRepository,
-  WorkspaceReaderRepository,
-  WorkspaceWriterRepository,
-} from './infrastructure/repositories';
+import { WorkspaceQueryRepository } from './infrastructure/repositories';
 
 // Tokens for injection - imported directly from port files
-import {
-  WORKSPACE_READER_TOKEN,
-  WORKSPACE_WRITER_TOKEN,
-  WORKSPACE_QUERY_TOKEN,
-} from './application/ports';
+import { WORKSPACE_QUERY_TOKEN } from './application/ports';
 @Module({
   imports: [
     SlackRequestSharedModule, // Provides all common infrastructure and services
@@ -38,14 +28,6 @@ import {
   controllers: [WorkspaceController],
   providers: [
     // Repository implementations with tokens (before services that depend on them)
-    {
-      provide: WORKSPACE_READER_TOKEN,
-      useClass: WorkspaceReaderRepository,
-    },
-    {
-      provide: WORKSPACE_WRITER_TOKEN,
-      useClass: WorkspaceWriterRepository,
-    },
     {
       provide: WORKSPACE_QUERY_TOKEN,
       useClass: WorkspaceQueryRepository,
@@ -55,12 +37,6 @@ import {
     WorkspaceApplicationService,
     WorkspaceAuthorizationService,
     WorkspaceAuthorizationAdapter,
-
-    // Use case implementations
-    {
-      provide: IUpsertWorkspaceUseCase,
-      useClass: UpsertWorkspaceUseCase,
-    },
     {
       provide: IGetWorkspaceUseCase,
       useClass: GetWorkspaceUseCase,
@@ -72,8 +48,6 @@ import {
   ],
   exports: [
     // Repository tokens for external module consumption
-    WORKSPACE_READER_TOKEN,
-    WORKSPACE_WRITER_TOKEN,
     WORKSPACE_QUERY_TOKEN,
   ],
 })

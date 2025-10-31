@@ -5,11 +5,6 @@ import {
   Controller,
   Get,
   Query,
-  Post,
-  Body,
-  Put,
-  HttpStatus,
-  HttpCode,
   Param,
   UseInterceptors,
   UseGuards,
@@ -17,33 +12,21 @@ import {
 import {
   ApiTags,
   ApiOperation,
-  ApiResponse,
-  ApiCreatedResponse,
-  ApiBody,
-  ApiHeader,
   ApiParam,
   ApiOkResponse,
   ApiBearerAuth,
 } from '@nestjs/swagger';
-import { IdempotencyKey } from 'src/shared/interfaces/decorators';
-import { IdempotencyKeyPipe } from 'src/shared/interfaces/pipes';
 import { ChannelApplicationService } from '../../../application/services';
 import { CurrentUser, IUserToken, JwtAuthGuard } from 'src/shared/security';
 import {
   DetailChannelResponse,
-  CreateChannelRequest,
-  UpdateChannelRequest,
   ChannelPageResponse,
   ListChannelFilterRequest,
   ListChannelResponse,
 } from '../../../application/dtos';
 import { Result, ResultInterceptor, DomainError } from 'src/shared/errors';
 import { PaginatedResponse } from 'src/shared/application/dtos';
-import {
-  ChannelReadResource,
-  ChannelCreateResource,
-  ChannelUpdateResource,
-} from '../../channel.resource';
+import { ChannelReadResource } from '../../channel.resource';
 import { ApiCommonErrors } from 'src/shared/interfaces/http';
 
 @Controller('channels')
@@ -104,101 +87,6 @@ export class ChannelController {
     const result = await this.channelApplicationService.getChannelById(
       user,
       code,
-    );
-
-    return result;
-  }
-  // ========================================
-  // Core CRUD Operations
-  // ========================================
-
-  @Post()
-  @ChannelCreateResource()
-  @HttpCode(HttpStatus.CREATED)
-  @ApiOperation({
-    summary: 'Create a new Channel',
-    description:
-      'Creates a new Channel in the catalog. Requires CREATE permission (MEDIUM risk).',
-  })
-  @ApiHeader({
-    name: 'Idempotency-Key',
-    required: false,
-    description:
-      'Ensures the request is processed only once. Accepts both Idempotency-Key and x-idempotency-key headers.',
-  })
-  @ApiCreatedResponse({
-    type: DetailChannelResponse,
-    description: 'Channel successfully created',
-    headers: {
-      Location: {
-        description: 'URI of the newly created resource',
-        schema: {
-          type: 'string',
-          example: '/channels/123e4567-e89b-12d3-a456-426614174000',
-        },
-      },
-    },
-  })
-  @ApiCommonErrors()
-  @ApiBody({ type: CreateChannelRequest })
-  async create(
-    @CurrentUser() user: IUserToken,
-    @Body() createChannelRequest: CreateChannelRequest,
-    @IdempotencyKey(new IdempotencyKeyPipe())
-    idempotencyKey: string | undefined,
-  ): Promise<Result<DetailChannelResponse, DomainError>> {
-    // idempotencyKey is validated by the IdempotencyKeyPipe
-
-    // Call service with options including idempotency key
-    const result = await this.channelApplicationService.createChannel(
-      user,
-      createChannelRequest,
-      {
-        idempotencyKey,
-      },
-    );
-
-    return result;
-  }
-
-  @Put(':code')
-  @ChannelUpdateResource()
-  @ApiOperation({
-    summary: 'Update a Channel',
-    description:
-      'Updates an existing Channel with new data. Supports partial updates. Requires UPDATE permission (MEDIUM risk).',
-  })
-  @ApiParam({
-    name: 'code',
-    type: 'string',
-    description: 'Channel unique identifier',
-    example: 'C01EXAMPLE001',
-  })
-  @ApiResponse({
-    status: HttpStatus.OK,
-    description: 'Channel updated successfully',
-    type: DetailChannelResponse,
-  })
-  @ApiCommonErrors({
-    include422: true,
-    extra: [
-      { status: 429, description: 'Too Many Requests' },
-      { status: 503, description: 'Upstream dependency unavailable' },
-    ],
-  })
-  @ApiBody({
-    type: UpdateChannelRequest,
-    description: 'Channel update data. Only provided fields will be updated.',
-  })
-  async update(
-    @CurrentUser() user: IUserToken,
-    @Param('code') code: string,
-    @Body() updateChannelRequest: UpdateChannelRequest,
-  ): Promise<Result<DetailChannelResponse, DomainError>> {
-    const result = await this.channelApplicationService.updateChannel(
-      user,
-      code,
-      updateChannelRequest,
     );
 
     return result;

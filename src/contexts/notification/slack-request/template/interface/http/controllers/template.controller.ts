@@ -5,11 +5,6 @@ import {
   Controller,
   Get,
   Query,
-  Post,
-  Body,
-  Put,
-  HttpStatus,
-  HttpCode,
   Param,
   UseInterceptors,
   UseGuards,
@@ -17,33 +12,21 @@ import {
 import {
   ApiTags,
   ApiOperation,
-  ApiResponse,
-  ApiCreatedResponse,
-  ApiBody,
-  ApiHeader,
   ApiParam,
   ApiOkResponse,
   ApiBearerAuth,
 } from '@nestjs/swagger';
-import { IdempotencyKey } from 'src/shared/interfaces/decorators';
-import { IdempotencyKeyPipe } from 'src/shared/interfaces/pipes';
 import { TemplateApplicationService } from '../../../application/services';
 import { CurrentUser, IUserToken, JwtAuthGuard } from 'src/shared/security';
 import {
   DetailTemplateResponse,
-  CreateTemplateRequest,
-  UpdateTemplateRequest,
   TemplatePageResponse,
   ListTemplateFilterRequest,
   ListTemplateResponse,
 } from '../../../application/dtos';
 import { Result, ResultInterceptor, DomainError } from 'src/shared/errors';
 import { PaginatedResponse } from 'src/shared/application/dtos';
-import {
-  TemplateReadResource,
-  TemplateCreateResource,
-  TemplateUpdateResource,
-} from '../../template.resource';
+import { TemplateReadResource } from '../../template.resource';
 import { ApiCommonErrors } from 'src/shared/interfaces/http';
 
 @Controller('templates')
@@ -104,101 +87,6 @@ export class TemplateController {
     const result = await this.templateApplicationService.getTemplateById(
       user,
       code,
-    );
-
-    return result;
-  }
-  // ========================================
-  // Core CRUD Operations
-  // ========================================
-
-  @Post()
-  @TemplateCreateResource()
-  @HttpCode(HttpStatus.CREATED)
-  @ApiOperation({
-    summary: 'Create a new Template',
-    description:
-      'Creates a new Template in the catalog. Requires CREATE permission (MEDIUM risk).',
-  })
-  @ApiHeader({
-    name: 'Idempotency-Key',
-    required: false,
-    description:
-      'Ensures the request is processed only once. Accepts both Idempotency-Key and x-idempotency-key headers.',
-  })
-  @ApiCreatedResponse({
-    type: DetailTemplateResponse,
-    description: 'Template successfully created',
-    headers: {
-      Location: {
-        description: 'URI of the newly created resource',
-        schema: {
-          type: 'string',
-          example: '/templates/123e4567-e89b-12d3-a456-426614174000',
-        },
-      },
-    },
-  })
-  @ApiCommonErrors()
-  @ApiBody({ type: CreateTemplateRequest })
-  async create(
-    @CurrentUser() user: IUserToken,
-    @Body() createTemplateRequest: CreateTemplateRequest,
-    @IdempotencyKey(new IdempotencyKeyPipe())
-    idempotencyKey: string | undefined,
-  ): Promise<Result<DetailTemplateResponse, DomainError>> {
-    // idempotencyKey is validated by the IdempotencyKeyPipe
-
-    // Call service with options including idempotency key
-    const result = await this.templateApplicationService.createTemplate(
-      user,
-      createTemplateRequest,
-      {
-        idempotencyKey,
-      },
-    );
-
-    return result;
-  }
-
-  @Put(':code')
-  @TemplateUpdateResource()
-  @ApiOperation({
-    summary: 'Update a Template',
-    description:
-      'Updates an existing Template with new data. Supports partial updates. Requires UPDATE permission (MEDIUM risk).',
-  })
-  @ApiParam({
-    name: 'code',
-    type: 'string',
-    description: 'Template unique identifier',
-    example: 'payment_failure_alert',
-  })
-  @ApiResponse({
-    status: HttpStatus.OK,
-    description: 'Template updated successfully',
-    type: DetailTemplateResponse,
-  })
-  @ApiCommonErrors({
-    include422: true,
-    extra: [
-      { status: 429, description: 'Too Many Requests' },
-      { status: 503, description: 'Upstream dependency unavailable' },
-    ],
-  })
-  @ApiBody({
-    type: UpdateTemplateRequest,
-    description: 'Template update data. Only provided fields will be updated.',
-  })
-  async update(
-    @CurrentUser() user: IUserToken,
-    @Param('code') code: string,
-    @Body() updateTemplateRequest: UpdateTemplateRequest,
-  ): Promise<Result<DetailTemplateResponse, DomainError>> {
-    const result = await this.templateApplicationService.updateTemplate(
-      user,
-      code,
-      updateTemplateRequest,
     );
 
     return result;
