@@ -5,15 +5,15 @@ import {
   WorkspaceAppId,
   WorkspaceBotToken,
   WorkspaceBotUserId,
+  WorkspaceCode,
   WorkspaceDefaultChannelId,
   WorkspaceEnabled,
-  WorkspaceId,
   WorkspaceName,
   WorkspaceSigningSecret,
 } from '../value-objects';
 
 export interface ValidatedWorkspaceUpdateFields {
-  id?: WorkspaceId;
+  code?: WorkspaceCode;
   name?: WorkspaceName;
   botToken?: WorkspaceBotToken;
   signingSecret?: WorkspaceSigningSecret;

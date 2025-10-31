@@ -7,9 +7,9 @@
  * Same shape as Created event for consistent replayability
  */
 export interface ChannelUpdatedEventPayload {
-  id: string;
+  code: string;
   name: string;
-  workspaceId: string;
+  workspaceCode: string;
   isPrivate: boolean;
   isDm: boolean;
   topic?: string;
@@ -35,16 +35,16 @@ export class ChannelUpdatedEvent {
     return new ChannelUpdatedEvent(data);
   }
 
-  get id(): string {
-    return this.payload.id;
+  get code(): string {
+    return this.payload.code;
   }
 
   get name(): string {
     return this.payload.name;
   }
 
-  get workspaceId(): string {
-    return this.payload.workspaceId;
+  get workspaceCode(): string {
+    return this.payload.workspaceCode;
   }
 
   get isPrivate(): boolean {

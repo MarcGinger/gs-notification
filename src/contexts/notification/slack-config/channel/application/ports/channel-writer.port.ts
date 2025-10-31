@@ -5,7 +5,7 @@ import { Result, DomainError } from 'src/shared/errors';
 import { ActorContext } from 'src/shared/application/context';
 import { SaveReceipt } from 'src/shared/infrastructure/repositories';
 import { ChannelAggregate } from '../../domain/aggregates';
-import { ChannelId } from '../../domain/value-objects';
+import { ChannelCode } from '../../domain/value-objects';
 
 /**
  * Token for injecting IChannelWriter port implementation
@@ -45,11 +45,11 @@ export interface IChannelWriter {
   /**
    * Delete a Channel by its unique identifier
    * @param user - The authenticated user context
-   * @param id - The unique identifier of the Channel to delete
+   * @param code - The unique identifier of the Channel to delete
    * @returns Result indicating success or domain error
    */
   delete(
     actor: ActorContext,
-    id: ChannelId,
+    code: ChannelCode,
   ): Promise<Result<SaveReceipt, DomainError>>;
 }

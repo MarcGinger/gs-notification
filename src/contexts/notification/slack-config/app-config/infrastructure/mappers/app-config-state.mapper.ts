@@ -9,17 +9,17 @@
  */
 
 import {
-  AppConfigCreatedAt,
-  AppConfigUpdatedAt,
-  AppConfigVersion,
-  AppConfigId,
-  AppConfigWorkspaceId,
+  AppConfigCode,
+  AppConfigWorkspaceCode,
   AppConfigMaxRetryAttempts,
   AppConfigRetryBackoffSeconds,
   AppConfigDefaultLocale,
   AppConfigLoggingEnabled,
   AppConfigAuditChannelId,
   AppConfigMetadata,
+  AppConfigCreatedAt,
+  AppConfigUpdatedAt,
+  AppConfigVersion,
 } from '../../domain/value-objects';
 import { Result, ok, err, DomainError } from 'src/shared/errors';
 import { AppConfigDomainState } from '../../domain/state/app-config.state';
@@ -57,10 +57,10 @@ export class AppConfigStateMapper {
     };
 
     // Convert each primitive to its corresponding VO with error collection
-    const id = validateField('id', AppConfigId.from(snapshot.id));
-    const workspaceId = validateField(
-      'workspaceId',
-      AppConfigWorkspaceId.from(snapshot.workspaceId),
+    const code = validateField('code', AppConfigCode.from(snapshot.code));
+    const workspaceCode = validateField(
+      'workspaceCode',
+      AppConfigWorkspaceCode.from(snapshot.workspaceCode),
     );
     const maxRetryAttempts = validateField(
       'maxRetryAttempts',
@@ -114,15 +114,15 @@ export class AppConfigStateMapper {
             errorCode: e.error.code,
             errorMessage: e.error.detail,
           })),
-          snapshotCode: snapshot.id,
+          snapshotCode: snapshot.code,
         },
       });
     }
 
     // All validations passed, construct the rich domain state
     const domainState: AppConfigDomainState = {
-      id: id!,
-      workspaceId: workspaceId!,
+      code: code!,
+      workspaceCode: workspaceCode!,
       maxRetryAttempts: maxRetryAttempts!,
       retryBackoffSeconds: retryBackoffSeconds!,
       defaultLocale: defaultLocale!,
@@ -146,8 +146,8 @@ export class AppConfigStateMapper {
   static toSnapshot(domainState: AppConfigDomainState): AppConfigSnapshotProps {
     return {
       // Extract primitive values from VOs
-      id: domainState.id.value,
-      workspaceId: domainState.workspaceId.value,
+      code: domainState.code.value,
+      workspaceCode: domainState.workspaceCode.value,
       maxRetryAttempts: domainState.maxRetryAttempts.value,
       retryBackoffSeconds: domainState.retryBackoffSeconds.value,
       defaultLocale: domainState.defaultLocale.value,

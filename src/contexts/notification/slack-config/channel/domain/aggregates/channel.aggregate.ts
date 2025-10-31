@@ -10,7 +10,7 @@ import { ChannelEntity } from '../entities';
 import { ChannelSnapshotProps } from '../props';
 import { ValidatedChannelUpdateFields } from '../types';
 import {
-  ChannelId,
+  ChannelCode,
   createChannelCreatedAt,
   createChannelUpdatedAt,
   createdAtNow,
@@ -135,9 +135,9 @@ export class ChannelAggregate extends AggregateRootBase {
 
     // Create typed ChannelCreatedEvent with only business data
     const createdEvent = ChannelCreatedEvent.create({
-      id: entityProps.id.value,
+      code: entityProps.code.value,
       name: entityProps.name.value,
-      workspaceId: entityProps.workspaceId.value,
+      workspaceCode: entityProps.workspaceCode.value,
       isPrivate: entityProps.isPrivate.value,
       isDm: entityProps.isDm.value,
       topic: entityProps.topic?.value,
@@ -151,7 +151,7 @@ export class ChannelAggregate extends AggregateRootBase {
       type: createdEvent.eventType,
       version: Number(createdEvent.eventVersion),
       occurredAt: clock.now(),
-      aggregateId: entityProps.id.value,
+      aggregateId: entityProps.code.value,
       aggregateType: 'Channel',
       data: createdEvent.payload,
       metadata: eventMetadata,
@@ -190,9 +190,9 @@ export class ChannelAggregate extends AggregateRootBase {
       case 'NotificationSlackConfigChannelUpdated.v1': {
         // Both events now have the same domain shape - simple merge
         const d = event.data as {
-          id: string;
+          code: string;
           name: string;
-          workspaceId: string;
+          workspaceCode: string;
           isPrivate: boolean;
           isDm: boolean;
           topic?: string;
@@ -206,9 +206,9 @@ export class ChannelAggregate extends AggregateRootBase {
         const currentSnapshot = this._entity?.toSnapshot() || {};
 
         const entityResult = ChannelEntity.fromSnapshot({
-          id: d.id,
+          code: d.code,
           name: d.name,
-          workspaceId: d.workspaceId,
+          workspaceCode: d.workspaceCode,
           isPrivate: d.isPrivate,
           isDm: d.isDm,
           topic: d.topic,
@@ -254,7 +254,7 @@ export class ChannelAggregate extends AggregateRootBase {
         retryable: false,
         context: {
           originalError: entityResult.error,
-          snapshotCode: snapshot.id,
+          snapshotCode: snapshot.code,
         },
       });
     }
@@ -291,8 +291,8 @@ export class ChannelAggregate extends AggregateRootBase {
   /**
    * Get the aggregate ID (required for aggregate identity)
    */
-  public get id(): ChannelId {
-    return this._entity.id;
+  public get id(): ChannelCode {
+    return this._entity.code;
   }
 
   /**
@@ -321,9 +321,12 @@ export class ChannelAggregate extends AggregateRootBase {
         return true;
       }
     }
-    if (validatedFields.workspaceId !== undefined) {
+    if (validatedFields.workspaceCode !== undefined) {
       if (
-        hasValueChanged(this._entity.workspaceId, validatedFields.workspaceId)
+        hasValueChanged(
+          this._entity.workspaceCode,
+          validatedFields.workspaceCode,
+        )
       ) {
         return true;
       }
@@ -398,7 +401,7 @@ export class ChannelAggregate extends AggregateRootBase {
         context: {
           expected: expectedVersion,
           actual: this._entity.version.value,
-          aggregateId: this._entity.id.value,
+          aggregateId: this._entity.code.value,
         },
       });
     }
@@ -448,9 +451,9 @@ export class ChannelAggregate extends AggregateRootBase {
       currentEntity = entityResult.value;
     }
 
-    if (validatedFields.workspaceId !== undefined) {
-      const entityResult = currentEntity.withWorkspaceId(
-        validatedFields.workspaceId,
+    if (validatedFields.workspaceCode !== undefined) {
+      const entityResult = currentEntity.withWorkspaceCode(
+        validatedFields.workspaceCode,
         updatedAt,
         nextVersion,
       );
@@ -523,9 +526,9 @@ export class ChannelAggregate extends AggregateRootBase {
 
     // Create domain-shaped update event (same structure as created event)
     const updatedEvent = ChannelUpdatedEvent.create({
-      id: this._entity.id.value,
+      code: this._entity.code.value,
       name: this._entity.name.value,
-      workspaceId: this._entity.workspaceId.value,
+      workspaceCode: this._entity.workspaceCode.value,
       isPrivate: this._entity.isPrivate.value,
       isDm: this._entity.isDm.value,
       topic: this._entity.topic?.value,
@@ -539,7 +542,7 @@ export class ChannelAggregate extends AggregateRootBase {
       type: updatedEvent.eventType,
       version: Number(updatedEvent.eventVersion),
       occurredAt: updatedAt,
-      aggregateId: this._entity.id.value,
+      aggregateId: this._entity.code.value,
       aggregateType: 'Channel',
       data: updatedEvent.payload,
       metadata: this.eventMetadata,
@@ -567,7 +570,7 @@ export class ChannelAggregate extends AggregateRootBase {
       type: 'ChannelDeleted',
       version: 1,
       occurredAt: deletedAtResult.value.value, // Extract Date from VO
-      aggregateId: this._entity.id.value,
+      aggregateId: this._entity.code.value,
       aggregateType: 'Channel',
     };
 

@@ -7,18 +7,18 @@ import { ChannelSnapshotProps } from '../props';
 import { ChannelDomainState } from '../state';
 import { ChannelErrors } from '../errors/channel.errors';
 import {
+  ChannelCode,
   ChannelCreatedAt,
   ChannelUpdatedAt,
   ChannelVersion,
   ChannelEnabled,
-  ChannelId,
   ChannelIsDm,
   ChannelIsPrivate,
   ChannelName,
   ChannelPurpose,
   ChannelSubscribedEvents,
   ChannelTopic,
-  ChannelWorkspaceId,
+  ChannelWorkspaceCode,
 } from '../value-objects';
 
 /**
@@ -28,7 +28,7 @@ import {
  * Encapsulates channel data, identity, and basic entity behavior.
  *
  * This entity follows DDD principles:
- * - Identity: Id as unique identifier
+ * - Identity: Code as unique identifier
  * - Immutability: Changes create new instances
  * - Encapsulation: Private state with controlled access
  * - Business validation: Domain rules enforced
@@ -43,7 +43,10 @@ import {
  * Core domain entity representing a channel in the notification.
  * Handles channel identity, validation, and state management.
  */
-export class ChannelEntity extends EntityIdBase<ChannelDomainState, ChannelId> {
+export class ChannelEntity extends EntityIdBase<
+  ChannelDomainState,
+  ChannelCode
+> {
   private static clock: { now: () => Date } = { now: () => new Date() };
 
   public static setClock(c: { now: () => Date }) {
@@ -111,7 +114,7 @@ export class ChannelEntity extends EntityIdBase<ChannelDomainState, ChannelId> {
   }
 
   private constructor(props: ChannelDomainState) {
-    super(props, props.id);
+    super(props, props.code);
   }
 
   /**
@@ -151,17 +154,19 @@ export class ChannelEntity extends EntityIdBase<ChannelDomainState, ChannelId> {
   public static fromSnapshot(
     snapshot: ChannelSnapshotProps,
   ): Result<ChannelEntity, DomainError> {
-    const idResult = ChannelId.from(snapshot.id);
-    if (!idResult.ok) {
-      return err(idResult.error);
+    const codeResult = ChannelCode.from(snapshot.code);
+    if (!codeResult.ok) {
+      return err(codeResult.error);
     }
     const nameResult = ChannelName.from(snapshot.name);
     if (!nameResult.ok) {
       return err(nameResult.error);
     }
-    const workspaceIdResult = ChannelWorkspaceId.from(snapshot.workspaceId);
-    if (!workspaceIdResult.ok) {
-      return err(workspaceIdResult.error);
+    const workspaceCodeResult = ChannelWorkspaceCode.from(
+      snapshot.workspaceCode,
+    );
+    if (!workspaceCodeResult.ok) {
+      return err(workspaceCodeResult.error);
     }
     const isPrivateResult = ChannelIsPrivate.from(snapshot.isPrivate);
     if (!isPrivateResult.ok) {
@@ -205,9 +210,9 @@ export class ChannelEntity extends EntityIdBase<ChannelDomainState, ChannelId> {
     }
 
     const props: ChannelDomainState = {
-      id: idResult.value,
+      code: codeResult.value,
       name: nameResult.value,
-      workspaceId: workspaceIdResult.value,
+      workspaceCode: workspaceCodeResult.value,
       isPrivate: isPrivateResult.value,
       isDm: isDmResult.value,
       topic: topicResult.value,
@@ -232,14 +237,14 @@ export class ChannelEntity extends EntityIdBase<ChannelDomainState, ChannelId> {
     props: ChannelDomainState,
   ): Result<void, DomainError> {
     // Basic validation
-    if (!props.id) {
-      return err(ChannelErrors.INVALID_ID_DATA);
+    if (!props.code) {
+      return err(ChannelErrors.INVALID_CODE_DATA);
     }
     if (!props.name) {
       return err(ChannelErrors.INVALID_NAME_DATA);
     }
-    if (!props.workspaceId) {
-      return err(ChannelErrors.INVALID_WORKSPACE_ID_DATA);
+    if (!props.workspaceCode) {
+      return err(ChannelErrors.INVALID_WORKSPACE_CODE_DATA);
     }
     if (!props.isPrivate) {
       return err(ChannelErrors.INVALID_IS_PRIVATE_DATA);
@@ -258,16 +263,16 @@ export class ChannelEntity extends EntityIdBase<ChannelDomainState, ChannelId> {
   // Getters (Public API)
   // ======================
 
-  public get id(): ChannelId {
-    return this.props.id;
+  public get code(): ChannelCode {
+    return this.props.code;
   }
 
   public get name(): ChannelName {
     return this.props.name;
   }
 
-  public get workspaceId(): ChannelWorkspaceId {
-    return this.props.workspaceId;
+  public get workspaceCode(): ChannelWorkspaceCode {
+    return this.props.workspaceCode;
   }
 
   public get isPrivate(): ChannelIsPrivate {
@@ -326,18 +331,18 @@ export class ChannelEntity extends EntityIdBase<ChannelDomainState, ChannelId> {
   }
 
   /**
-   * Creates a new entity with updated workspaceId (pure state transition)
+   * Creates a new entity with updated workspaceCode (pure state transition)
    *
-   * @param workspaceId - New workspace_id value
+   * @param workspaceCode - New workspace_code value
    * @param updatedAt - Optional timestamp (uses clock if not provided)
    * @returns Result<ChannelEntity, DomainError>
    */
-  public withWorkspaceId(
-    workspaceId: ChannelWorkspaceId,
+  public withWorkspaceCode(
+    workspaceCode: ChannelWorkspaceCode,
     updatedAt?: Date,
     version?: number,
   ): Result<ChannelEntity, DomainError> {
-    return this.createUpdatedEntity({ workspaceId }, updatedAt, version);
+    return this.createUpdatedEntity({ workspaceCode }, updatedAt, version);
   }
 
   /**
@@ -440,7 +445,7 @@ export class ChannelEntity extends EntityIdBase<ChannelDomainState, ChannelId> {
    * @param other - Other channel to compare
    */
   public sameAs(other: ChannelEntity): boolean {
-    return this.props.id.equals(other.props.id);
+    return this.props.code.equals(other.props.code);
   }
 
   /**
@@ -448,9 +453,9 @@ export class ChannelEntity extends EntityIdBase<ChannelDomainState, ChannelId> {
    */
   public toSnapshot(): ChannelSnapshotProps {
     return {
-      id: this.props.id.value,
+      code: this.props.code.value,
       name: this.props.name.value,
-      workspaceId: this.props.workspaceId.value,
+      workspaceCode: this.props.workspaceCode.value,
       isPrivate: this.props.isPrivate.value,
       isDm: this.props.isDm.value,
       topic: this.props.topic?.value,

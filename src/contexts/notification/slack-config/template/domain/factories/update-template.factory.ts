@@ -9,7 +9,7 @@ import { TemplateEntity } from '../entities';
 import { TemplateSnapshotProps, UpdateTemplateProps } from '../props';
 import { ValidatedTemplateUpdateFields } from '../types';
 import {
-  TemplateWorkspaceId,
+  TemplateWorkspaceCode,
   TemplateName,
   TemplateDescription,
   TemplateContentBlocks,
@@ -60,20 +60,22 @@ export function updateTemplateAggregateFromSnapshot(
   // 2. Validate and apply updates for each provided field
   const validatedFields: ValidatedTemplateUpdateFields = {};
 
-  // Validate workspaceId if provided
-  if (updateProps.workspaceId !== undefined) {
-    const workspaceIdResult = TemplateWorkspaceId.from(updateProps.workspaceId);
-    if (!workspaceIdResult.ok) {
+  // Validate workspaceCode if provided
+  if (updateProps.workspaceCode !== undefined) {
+    const workspaceCodeResult = TemplateWorkspaceCode.from(
+      updateProps.workspaceCode,
+    );
+    if (!workspaceCodeResult.ok) {
       return err(
-        withContext(workspaceIdResult.error, {
-          operation: 'update_template_workspace_id_validation',
+        withContext(workspaceCodeResult.error, {
+          operation: 'update_template_workspace_code_validation',
           correlationId: metadata.correlationId,
           userId: metadata.actor?.userId,
-          providedWorkspaceId: updateProps.workspaceId,
+          providedWorkspaceCode: updateProps.workspaceCode,
         }),
       );
     }
-    validatedFields.workspaceId = workspaceIdResult.value;
+    validatedFields.workspaceCode = workspaceCodeResult.value;
   }
 
   // Validate name if provided

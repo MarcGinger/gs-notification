@@ -10,12 +10,12 @@ import {
   WorkspaceAppId,
   WorkspaceBotToken,
   WorkspaceBotUserId,
+  WorkspaceCode,
   WorkspaceCreatedAt,
   WorkspaceUpdatedAt,
   WorkspaceVersion,
   WorkspaceDefaultChannelId,
   WorkspaceEnabled,
-  WorkspaceId,
   WorkspaceName,
   WorkspaceSigningSecret,
 } from '../value-objects';
@@ -27,7 +27,7 @@ import {
  * Encapsulates workspace data, identity, and basic entity behavior.
  *
  * This entity follows DDD principles:
- * - Identity: Id as unique identifier
+ * - Identity: Code as unique identifier
  * - Immutability: Changes create new instances
  * - Encapsulation: Private state with controlled access
  * - Business validation: Domain rules enforced
@@ -44,7 +44,7 @@ import {
  */
 export class WorkspaceEntity extends EntityIdBase<
   WorkspaceDomainState,
-  WorkspaceId
+  WorkspaceCode
 > {
   private static clock: { now: () => Date } = { now: () => new Date() };
 
@@ -113,7 +113,7 @@ export class WorkspaceEntity extends EntityIdBase<
   }
 
   private constructor(props: WorkspaceDomainState) {
-    super(props, props.id);
+    super(props, props.code);
   }
 
   /**
@@ -153,9 +153,9 @@ export class WorkspaceEntity extends EntityIdBase<
   public static fromSnapshot(
     snapshot: WorkspaceSnapshotProps,
   ): Result<WorkspaceEntity, DomainError> {
-    const idResult = WorkspaceId.from(snapshot.id);
-    if (!idResult.ok) {
-      return err(idResult.error);
+    const codeResult = WorkspaceCode.from(snapshot.code);
+    if (!codeResult.ok) {
+      return err(codeResult.error);
     }
     const nameResult = WorkspaceName.from(snapshot.name);
     if (!nameResult.ok) {
@@ -205,7 +205,7 @@ export class WorkspaceEntity extends EntityIdBase<
     }
 
     const props: WorkspaceDomainState = {
-      id: idResult.value,
+      code: codeResult.value,
       name: nameResult.value,
       botToken: botTokenResult.value,
       signingSecret: signingSecretResult.value,
@@ -231,8 +231,8 @@ export class WorkspaceEntity extends EntityIdBase<
     props: WorkspaceDomainState,
   ): Result<void, DomainError> {
     // Basic validation
-    if (!props.id) {
-      return err(WorkspaceErrors.INVALID_ID_DATA);
+    if (!props.code) {
+      return err(WorkspaceErrors.INVALID_CODE_DATA);
     }
     if (!props.name) {
       return err(WorkspaceErrors.INVALID_NAME_DATA);
@@ -248,8 +248,8 @@ export class WorkspaceEntity extends EntityIdBase<
   // Getters (Public API)
   // ======================
 
-  public get id(): WorkspaceId {
-    return this.props.id;
+  public get code(): WorkspaceCode {
+    return this.props.code;
   }
 
   public get name(): WorkspaceName {
@@ -411,7 +411,7 @@ export class WorkspaceEntity extends EntityIdBase<
    * @param other - Other workspace to compare
    */
   public sameAs(other: WorkspaceEntity): boolean {
-    return this.props.id.equals(other.props.id);
+    return this.props.code.equals(other.props.code);
   }
 
   /**
@@ -419,7 +419,7 @@ export class WorkspaceEntity extends EntityIdBase<
    */
   public toSnapshot(): WorkspaceSnapshotProps {
     return {
-      id: this.props.id.value,
+      code: this.props.code.value,
       name: this.props.name.value,
       botToken: this.props.botToken?.value,
       signingSecret: this.props.signingSecret?.value,

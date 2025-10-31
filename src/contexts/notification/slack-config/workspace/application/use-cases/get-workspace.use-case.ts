@@ -88,7 +88,7 @@ export class GetWorkspaceUseCase implements IGetWorkspaceUseCase {
 
   async execute(params: {
     user: IUserToken;
-    id: string;
+    code: string;
     correlationId: string;
   }): Promise<Result<DetailWorkspaceResponse, DomainError>> {
     const operation = 'get_workspace';
@@ -97,7 +97,7 @@ export class GetWorkspaceUseCase implements IGetWorkspaceUseCase {
 
     // Step 1: Extract raw properties for domain logic (no PII protection at domain level)
     const rawProps = {
-      id: params.id,
+      code: params.code,
     };
 
     // Step 2: Create safe logging context (no PII, deferred retention metadata)
@@ -107,7 +107,7 @@ export class GetWorkspaceUseCase implements IGetWorkspaceUseCase {
       operation,
       params as any, // Query doesn't extend BaseUseCaseCommand but has similar structure
       {
-        workspaceId: rawProps.id,
+        workspaceCode: rawProps.code,
         operationRisk: UseCaseLoggingUtil.assessOperationRisk(operation),
         readOperation: true,
         cacheEnabled: true,
@@ -127,7 +127,7 @@ export class GetWorkspaceUseCase implements IGetWorkspaceUseCase {
     // Step 1: Check authorization first
     const authResult = await this.authorizationService.canReadResource(
       params.user.sub,
-      params.id, // Using id as workspace identifier
+      params.code, // Using code as workspace identifier
       correlationId,
       {
         tenant: params.user.tenant,
@@ -154,7 +154,7 @@ export class GetWorkspaceUseCase implements IGetWorkspaceUseCase {
         category: 'security' as const,
         context: {
           userId: params.user.sub,
-          workspaceId: params.id,
+          workspaceCode: params.code,
           operation: 'read',
         },
       };
@@ -170,16 +170,16 @@ export class GetWorkspaceUseCase implements IGetWorkspaceUseCase {
 
     // Step 2: Simple validation for query-side operations (CQRS compliant)
     if (
-      !params.id ||
-      typeof params.id !== 'string' ||
-      params.id.trim().length === 0
+      !params.code ||
+      typeof params.code !== 'string' ||
+      params.code.trim().length === 0
     ) {
       const validationError = {
         code: 'WORKSPACE.INVALID_THE_CODE' as const,
-        title: 'Invalid workspace id',
+        title: 'Invalid workspace code',
         category: 'validation' as const,
         context: {
-          id: params.id,
+          code: params.code,
           correlationId,
           userId: params.user.sub,
           operation: 'get_workspace',
@@ -212,7 +212,7 @@ export class GetWorkspaceUseCase implements IGetWorkspaceUseCase {
         correlationId,
         userId: params.user.sub,
         operation: 'get_workspace',
-        id: params.id,
+        code: params.code,
       });
       UseCaseLoggingUtil.logOperationError(
         this.logger,
@@ -227,7 +227,7 @@ export class GetWorkspaceUseCase implements IGetWorkspaceUseCase {
 
     const workspaceResult = await this.query.findById(
       actor,
-      params.id,
+      params.code,
       repositoryOptions,
     );
 
@@ -236,7 +236,7 @@ export class GetWorkspaceUseCase implements IGetWorkspaceUseCase {
         correlationId,
         userId: params.user.sub,
         operation: 'get_workspace',
-        id: params.id,
+        code: params.code,
       });
       UseCaseLoggingUtil.logOperationError(
         this.logger,
@@ -256,10 +256,10 @@ export class GetWorkspaceUseCase implements IGetWorkspaceUseCase {
     // Step 5.1: Return 404 error if workspace not found
     if (!workspaceDto) {
       const notFoundError = withContext(WorkspaceErrors.WORKSPACE_NOT_FOUND, {
-        id: params.id,
+        code: params.code,
         name: '', // Default values for required fields
         enabled: false, // Default values for required fields
-        workspaceId: params.id,
+        workspaceCode: params.code,
         correlationId,
         userId: params.user.sub,
         operation: 'get_workspace',
@@ -306,7 +306,7 @@ export class GetWorkspaceUseCase implements IGetWorkspaceUseCase {
       {
         executionTimeMs: executionTime,
         businessData: {
-          workspaceId: params.id,
+          workspaceCode: params.code,
           found: true,
           cacheEnabled: true,
           cacheTtl: repositoryOptions.cache?.ttl,

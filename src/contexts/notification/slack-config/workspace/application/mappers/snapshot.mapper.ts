@@ -16,7 +16,7 @@ export const mapWorkspaceSnapshotToDto = (
   snapshot: WorkspaceSnapshotProps,
 ): DetailWorkspaceResponse => {
   return {
-    id: snapshot.id,
+    code: snapshot.code,
     name: snapshot.name,
     botToken: snapshot.botToken,
     signingSecret: snapshot.signingSecret,

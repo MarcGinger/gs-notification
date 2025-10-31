@@ -7,8 +7,8 @@
  * Same shape as Created event for consistent replayability
  */
 export interface AppConfigUpdatedEventPayload {
-  id: number;
-  workspaceId: string;
+  code: string;
+  workspaceCode: string;
   maxRetryAttempts: number;
   retryBackoffSeconds: number;
   defaultLocale: string;
@@ -34,12 +34,12 @@ export class AppConfigUpdatedEvent {
     return new AppConfigUpdatedEvent(data);
   }
 
-  get id(): number {
-    return this.payload.id;
+  get code(): string {
+    return this.payload.code;
   }
 
-  get workspaceId(): string {
-    return this.payload.workspaceId;
+  get workspaceCode(): string {
+    return this.payload.workspaceCode;
   }
 
   get maxRetryAttempts(): number {

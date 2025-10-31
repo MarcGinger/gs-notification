@@ -2,8 +2,8 @@
 // REMOVE THIS COMMENT TO STOP AUTOMATIC UPDATES TO THIS BLOCK
 
 /**
- * AppConfig list request DTO with pagination and filtering
- * Combines standardized pagination with app-config-specific filters
+ * Channel list request DTO with pagination and filtering
+ * Combines standardized pagination with channel-specific filters
  * Now extends shared base classes for consistency across domains
  */
 
@@ -15,31 +15,36 @@ import {
 import { ApiListOf } from 'src/shared/application/decorators';
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import {
-  ApiAppConfigId,
-  ApiAppConfigListMeta,
-  ApiAppConfigWorkspaceId,
+  ApiChannelCode,
+  ApiChannelListMeta,
+  ApiChannelName,
+  ApiChannelWorkspaceCode,
 } from './decorators';
-import { ListAppConfigResponse } from './';
+import { ListChannelResponse } from './';
 /**
- * AppConfig list request DTO with pagination and filtering
- * Combines standardized pagination with app-config-specific filters
+ * Channel list request DTO with pagination and filtering
+ * Combines standardized pagination with channel-specific filters
  * Now extends shared base classes for consistency across domains
  *
  * Available sort fields:
- * - id: Sort by id (default: asc)
- * - workspaceId: Sort by workspaceId (default: asc)
+ * - code: Sort by code (default: asc)
+ * - name: Sort by name (default: asc)
+ * - workspaceCode: Sort by workspaceCode (default: asc)
  *
  * Example sortBy usage: {"code": "asc", "name": "desc"}
  */
-export class ListAppConfigFilterRequest extends BaseSortableListFilterRequest {
-  @ApiAppConfigId({ required: false })
-  id?: number;
+export class ListChannelFilterRequest extends BaseSortableListFilterRequest {
+  @ApiChannelCode({ required: false })
+  code?: string;
 
-  @ApiAppConfigWorkspaceId({ required: false })
-  workspaceId?: string;
+  @ApiChannelName({ required: false })
+  name?: string;
+
+  @ApiChannelWorkspaceCode({ required: false })
+  workspaceCode?: string;
 
   /**
-   * Override sortBy with app-config-specific schema for better Swagger documentation
+   * Override sortBy with channel-specific schema for better Swagger documentation
    */
   @ApiPropertyOptional({
     type: 'object',
@@ -47,16 +52,22 @@ export class ListAppConfigFilterRequest extends BaseSortableListFilterRequest {
     example: { code: 'asc', name: 'asc' },
     default: { code: 'asc', name: 'asc' },
     properties: {
-      Id: {
-        type: 'number',
-        enum: ['asc', 'desc'],
-        description: 'Sort by id',
-        default: 'asc',
-      },
-      WorkspaceId: {
+      Code: {
         type: 'string',
         enum: ['asc', 'desc'],
-        description: 'Sort by workspaceId',
+        description: 'Sort by code',
+        default: 'asc',
+      },
+      Name: {
+        type: 'string',
+        enum: ['asc', 'desc'],
+        description: 'Sort by name',
+        default: 'asc',
+      },
+      WorkspaceCode: {
+        type: 'string',
+        enum: ['asc', 'desc'],
+        description: 'Sort by workspaceCode',
         default: 'asc',
       },
     },
@@ -64,24 +75,30 @@ export class ListAppConfigFilterRequest extends BaseSortableListFilterRequest {
   })
   sortBy?: Record<string, 'asc' | 'desc'> = undefined;
   /**
-   * Define available sort fields for appConfigs
+   * Define available sort fields for channels
    * This method ensures type-safe sorting validation
    *
    * Available sort fields:
-   * - id: AppConfig id (sortable, default: asc)
-   * - workspaceId: AppConfig workspaceId (sortable, default: asc)
+   * - code: Channel code (sortable, default: asc)
+   * - name: Channel name (sortable, default: asc)
+   * - workspaceCode: Channel workspaceCode (sortable, default: asc)
    *
    * @returns Configuration object defining sortable fields and their properties
    */
   getSortFieldConfig(): SortFieldConfig {
     return {
-      id: {
-        description: 'AppConfig id',
+      code: {
+        description: 'Channel code',
         sortable: true,
         defaultDirection: 'asc' as const,
       },
-      workspaceId: {
-        description: 'AppConfig workspaceId',
+      name: {
+        description: 'Channel name',
+        sortable: true,
+        defaultDirection: 'asc' as const,
+      },
+      workspaceCode: {
+        description: 'Channel workspaceCode',
         sortable: true,
         defaultDirection: 'asc' as const,
       },
@@ -90,17 +107,17 @@ export class ListAppConfigFilterRequest extends BaseSortableListFilterRequest {
 }
 
 /**
- * AppConfig page response DTO with metadata for pagination
+ * Channel page response DTO with metadata for pagination
  * Extends the generic PagedResponse pattern while maintaining API compatibility
  */
-export class AppConfigPageResponse {
-  @ApiListOf(ListAppConfigResponse)
-  readonly data: ListAppConfigResponse[];
+export class ChannelPageResponse {
+  @ApiListOf(ListChannelResponse)
+  readonly data: ListChannelResponse[];
 
-  @ApiAppConfigListMeta()
+  @ApiChannelListMeta()
   readonly meta: PaginationMetaResponse;
 
-  constructor(data: ListAppConfigResponse[], meta: PaginationMetaResponse) {
+  constructor(data: ListChannelResponse[], meta: PaginationMetaResponse) {
     this.data = data;
     this.meta = meta;
   }
@@ -109,10 +126,10 @@ export class AppConfigPageResponse {
    * Static factory method for creating response instances
    */
   static create(
-    data: ListAppConfigResponse[],
+    data: ListChannelResponse[],
     meta: PaginationMetaResponse,
-  ): AppConfigPageResponse {
-    return new AppConfigPageResponse(data, meta);
+  ): ChannelPageResponse {
+    return new ChannelPageResponse(data, meta);
   }
 
   /**

@@ -9,16 +9,16 @@
 			"cols": [
 				{
 					"id": "da5d4788-4185-4bb4-9b78-dee1102fd58b",
-					"name": "id",
+					"name": "code",
 					"datatype": "VARCHAR",
-					"param": "64",
+					"param": "11",
 					"pk": true,
 					"nn": true,
 					"fk": false,
 					"comment": "Unique identifier for the Slack workspace/team, provided by Slack API during OAuth installation. This is the primary key linking all workspace-specific configurations.",
 					"defaultvalue": "",
 					"data": "T01EXAMPLE123",
-					"after": "",
+					"after": "min(10)",
 					"autoinc": false,
 					"collation": "",
 					"charset": "",
@@ -198,7 +198,7 @@
 			"indexes": [
 				{
 					"id": "fe43a53c-7498-4f16-80e3-fd4839b600b9",
-					"name": "workspace_ix_id",
+					"name": "workspace_ix_code",
 					"unique": false,
 					"fulltext": false,
 					"using": "na",
@@ -255,16 +255,16 @@
 			"cols": [
 				{
 					"id": "5b653803-b978-4195-adac-63584eb293c6",
-					"name": "id",
+					"name": "code",
 					"datatype": "VARCHAR",
-					"param": "64",
+					"param": "11",
 					"pk": true,
 					"nn": true,
 					"fk": false,
 					"comment": "Unique Slack channel identifier provided by Slack API. Used for all channel-specific operations including message posting and permissions validation.",
 					"defaultvalue": "",
 					"data": "C01EXAMPLE001",
-					"after": "",
+					"after": "min(10)",
 					"autoinc": false,
 					"collation": "",
 					"charset": "",
@@ -297,9 +297,9 @@
 				},
 				{
 					"id": "089bade0-4866-42b6-a2b3-f37e81997f07",
-					"name": "workspace_id",
+					"name": "workspace_code",
 					"datatype": "VARCHAR",
-					"param": "64",
+					"param": "11",
 					"pk": false,
 					"nn": true,
 					"fk": true,
@@ -410,7 +410,7 @@
 					"fk": false,
 					"comment": "Array of event types this channel subscribes to receive notifications for. Supports filtering and routing specific events to appropriate channels based on business rules.",
 					"defaultvalue": "",
-					"data": "\"user.created\", \"payment.failed\", \"system.error\"",
+					"data": "user.created,payment.failed,system.error",
 					"after": "array()",
 					"autoinc": false,
 					"collation": "",
@@ -460,7 +460,62 @@
 					]
 				}
 			],
-			"indexes": [],
+			"indexes": [
+				{
+					"id": "aa32a02f-a4a7-4b54-b163-e2a0180b47f5",
+					"name": "channel_ix_code",
+					"unique": false,
+					"fulltext": false,
+					"using": "na",
+					"algorithm": "na",
+					"lockoption": "na",
+					"cols": [
+						{
+							"id": "bc7175a9-2a5e-4451-ade3-b969a6f0edfe",
+							"colid": "5b653803-b978-4195-adac-63584eb293c6",
+							"mariadb": {
+								"desc": false
+							}
+						}
+					]
+				},
+				{
+					"id": "956de23d-6e1d-49fc-8c9f-0c2449e60c8b",
+					"name": "channel_ix_name",
+					"unique": false,
+					"fulltext": false,
+					"using": "na",
+					"algorithm": "na",
+					"lockoption": "na",
+					"cols": [
+						{
+							"id": "a24bb1eb-5b49-4ac2-a671-4177273b1016",
+							"colid": "a1b2c3d4-e5f6-7g8h-9i0j-1k2l3m4n5o6p",
+							"mariadb": {
+								"desc": false
+							}
+						}
+					]
+				},
+				{
+					"id": "3b4231e2-5d85-4f4b-ab1d-eae345d71957",
+					"name": "channel_ix_workspace_code",
+					"unique": false,
+					"fulltext": false,
+					"using": "na",
+					"algorithm": "na",
+					"lockoption": "na",
+					"cols": [
+						{
+							"id": "8511629f-b888-4ba9-bb01-82fd005b6ded",
+							"colid": "089bade0-4866-42b6-a2b3-f37e81997f07",
+							"mariadb": {
+								"desc": false
+							}
+						}
+					]
+				}
+			],
 			"embeddable": false,
 			"generate": true,
 			"generateCustomCode": true,
@@ -485,14 +540,14 @@
 					"id": "f40096a6-874d-4a99-be31-1eb353c50d90",
 					"name": "code",
 					"datatype": "VARCHAR",
-					"param": "64",
+					"param": "11",
 					"pk": true,
 					"nn": true,
 					"fk": false,
 					"comment": "Unique template identifier used for programmatic template selection. Must follow snake_case naming convention for consistency with application code.",
 					"defaultvalue": "",
 					"data": "payment_failure_alert",
-					"after": "",
+					"after": "min(10)",
 					"autoinc": false,
 					"collation": "",
 					"charset": "",
@@ -504,9 +559,9 @@
 				},
 				{
 					"id": "2a7a0520-c217-419e-8a5f-9ba9379f26b8",
-					"name": "workspace_id",
+					"name": "workspace_code",
 					"datatype": "VARCHAR",
-					"param": "64",
+					"param": "11",
 					"pk": false,
 					"nn": true,
 					"fk": true,
@@ -575,7 +630,7 @@
 					"fk": false,
 					"comment": "Slack Block Kit JSON structure defining the visual layout and interactive elements of the message. Supports rich formatting, buttons, and dynamic content replacement.",
 					"defaultvalue": "",
-					"data": "{\"type\":\"section\",\"text\":{\"type\":\"mrkdwn\",\"text\":\"*Payment Failed* \\n Transaction {{transactionId}} failed\"}}",
+					"data": "{\"type\":\"section\",\"text\":{\"type\":\"mrkdwn\",\"text\":\"*Payment Failed* Transaction {{transactionId}} failed\"}}",
 					"after": "array()",
 					"autoinc": false,
 					"collation": "",
@@ -667,7 +722,62 @@
 					]
 				}
 			],
-			"indexes": [],
+			"indexes": [
+				{
+					"id": "5c47006c-8409-44d1-b909-5add15cc7733",
+					"name": "template_ix_code",
+					"unique": false,
+					"fulltext": false,
+					"using": "na",
+					"algorithm": "na",
+					"lockoption": "na",
+					"cols": [
+						{
+							"id": "2d2b5f4b-5814-419f-944b-1d6d34d0b842",
+							"colid": "f40096a6-874d-4a99-be31-1eb353c50d90",
+							"mariadb": {
+								"desc": false
+							}
+						}
+					]
+				},
+				{
+					"id": "ed18143f-a84b-4ee7-96f2-bf148d755a4b",
+					"name": "template_ix_name",
+					"unique": false,
+					"fulltext": false,
+					"using": "na",
+					"algorithm": "na",
+					"lockoption": "na",
+					"cols": [
+						{
+							"id": "dc124680-e7fc-4151-aaf4-a708a2e81a55",
+							"colid": "t2b3c4d5-e6f7-8g9h-0i1j-2k3l4m5n6o7p",
+							"mariadb": {
+								"desc": false
+							}
+						}
+					]
+				},
+				{
+					"id": "baeaeabc-0d8b-45ef-9a40-d5b7dbf8e2cd",
+					"name": "template_ix_workspace_code",
+					"unique": false,
+					"fulltext": false,
+					"using": "na",
+					"algorithm": "na",
+					"lockoption": "na",
+					"cols": [
+						{
+							"id": "19ad7593-b4f8-483f-9a7c-3c46f2872ac3",
+							"colid": "2a7a0520-c217-419e-8a5f-9ba9379f26b8",
+							"mariadb": {
+								"desc": false
+							}
+						}
+					]
+				}
+			],
 			"embeddable": false,
 			"generate": true,
 			"generateCustomCode": true,
@@ -690,16 +800,16 @@
 			"cols": [
 				{
 					"id": "2b3986c6-e6b1-4415-8727-fd04538e5e7f",
-					"name": "id",
-					"datatype": "INT",
-					"param": "",
+					"name": "tenant",
+					"datatype": "VARCHAR",
+					"param": "64",
 					"pk": true,
 					"nn": true,
 					"fk": false,
 					"comment": "Auto-incrementing primary key for app configuration records. Each workspace typically has one configuration record.",
 					"defaultvalue": "",
 					"data": "1",
-					"after": "",
+					"after": "min(10)",
 					"autoinc": false,
 					"collation": "",
 					"charset": "",
@@ -711,9 +821,9 @@
 				},
 				{
 					"id": "f815b391-031a-42ad-beac-159f786b33a7",
-					"name": "workspace_id",
+					"name": "workspace_code",
 					"datatype": "VARCHAR",
-					"param": "64",
+					"param": "11",
 					"pk": false,
 					"nn": true,
 					"fk": true,
@@ -874,44 +984,7 @@
 					]
 				}
 			],
-			"indexes": [
-				{
-					"id": "6337f533-669d-45c2-b469-5164d818218f",
-					"name": "app_config_ix_id",
-					"unique": false,
-					"fulltext": false,
-					"using": "na",
-					"algorithm": "na",
-					"lockoption": "na",
-					"cols": [
-						{
-							"id": "9e1f0d26-6c07-4d95-a93d-22ac32351afe",
-							"colid": "2b3986c6-e6b1-4415-8727-fd04538e5e7f",
-							"mariadb": {
-								"desc": false
-							}
-						}
-					]
-				},
-				{
-					"id": "759420cb-adb7-47cf-bef8-db871779dce4",
-					"name": "app_config_ix_workspace_id",
-					"unique": false,
-					"fulltext": false,
-					"using": "na",
-					"algorithm": "na",
-					"lockoption": "na",
-					"cols": [
-						{
-							"id": "64e7e2e0-1f26-4eba-9962-0eb2bc79b11d",
-							"colid": "f815b391-031a-42ad-beac-159f786b33a7",
-							"mariadb": {
-								"desc": false
-							}
-						}
-					]
-				}
-			],
+			"indexes": [],
 			"embeddable": false,
 			"generate": true,
 			"generateCustomCode": true,
@@ -1036,7 +1109,7 @@
 		},
 		"type": "MARIADB",
 		"version": 1,
-		"lastSaved": 1761824474782,
+		"lastSaved": 1761898033648,
 		"beforeScript": "",
 		"afterScript": "",
 		"sqlSettings": {
@@ -1082,7 +1155,7 @@
 			"diagramItems": {
 				"cd5f87d5-b86c-47eb-8bd6-6699ed90dc28": {
 					"referencedItemId": "cd5f87d5-b86c-47eb-8bd6-6699ed90dc28",
-					"x": 45,
+					"x": 48,
 					"y": 281,
 					"gHeight": 218,
 					"gWidth": 268,
@@ -1097,8 +1170,8 @@
 					"referencedItemId": "28bc4a23-c479-4f19-a1b4-9b81f20e3f40",
 					"x": 523,
 					"y": 333,
-					"gHeight": 189,
-					"gWidth": 248,
+					"gHeight": 254,
+					"gWidth": 256,
 					"color": "#ffffff",
 					"background": "#03a9f4",
 					"resized": false,
@@ -1109,9 +1182,9 @@
 				"ba3870e2-44f1-4d0d-afa9-a7ca627637be": {
 					"referencedItemId": "ba3870e2-44f1-4d0d-afa9-a7ca627637be",
 					"x": 527,
-					"y": 46,
-					"gHeight": 171,
-					"gWidth": 239,
+					"y": 45,
+					"gHeight": 236,
+					"gWidth": 256,
 					"color": "#ffffff",
 					"background": "#03a9f4",
 					"resized": false,
@@ -1123,7 +1196,7 @@
 					"referencedItemId": "00829685-51b5-4cea-a843-525855771acd",
 					"x": 45,
 					"y": 35,
-					"gHeight": 218,
+					"gHeight": 171,
 					"gWidth": 258,
 					"color": "#ffffff",
 					"background": "#03a9f4",

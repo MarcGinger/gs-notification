@@ -9,10 +9,7 @@
  */
 
 import {
-  WorkspaceCreatedAt,
-  WorkspaceUpdatedAt,
-  WorkspaceVersion,
-  WorkspaceId,
+  WorkspaceCode,
   WorkspaceName,
   WorkspaceBotToken,
   WorkspaceSigningSecret,
@@ -20,6 +17,9 @@ import {
   WorkspaceBotUserId,
   WorkspaceDefaultChannelId,
   WorkspaceEnabled,
+  WorkspaceCreatedAt,
+  WorkspaceUpdatedAt,
+  WorkspaceVersion,
 } from '../../domain/value-objects';
 import { Result, ok, err, DomainError } from 'src/shared/errors';
 import { WorkspaceDomainState } from '../../domain/state/workspace.state';
@@ -57,7 +57,7 @@ export class WorkspaceStateMapper {
     };
 
     // Convert each primitive to its corresponding VO with error collection
-    const id = validateField('id', WorkspaceId.from(snapshot.id));
+    const code = validateField('code', WorkspaceCode.from(snapshot.code));
     const name = validateField('name', WorkspaceName.from(snapshot.name));
     const botToken = snapshot.botToken
       ? validateField('botToken', WorkspaceBotToken.from(snapshot.botToken))
@@ -111,14 +111,14 @@ export class WorkspaceStateMapper {
             errorCode: e.error.code,
             errorMessage: e.error.detail,
           })),
-          snapshotCode: snapshot.id,
+          snapshotCode: snapshot.code,
         },
       });
     }
 
     // All validations passed, construct the rich domain state
     const domainState: WorkspaceDomainState = {
-      id: id!,
+      code: code!,
       name: name!,
       botToken: botToken || undefined,
       signingSecret: signingSecret || undefined,
@@ -143,7 +143,7 @@ export class WorkspaceStateMapper {
   static toSnapshot(domainState: WorkspaceDomainState): WorkspaceSnapshotProps {
     return {
       // Extract primitive values from VOs
-      id: domainState.id.value,
+      code: domainState.code.value,
       name: domainState.name.value,
       botToken: domainState.botToken?.value,
       signingSecret: domainState.signingSecret?.value,

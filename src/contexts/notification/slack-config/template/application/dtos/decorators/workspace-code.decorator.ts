@@ -13,11 +13,11 @@ interface PropOptions {
 }
 
 /**
- * Property decorator for Template WorkspaceId
+ * Property decorator for Template WorkspaceCode
  * @param {Object} options - Options for the decorator
  * @returns {PropertyDecorator}
  */
-export function ApiTemplateWorkspaceId(options: PropOptions = {}) {
+export function ApiTemplateWorkspaceCode(options: PropOptions = {}) {
   const { required = true } = options;
 
   return applyDecorators(
@@ -28,7 +28,7 @@ export function ApiTemplateWorkspaceId(options: PropOptions = {}) {
       required,
     }),
     IsString(),
-    MaxLength(64),
+    MaxLength(11),
     required ? IsNotEmpty() : IsOptional(),
   );
 }

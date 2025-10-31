@@ -8,7 +8,7 @@
  */
 export interface TemplateUpdatedEventPayload {
   code: string;
-  workspaceId: string;
+  workspaceCode: string;
   name: string;
   description?: string;
   contentBlocks: string[];
@@ -38,8 +38,8 @@ export class TemplateUpdatedEvent {
     return this.payload.code;
   }
 
-  get workspaceId(): string {
-    return this.payload.workspaceId;
+  get workspaceCode(): string {
+    return this.payload.workspaceCode;
   }
 
   get name(): string {

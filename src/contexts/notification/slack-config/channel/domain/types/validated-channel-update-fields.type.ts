@@ -2,21 +2,21 @@
 // REMOVE THIS COMMENT TO STOP AUTOMATIC UPDATES TO THIS BLOCK
 
 import {
+  ChannelCode,
   ChannelEnabled,
-  ChannelId,
   ChannelIsDm,
   ChannelIsPrivate,
   ChannelName,
   ChannelPurpose,
   ChannelSubscribedEvents,
   ChannelTopic,
-  ChannelWorkspaceId,
+  ChannelWorkspaceCode,
 } from '../value-objects';
 
 export interface ValidatedChannelUpdateFields {
-  id?: ChannelId;
+  code?: ChannelCode;
   name?: ChannelName;
-  workspaceId?: ChannelWorkspaceId;
+  workspaceCode?: ChannelWorkspaceCode;
   isPrivate?: ChannelIsPrivate;
   isDm?: ChannelIsDm;
   topic?: ChannelTopic;

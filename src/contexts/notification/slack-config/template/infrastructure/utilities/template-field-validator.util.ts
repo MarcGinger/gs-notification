@@ -43,7 +43,7 @@ export class TemplateFieldValidatorUtil {
     );
     // Extract simple fields directly from event data
     const code = aggregateData.code as string;
-    const workspaceId = aggregateData.workspaceId as string;
+    const workspaceCode = aggregateData.workspaceCode as string;
     const name = aggregateData.name as string;
     const description = aggregateData.description as string;
     const contentBlocks = aggregateData.contentBlocks as string[];
@@ -69,7 +69,7 @@ export class TemplateFieldValidatorUtil {
     // direct field access provides type safety and truthful representation
     return {
       code,
-      workspaceId,
+      workspaceCode,
       name,
       description,
       contentBlocks,

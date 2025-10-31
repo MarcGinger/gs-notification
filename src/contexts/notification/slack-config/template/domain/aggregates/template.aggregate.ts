@@ -136,7 +136,7 @@ export class TemplateAggregate extends AggregateRootBase {
     // Create typed TemplateCreatedEvent with only business data
     const createdEvent = TemplateCreatedEvent.create({
       code: entityProps.code.value,
-      workspaceId: entityProps.workspaceId.value,
+      workspaceCode: entityProps.workspaceCode.value,
       name: entityProps.name.value,
       description: entityProps.description?.value,
       contentBlocks: entityProps.contentBlocks.toArray(),
@@ -190,7 +190,7 @@ export class TemplateAggregate extends AggregateRootBase {
         // Both events now have the same domain shape - simple merge
         const d = event.data as {
           code: string;
-          workspaceId: string;
+          workspaceCode: string;
           name: string;
           description?: string;
           contentBlocks: string[];
@@ -205,7 +205,7 @@ export class TemplateAggregate extends AggregateRootBase {
 
         const entityResult = TemplateEntity.fromSnapshot({
           code: d.code,
-          workspaceId: d.workspaceId,
+          workspaceCode: d.workspaceCode,
           name: d.name,
           description: d.description,
           contentBlocks: d.contentBlocks,
@@ -313,9 +313,12 @@ export class TemplateAggregate extends AggregateRootBase {
     validatedFields: ValidatedTemplateUpdateFields,
   ): boolean {
     // Check each field for actual value changes using value object equality
-    if (validatedFields.workspaceId !== undefined) {
+    if (validatedFields.workspaceCode !== undefined) {
       if (
-        hasValueChanged(this._entity.workspaceId, validatedFields.workspaceId)
+        hasValueChanged(
+          this._entity.workspaceCode,
+          validatedFields.workspaceCode,
+        )
       ) {
         return true;
       }
@@ -437,9 +440,9 @@ export class TemplateAggregate extends AggregateRootBase {
     let currentEntity = this._entity;
 
     // Apply each validated field change with type safety
-    if (validatedFields.workspaceId !== undefined) {
-      const entityResult = currentEntity.withWorkspaceId(
-        validatedFields.workspaceId,
+    if (validatedFields.workspaceCode !== undefined) {
+      const entityResult = currentEntity.withWorkspaceCode(
+        validatedFields.workspaceCode,
         updatedAt,
         nextVersion,
       );
@@ -513,7 +516,7 @@ export class TemplateAggregate extends AggregateRootBase {
     // Create domain-shaped update event (same structure as created event)
     const updatedEvent = TemplateUpdatedEvent.create({
       code: this._entity.code.value,
-      workspaceId: this._entity.workspaceId.value,
+      workspaceCode: this._entity.workspaceCode.value,
       name: this._entity.name.value,
       description: this._entity.description?.value,
       contentBlocks: this._entity.contentBlocks.toArray(),

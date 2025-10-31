@@ -11,16 +11,12 @@
 import { Result, DomainError } from 'src/shared/errors';
 import type { IUserToken } from 'src/shared/security';
 import type { UpsertAppConfigProps } from '../../domain/props';
-import type {
-  DetailAppConfigResponse,
-  AppConfigPageResponse,
-  ListAppConfigFilterRequest,
-} from '../dtos';
+import type { DetailAppConfigResponse } from '../dtos';
 
 export abstract class IUpsertAppConfigUseCase {
   abstract execute(params: {
     user: IUserToken;
-    id: number;
+    code: string;
     props: UpsertAppConfigProps;
     correlationId: string;
     authorizationReason: string;
@@ -30,14 +26,7 @@ export abstract class IUpsertAppConfigUseCase {
 export abstract class IGetAppConfigUseCase {
   abstract execute(params: {
     user: IUserToken;
-    id: number;
+    code: string;
     correlationId: string;
   }): Promise<Result<DetailAppConfigResponse, DomainError>>;
-}
-export abstract class IListAppConfigUseCase {
-  abstract execute(params: {
-    user: IUserToken;
-    filter?: ListAppConfigFilterRequest;
-    correlationId: string;
-  }): Promise<Result<AppConfigPageResponse, DomainError>>;
 }

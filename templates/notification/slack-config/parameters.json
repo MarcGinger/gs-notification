@@ -35,14 +35,14 @@
         "deletedEvent": "NotificationSlackConfigWorkspaceDeleted.v1"
       },
       "cols": {
-        "id": {},
         "name": {},
         "bot_token": {},
         "signing_secret": {},
         "app_id": {},
         "bot_user_id": {},
         "default_channel_id": {},
-        "enabled": {}
+        "enabled": {},
+        "code": {}
       },
       "permissions": {
         "bulk": [
@@ -85,15 +85,15 @@
         "deletedEvent": "NotificationSlackConfigChannelDeleted.v1"
       },
       "cols": {
-        "id": {},
         "name": {},
-        "workspace_id": {},
         "is_private": {},
         "is_dm": {},
         "topic": {},
         "purpose": {},
         "subscribed_events": {},
-        "enabled": {}
+        "enabled": {},
+        "code": {},
+        "workspace_code": {}
       },
       "permissions": {
         "bulk": [
@@ -137,13 +137,13 @@
       },
       "cols": {
         "code": {},
-        "workspace_id": {},
         "name": {},
         "description": {},
         "content_blocks": {},
         "variables": {},
         "sample_payload": {},
-        "enabled": {}
+        "enabled": {},
+        "workspace_code": {}
       },
       "permissions": {
         "bulk": [
@@ -186,14 +186,14 @@
         "deletedEvent": "NotificationSlackConfigAppConfigDeleted.v1"
       },
       "cols": {
-        "id": {},
-        "workspace_id": {},
         "max_retry_attempts": {},
         "retry_backoff_seconds": {},
         "default_locale": {},
         "logging_enabled": {},
         "audit_channel_id": {},
-        "metadata": {}
+        "metadata": {},
+        "code": {},
+        "workspace_code": {}
       },
       "permissions": {
         "bulk": [

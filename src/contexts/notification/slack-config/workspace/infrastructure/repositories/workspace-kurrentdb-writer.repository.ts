@@ -22,7 +22,7 @@ import {
 import { SlackConfigServiceConstants } from '../../../service-constants';
 import { WorkspaceAggregate } from '../../domain/aggregates';
 import { WorkspaceProjectionKeys } from '../../workspace-projection-keys';
-import { WorkspaceId } from '../../domain/value-objects';
+import { WorkspaceCode } from '../../domain/value-objects';
 import { WorkspaceDeletedEvent } from '../../domain/events';
 import { IWorkspaceWriter } from '../../application/ports';
 
@@ -277,13 +277,13 @@ export class WorkspaceWriterRepository
   /**
    * Delete a Workspace by its unique identifier using EventStoreDB-first approach
    * @param actor - The authenticated user context
-   * @param id - The unique identifier of the Workspace to delete
+   * @param code - The unique identifier of the Workspace to delete
    * @param opts - Optional parameters including expected version and metadata
    * @returns Result with SaveReceipt containing revision tracking or domain error
    */
   async delete(
     actor: ActorContext,
-    id: WorkspaceId,
+    code: WorkspaceCode,
     opts?: {
       expectedVersion?: number;
       meta?: {
@@ -305,7 +305,7 @@ export class WorkspaceWriterRepository
       correlationId,
       actor,
       {
-        workspaceId: id.value,
+        workspaceCode: code.value,
         expectedVersion: opts?.expectedVersion,
         hasMetadata: !!opts?.meta,
       },
@@ -329,14 +329,14 @@ export class WorkspaceWriterRepository
       {
         operationType: 'aggregate_delete',
         scope: 'workspace_deletion',
-        workspaceId: id.value,
+        workspaceCode: code.value,
       },
     );
 
     const stream = this.buildStreamName(
       actor.tenant,
       WorkspaceProjectionKeys.getEventStoreStreamPrefix(),
-      id.value,
+      code.value,
     );
 
     // Create proper domain event metadata
@@ -359,7 +359,7 @@ export class WorkspaceWriterRepository
     // Create proper WorkspaceDeletedEvent
     const deletedEvent = WorkspaceDeletedEvent.create(
       {
-        id: id.value,
+        code: code.value,
         deletedAt: this.clock.now(),
         version: opts?.expectedVersion ?? 1,
       },
@@ -371,7 +371,7 @@ export class WorkspaceWriterRepository
       type: deletedEvent.eventType,
       version: 1, // Convert string version to number
       occurredAt: this.clock.now(),
-      aggregateId: id.value,
+      aggregateId: code.value,
       aggregateType: 'Workspace',
       data: deletedEvent.payload,
       metadata: eventMetadata,
@@ -392,7 +392,7 @@ export class WorkspaceWriterRepository
         {
           ...logContext,
           stream,
-          workspaceId: id.value,
+          workspaceCode: code.value,
           expectedRevision: expectedRevision.toString(),
           eventType: domainEvent.type,
         },
@@ -413,7 +413,7 @@ export class WorkspaceWriterRepository
 
       const receipt: SaveReceipt = {
         stream,
-        aggregateId: id.value,
+        aggregateId: code.value,
         tenant: actor.tenant ?? 'default',
         eventCount: 1,
         // newVersion omitted - we don't know it with ANY expectedRevision
@@ -432,7 +432,7 @@ export class WorkspaceWriterRepository
           dataQuality: 'good',
           sampleData: {
             stream,
-            workspaceId: id.value,
+            workspaceCode: code.value,
             streamRevision: appendResult?.nextExpectedRevision?.toString(),
             eventType: 'WorkspaceDeletedEvent',
           },

@@ -4,5 +4,6 @@ export * from './description.decorator';
 export * from './enabled.decorator';
 export * from './name.decorator';
 export * from './sample-payload.decorator';
+export * from './template-list-pagination.decorator';
 export * from './variables.decorator';
-export * from './workspace-id.decorator';
+export * from './workspace-code.decorator';

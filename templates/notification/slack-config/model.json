@@ -15,7 +15,7 @@
       "description": "## 🧠 SlackWorkspace\n\n### **Purpose**\n\nThe \\`SlackWorkspace\\` aggregate represents the tenant’s connection to their Slack workspace. It acts as the foundational configuration point that defines the link between the system and the tenant’s Slack organization.\n\nThis aggregate holds sensitive integration credentials — including OAuth tokens, signing secrets, and app identifiers — and ensures they are securely managed and rotated when necessary. It also tracks which workspace belongs to which tenant and whether the connection is currently active.\n\n### **Responsibilities**\n\n* Maintain the tenant-to-Slack workspace mapping.\n* Securely store and reference OAuth credentials (e.g., \\`botToken\\`, \\`signingSecret\\`).\n* Enable or disable the Slack integration per tenant.\n* Manage the default posting channel for system notifications.\n* Emit events that notify other services when configuration changes occur.\n\n### **Why It Matters**\n\nWithout the \\`SlackWorkspace\\` aggregate, the platform wouldn’t know **where** to send Slack messages or which tokens to use for authentication. It ensures tenant isolation and provides a secure boundary for Slack API interactions.\n",
       "columns": [
         {
-          "name": "id",
+          "name": "code",
           "type": "string",
           "childRelationshipType": "AppConfig",
           "parentRelationshipType": "",
@@ -26,14 +26,16 @@
           "defaultvalue": "",
           "example": "T01EXAMPLE123",
           "autoIncrement": false,
-          "maxLength": "64",
+          "maxLength": "11",
+          "minLength": "10",
           "array": false,
           "isPII": "",
           "parentRelationship": "",
           "childRelationship": "workspace_channel, workspace_template, workspace_app_config",
           "meta": {
             "kind": "string",
-            "maxLength": 64
+            "minLength": 10,
+            "maxLength": 11
           }
         },
         {
@@ -192,7 +194,7 @@
           "name": "workspace_channel",
           "parentTable": "workspace",
           "parentColumn": {
-            "name": "id",
+            "name": "code",
             "type": "string",
             "childRelationshipType": "AppConfig",
             "parentRelationshipType": "",
@@ -203,19 +205,21 @@
             "defaultvalue": "",
             "example": "T01EXAMPLE123",
             "autoIncrement": false,
-            "maxLength": "64",
+            "maxLength": "11",
+            "minLength": "10",
             "array": false,
             "isPII": "",
             "parentRelationship": "",
             "childRelationship": "workspace_channel, workspace_template, workspace_app_config",
             "meta": {
               "kind": "string",
-              "maxLength": 64
+              "minLength": 10,
+              "maxLength": 11
             }
           },
           "childTable": "channel",
           "childColumn": {
-            "name": "workspace_id",
+            "name": "workspace_code",
             "type": "string",
             "childRelationshipType": "",
             "parentRelationshipType": "Workspace",
@@ -226,7 +230,7 @@
             "defaultvalue": "",
             "example": "T01EXAMPLE123",
             "autoIncrement": false,
-            "maxLength": "64",
+            "maxLength": "11",
             "array": false,
             "isPII": "",
             "relationship": "one",
@@ -234,7 +238,7 @@
             "childRelationship": "",
             "meta": {
               "kind": "string",
-              "maxLength": 64
+              "maxLength": 11
             }
           },
           "type": "one",
@@ -244,7 +248,7 @@
           "name": "workspace_template",
           "parentTable": "workspace",
           "parentColumn": {
-            "name": "id",
+            "name": "code",
             "type": "string",
             "childRelationshipType": "AppConfig",
             "parentRelationshipType": "",
@@ -255,19 +259,21 @@
             "defaultvalue": "",
             "example": "T01EXAMPLE123",
             "autoIncrement": false,
-            "maxLength": "64",
+            "maxLength": "11",
+            "minLength": "10",
             "array": false,
             "isPII": "",
             "parentRelationship": "",
             "childRelationship": "workspace_channel, workspace_template, workspace_app_config",
             "meta": {
               "kind": "string",
-              "maxLength": 64
+              "minLength": 10,
+              "maxLength": 11
             }
           },
           "childTable": "template",
           "childColumn": {
-            "name": "workspace_id",
+            "name": "workspace_code",
             "type": "string",
             "childRelationshipType": "",
             "parentRelationshipType": "Workspace",
@@ -278,7 +284,7 @@
             "defaultvalue": "",
             "example": "T01EXAMPLE123",
             "autoIncrement": false,
-            "maxLength": "64",
+            "maxLength": "11",
             "array": false,
             "isPII": "",
             "relationship": "one",
@@ -286,7 +292,7 @@
             "childRelationship": "",
             "meta": {
               "kind": "string",
-              "maxLength": 64
+              "maxLength": 11
             }
           },
           "type": "one",
@@ -296,7 +302,7 @@
           "name": "workspace_app_config",
           "parentTable": "workspace",
           "parentColumn": {
-            "name": "id",
+            "name": "code",
             "type": "string",
             "childRelationshipType": "AppConfig",
             "parentRelationshipType": "",
@@ -307,19 +313,21 @@
             "defaultvalue": "",
             "example": "T01EXAMPLE123",
             "autoIncrement": false,
-            "maxLength": "64",
+            "maxLength": "11",
+            "minLength": "10",
             "array": false,
             "isPII": "",
             "parentRelationship": "",
             "childRelationship": "workspace_channel, workspace_template, workspace_app_config",
             "meta": {
               "kind": "string",
-              "maxLength": 64
+              "minLength": 10,
+              "maxLength": 11
             }
           },
           "childTable": "app_config",
           "childColumn": {
-            "name": "workspace_id",
+            "name": "workspace_code",
             "type": "string",
             "childRelationshipType": "",
             "parentRelationshipType": "Workspace",
@@ -330,7 +338,7 @@
             "defaultvalue": "",
             "example": "T01EXAMPLE123",
             "autoIncrement": false,
-            "maxLength": "64",
+            "maxLength": "11",
             "array": false,
             "isPII": "",
             "relationship": "one",
@@ -338,7 +346,7 @@
             "childRelationship": "",
             "meta": {
               "kind": "string",
-              "maxLength": 64
+              "maxLength": 11
             }
           },
           "type": "one",
@@ -348,7 +356,7 @@
       "lines": [],
       "keys": [
         {
-          "name": "id",
+          "name": "code",
           "type": "string",
           "childRelationshipType": "AppConfig",
           "parentRelationshipType": "",
@@ -359,20 +367,22 @@
           "defaultvalue": "",
           "example": "T01EXAMPLE123",
           "autoIncrement": false,
-          "maxLength": "64",
+          "maxLength": "11",
+          "minLength": "10",
           "array": false,
           "isPII": "",
           "parentRelationship": "",
           "childRelationship": "workspace_channel, workspace_template, workspace_app_config",
           "meta": {
             "kind": "string",
-            "maxLength": 64
+            "minLength": 10,
+            "maxLength": 11
           }
         }
       ],
       "indexes": [
         {
-          "name": "id",
+          "name": "code",
           "type": "string",
           "childRelationshipType": "AppConfig",
           "parentRelationshipType": "",
@@ -383,14 +393,16 @@
           "defaultvalue": "",
           "example": "T01EXAMPLE123",
           "autoIncrement": false,
-          "maxLength": "64",
+          "maxLength": "11",
+          "minLength": "10",
           "array": false,
           "isPII": "",
           "parentRelationship": "",
           "childRelationship": "workspace_channel, workspace_template, workspace_app_config",
           "meta": {
             "kind": "string",
-            "maxLength": 64
+            "minLength": 10,
+            "maxLength": 11
           }
         },
         {
@@ -486,7 +498,7 @@
       "description": "## 🧵 SlackChannel\n\n### **Purpose**\n\nThe \\`SlackChannel\\` aggregate defines which channels or direct message endpoints within a workspace are authorized for communication. Each entry in this aggregate corresponds to a Slack channel (\\`#alerts\\`, \\`#approvals\\`, etc.) or DM (\\`@username\\`) where notifications can be posted.\n\nThis aggregate allows fine-grained control over what events each channel receives and ensures that messages are routed to valid and approved destinations.\n\n### **Responsibilities**\n\n* Register and maintain authorized Slack channels per workspace.\n* Define subscription rules (e.g., which event types can post to which channels).\n* Store metadata about channels (e.g., \\`isPrivate\\`, \\`isDm\\`, \\`topic\\`, \\`purpose\\`).\n* Allow enabling/disabling individual channels without removing configuration.\n* Ensure messages are delivered only to permitted targets.\n\n### **Why It Matters**\n\n\\`SlackChannel\\` acts as the **delivery policy** layer. It prevents unauthorized posting, provides flexibility in event routing, and allows tenants to configure business-specific notification targets.\n",
       "columns": [
         {
-          "name": "id",
+          "name": "code",
           "type": "string",
           "childRelationshipType": "",
           "parentRelationshipType": "",
@@ -497,14 +509,16 @@
           "defaultvalue": "",
           "example": "C01EXAMPLE001",
           "autoIncrement": false,
-          "maxLength": "64",
+          "maxLength": "11",
+          "minLength": "10",
           "array": false,
           "isPII": "",
           "parentRelationship": "",
           "childRelationship": "",
           "meta": {
             "kind": "string",
-            "maxLength": 64
+            "minLength": 10,
+            "maxLength": 11
           }
         },
         {
@@ -530,7 +544,7 @@
           }
         },
         {
-          "name": "workspace_id",
+          "name": "workspace_code",
           "type": "string",
           "childRelationshipType": "",
           "parentRelationshipType": "Workspace",
@@ -541,7 +555,7 @@
           "defaultvalue": "",
           "example": "T01EXAMPLE123",
           "autoIncrement": false,
-          "maxLength": "64",
+          "maxLength": "11",
           "array": false,
           "isPII": "",
           "relationship": "one",
@@ -549,7 +563,7 @@
           "childRelationship": "",
           "meta": {
             "kind": "string",
-            "maxLength": 64
+            "maxLength": 11
           }
         },
         {
@@ -646,7 +660,7 @@
           "required": false,
           "description": "Array of event types this channel subscribes to receive notifications for. Supports filtering and routing specific events to appropriate channels based on business rules.",
           "defaultvalue": "",
-          "example": "\"user.created\", \"payment.failed\", \"system.error\"",
+          "example": "user.created,payment.failed,system.error",
           "autoIncrement": false,
           "array": true,
           "isPII": "",
@@ -682,7 +696,7 @@
           "name": "workspace_channel",
           "parentTable": "workspace",
           "parentColumn": {
-            "name": "id",
+            "name": "code",
             "type": "string",
             "childRelationshipType": "AppConfig",
             "parentRelationshipType": "",
@@ -693,19 +707,21 @@
             "defaultvalue": "",
             "example": "T01EXAMPLE123",
             "autoIncrement": false,
-            "maxLength": "64",
+            "maxLength": "11",
+            "minLength": "10",
             "array": false,
             "isPII": "",
             "parentRelationship": "",
             "childRelationship": "workspace_channel, workspace_template, workspace_app_config",
             "meta": {
               "kind": "string",
-              "maxLength": 64
+              "minLength": 10,
+              "maxLength": 11
             }
           },
           "childTable": "channel",
           "childColumn": {
-            "name": "workspace_id",
+            "name": "workspace_code",
             "type": "string",
             "childRelationshipType": "",
             "parentRelationshipType": "Workspace",
@@ -716,7 +732,7 @@
             "defaultvalue": "",
             "example": "T01EXAMPLE123",
             "autoIncrement": false,
-            "maxLength": "64",
+            "maxLength": "11",
             "array": false,
             "isPII": "",
             "relationship": "one",
@@ -724,7 +740,7 @@
             "childRelationship": "",
             "meta": {
               "kind": "string",
-              "maxLength": 64
+              "maxLength": 11
             }
           },
           "type": "one",
@@ -734,7 +750,7 @@
       "lines": [],
       "keys": [
         {
-          "name": "id",
+          "name": "code",
           "type": "string",
           "childRelationshipType": "",
           "parentRelationshipType": "",
@@ -745,18 +761,90 @@
           "defaultvalue": "",
           "example": "C01EXAMPLE001",
           "autoIncrement": false,
-          "maxLength": "64",
+          "maxLength": "11",
+          "minLength": "10",
           "array": false,
           "isPII": "",
           "parentRelationship": "",
           "childRelationship": "",
           "meta": {
             "kind": "string",
-            "maxLength": 64
+            "minLength": 10,
+            "maxLength": 11
           }
         }
       ],
-      "indexes": [],
+      "indexes": [
+        {
+          "name": "code",
+          "type": "string",
+          "childRelationshipType": "",
+          "parentRelationshipType": "",
+          "datatype": "VARCHAR",
+          "primaryKey": true,
+          "required": true,
+          "description": "Unique Slack channel identifier provided by Slack API. Used for all channel-specific operations including message posting and permissions validation.",
+          "defaultvalue": "",
+          "example": "C01EXAMPLE001",
+          "autoIncrement": false,
+          "maxLength": "11",
+          "minLength": "10",
+          "array": false,
+          "isPII": "",
+          "parentRelationship": "",
+          "childRelationship": "",
+          "meta": {
+            "kind": "string",
+            "minLength": 10,
+            "maxLength": 11
+          }
+        },
+        {
+          "name": "name",
+          "type": "string",
+          "childRelationshipType": "",
+          "parentRelationshipType": "",
+          "datatype": "VARCHAR",
+          "primaryKey": false,
+          "required": true,
+          "description": "Human-readable channel name as displayed in Slack, including the # prefix for public channels. Used for display purposes and channel identification in logs.",
+          "defaultvalue": "",
+          "example": "#notifications",
+          "autoIncrement": false,
+          "maxLength": "255",
+          "array": false,
+          "isPII": "",
+          "parentRelationship": "",
+          "childRelationship": "",
+          "meta": {
+            "kind": "string",
+            "maxLength": 255
+          }
+        },
+        {
+          "name": "workspace_code",
+          "type": "string",
+          "childRelationshipType": "",
+          "parentRelationshipType": "Workspace",
+          "datatype": "VARCHAR",
+          "primaryKey": false,
+          "required": true,
+          "description": "Foreign key reference to the workspace this channel belongs to. Establishes the parent-child relationship between workspace and channels for multi-tenant support.",
+          "defaultvalue": "",
+          "example": "T01EXAMPLE123",
+          "autoIncrement": false,
+          "maxLength": "11",
+          "array": false,
+          "isPII": "",
+          "relationship": "one",
+          "parentRelationship": "workspace_channel",
+          "childRelationship": "",
+          "meta": {
+            "kind": "string",
+            "maxLength": 11
+          }
+        }
+      ],
       "docs": {
         "name": "Channel",
         "summary": "Configuration for channel table",
@@ -838,18 +926,20 @@
           "defaultvalue": "",
           "example": "payment_failure_alert",
           "autoIncrement": false,
-          "maxLength": "64",
+          "maxLength": "11",
+          "minLength": "10",
           "array": false,
           "isPII": "",
           "parentRelationship": "",
           "childRelationship": "",
           "meta": {
             "kind": "string",
-            "maxLength": 64
+            "minLength": 10,
+            "maxLength": 11
           }
         },
         {
-          "name": "workspace_id",
+          "name": "workspace_code",
           "type": "string",
           "childRelationshipType": "",
           "parentRelationshipType": "Workspace",
@@ -860,7 +950,7 @@
           "defaultvalue": "",
           "example": "T01EXAMPLE123",
           "autoIncrement": false,
-          "maxLength": "64",
+          "maxLength": "11",
           "array": false,
           "isPII": "",
           "relationship": "one",
@@ -868,7 +958,7 @@
           "childRelationship": "",
           "meta": {
             "kind": "string",
-            "maxLength": 64
+            "maxLength": 11
           }
         },
         {
@@ -924,7 +1014,7 @@
           "required": true,
           "description": "Slack Block Kit JSON structure defining the visual layout and interactive elements of the message. Supports rich formatting, buttons, and dynamic content replacement.",
           "defaultvalue": "",
-          "example": "{\"type\":\"section\",\"text\":{\"type\":\"mrkdwn\",\"text\":\"*Payment Failed* \\n Transaction {{transactionId}} failed\"}}",
+          "example": "{\"type\":\"section\",\"text\":{\"type\":\"mrkdwn\",\"text\":\"*Payment Failed* Transaction {{transactionId}} failed\"}}",
           "autoIncrement": false,
           "array": true,
           "isPII": "",
@@ -1003,7 +1093,7 @@
           "name": "workspace_template",
           "parentTable": "workspace",
           "parentColumn": {
-            "name": "id",
+            "name": "code",
             "type": "string",
             "childRelationshipType": "AppConfig",
             "parentRelationshipType": "",
@@ -1014,19 +1104,21 @@
             "defaultvalue": "",
             "example": "T01EXAMPLE123",
             "autoIncrement": false,
-            "maxLength": "64",
+            "maxLength": "11",
+            "minLength": "10",
             "array": false,
             "isPII": "",
             "parentRelationship": "",
             "childRelationship": "workspace_channel, workspace_template, workspace_app_config",
             "meta": {
               "kind": "string",
-              "maxLength": 64
+              "minLength": 10,
+              "maxLength": 11
             }
           },
           "childTable": "template",
           "childColumn": {
-            "name": "workspace_id",
+            "name": "workspace_code",
             "type": "string",
             "childRelationshipType": "",
             "parentRelationshipType": "Workspace",
@@ -1037,7 +1129,7 @@
             "defaultvalue": "",
             "example": "T01EXAMPLE123",
             "autoIncrement": false,
-            "maxLength": "64",
+            "maxLength": "11",
             "array": false,
             "isPII": "",
             "relationship": "one",
@@ -1045,7 +1137,7 @@
             "childRelationship": "",
             "meta": {
               "kind": "string",
-              "maxLength": 64
+              "maxLength": 11
             }
           },
           "type": "one",
@@ -1066,18 +1158,90 @@
           "defaultvalue": "",
           "example": "payment_failure_alert",
           "autoIncrement": false,
-          "maxLength": "64",
+          "maxLength": "11",
+          "minLength": "10",
           "array": false,
           "isPII": "",
           "parentRelationship": "",
           "childRelationship": "",
           "meta": {
             "kind": "string",
-            "maxLength": 64
+            "minLength": 10,
+            "maxLength": 11
           }
         }
       ],
-      "indexes": [],
+      "indexes": [
+        {
+          "name": "code",
+          "type": "string",
+          "childRelationshipType": "",
+          "parentRelationshipType": "",
+          "datatype": "VARCHAR",
+          "primaryKey": true,
+          "required": true,
+          "description": "Unique template identifier used for programmatic template selection. Must follow snake_case naming convention for consistency with application code.",
+          "defaultvalue": "",
+          "example": "payment_failure_alert",
+          "autoIncrement": false,
+          "maxLength": "11",
+          "minLength": "10",
+          "array": false,
+          "isPII": "",
+          "parentRelationship": "",
+          "childRelationship": "",
+          "meta": {
+            "kind": "string",
+            "minLength": 10,
+            "maxLength": 11
+          }
+        },
+        {
+          "name": "name",
+          "type": "string",
+          "childRelationshipType": "",
+          "parentRelationshipType": "",
+          "datatype": "VARCHAR",
+          "primaryKey": false,
+          "required": true,
+          "description": "User-friendly template name displayed in admin interfaces and template selection menus. Should clearly describe the template's purpose and usage context.",
+          "defaultvalue": "",
+          "example": "Payment Failure Alert",
+          "autoIncrement": false,
+          "maxLength": "255",
+          "array": false,
+          "isPII": "",
+          "parentRelationship": "",
+          "childRelationship": "",
+          "meta": {
+            "kind": "string",
+            "maxLength": 255
+          }
+        },
+        {
+          "name": "workspace_code",
+          "type": "string",
+          "childRelationshipType": "",
+          "parentRelationshipType": "Workspace",
+          "datatype": "VARCHAR",
+          "primaryKey": false,
+          "required": true,
+          "description": "Foreign key linking template to its workspace. Enables workspace-specific template customization and multi-tenant template isolation.",
+          "defaultvalue": "",
+          "example": "T01EXAMPLE123",
+          "autoIncrement": false,
+          "maxLength": "11",
+          "array": false,
+          "isPII": "",
+          "relationship": "one",
+          "parentRelationship": "workspace_template",
+          "childRelationship": "",
+          "meta": {
+            "kind": "string",
+            "maxLength": 11
+          }
+        }
+      ],
       "docs": {
         "name": "Template",
         "summary": "Configuration for template table",
@@ -1148,28 +1312,31 @@
       "description": "## ⚙️ SlackAppConfig\n\n### **Purpose**\n\nThe \\`SlackAppConfig\\` aggregate manages system-wide operational parameters for the Slack integration within a tenant’s workspace. It defines how the app behaves under various runtime conditions, such as retries, logging, and audit behavior.\n\nThis configuration ensures that message delivery is resilient and aligned with organizational policies (e.g., how many times to retry sending, whether to log every event, which audit channel to use, etc.).\n\n### **Responsibilities**\n\n* Manage retry and backoff policies for message delivery.\n* Enable or disable message-level logging for auditing.\n* Define the audit channel ID for operational or compliance logs.\n* Maintain default locale, metadata, and other operational flags.\n* Emit configuration change events for runtime synchronization.\n\n### **Why It Matters**\n\n\\`SlackAppConfig\\` provides the **operational backbone** for Slack messaging. It ensures reliability, compliance, and observability — allowing organizations to manage how Slack notifications behave at scale and during failures.\n\n",
       "columns": [
         {
-          "name": "id",
-          "type": "number",
+          "name": "code",
+          "type": "string",
           "childRelationshipType": "",
           "parentRelationshipType": "",
-          "datatype": "INT",
+          "datatype": "VARCHAR",
           "primaryKey": true,
           "required": true,
           "description": "Auto-incrementing primary key for app configuration records. Each workspace typically has one configuration record.",
           "defaultvalue": "",
           "example": "1",
           "autoIncrement": false,
+          "maxLength": "11",
+          "minLength": "10",
           "array": false,
           "isPII": "",
           "parentRelationship": "",
           "childRelationship": "",
           "meta": {
-            "kind": "number",
-            "autoIncrement": false
+            "kind": "string",
+            "minLength": 10,
+            "maxLength": 11
           }
         },
         {
-          "name": "workspace_id",
+          "name": "workspace_code",
           "type": "string",
           "childRelationshipType": "",
           "parentRelationshipType": "Workspace",
@@ -1180,7 +1347,7 @@
           "defaultvalue": "",
           "example": "T01EXAMPLE123",
           "autoIncrement": false,
-          "maxLength": "64",
+          "maxLength": "11",
           "array": false,
           "isPII": "",
           "relationship": "one",
@@ -1188,7 +1355,7 @@
           "childRelationship": "",
           "meta": {
             "kind": "string",
-            "maxLength": 64
+            "maxLength": 11
           }
         },
         {
@@ -1324,7 +1491,7 @@
           "name": "workspace_app_config",
           "parentTable": "workspace",
           "parentColumn": {
-            "name": "id",
+            "name": "code",
             "type": "string",
             "childRelationshipType": "AppConfig",
             "parentRelationshipType": "",
@@ -1335,19 +1502,21 @@
             "defaultvalue": "",
             "example": "T01EXAMPLE123",
             "autoIncrement": false,
-            "maxLength": "64",
+            "maxLength": "11",
+            "minLength": "10",
             "array": false,
             "isPII": "",
             "parentRelationship": "",
             "childRelationship": "workspace_channel, workspace_template, workspace_app_config",
             "meta": {
               "kind": "string",
-              "maxLength": 64
+              "minLength": 10,
+              "maxLength": 11
             }
           },
           "childTable": "app_config",
           "childColumn": {
-            "name": "workspace_id",
+            "name": "workspace_code",
             "type": "string",
             "childRelationshipType": "",
             "parentRelationshipType": "Workspace",
@@ -1358,7 +1527,7 @@
             "defaultvalue": "",
             "example": "T01EXAMPLE123",
             "autoIncrement": false,
-            "maxLength": "64",
+            "maxLength": "11",
             "array": false,
             "isPII": "",
             "relationship": "one",
@@ -1366,7 +1535,7 @@
             "childRelationship": "",
             "meta": {
               "kind": "string",
-              "maxLength": 64
+              "maxLength": 11
             }
           },
           "type": "one",
@@ -1376,73 +1545,31 @@
       "lines": [],
       "keys": [
         {
-          "name": "id",
-          "type": "number",
-          "childRelationshipType": "",
-          "parentRelationshipType": "",
-          "datatype": "INT",
-          "primaryKey": true,
-          "required": true,
-          "description": "Auto-incrementing primary key for app configuration records. Each workspace typically has one configuration record.",
-          "defaultvalue": "",
-          "example": "1",
-          "autoIncrement": false,
-          "array": false,
-          "isPII": "",
-          "parentRelationship": "",
-          "childRelationship": "",
-          "meta": {
-            "kind": "number",
-            "autoIncrement": false
-          }
-        }
-      ],
-      "indexes": [
-        {
-          "name": "id",
-          "type": "number",
-          "childRelationshipType": "",
-          "parentRelationshipType": "",
-          "datatype": "INT",
-          "primaryKey": true,
-          "required": true,
-          "description": "Auto-incrementing primary key for app configuration records. Each workspace typically has one configuration record.",
-          "defaultvalue": "",
-          "example": "1",
-          "autoIncrement": false,
-          "array": false,
-          "isPII": "",
-          "parentRelationship": "",
-          "childRelationship": "",
-          "meta": {
-            "kind": "number",
-            "autoIncrement": false
-          }
-        },
-        {
-          "name": "workspace_id",
+          "name": "code",
           "type": "string",
           "childRelationshipType": "",
-          "parentRelationshipType": "Workspace",
+          "parentRelationshipType": "",
           "datatype": "VARCHAR",
-          "primaryKey": false,
+          "primaryKey": true,
           "required": true,
-          "description": "Foreign key reference to the workspace these operational settings apply to. Allows per-workspace customization of retry logic and behavior.",
+          "description": "Auto-incrementing primary key for app configuration records. Each workspace typically has one configuration record.",
           "defaultvalue": "",
-          "example": "T01EXAMPLE123",
+          "example": "1",
           "autoIncrement": false,
-          "maxLength": "64",
+          "maxLength": "11",
+          "minLength": "10",
           "array": false,
           "isPII": "",
-          "relationship": "one",
-          "parentRelationship": "workspace_app_config",
+          "parentRelationship": "",
           "childRelationship": "",
           "meta": {
             "kind": "string",
-            "maxLength": 64
+            "minLength": 10,
+            "maxLength": 11
           }
         }
       ],
+      "indexes": [],
       "docs": {
         "name": "App_config",
         "summary": "Configuration for app_config table",
@@ -1514,7 +1641,7 @@
       "name": "workspace_channel",
       "parentTable": "workspace",
       "parentColumn": {
-        "name": "id",
+        "name": "code",
         "type": "string",
         "childRelationshipType": "AppConfig",
         "parentRelationshipType": "",
@@ -1525,19 +1652,21 @@
         "defaultvalue": "",
         "example": "T01EXAMPLE123",
         "autoIncrement": false,
-        "maxLength": "64",
+        "maxLength": "11",
+        "minLength": "10",
         "array": false,
         "isPII": "",
         "parentRelationship": "",
         "childRelationship": "workspace_channel, workspace_template, workspace_app_config",
         "meta": {
           "kind": "string",
-          "maxLength": 64
+          "minLength": 10,
+          "maxLength": 11
         }
       },
       "childTable": "channel",
       "childColumn": {
-        "name": "workspace_id",
+        "name": "workspace_code",
         "type": "string",
         "childRelationshipType": "",
         "parentRelationshipType": "Workspace",
@@ -1548,7 +1677,7 @@
         "defaultvalue": "",
         "example": "T01EXAMPLE123",
         "autoIncrement": false,
-        "maxLength": "64",
+        "maxLength": "11",
         "array": false,
         "isPII": "",
         "relationship": "one",
@@ -1556,7 +1685,7 @@
         "childRelationship": "",
         "meta": {
           "kind": "string",
-          "maxLength": 64
+          "maxLength": 11
         }
       },
       "type": "one",
@@ -1566,7 +1695,7 @@
       "name": "workspace_template",
       "parentTable": "workspace",
       "parentColumn": {
-        "name": "id",
+        "name": "code",
         "type": "string",
         "childRelationshipType": "AppConfig",
         "parentRelationshipType": "",
@@ -1577,19 +1706,21 @@
         "defaultvalue": "",
         "example": "T01EXAMPLE123",
         "autoIncrement": false,
-        "maxLength": "64",
+        "maxLength": "11",
+        "minLength": "10",
         "array": false,
         "isPII": "",
         "parentRelationship": "",
         "childRelationship": "workspace_channel, workspace_template, workspace_app_config",
         "meta": {
           "kind": "string",
-          "maxLength": 64
+          "minLength": 10,
+          "maxLength": 11
         }
       },
       "childTable": "template",
       "childColumn": {
-        "name": "workspace_id",
+        "name": "workspace_code",
         "type": "string",
         "childRelationshipType": "",
         "parentRelationshipType": "Workspace",
@@ -1600,7 +1731,7 @@
         "defaultvalue": "",
         "example": "T01EXAMPLE123",
         "autoIncrement": false,
-        "maxLength": "64",
+        "maxLength": "11",
         "array": false,
         "isPII": "",
         "relationship": "one",
@@ -1608,7 +1739,7 @@
         "childRelationship": "",
         "meta": {
           "kind": "string",
-          "maxLength": 64
+          "maxLength": 11
         }
       },
       "type": "one",
@@ -1618,7 +1749,7 @@
       "name": "workspace_app_config",
       "parentTable": "workspace",
       "parentColumn": {
-        "name": "id",
+        "name": "code",
         "type": "string",
         "childRelationshipType": "AppConfig",
         "parentRelationshipType": "",
@@ -1629,19 +1760,21 @@
         "defaultvalue": "",
         "example": "T01EXAMPLE123",
         "autoIncrement": false,
-        "maxLength": "64",
+        "maxLength": "11",
+        "minLength": "10",
         "array": false,
         "isPII": "",
         "parentRelationship": "",
         "childRelationship": "workspace_channel, workspace_template, workspace_app_config",
         "meta": {
           "kind": "string",
-          "maxLength": 64
+          "minLength": 10,
+          "maxLength": 11
         }
       },
       "childTable": "app_config",
       "childColumn": {
-        "name": "workspace_id",
+        "name": "workspace_code",
         "type": "string",
         "childRelationshipType": "",
         "parentRelationshipType": "Workspace",
@@ -1652,7 +1785,7 @@
         "defaultvalue": "",
         "example": "T01EXAMPLE123",
         "autoIncrement": false,
-        "maxLength": "64",
+        "maxLength": "11",
         "array": false,
         "isPII": "",
         "relationship": "one",
@@ -1660,7 +1793,7 @@
         "childRelationship": "",
         "meta": {
           "kind": "string",
-          "maxLength": 64
+          "maxLength": 11
         }
       },
       "type": "one",

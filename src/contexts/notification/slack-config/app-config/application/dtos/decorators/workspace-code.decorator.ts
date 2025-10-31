@@ -13,22 +13,22 @@ interface PropOptions {
 }
 
 /**
- * Property decorator for Channel Id
+ * Property decorator for AppConfig WorkspaceCode
  * @param {Object} options - Options for the decorator
  * @returns {PropertyDecorator}
  */
-export function ApiChannelId(options: PropOptions = {}) {
+export function ApiAppConfigWorkspaceCode(options: PropOptions = {}) {
   const { required = true } = options;
 
   return applyDecorators(
     ApiProperty({
-      description: `Unique Slack channel identifier provided by Slack API. Used for all channel-specific operations including message posting and permissions validation.`,
-      example: `C01EXAMPLE001`,
+      description: `Foreign key reference to the workspace these operational settings apply to. Allows per-workspace customization of retry logic and behavior.`,
+      example: `T01EXAMPLE123`,
       type: String,
       required,
     }),
     IsString(),
-    MaxLength(64),
+    MaxLength(11),
     required ? IsNotEmpty() : IsOptional(),
   );
 }

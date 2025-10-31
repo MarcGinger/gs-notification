@@ -17,26 +17,26 @@ export const WORKSPACE_REFERENCE_READER_TOKEN = 'IWorkspaceReader' as const;
  */
 export interface IWorkspaceReader {
   /**
-   * Find valid Workspace Ids for Workspace configuration
+   * Find valid Workspace Codes for Workspace configuration
    * @param actor - The authenticated user context
    * @param options - Optional repository options
-   * @returns Result containing available Workspace Ids
+   * @returns Result containing available Workspace Codes
    */
-  findValidWorkspaceIds(
+  findValidWorkspaceCodes(
     actor: ActorContext,
     options?: RepositoryOptions,
   ): Promise<Result<string[], DomainError>>;
 
   /**
-   * Find Workspace configuration by Workspace id
+   * Find Workspace configuration by Workspace code
    * @param actor - The authenticated user context
    * @param  - The   to lookup
    * @param options - Optional repository options
    * @returns Result containing Workspace configuration or null if not found
    */
-  findWorkspaceById(
+  findWorkspaceByCode(
     actor: ActorContext,
-    id: string,
+    code: string,
     options?: RepositoryOptions,
   ): Promise<Result<Option<WorkspaceReference>, DomainError>>;
 }

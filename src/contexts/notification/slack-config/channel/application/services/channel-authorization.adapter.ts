@@ -83,7 +83,7 @@ export class ChannelAuthorizationAdapter
       return err({
         ...ChannelErrors.NOT_IMPLEMENTED,
         context: {
-          ids: resourceId,
+          codes: resourceId,
           userId,
           correlationId,
           operation,
@@ -108,22 +108,22 @@ export class ChannelAuthorizationAdapter
    * Useful for list operations where you need to filter results.
    *
    * @param userId - User identifier
-   * @param ids - Array of channel ids to authorize
+   * @param codes - Array of channel codes to authorize
    * @param correlationId - Request correlation ID
    * @param operation - Operation type (read, update, delete)
    * @param context - Channel authorization context
-   * @returns Result containing authorized and denied channel ids
+   * @returns Result containing authorized and denied channel codes
    */
   async authorizeChannelList(
     userId: string,
-    ids: string[],
+    codes: string[],
     correlationId: string,
     operation: BatchOperation = 'read',
     context?: ChannelAuthContext,
   ): Promise<Result<{ authorized: string[]; denied: string[] }, DomainError>> {
     return this.channelAuthorizationService.authorizeChannelList(
       userId,
-      ids,
+      codes,
       correlationId,
       operation,
       context,

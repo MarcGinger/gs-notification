@@ -22,7 +22,7 @@ import {
 import { SlackConfigServiceConstants } from '../../../service-constants';
 import { ChannelAggregate } from '../../domain/aggregates';
 import { ChannelProjectionKeys } from '../../channel-projection-keys';
-import { ChannelId } from '../../domain/value-objects';
+import { ChannelCode } from '../../domain/value-objects';
 import { ChannelDeletedEvent } from '../../domain/events';
 import { IChannelWriter } from '../../application/ports';
 
@@ -276,13 +276,13 @@ export class ChannelWriterRepository
   /**
    * Delete a Channel by its unique identifier using EventStoreDB-first approach
    * @param actor - The authenticated user context
-   * @param id - The unique identifier of the Channel to delete
+   * @param code - The unique identifier of the Channel to delete
    * @param opts - Optional parameters including expected version and metadata
    * @returns Result with SaveReceipt containing revision tracking or domain error
    */
   async delete(
     actor: ActorContext,
-    id: ChannelId,
+    code: ChannelCode,
     opts?: {
       expectedVersion?: number;
       meta?: {
@@ -304,7 +304,7 @@ export class ChannelWriterRepository
       correlationId,
       actor,
       {
-        channelId: id.value,
+        channelCode: code.value,
         expectedVersion: opts?.expectedVersion,
         hasMetadata: !!opts?.meta,
       },
@@ -328,14 +328,14 @@ export class ChannelWriterRepository
       {
         operationType: 'aggregate_delete',
         scope: 'channel_deletion',
-        channelId: id.value,
+        channelCode: code.value,
       },
     );
 
     const stream = this.buildStreamName(
       actor.tenant,
       ChannelProjectionKeys.getEventStoreStreamPrefix(),
-      id.value,
+      code.value,
     );
 
     // Create proper domain event metadata
@@ -358,7 +358,7 @@ export class ChannelWriterRepository
     // Create proper ChannelDeletedEvent
     const deletedEvent = ChannelDeletedEvent.create(
       {
-        id: id.value,
+        code: code.value,
         deletedAt: this.clock.now(),
         version: opts?.expectedVersion ?? 1,
       },
@@ -370,7 +370,7 @@ export class ChannelWriterRepository
       type: deletedEvent.eventType,
       version: 1, // Convert string version to number
       occurredAt: this.clock.now(),
-      aggregateId: id.value,
+      aggregateId: code.value,
       aggregateType: 'Channel',
       data: deletedEvent.payload,
       metadata: eventMetadata,
@@ -391,7 +391,7 @@ export class ChannelWriterRepository
         {
           ...logContext,
           stream,
-          channelId: id.value,
+          channelCode: code.value,
           expectedRevision: expectedRevision.toString(),
           eventType: domainEvent.type,
         },
@@ -412,7 +412,7 @@ export class ChannelWriterRepository
 
       const receipt: SaveReceipt = {
         stream,
-        aggregateId: id.value,
+        aggregateId: code.value,
         tenant: actor.tenant ?? 'default',
         eventCount: 1,
         // newVersion omitted - we don't know it with ANY expectedRevision
@@ -431,7 +431,7 @@ export class ChannelWriterRepository
           dataQuality: 'good',
           sampleData: {
             stream,
-            channelId: id.value,
+            channelCode: code.value,
             streamRevision: appendResult?.nextExpectedRevision?.toString(),
             eventType: 'ChannelDeletedEvent',
           },

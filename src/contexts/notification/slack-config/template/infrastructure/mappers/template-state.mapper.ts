@@ -10,7 +10,7 @@
 
 import {
   TemplateCode,
-  TemplateWorkspaceId,
+  TemplateWorkspaceCode,
   TemplateName,
   TemplateDescription,
   TemplateContentBlocks,
@@ -58,9 +58,9 @@ export class TemplateStateMapper {
 
     // Convert each primitive to its corresponding VO with error collection
     const code = validateField('code', TemplateCode.from(snapshot.code));
-    const workspaceId = validateField(
-      'workspaceId',
-      TemplateWorkspaceId.from(snapshot.workspaceId),
+    const workspaceCode = validateField(
+      'workspaceCode',
+      TemplateWorkspaceCode.from(snapshot.workspaceCode),
     );
     const name = validateField('name', TemplateName.from(snapshot.name));
     const description = snapshot.description
@@ -121,7 +121,7 @@ export class TemplateStateMapper {
     // All validations passed, construct the rich domain state
     const domainState: TemplateDomainState = {
       code: code!,
-      workspaceId: workspaceId!,
+      workspaceCode: workspaceCode!,
       name: name!,
       description: description || undefined,
       contentBlocks: contentBlocks!,
@@ -146,7 +146,7 @@ export class TemplateStateMapper {
     return {
       // Extract primitive values from VOs
       code: domainState.code.value,
-      workspaceId: domainState.workspaceId.value,
+      workspaceCode: domainState.workspaceCode.value,
       name: domainState.name.value,
       description: domainState.description?.value,
       contentBlocks: domainState.contentBlocks.toArray(),

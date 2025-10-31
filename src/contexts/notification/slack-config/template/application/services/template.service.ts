@@ -26,7 +26,11 @@ import type {
   CreateTemplateProps,
   UpdateTemplateProps,
 } from '../../domain/props';
-import { DetailTemplateResponse } from '../dtos';
+import {
+  DetailTemplateResponse,
+  ListTemplateFilterRequest,
+  TemplatePageResponse,
+} from '../dtos';
 
 // Application layer
 import { TemplateAuthorizationService } from './template-authorization.service';
@@ -36,6 +40,7 @@ import { TemplateAuthContext } from '../types/template-auth-context';
 import {
   IUpsertTemplateUseCase,
   IGetTemplateUseCase,
+  IListTemplateUseCase,
 } from '../use-cases/contracts';
 
 /**
@@ -49,6 +54,7 @@ export class TemplateApplicationService {
     private readonly templateAuthorizationService: TemplateAuthorizationService,
     private readonly upsertTemplateUseCase: IUpsertTemplateUseCase,
     private readonly getTemplateUseCase: IGetTemplateUseCase,
+    private readonly listTemplateUseCase: IListTemplateUseCase,
     @Inject(CLOCK) private readonly clock: Clock,
     @Inject(APP_LOGGER) moduleLogger: Logger,
   ) {
@@ -331,6 +337,44 @@ export class TemplateApplicationService {
           correlationId: CorrelationUtil.generateForOperation('template-read'),
         }),
       logContext: { code: validatedcode },
+    });
+  }
+
+  /**
+   * List templates with authorization and pagination
+   */
+  async listTemplates(
+    user: IUserToken,
+    filter?: ListTemplateFilterRequest,
+  ): Promise<Result<TemplatePageResponse, DomainError>> {
+    const authContext = this.createAuthContext(user, 'list');
+    const correlationId = CorrelationUtil.generateForOperation('template-list');
+
+    // Ensure we always have a proper filter object
+    const safeFilter = filter || new ListTemplateFilterRequest();
+
+    return this.authorizeThenExecute<TemplatePageResponse>({
+      operation: 'read', // List is a form of read operation
+      user,
+      correlationIdPrefix: 'template-list',
+      doAuthorize: () =>
+        this.templateAuthorizationService.canReadTemplate(
+          user.sub,
+          'list', // Use 'list' as a special code for list operations
+          correlationId,
+          authContext,
+        ),
+      doExecute: () =>
+        this.listTemplateUseCase.execute({
+          user,
+          filter: safeFilter,
+          correlationId,
+        }),
+      logContext: {
+        operation: 'list_templates',
+        pageSize: safeFilter.size,
+        page: safeFilter.page,
+      },
     });
   }
 }

@@ -6,13 +6,13 @@ import {
   AppConfigUpdatedAt,
   AppConfigVersion,
   AppConfigAuditChannelId,
+  AppConfigCode,
   AppConfigDefaultLocale,
-  AppConfigId,
   AppConfigLoggingEnabled,
   AppConfigMaxRetryAttempts,
   AppConfigMetadata,
   AppConfigRetryBackoffSeconds,
-  AppConfigWorkspaceId,
+  AppConfigWorkspaceCode,
 } from '../value-objects';
 
 /**
@@ -29,8 +29,8 @@ import {
  */
 
 export interface AppConfigDomainState {
-  id: AppConfigId;
-  workspaceId: AppConfigWorkspaceId;
+  code: AppConfigCode;
+  workspaceCode: AppConfigWorkspaceCode;
   maxRetryAttempts: AppConfigMaxRetryAttempts;
   retryBackoffSeconds: AppConfigRetryBackoffSeconds;
   defaultLocale: AppConfigDefaultLocale;

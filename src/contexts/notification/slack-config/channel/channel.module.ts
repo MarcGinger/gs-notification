@@ -15,6 +15,8 @@ import {
   UpsertChannelUseCase,
   IGetChannelUseCase,
   GetChannelUseCase,
+  IListChannelUseCase,
+  ListChannelUseCase,
 } from './application/use-cases';
 
 // import { IChannelRepository } from './application/ports';
@@ -72,6 +74,10 @@ import {
     {
       provide: IGetChannelUseCase,
       useClass: GetChannelUseCase,
+    },
+    {
+      provide: IListChannelUseCase,
+      useClass: ListChannelUseCase,
     },
   ],
   exports: [

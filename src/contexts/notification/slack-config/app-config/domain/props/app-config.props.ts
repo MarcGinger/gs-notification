@@ -2,8 +2,8 @@
 // REMOVE THIS COMMENT TO STOP AUTOMATIC UPDATES TO THIS BLOCK
 
 export interface AppConfigProps {
-  id: number;
-  workspaceId: string;
+  code: string;
+  workspaceCode: string;
   maxRetryAttempts: number;
   retryBackoffSeconds: number;
   defaultLocale: string;

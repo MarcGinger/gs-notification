@@ -4,14 +4,12 @@
 import {
   Controller,
   Get,
-  Query,
   Post,
   Body,
   Put,
   HttpStatus,
   HttpCode,
   Param,
-  ParseIntPipe,
   UseInterceptors,
   UseGuards,
 } from '@nestjs/common';
@@ -34,12 +32,8 @@ import {
   DetailAppConfigResponse,
   CreateAppConfigRequest,
   UpdateAppConfigRequest,
-  AppConfigPageResponse,
-  ListAppConfigFilterRequest,
-  ListAppConfigResponse,
 } from '../../../application/dtos';
 import { Result, ResultInterceptor, DomainError } from 'src/shared/errors';
-import { PaginatedResponse } from 'src/shared/application/dtos';
 import {
   AppConfigReadResource,
   AppConfigCreateResource,
@@ -57,30 +51,7 @@ export class AppConfigController {
     private readonly appConfigApplicationService: AppConfigApplicationService,
   ) {}
 
-  @Get()
-  @AppConfigReadResource()
-  @ApiOperation({
-    summary: 'List Apps',
-    description:
-      'Retrieves a list of Apps with optional filtering. Supports pagination and filtering by name or category. Requires READ permission (LOW risk).',
-  })
-  @ApiOkResponse({
-    description: 'List of Apps retrieved successfully',
-    type: AppConfigPageResponse,
-  })
-  @ApiCommonErrors()
-  async list(
-    @CurrentUser() user: IUserToken,
-    @Query() pageRequest?: ListAppConfigFilterRequest,
-  ): Promise<Result<PaginatedResponse<ListAppConfigResponse>, DomainError>> {
-    const result = await this.appConfigApplicationService.listAppConfigs(
-      user,
-      pageRequest,
-    );
-    return result;
-  }
-
-  @Get(':id')
+  @Get(':code')
   @AppConfigReadResource()
   @ApiOperation({
     summary: 'Get App by ID',
@@ -88,11 +59,10 @@ export class AppConfigController {
       'Retrieves a single App by its unique identifier. Requires READ permission (LOW risk).',
   })
   @ApiParam({
-    name: 'id',
-    type: 'number',
+    name: 'code',
+    type: 'string',
     description: 'AppConfig unique identifier',
-    format: 'int64',
-    example: 1,
+    example: '1',
   })
   @ApiOkResponse({
     description: 'AppConfig details retrieved successfully',
@@ -101,11 +71,11 @@ export class AppConfigController {
   @ApiCommonErrors()
   async get(
     @CurrentUser() user: IUserToken,
-    @Param('id', ParseIntPipe) id: number,
+    @Param('code') code: string,
   ): Promise<Result<DetailAppConfigResponse, DomainError>> {
     const result = await this.appConfigApplicationService.getAppConfigById(
       user,
-      id,
+      code,
     );
 
     return result;
@@ -163,7 +133,7 @@ export class AppConfigController {
     return result;
   }
 
-  @Put(':id')
+  @Put(':code')
   @AppConfigUpdateResource()
   @ApiOperation({
     summary: 'Update a App',
@@ -171,11 +141,10 @@ export class AppConfigController {
       'Updates an existing App with new data. Supports partial updates. Requires UPDATE permission (MEDIUM risk).',
   })
   @ApiParam({
-    name: 'id',
-    type: 'number',
+    name: 'code',
+    type: 'string',
     description: 'AppConfig unique identifier',
-    format: 'int64',
-    example: 1,
+    example: '1',
   })
   @ApiResponse({
     status: HttpStatus.OK,
@@ -195,12 +164,12 @@ export class AppConfigController {
   })
   async update(
     @CurrentUser() user: IUserToken,
-    @Param('id', ParseIntPipe) id: number,
+    @Param('code') code: string,
     @Body() updateAppConfigRequest: UpdateAppConfigRequest,
   ): Promise<Result<DetailAppConfigResponse, DomainError>> {
     const result = await this.appConfigApplicationService.updateAppConfig(
       user,
-      id,
+      code,
       updateAppConfigRequest,
     );
 

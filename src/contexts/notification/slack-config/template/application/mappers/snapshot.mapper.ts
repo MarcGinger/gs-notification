@@ -17,7 +17,7 @@ export const mapTemplateSnapshotToDto = (
 ): DetailTemplateResponse => {
   return {
     code: snapshot.code,
-    workspaceId: snapshot.workspaceId,
+    workspaceCode: snapshot.workspaceCode,
     name: snapshot.name,
     description: snapshot.description,
     contentBlocks: snapshot.contentBlocks,

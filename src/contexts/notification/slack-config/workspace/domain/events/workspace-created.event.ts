@@ -6,7 +6,7 @@
  * Contains only business facts - no envelope metadata, timestamps, or versioning
  */
 export interface WorkspaceCreatedEventPayload {
-  id: string;
+  code: string;
   name: string;
   botToken?: string;
   signingSecret?: string;
@@ -34,8 +34,8 @@ export class WorkspaceCreatedEvent {
     return new WorkspaceCreatedEvent(data);
   }
 
-  get id(): string {
-    return this.payload.id;
+  get code(): string {
+    return this.payload.code;
   }
 
   get name(): string {

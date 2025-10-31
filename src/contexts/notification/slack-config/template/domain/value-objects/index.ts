@@ -6,4 +6,4 @@ export * from './name.vo';
 export * from './sample-payload.vo';
 export * from './template-instance.vo';
 export * from './variables.vo';
-export * from './workspace-id.vo';
+export * from './workspace-code.vo';

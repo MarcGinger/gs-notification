@@ -13,7 +13,7 @@ import { UpsertChannelProps } from '../../domain/props';
 export class UpsertChannelCommand extends BaseCommand {
   constructor(
     user: IUserToken,
-    public readonly id: string,
+    public readonly code: string,
     public readonly props: UpsertChannelProps,
     correlationId: string,
     securityContext: SecurityMetadata,
@@ -26,7 +26,7 @@ export class UpsertChannelCommand extends BaseCommand {
    */
   static create(
     user: IUserToken,
-    id: string,
+    code: string,
     props: UpsertChannelProps,
     correlationId: string = CorrelationUtil.generate(),
     additionalSecurityContext?: Partial<SecurityMetadata>,
@@ -38,7 +38,7 @@ export class UpsertChannelCommand extends BaseCommand {
 
     return new UpsertChannelCommand(
       user,
-      id,
+      code,
       props,
       correlationId,
       securityContext,

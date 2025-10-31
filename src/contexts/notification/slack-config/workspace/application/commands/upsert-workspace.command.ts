@@ -13,7 +13,7 @@ import { UpsertWorkspaceProps } from '../../domain/props';
 export class UpsertWorkspaceCommand extends BaseCommand {
   constructor(
     user: IUserToken,
-    public readonly id: string,
+    public readonly code: string,
     public readonly props: UpsertWorkspaceProps,
     correlationId: string,
     securityContext: SecurityMetadata,
@@ -26,7 +26,7 @@ export class UpsertWorkspaceCommand extends BaseCommand {
    */
   static create(
     user: IUserToken,
-    id: string,
+    code: string,
     props: UpsertWorkspaceProps,
     correlationId: string = CorrelationUtil.generate(),
     additionalSecurityContext?: Partial<SecurityMetadata>,
@@ -38,7 +38,7 @@ export class UpsertWorkspaceCommand extends BaseCommand {
 
     return new UpsertWorkspaceCommand(
       user,
-      id,
+      code,
       props,
       correlationId,
       securityContext,

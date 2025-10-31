@@ -12,7 +12,7 @@ import {
   TemplateUpdatedAt,
   TemplateVersion,
   TemplateCode,
-  TemplateWorkspaceId,
+  TemplateWorkspaceCode,
   TemplateName,
   TemplateDescription,
   TemplateContentBlocks,
@@ -47,15 +47,15 @@ export function createTemplateAggregateFromProps(
     );
   }
 
-  const workspaceIdResult = TemplateWorkspaceId.from(props.workspaceId);
-  if (!workspaceIdResult.ok) {
+  const workspaceCodeResult = TemplateWorkspaceCode.from(props.workspaceCode);
+  if (!workspaceCodeResult.ok) {
     return err(
-      withContext(workspaceIdResult.error, {
-        ...workspaceIdResult.error.context,
+      withContext(workspaceCodeResult.error, {
+        ...workspaceCodeResult.error.context,
         correlationId: metadata.correlationId,
         userId: metadata.userId,
         operation: 'create_template',
-        workspaceId: props.workspaceId,
+        workspaceCode: props.workspaceCode,
       }),
     );
   }
@@ -156,7 +156,7 @@ export function createTemplateAggregateFromProps(
   // Create the entity properties with validated value objects
   const entityProps: TemplateDomainState = {
     code: codeResult.value,
-    workspaceId: workspaceIdResult.value,
+    workspaceCode: workspaceCodeResult.value,
     name: nameResult.value,
     description: descriptionResult.value,
     contentBlocks: contentBlocksResult.value,

@@ -9,18 +9,18 @@
  */
 
 import {
-  ChannelCreatedAt,
-  ChannelUpdatedAt,
-  ChannelVersion,
-  ChannelId,
+  ChannelCode,
   ChannelName,
-  ChannelWorkspaceId,
+  ChannelWorkspaceCode,
   ChannelIsPrivate,
   ChannelIsDm,
   ChannelTopic,
   ChannelPurpose,
   ChannelSubscribedEvents,
   ChannelEnabled,
+  ChannelCreatedAt,
+  ChannelUpdatedAt,
+  ChannelVersion,
 } from '../../domain/value-objects';
 import { Result, ok, err, DomainError } from 'src/shared/errors';
 import { ChannelDomainState } from '../../domain/state/channel.state';
@@ -58,11 +58,11 @@ export class ChannelStateMapper {
     };
 
     // Convert each primitive to its corresponding VO with error collection
-    const id = validateField('id', ChannelId.from(snapshot.id));
+    const code = validateField('code', ChannelCode.from(snapshot.code));
     const name = validateField('name', ChannelName.from(snapshot.name));
-    const workspaceId = validateField(
-      'workspaceId',
-      ChannelWorkspaceId.from(snapshot.workspaceId),
+    const workspaceCode = validateField(
+      'workspaceCode',
+      ChannelWorkspaceCode.from(snapshot.workspaceCode),
     );
     const isPrivate = validateField(
       'isPrivate',
@@ -112,16 +112,16 @@ export class ChannelStateMapper {
             errorCode: e.error.code,
             errorMessage: e.error.detail,
           })),
-          snapshotCode: snapshot.id,
+          snapshotCode: snapshot.code,
         },
       });
     }
 
     // All validations passed, construct the rich domain state
     const domainState: ChannelDomainState = {
-      id: id!,
+      code: code!,
       name: name!,
-      workspaceId: workspaceId!,
+      workspaceCode: workspaceCode!,
       isPrivate: isPrivate!,
       isDm: isDm!,
       topic: topic || undefined,
@@ -145,9 +145,9 @@ export class ChannelStateMapper {
   static toSnapshot(domainState: ChannelDomainState): ChannelSnapshotProps {
     return {
       // Extract primitive values from VOs
-      id: domainState.id.value,
+      code: domainState.code.value,
       name: domainState.name.value,
-      workspaceId: domainState.workspaceId.value,
+      workspaceCode: domainState.workspaceCode.value,
       isPrivate: domainState.isPrivate.value,
       isDm: domainState.isDm.value,
       topic: domainState.topic?.value,

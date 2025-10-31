@@ -3,7 +3,7 @@
 import { DomainError } from 'src/shared/errors';
 
 export interface ChannelContext extends Record<string, unknown> {
-  id: string;
+  code: string;
   name: string;
   isPrivate: boolean;
   isDm: boolean;
@@ -108,10 +108,17 @@ export const ChannelErrors = {
     category: 'validation',
     retryable: false,
   } as DomainError<'CHANNEL.INVALID_CHANNEL_DATA', ChannelContext>,
+  INVALID_CODE: {
+    code: 'CHANNEL.INVALID_CODE',
+    title: 'Value Required',
+    detail: 'Code is required for Channel.',
+    category: 'validation',
+    retryable: false,
+  } as DomainError<'CHANNEL.INVALID_CODE', ChannelContext>,
   INVALID_CODE_DATA: {
     code: 'CHANNEL.INVALID_CODE_DATA',
-    title: 'Invalid Version Data',
-    detail: 'The channel version data is invalid.',
+    title: 'Value Required',
+    detail: 'Code is required for Channel.',
     category: 'validation',
     retryable: false,
   } as DomainError<'CHANNEL.INVALID_CODE_DATA', ChannelContext>,
@@ -129,20 +136,6 @@ export const ChannelErrors = {
     category: 'validation',
     retryable: false,
   } as DomainError<'CHANNEL.INVALID_ENABLED_DATA', ChannelContext>,
-  INVALID_ID: {
-    code: 'CHANNEL.INVALID_ID',
-    title: 'Value Required',
-    detail: 'Id is required for Channel.',
-    category: 'validation',
-    retryable: false,
-  } as DomainError<'CHANNEL.INVALID_ID', ChannelContext>,
-  INVALID_ID_DATA: {
-    code: 'CHANNEL.INVALID_ID_DATA',
-    title: 'Value Required',
-    detail: 'Id is required for Channel.',
-    category: 'validation',
-    retryable: false,
-  } as DomainError<'CHANNEL.INVALID_ID_DATA', ChannelContext>,
   INVALID_IS_DM: {
     code: 'CHANNEL.INVALID_IS_DM',
     title: 'Value Required',
@@ -227,20 +220,20 @@ export const ChannelErrors = {
     category: 'validation',
     retryable: false,
   } as DomainError<'CHANNEL.INVALID_TOPIC_DATA', ChannelContext>,
-  INVALID_WORKSPACE_ID: {
-    code: 'CHANNEL.INVALID_WORKSPACE_ID',
+  INVALID_WORKSPACE_CODE: {
+    code: 'CHANNEL.INVALID_WORKSPACE_CODE',
     title: 'Value Required',
     detail: 'Workspace is required for Channel.',
     category: 'validation',
     retryable: false,
-  } as DomainError<'CHANNEL.INVALID_WORKSPACE_ID', ChannelContext>,
-  INVALID_WORKSPACE_ID_DATA: {
-    code: 'CHANNEL.INVALID_WORKSPACE_ID_DATA',
+  } as DomainError<'CHANNEL.INVALID_WORKSPACE_CODE', ChannelContext>,
+  INVALID_WORKSPACE_CODE_DATA: {
+    code: 'CHANNEL.INVALID_WORKSPACE_CODE_DATA',
     title: 'Value Required',
     detail: 'Workspace is required for Channel.',
     category: 'validation',
     retryable: false,
-  } as DomainError<'CHANNEL.INVALID_WORKSPACE_ID_DATA', ChannelContext>,
+  } as DomainError<'CHANNEL.INVALID_WORKSPACE_CODE_DATA', ChannelContext>,
   NOT_BOOLEAN_ENABLED: {
     code: 'CHANNEL.NOT_BOOLEAN_ENABLED',
     title: 'Not a Boolean',

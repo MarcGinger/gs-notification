@@ -77,7 +77,7 @@ interface WorkspaceRowParams extends DetailWorkspaceResponse {
  * Implements projection function pattern for event handling with Redis backend
  *
  * Redis Data Structure (managed by WorkspaceProjectionKeys domain value object):
- * - Workspace Hash: `workspace:projection:{tenant}:id` - stores all workspace fields
+ * - Workspace Hash: `workspace:projection:{tenant}:code` - stores all workspace fields
  * - Tenant Index: `workspace:index:by_tenant:{tenant}` - sorted set by updated timestamp
  *
  * Key Features:
@@ -263,7 +263,7 @@ export class WorkspaceProjector
         this.redis,
         tenant,
         'workspace',
-        params.id,
+        params.code,
         params.version,
         config.VERSION_KEY_PREFIX,
       );
@@ -271,7 +271,7 @@ export class WorkspaceProjector
       if (alreadyProcessed) {
         this.logger.debug(
           'Workspace already processed - using version hint optimization for ' +
-            params.id +
+            params.code +
             ' version ' +
             params.version,
         );
@@ -288,7 +288,7 @@ export class WorkspaceProjector
       // ✅ Generate cluster-safe keys using centralized WorkspaceProjectionKeys
       const entityKey = WorkspaceProjectionKeys.getRedisWorkspaceKey(
         tenant,
-        params.id,
+        params.code,
       );
       const indexKey =
         WorkspaceProjectionKeys.getRedisWorkspaceIndexKey(tenant);
@@ -306,7 +306,7 @@ export class WorkspaceProjector
           pipeline,
           entityKey,
           indexKey,
-          params.id,
+          params.code,
           params.deletedAt,
         );
 
@@ -317,7 +317,7 @@ export class WorkspaceProjector
           pipeline,
           entityKey,
           indexKey,
-          params.id,
+          params.code,
           params.version,
           params.updatedAt,
           fieldPairs,
@@ -340,7 +340,7 @@ export class WorkspaceProjector
         this.redis,
         tenant,
         'workspace',
-        params.id,
+        params.code,
         params.version,
         undefined, // Use default TTL
         config.VERSION_KEY_PREFIX,
@@ -421,7 +421,7 @@ export class WorkspaceProjector
     indexKey: string;
   } {
     // ✅ Hash-tags ensure both keys route to same Redis Cluster slot
-    const entityKey = 'workspace:{' + params.tenant + '}:' + params.id;
+    const entityKey = 'workspace:{' + params.tenant + '}:' + params.code;
     const indexKey = 'workspace:index:{' + params.tenant + '}';
 
     Log.debug(this.logger, 'Generated cluster-safe keys with hash-tags', {
@@ -429,7 +429,7 @@ export class WorkspaceProjector
       entityKey,
       indexKey,
       tenant: params.tenant,
-      id: params.id,
+      code: params.code,
     });
 
     return { entityKey, indexKey };

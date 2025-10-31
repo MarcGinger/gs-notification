@@ -21,13 +21,7 @@ import { RepositoryErrorFactory } from 'src/shared/domain/errors/repository.erro
 import { CacheMetricsCollector } from 'src/shared/infrastructure/projections/cache-optimization';
 import { SLACK_CONFIG_DI_TOKENS } from '../../../slack-config.constants';
 import { AppConfigProjectionKeys } from '../../app-config-projection-keys';
-import {
-  AppConfigPageResponse,
-  ListAppConfigFilterRequest,
-  ListAppConfigResponse,
-  DetailAppConfigResponse,
-} from '../../application/dtos';
-import { PaginationMetaResponse } from 'src/shared/application/dtos';
+import { DetailAppConfigResponse } from '../../application/dtos';
 import { IAppConfigQuery } from '../../application/ports';
 
 /**
@@ -56,7 +50,7 @@ interface AppConfigCacheData extends DetailAppConfigResponse {
  * Redis Features Used:
  * - Hash-based appConfig storage with cluster-safe keys
  * - Sorted set indexing for efficient pagination and sorting
- * - Pattern matching for id and name filtering
+ * - Pattern matching for code and name filtering
  * - SCAN operations for tenant isolation
  * - Production-ready caching with metrics collection
  *
@@ -95,7 +89,7 @@ export class AppConfigQueryRepository implements IAppConfigQuery {
   }
 
   /**
-   * Find a single appConfig by id using Redis hash lookup
+   * Find a single appConfig by code using Redis hash lookup
    *
    * Leverages the established Redis patterns from AppConfigProjector
    * with cluster-safe keys and production-ready caching.
@@ -109,13 +103,13 @@ export class AppConfigQueryRepository implements IAppConfigQuery {
    * - Soft delete awareness
    *
    * @param actor - The actor context containing authentication and request metadata.
-   * @param id - The appConfig id to search for.
+   * @param code - The appConfig code to search for.
    * @param options - Optional repository options (e.g., timeout, correlation).
    * @returns A promise resolving to a Result containing the AppConfig response or a DomainError.
    */
   async findById(
     actor: ActorContext,
-    id: number,
+    code: string,
     options?: RepositoryOptions,
   ): Promise<Result<Option<DetailAppConfigResponse>, DomainError>> {
     const operation = 'findById';
@@ -124,7 +118,7 @@ export class AppConfigQueryRepository implements IAppConfigQuery {
       CorrelationUtil.generateForOperation('app-config-query-findById');
 
     const logContext = this.createLogContext(operation, correlationId, actor, {
-      appConfigId: id,
+      appConfigCode: code,
       dataSource: 'redis-projector',
     });
 
@@ -157,10 +151,7 @@ export class AppConfigQueryRepository implements IAppConfigQuery {
 
     try {
       // Generate cluster-safe Redis key
-      const appConfigKey = this.generateAppConfigKey(
-        actor.tenant,
-        id.toString(),
-      );
+      const appConfigKey = this.generateAppConfigKey(actor.tenant, code);
 
       Log.debug(this.logger, 'Executing Redis hash lookup', {
         ...logContext,
@@ -198,8 +189,8 @@ export class AppConfigQueryRepository implements IAppConfigQuery {
 
       // Transform to DetailAppConfigResponse DTO (excluding internal fields)
       const detailResponse: DetailAppConfigResponse = {
-        id: appConfig.id,
-        workspaceId: appConfig.workspaceId,
+        code: appConfig.code,
+        workspaceCode: appConfig.workspaceCode,
         maxRetryAttempts: appConfig.maxRetryAttempts,
         retryBackoffSeconds: appConfig.retryBackoffSeconds,
         defaultLocale: appConfig.defaultLocale,
@@ -211,7 +202,7 @@ export class AppConfigQueryRepository implements IAppConfigQuery {
       Log.debug(this.logger, 'AppConfig found successfully in Redis', {
         ...logContext,
         resultData: {
-          appConfigId: detailResponse.id,
+          appConfigCode: detailResponse.code,
           cacheHit: true,
         },
       });
@@ -275,8 +266,8 @@ export class AppConfigQueryRepository implements IAppConfigQuery {
       // Extract basic fields directly from hash data
 
       return {
-        id: parseInt(hashData.id || '0', 10),
-        workspaceId: hashData.workspaceId,
+        code: hashData.code,
+        workspaceCode: hashData.workspaceCode,
         maxRetryAttempts: parseInt(hashData.maxRetryAttempts || '0', 10),
         retryBackoffSeconds: parseInt(hashData.retryBackoffSeconds || '0', 10),
         defaultLocale: hashData.defaultLocale,
@@ -294,102 +285,11 @@ export class AppConfigQueryRepository implements IAppConfigQuery {
         {
           method: 'parseRedisHashToAppConfig',
           error: (error as Error).message,
-          id: hashData?.id,
+          code: hashData?.code,
         },
       );
       return null;
     }
-  }
-
-  /**
-   * Transform AppConfig CacheData to ListAppConfigResponse DTO
-   */
-  private toListResponse(appConfig: AppConfigCacheData): ListAppConfigResponse {
-    return {
-      id: appConfig.id,
-      workspaceId: appConfig.workspaceId,
-      maxRetryAttempts: appConfig.maxRetryAttempts,
-      retryBackoffSeconds: appConfig.retryBackoffSeconds,
-      defaultLocale: appConfig.defaultLocale,
-      loggingEnabled: appConfig.loggingEnabled,
-      auditChannelId: appConfig.auditChannelId,
-      metadata: appConfig.metadata,
-    } as ListAppConfigResponse;
-  }
-
-  /**
-   * Apply filters to appConfig data using Redis pattern matching and client-side filtering
-   */
-  private matchesFilter(
-    appConfig: AppConfigCacheData,
-    filter?: ListAppConfigFilterRequest,
-  ): boolean {
-    if (!filter) return true;
-
-    // Filter by id (exact match)
-    if (filter.id !== undefined) {
-      if (appConfig.id !== filter.id) {
-        return false;
-      }
-    }
-    // Filter by name (partial match)
-    if (filter.workspaceId) {
-      if (
-        !appConfig.workspaceId
-          .toLowerCase()
-          .includes(filter.workspaceId.toLowerCase())
-      ) {
-        return false;
-      }
-    }
-    return true;
-  }
-
-  /**
-   * Sort appConfigs based on sort criteria
-   */
-  private sortAppConfigs(
-    appConfigs: AppConfigCacheData[],
-    sortBy?: Record<string, string>,
-  ): AppConfigCacheData[] {
-    if (!sortBy || Object.keys(sortBy).length === 0) {
-      // No sorting criteria provided, return as-is
-      return appConfigs;
-    }
-
-    return appConfigs.sort((a, b) => {
-      for (const [field, direction] of Object.entries(sortBy)) {
-        let aVal: number | Date | string;
-        let bVal: number | Date | string;
-
-        switch (field) {
-          case 'id':
-            aVal = a.id;
-            bVal = b.id;
-            break;
-          case 'workspaceId':
-            aVal = a.workspaceId;
-            bVal = b.workspaceId;
-            break;
-          case 'createdAt':
-            aVal = a.createdAt;
-            bVal = b.createdAt;
-            break;
-          case 'updatedAt':
-            aVal = a.updatedAt;
-            bVal = b.updatedAt;
-            break;
-          default:
-            continue;
-        }
-
-        if (aVal === bVal) continue;
-
-        const comparison = aVal < bVal ? -1 : 1;
-        return direction?.toLowerCase() === 'desc' ? -comparison : comparison;
-      }
-      return 0;
-    });
   }
   /**
    * Helper to create consistent logging context using shared utilities
@@ -408,222 +308,5 @@ export class AppConfigQueryRepository implements IAppConfigQuery {
       actor,
       additionalContext,
     );
-  }
-
-  /**
-   * Find AppConfig records with pagination and filtering using Redis projections.
-   *
-   * Leverages the established Redis patterns from AppConfigProjector and AppConfigReaderRepository
-   * with cluster-safe keys and production-ready caching.
-   *
-   * Features:
-   * - Cluster-safe Redis keys with hash tags for co-location
-   * - Client-side filtering for id patterns and name search
-   * - Efficient in-memory sorting with configurable directions
-   * - Pagination with total count calculation
-   * - Tenant isolation using Redis key patterns
-   * - Comprehensive logging and error handling
-   * - Production-ready metrics collection
-   *
-   * @param actor - The actor context containing authentication and request metadata.
-   * @param filter - Optional filter criteria for the app-config search.
-   * @param options - Optional repository options (e.g., pagination, sorting).
-   * @returns A promise resolving to a Result containing paginated AppConfig responses or a DomainError.
-   */
-  async findPaginated(
-    actor: ActorContext,
-    filter?: ListAppConfigFilterRequest,
-    options?: RepositoryOptions,
-  ): Promise<Result<AppConfigPageResponse, DomainError>> {
-    const operation = 'findPaginated';
-    const correlationId =
-      options?.correlationId ??
-      CorrelationUtil.generateForOperation('app-config-query-paginated');
-
-    const logContext = this.createLogContext(operation, correlationId, actor, {
-      filterId: filter?.id,
-      filterWorkspaceId: filter?.workspaceId,
-      page: filter?.page,
-      size: filter?.size,
-      sortBy: filter?.sortBy,
-      dataSource: 'redis-projector',
-    });
-
-    // Validate actor context with enhanced security logging
-    const validation = RepositoryLoggingUtil.validateActorContext(
-      this.logger,
-      actor,
-      logContext,
-    );
-    if (!validation.ok) return err(validation.error);
-
-    // Guard tenant explicitly
-    if (!actor.tenant) {
-      return err(
-        RepositoryErrorFactory.validationError('tenant', 'Missing tenant id'),
-      );
-    }
-
-    // Log successful authorization
-    RepositoryLoggingUtil.logAuthorizationSuccess(
-      this.logger,
-      operation,
-      logContext,
-      {
-        operationType: 'app-config_query_paginated',
-        scope: 'redis_projection_search',
-        tenant: actor.tenant,
-      },
-    );
-
-    try {
-      const page = filter?.page ?? 1;
-      const size = Math.min(filter?.size ?? 20, 100); // Cap at 100 items per page
-
-      // Generate the proper Redis key pattern using centralized AppConfigProjectionKeys
-      const pattern = AppConfigProjectionKeys.getRedisTenantAppConfigPattern(
-        actor.tenant,
-      );
-
-      Log.debug(this.logger, 'Scanning Redis for tenant app-configs', {
-        ...logContext,
-        queryDetails: {
-          scope: 'redis_scan',
-          method: 'redis.scan',
-          pattern,
-          clusterSafe: true,
-        },
-      });
-
-      // Use Redis SCAN to find all app-config keys for the tenant
-      const appConfigKeys: string[] = [];
-      const scanIterator = this.redis.scanStream({
-        match: pattern,
-        count: 1000, // Batch size for scanning
-      });
-
-      for await (const keys of scanIterator) {
-        appConfigKeys.push(...(keys as string[]));
-      }
-
-      if (appConfigKeys.length === 0) {
-        // No app-configs found for tenant
-        const meta = new PaginationMetaResponse({
-          page,
-          size,
-          totalItems: 0,
-          totalPages: 0,
-          hasNextPage: false,
-          hasPreviousPage: false,
-        });
-
-        const response = AppConfigPageResponse.create([], meta);
-
-        Log.debug(this.logger, 'No app-configs found for tenant', {
-          ...logContext,
-          totalItems: 0,
-        });
-
-        return ok(response);
-      }
-
-      // Batch fetch all app-config hashes using pipeline for efficiency
-      const pipeline = this.redis.pipeline();
-      appConfigKeys.forEach((key) => {
-        pipeline.hgetall(key);
-      });
-
-      const results = await pipeline.exec();
-
-      if (!results) {
-        throw new Error('Redis pipeline execution failed');
-      }
-
-      // Parse all app-configs from Redis hashes
-      const allAppConfigs: AppConfigCacheData[] = [];
-      for (let i = 0; i < results.length; i++) {
-        const [error, hashData] = results[i];
-        if (!error && hashData) {
-          const appConfig = this.parseRedisHashToAppConfig(
-            hashData as Record<string, string>,
-          );
-          if (appConfig) {
-            allAppConfigs.push(appConfig);
-          }
-        }
-      }
-
-      // Apply client-side filtering
-      const filteredAppConfigs = allAppConfigs.filter((appConfig) =>
-        this.matchesFilter(appConfig, filter),
-      );
-
-      // Apply client-side sorting
-      const sortedAppConfigs = this.sortAppConfigs(
-        filteredAppConfigs,
-        filter?.sortBy,
-      );
-
-      // Calculate pagination metadata
-      const totalItems = sortedAppConfigs.length;
-      const totalPages = Math.ceil(totalItems / size);
-      const hasNextPage = page < totalPages;
-      const hasPreviousPage = page > 1;
-
-      // Apply pagination
-      const startIndex = (page - 1) * size;
-      const endIndex = startIndex + size;
-      const paginatedAppConfigs = sortedAppConfigs.slice(startIndex, endIndex);
-
-      // Transform to DTOs
-      const appConfigResponses = paginatedAppConfigs.map((appConfig) =>
-        this.toListResponse(appConfig),
-      );
-
-      const meta = new PaginationMetaResponse({
-        page,
-        size,
-        totalItems,
-        totalPages,
-        hasNextPage,
-        hasPreviousPage,
-      });
-
-      const response = AppConfigPageResponse.create(appConfigResponses, meta);
-
-      // Log successful query metrics
-      RepositoryLoggingUtil.logQueryMetrics(
-        this.logger,
-        operation,
-        logContext,
-        {
-          resultCount: paginatedAppConfigs.length,
-          dataQuality: paginatedAppConfigs.length > 0 ? 'good' : 'empty',
-          sampleData: {
-            totalItems,
-            totalKeysScanned: appConfigKeys.length,
-            filteredCount: filteredAppConfigs.length,
-            page,
-            size,
-            hasFilters: !!(filter?.id !== undefined || filter?.workspaceId),
-            sortFields: Object.keys(filter?.sortBy ?? {}),
-          },
-        },
-      );
-
-      return ok(response);
-    } catch (error) {
-      // Log operation error using shared utility
-      RepositoryLoggingUtil.logOperationError(
-        this.logger,
-        operation,
-        logContext,
-        error as Error,
-        'HIGH',
-      );
-
-      // Handle and return the classified error using shared utility
-      return handleRepositoryError(error);
-    }
   }
 }

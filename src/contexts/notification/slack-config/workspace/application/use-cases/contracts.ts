@@ -20,7 +20,7 @@ import type {
 export abstract class IUpsertWorkspaceUseCase {
   abstract execute(params: {
     user: IUserToken;
-    id: string;
+    code: string;
     props: UpsertWorkspaceProps;
     correlationId: string;
     authorizationReason: string;
@@ -30,7 +30,7 @@ export abstract class IUpsertWorkspaceUseCase {
 export abstract class IGetWorkspaceUseCase {
   abstract execute(params: {
     user: IUserToken;
-    id: string;
+    code: string;
     correlationId: string;
   }): Promise<Result<DetailWorkspaceResponse, DomainError>>;
 }

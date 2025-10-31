@@ -15,7 +15,7 @@ import {
 import { ApiListOf } from 'src/shared/application/decorators';
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import {
-  ApiWorkspaceId,
+  ApiWorkspaceCode,
   ApiWorkspaceListMeta,
   ApiWorkspaceName,
 } from './decorators';
@@ -26,14 +26,14 @@ import { ListWorkspaceResponse } from './';
  * Now extends shared base classes for consistency across domains
  *
  * Available sort fields:
- * - id: Sort by id (default: asc)
+ * - code: Sort by code (default: asc)
  * - name: Sort by name (default: asc)
  *
  * Example sortBy usage: {"code": "asc", "name": "desc"}
  */
 export class ListWorkspaceFilterRequest extends BaseSortableListFilterRequest {
-  @ApiWorkspaceId({ required: false })
-  id?: string;
+  @ApiWorkspaceCode({ required: false })
+  code?: string;
 
   @ApiWorkspaceName({ required: false })
   name?: string;
@@ -47,10 +47,10 @@ export class ListWorkspaceFilterRequest extends BaseSortableListFilterRequest {
     example: { code: 'asc', name: 'asc' },
     default: { code: 'asc', name: 'asc' },
     properties: {
-      Id: {
+      Code: {
         type: 'string',
         enum: ['asc', 'desc'],
-        description: 'Sort by id',
+        description: 'Sort by code',
         default: 'asc',
       },
       Name: {
@@ -68,15 +68,15 @@ export class ListWorkspaceFilterRequest extends BaseSortableListFilterRequest {
    * This method ensures type-safe sorting validation
    *
    * Available sort fields:
-   * - id: Workspace id (sortable, default: asc)
+   * - code: Workspace code (sortable, default: asc)
    * - name: Workspace name (sortable, default: asc)
    *
    * @returns Configuration object defining sortable fields and their properties
    */
   getSortFieldConfig(): SortFieldConfig {
     return {
-      id: {
-        description: 'Workspace id',
+      code: {
+        description: 'Workspace code',
         sortable: true,
         defaultDirection: 'asc' as const,
       },

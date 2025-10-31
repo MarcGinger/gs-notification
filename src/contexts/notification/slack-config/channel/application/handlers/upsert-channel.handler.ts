@@ -47,7 +47,7 @@ export class UpsertChannelHandler
     // Transform command to use case parameters
     const result = await this.upsertChannelUseCase.execute({
       user: command.user,
-      id: command.id,
+      code: command.code,
       props: command.props,
       correlationId: command.correlationId,
       authorizationReason: 'CQRS Command Handler',

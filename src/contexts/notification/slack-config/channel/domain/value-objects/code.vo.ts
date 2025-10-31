@@ -9,29 +9,29 @@ import {
 import { ChannelErrors } from '../errors/channel.errors';
 
 /**
- * Id Value Object
- * Represents a validated id with business rules
+ * Code Value Object
+ * Represents a validated code with business rules
  */
-export const ChannelId = createStringVO({
-  name: 'Id',
+export const ChannelCode = createStringVO({
+  name: 'Code',
   trim: true,
   caseTransform: 'none',
   allowEmpty: false,
-
-  maxLength: 64,
+  minLength: 10,
+  maxLength: 11,
 
   // Optional: declarative refinements for advanced validation
   // refinements: [
   // ],
 
-  errors: createStringVOErrors(ChannelErrors.INVALID_ID, 'Id'),
+  errors: createStringVOErrors(ChannelErrors.INVALID_CODE, 'Code'),
 });
 
 /**
- * Public instance type for Id
+ * Public instance type for Code
  */
-export type ChannelId = StringVOInstance;
+export type ChannelCode = StringVOInstance;
 
 // Convenience creators
-export const createChannelId = (s: string) => ChannelId.create(s);
-export const channelIdFrom = (v: unknown) => ChannelId.from(v);
+export const createChannelCode = (s: string) => ChannelCode.create(s);
+export const channelCodeFrom = (v: unknown) => ChannelCode.from(v);

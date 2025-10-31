@@ -15,8 +15,6 @@ import {
   UpsertAppConfigUseCase,
   IGetAppConfigUseCase,
   GetAppConfigUseCase,
-  IListAppConfigUseCase,
-  ListAppConfigUseCase,
 } from './application/use-cases';
 
 // import { IAppConfigRepository } from './application/ports';
@@ -74,10 +72,6 @@ import {
     {
       provide: IGetAppConfigUseCase,
       useClass: GetAppConfigUseCase,
-    },
-    {
-      provide: IListAppConfigUseCase,
-      useClass: ListAppConfigUseCase,
     },
   ],
   exports: [

@@ -56,7 +56,7 @@ interface WorkspaceCacheData extends DetailWorkspaceResponse {
  * Redis Features Used:
  * - Hash-based workspace storage with cluster-safe keys
  * - Sorted set indexing for efficient pagination and sorting
- * - Pattern matching for id and name filtering
+ * - Pattern matching for code and name filtering
  * - SCAN operations for tenant isolation
  * - Production-ready caching with metrics collection
  *
@@ -95,7 +95,7 @@ export class WorkspaceQueryRepository implements IWorkspaceQuery {
   }
 
   /**
-   * Find a single workspace by id using Redis hash lookup
+   * Find a single workspace by code using Redis hash lookup
    *
    * Leverages the established Redis patterns from WorkspaceProjector
    * with cluster-safe keys and production-ready caching.
@@ -109,13 +109,13 @@ export class WorkspaceQueryRepository implements IWorkspaceQuery {
    * - Soft delete awareness
    *
    * @param actor - The actor context containing authentication and request metadata.
-   * @param id - The workspace id to search for.
+   * @param code - The workspace code to search for.
    * @param options - Optional repository options (e.g., timeout, correlation).
    * @returns A promise resolving to a Result containing the Workspace response or a DomainError.
    */
   async findById(
     actor: ActorContext,
-    id: string,
+    code: string,
     options?: RepositoryOptions,
   ): Promise<Result<Option<DetailWorkspaceResponse>, DomainError>> {
     const operation = 'findById';
@@ -124,7 +124,7 @@ export class WorkspaceQueryRepository implements IWorkspaceQuery {
       CorrelationUtil.generateForOperation('workspace-query-findById');
 
     const logContext = this.createLogContext(operation, correlationId, actor, {
-      workspaceId: id,
+      workspaceCode: code,
       dataSource: 'redis-projector',
     });
 
@@ -157,7 +157,7 @@ export class WorkspaceQueryRepository implements IWorkspaceQuery {
 
     try {
       // Generate cluster-safe Redis key
-      const workspaceKey = this.generateWorkspaceKey(actor.tenant, id);
+      const workspaceKey = this.generateWorkspaceKey(actor.tenant, code);
 
       Log.debug(this.logger, 'Executing Redis hash lookup', {
         ...logContext,
@@ -195,7 +195,7 @@ export class WorkspaceQueryRepository implements IWorkspaceQuery {
 
       // Transform to DetailWorkspaceResponse DTO (excluding internal fields)
       const detailResponse: DetailWorkspaceResponse = {
-        id: workspace.id,
+        code: workspace.code,
         name: workspace.name,
         botToken: workspace.botToken,
         signingSecret: workspace.signingSecret,
@@ -208,7 +208,7 @@ export class WorkspaceQueryRepository implements IWorkspaceQuery {
       Log.debug(this.logger, 'Workspace found successfully in Redis', {
         ...logContext,
         resultData: {
-          workspaceId: detailResponse.id,
+          workspaceCode: detailResponse.code,
           workspaceName: detailResponse.name,
           cacheHit: true,
         },
@@ -269,7 +269,7 @@ export class WorkspaceQueryRepository implements IWorkspaceQuery {
       // Extract basic fields directly from hash data
 
       return {
-        id: hashData.id,
+        code: hashData.code,
         name: hashData.name,
         botToken: hashData.botToken || undefined,
         signingSecret: hashData.signingSecret || undefined,
@@ -288,7 +288,7 @@ export class WorkspaceQueryRepository implements IWorkspaceQuery {
         {
           method: 'parseRedisHashToWorkspace',
           error: (error as Error).message,
-          id: hashData?.id,
+          code: hashData?.code,
         },
       );
       return null;
@@ -300,7 +300,7 @@ export class WorkspaceQueryRepository implements IWorkspaceQuery {
    */
   private toListResponse(workspace: WorkspaceCacheData): ListWorkspaceResponse {
     return {
-      id: workspace.id,
+      code: workspace.code,
       name: workspace.name,
       botToken: workspace.botToken,
       signingSecret: workspace.signingSecret,
@@ -321,8 +321,8 @@ export class WorkspaceQueryRepository implements IWorkspaceQuery {
     if (!filter) return true;
 
     // Filter by name (partial match)
-    if (filter.id) {
-      if (!workspace.id.toLowerCase().includes(filter.id.toLowerCase())) {
+    if (filter.code) {
+      if (!workspace.code.toLowerCase().includes(filter.code.toLowerCase())) {
         return false;
       }
     }
@@ -353,9 +353,9 @@ export class WorkspaceQueryRepository implements IWorkspaceQuery {
         let bVal: number | Date | string;
 
         switch (field) {
-          case 'id':
-            aVal = a.id;
-            bVal = b.id;
+          case 'code':
+            aVal = a.code;
+            bVal = b.code;
             break;
           case 'name':
             aVal = a.name;
@@ -408,7 +408,7 @@ export class WorkspaceQueryRepository implements IWorkspaceQuery {
    *
    * Features:
    * - Cluster-safe Redis keys with hash tags for co-location
-   * - Client-side filtering for id patterns and name search
+   * - Client-side filtering for code patterns and name search
    * - Efficient in-memory sorting with configurable directions
    * - Pagination with total count calculation
    * - Tenant isolation using Redis key patterns
@@ -431,7 +431,7 @@ export class WorkspaceQueryRepository implements IWorkspaceQuery {
       CorrelationUtil.generateForOperation('workspace-query-paginated');
 
     const logContext = this.createLogContext(operation, correlationId, actor, {
-      filterId: filter?.id,
+      filterCode: filter?.code,
       filterName: filter?.name,
       page: filter?.page,
       size: filter?.size,
@@ -595,7 +595,7 @@ export class WorkspaceQueryRepository implements IWorkspaceQuery {
             filteredCount: filteredWorkspaces.length,
             page,
             size,
-            hasFilters: !!(filter?.id || filter?.name),
+            hasFilters: !!(filter?.code || filter?.name),
             sortFields: Object.keys(filter?.sortBy ?? {}),
           },
         },

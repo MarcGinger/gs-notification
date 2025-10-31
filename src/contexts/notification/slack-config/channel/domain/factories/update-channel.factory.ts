@@ -10,7 +10,7 @@ import { ChannelSnapshotProps, UpdateChannelProps } from '../props';
 import { ValidatedChannelUpdateFields } from '../types';
 import {
   ChannelName,
-  ChannelWorkspaceId,
+  ChannelWorkspaceCode,
   ChannelIsPrivate,
   ChannelIsDm,
   ChannelTopic,
@@ -77,20 +77,22 @@ export function updateChannelAggregateFromSnapshot(
     validatedFields.name = nameResult.value;
   }
 
-  // Validate workspaceId if provided
-  if (updateProps.workspaceId !== undefined) {
-    const workspaceIdResult = ChannelWorkspaceId.from(updateProps.workspaceId);
-    if (!workspaceIdResult.ok) {
+  // Validate workspaceCode if provided
+  if (updateProps.workspaceCode !== undefined) {
+    const workspaceCodeResult = ChannelWorkspaceCode.from(
+      updateProps.workspaceCode,
+    );
+    if (!workspaceCodeResult.ok) {
       return err(
-        withContext(workspaceIdResult.error, {
-          operation: 'update_channel_workspace_id_validation',
+        withContext(workspaceCodeResult.error, {
+          operation: 'update_channel_workspace_code_validation',
           correlationId: metadata.correlationId,
           userId: metadata.actor?.userId,
-          providedWorkspaceId: updateProps.workspaceId,
+          providedWorkspaceCode: updateProps.workspaceCode,
         }),
       );
     }
-    validatedFields.workspaceId = workspaceIdResult.value;
+    validatedFields.workspaceCode = workspaceCodeResult.value;
   }
 
   // Validate isPrivate if provided

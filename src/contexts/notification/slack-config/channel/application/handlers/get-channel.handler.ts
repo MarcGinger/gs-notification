@@ -16,7 +16,7 @@ export class GetChannelHandler implements IQueryHandler<GetChannelQuery> {
   ): Promise<Result<DetailChannelResponse | null, DomainError>> {
     return this.getChannelUseCase.execute({
       user: query.user,
-      id: query.id,
+      code: query.code,
       correlationId: query.correlationId || 'query-handler',
     });
   }

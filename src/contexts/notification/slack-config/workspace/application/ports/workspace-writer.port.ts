@@ -5,7 +5,7 @@ import { Result, DomainError } from 'src/shared/errors';
 import { ActorContext } from 'src/shared/application/context';
 import { SaveReceipt } from 'src/shared/infrastructure/repositories';
 import { WorkspaceAggregate } from '../../domain/aggregates';
-import { WorkspaceId } from '../../domain/value-objects';
+import { WorkspaceCode } from '../../domain/value-objects';
 
 /**
  * Token for injecting IWorkspaceWriter port implementation
@@ -45,11 +45,11 @@ export interface IWorkspaceWriter {
   /**
    * Delete a Workspace by its unique identifier
    * @param user - The authenticated user context
-   * @param id - The unique identifier of the Workspace to delete
+   * @param code - The unique identifier of the Workspace to delete
    * @returns Result indicating success or domain error
    */
   delete(
     actor: ActorContext,
-    id: WorkspaceId,
+    code: WorkspaceCode,
   ): Promise<Result<SaveReceipt, DomainError>>;
 }

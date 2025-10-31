@@ -334,17 +334,17 @@ export class ListWorkspaceUseCase implements IListWorkspaceUseCase {
       }
 
       // Extract workspace codes for batch authorization check
-      const ids = workspacePage.data
-        .map((item) => item.id)
-        .filter((id): id is string => id !== undefined && id !== null);
-      if (ids.length === 0) {
-        return ok(workspacePage); // No valid workspace ids
+      const codes = workspacePage.data
+        .map((item) => item.code)
+        .filter((code): code is string => code !== undefined && code !== null);
+      if (codes.length === 0) {
+        return ok(workspacePage); // No valid workspace codes
       }
 
       // Perform batch authorization check
       const authResult = await this.authorizationService.authorizeWorkspaceList(
         userId,
-        ids,
+        codes,
         correlationId,
         'read',
         context,
@@ -358,7 +358,7 @@ export class ListWorkspaceUseCase implements IListWorkspaceUseCase {
 
       // Filter items to only include authorized workspaces
       const authorizedItems = workspacePage.data.filter((item) =>
-        authorized.includes(item.id),
+        authorized.includes(item.code),
       );
 
       // Update the page response with filtered results

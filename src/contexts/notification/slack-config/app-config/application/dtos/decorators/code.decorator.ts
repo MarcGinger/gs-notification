@@ -3,7 +3,13 @@
 
 import { applyDecorators } from '@nestjs/common';
 import { ApiProperty } from '@nestjs/swagger';
-import { IsOptional, IsNotEmpty, IsString, MaxLength } from 'class-validator';
+import {
+  IsOptional,
+  IsNotEmpty,
+  IsString,
+  MinLength,
+  MaxLength,
+} from 'class-validator';
 
 /**
  * Options for property decorators
@@ -13,22 +19,23 @@ interface PropOptions {
 }
 
 /**
- * Property decorator for Workspace Id
+ * Property decorator for AppConfig Code
  * @param {Object} options - Options for the decorator
  * @returns {PropertyDecorator}
  */
-export function ApiWorkspaceId(options: PropOptions = {}) {
+export function ApiAppConfigCode(options: PropOptions = {}) {
   const { required = true } = options;
 
   return applyDecorators(
     ApiProperty({
-      description: `Unique identifier for the Slack workspace/team, provided by Slack API during OAuth installation. This is the primary key linking all workspace-specific configurations.`,
-      example: `T01EXAMPLE123`,
+      description: `Auto-incrementing primary key for app configuration records. Each workspace typically has one configuration record.`,
+      example: `1`,
       type: String,
       required,
     }),
     IsString(),
-    MaxLength(64),
+    MinLength(10),
+    MaxLength(11),
     required ? IsNotEmpty() : IsOptional(),
   );
 }

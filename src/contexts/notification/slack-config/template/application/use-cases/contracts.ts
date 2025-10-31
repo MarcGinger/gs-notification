@@ -11,7 +11,11 @@
 import { Result, DomainError } from 'src/shared/errors';
 import type { IUserToken } from 'src/shared/security';
 import type { UpsertTemplateProps } from '../../domain/props';
-import type { DetailTemplateResponse } from '../dtos';
+import type {
+  DetailTemplateResponse,
+  TemplatePageResponse,
+  ListTemplateFilterRequest,
+} from '../dtos';
 
 export abstract class IUpsertTemplateUseCase {
   abstract execute(params: {
@@ -29,4 +33,11 @@ export abstract class IGetTemplateUseCase {
     code: string;
     correlationId: string;
   }): Promise<Result<DetailTemplateResponse, DomainError>>;
+}
+export abstract class IListTemplateUseCase {
+  abstract execute(params: {
+    user: IUserToken;
+    filter?: ListTemplateFilterRequest;
+    correlationId: string;
+  }): Promise<Result<TemplatePageResponse, DomainError>>;
 }

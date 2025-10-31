@@ -47,7 +47,7 @@ export class UpsertWorkspaceHandler
     // Transform command to use case parameters
     const result = await this.upsertWorkspaceUseCase.execute({
       user: command.user,
-      id: command.id,
+      code: command.code,
       props: command.props,
       correlationId: command.correlationId,
       authorizationReason: 'CQRS Command Handler',

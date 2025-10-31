@@ -5,11 +5,7 @@ import { Result, DomainError } from 'src/shared/errors';
 import { RepositoryOptions } from 'src/shared/infrastructure/repositories';
 import { ActorContext } from 'src/shared/application/context';
 import { Option } from 'src/shared/domain/types';
-import {
-  AppConfigPageResponse,
-  ListAppConfigFilterRequest,
-  DetailAppConfigResponse,
-} from '../dtos';
+import { DetailAppConfigResponse } from '../dtos';
 
 /**
  * Token for injecting IAppConfigQuery port implementation
@@ -36,26 +32,13 @@ export interface IAppConfigQuery {
   /**
    * Find a single AppConfig by its unique identifier (for CQRS query operations)
    * @param actor - The actor context containing authentication and request metadata
-   * @param id - The unique identifier of the AppConfig
+   * @param code - The unique identifier of the AppConfig
    * @param options - Optional repository options
    * @returns A promise resolving to a Result containing the AppConfig or null if not found
    */
   findById(
     actor: ActorContext,
-    id: number,
+    code: string,
     options?: RepositoryOptions,
   ): Promise<Result<Option<DetailAppConfigResponse>, DomainError>>;
-
-  /**
-   * Find AppConfig records with pagination and filtering.
-   * @param actor - The actor context containing authentication and request metadata.
-   * @param filter - Optional filter criteria for the product search.
-   * @param options - Optional repository options (e.g., pagination, sorting).
-   * @returns A promise resolving to a Result containing paginated AppConfig responses or a DomainError.
-   */
-  findPaginated(
-    actor: ActorContext,
-    filter?: ListAppConfigFilterRequest,
-    options?: RepositoryOptions,
-  ): Promise<Result<AppConfigPageResponse, DomainError>>;
 }

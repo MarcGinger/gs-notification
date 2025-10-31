@@ -41,7 +41,7 @@ export const TemplateResource = (permission: TemplatePermission) =>
       const query = req.query as Record<string, unknown> | undefined;
 
       // Business data extraction
-      const workspaceId = body?.workspaceId || query?.workspaceId;
+      const workspaceCode = body?.workspaceCode || query?.workspaceCode;
       const name = body?.name || query?.name;
       const description = body?.description || query?.description;
       const contentBlocks = body?.contentBlocks || query?.contentBlocks;
@@ -49,7 +49,7 @@ export const TemplateResource = (permission: TemplatePermission) =>
       const enabled = body?.enabled || query?.enabled;
 
       const baseAttributes = {
-        workspaceId,
+        workspaceCode,
         name,
         description,
         contentBlocks,

@@ -77,7 +77,7 @@ interface ChannelRowParams extends DetailChannelResponse {
  * Implements projection function pattern for event handling with Redis backend
  *
  * Redis Data Structure (managed by ChannelProjectionKeys domain value object):
- * - Channel Hash: `channel:projection:{tenant}:id` - stores all channel fields
+ * - Channel Hash: `channel:projection:{tenant}:code` - stores all channel fields
  * - Tenant Index: `channel:index:by_tenant:{tenant}` - sorted set by updated timestamp
  *
  * Key Features:
@@ -263,7 +263,7 @@ export class ChannelProjector
         this.redis,
         tenant,
         'channel',
-        params.id,
+        params.code,
         params.version,
         config.VERSION_KEY_PREFIX,
       );
@@ -271,7 +271,7 @@ export class ChannelProjector
       if (alreadyProcessed) {
         this.logger.debug(
           'Channel already processed - using version hint optimization for ' +
-            params.id +
+            params.code +
             ' version ' +
             params.version,
         );
@@ -288,7 +288,7 @@ export class ChannelProjector
       // ✅ Generate cluster-safe keys using centralized ChannelProjectionKeys
       const entityKey = ChannelProjectionKeys.getRedisChannelKey(
         tenant,
-        params.id,
+        params.code,
       );
       const indexKey = ChannelProjectionKeys.getRedisChannelIndexKey(tenant);
 
@@ -305,7 +305,7 @@ export class ChannelProjector
           pipeline,
           entityKey,
           indexKey,
-          params.id,
+          params.code,
           params.deletedAt,
         );
 
@@ -316,7 +316,7 @@ export class ChannelProjector
           pipeline,
           entityKey,
           indexKey,
-          params.id,
+          params.code,
           params.version,
           params.updatedAt,
           fieldPairs,
@@ -339,7 +339,7 @@ export class ChannelProjector
         this.redis,
         tenant,
         'channel',
-        params.id,
+        params.code,
         params.version,
         undefined, // Use default TTL
         config.VERSION_KEY_PREFIX,
@@ -420,7 +420,7 @@ export class ChannelProjector
     indexKey: string;
   } {
     // ✅ Hash-tags ensure both keys route to same Redis Cluster slot
-    const entityKey = 'channel:{' + params.tenant + '}:' + params.id;
+    const entityKey = 'channel:{' + params.tenant + '}:' + params.code;
     const indexKey = 'channel:index:{' + params.tenant + '}';
 
     Log.debug(this.logger, 'Generated cluster-safe keys with hash-tags', {
@@ -428,7 +428,7 @@ export class ChannelProjector
       entityKey,
       indexKey,
       tenant: params.tenant,
-      id: params.id,
+      code: params.code,
     });
 
     return { entityKey, indexKey };

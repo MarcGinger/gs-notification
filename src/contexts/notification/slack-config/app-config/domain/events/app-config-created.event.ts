@@ -6,8 +6,8 @@
  * Contains only business facts - no envelope metadata, timestamps, or versioning
  */
 export interface AppConfigCreatedEventPayload {
-  id: number;
-  workspaceId: string;
+  code: string;
+  workspaceCode: string;
   maxRetryAttempts: number;
   retryBackoffSeconds: number;
   defaultLocale: string;
@@ -34,12 +34,12 @@ export class AppConfigCreatedEvent {
     return new AppConfigCreatedEvent(data);
   }
 
-  get id(): number {
-    return this.payload.id;
+  get code(): string {
+    return this.payload.code;
   }
 
-  get workspaceId(): string {
-    return this.payload.workspaceId;
+  get workspaceCode(): string {
+    return this.payload.workspaceCode;
   }
 
   get maxRetryAttempts(): number {

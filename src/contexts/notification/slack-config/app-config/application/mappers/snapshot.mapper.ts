@@ -16,8 +16,8 @@ export const mapAppConfigSnapshotToDto = (
   snapshot: AppConfigSnapshotProps,
 ): DetailAppConfigResponse => {
   return {
-    id: snapshot.id,
-    workspaceId: snapshot.workspaceId,
+    code: snapshot.code,
+    workspaceCode: snapshot.workspaceCode,
     maxRetryAttempts: snapshot.maxRetryAttempts,
     retryBackoffSeconds: snapshot.retryBackoffSeconds,
     defaultLocale: snapshot.defaultLocale,

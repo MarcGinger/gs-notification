@@ -8,10 +8,10 @@ import { ValidateNested } from 'class-validator';
 import { PaginationMetaResponse } from 'src/shared/application/dtos';
 
 /**
- * Property decorator for meta information in AppConfig page responses
+ * Property decorator for meta information in Channel page responses
  * @returns PropertyDecorator
  */
-export function ApiAppConfigListMeta() {
+export function ApiChannelListMeta() {
   return applyDecorators(
     ApiProperty({
       type: () => PaginationMetaResponse,

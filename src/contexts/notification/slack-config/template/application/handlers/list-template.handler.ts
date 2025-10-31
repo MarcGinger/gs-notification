@@ -4,27 +4,27 @@
 import { QueryHandler, IQueryHandler } from '@nestjs/cqrs';
 import { Injectable } from '@nestjs/common';
 import { DomainError, Result } from 'src/shared/errors';
-import { ListAppConfigQuery } from '../queries';
-import { ListAppConfigUseCase } from '../use-cases';
-import { AppConfigPageResponse } from '../dtos';
+import { ListTemplateQuery } from '../queries';
+import { ListTemplateUseCase } from '../use-cases';
+import { TemplatePageResponse } from '../dtos';
 
 /**
  * ✅ Enhanced CQRS Query Handler with use case delegation
  * Follows the pattern: Handler → Use Case → Repository
  */
 @Injectable()
-@QueryHandler(ListAppConfigQuery)
-export class ListAppConfigHandler implements IQueryHandler<ListAppConfigQuery> {
-  constructor(private readonly listAppConfigUseCase: ListAppConfigUseCase) {}
+@QueryHandler(ListTemplateQuery)
+export class ListTemplateHandler implements IQueryHandler<ListTemplateQuery> {
+  constructor(private readonly listTemplateUseCase: ListTemplateUseCase) {}
 
   /**
-   * Handle the list appConfig query by delegating to the use case
+   * Handle the list template query by delegating to the use case
    */
   async execute(
-    query: ListAppConfigQuery,
-  ): Promise<Result<AppConfigPageResponse, DomainError>> {
+    query: ListTemplateQuery,
+  ): Promise<Result<TemplatePageResponse, DomainError>> {
     // ✅ Delegate to use case for business logic
-    return await this.listAppConfigUseCase.execute({
+    return await this.listTemplateUseCase.execute({
       user: query.user,
       filter: query.filter,
       correlationId: query.correlationId || 'unknown',

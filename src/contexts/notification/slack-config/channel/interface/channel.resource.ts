@@ -35,14 +35,14 @@ export const ChannelResource = (permission: ChannelPermission) =>
   Resource({
     type: 'channel',
     action: permission,
-    extractId: (req: Request) => req.params?.id || req.params?.id,
+    extractId: (req: Request) => req.params?.code || req.params?.id,
     extractAttributes: (req: Request) => {
       const body = req.body as Record<string, unknown> | undefined;
       const query = req.query as Record<string, unknown> | undefined;
 
       // Business data extraction
       const name = body?.name || query?.name;
-      const workspaceId = body?.workspaceId || query?.workspaceId;
+      const workspaceCode = body?.workspaceCode || query?.workspaceCode;
       const isPrivate = body?.isPrivate || query?.isPrivate;
       const isDm = body?.isDm || query?.isDm;
       const topic = body?.topic || query?.topic;
@@ -53,7 +53,7 @@ export const ChannelResource = (permission: ChannelPermission) =>
 
       const baseAttributes = {
         name,
-        workspaceId,
+        workspaceCode,
         isPrivate,
         isDm,
         topic,

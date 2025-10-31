@@ -38,7 +38,7 @@ export class WorkspaceFieldValidatorUtil {
   } {
     // Parse array fields using safeParseJSONArray utility
     // Extract simple fields directly from event data
-    const id = aggregateData.id as string;
+    const code = aggregateData.code as string;
     const name = aggregateData.name as string;
     const botToken = aggregateData.botToken as string;
     const signingSecret = aggregateData.signingSecret as string;
@@ -65,7 +65,7 @@ export class WorkspaceFieldValidatorUtil {
     // safeParseJSON utilities provide error handling for invalid JSON,
     // direct field access provides type safety and truthful representation
     return {
-      id,
+      code,
       name,
       botToken,
       signingSecret,

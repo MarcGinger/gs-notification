@@ -8,9 +8,9 @@ import {
   WorkspaceAppId,
   WorkspaceBotToken,
   WorkspaceBotUserId,
+  WorkspaceCode,
   WorkspaceDefaultChannelId,
   WorkspaceEnabled,
-  WorkspaceId,
   WorkspaceName,
   WorkspaceSigningSecret,
 } from '../value-objects';
@@ -29,7 +29,7 @@ import {
  */
 
 export interface WorkspaceDomainState {
-  id: WorkspaceId;
+  code: WorkspaceCode;
   name: WorkspaceName;
   botToken?: WorkspaceBotToken;
   signingSecret?: WorkspaceSigningSecret;

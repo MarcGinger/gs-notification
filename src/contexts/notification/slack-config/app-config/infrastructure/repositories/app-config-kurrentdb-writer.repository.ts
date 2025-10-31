@@ -22,7 +22,7 @@ import {
 import { SlackConfigServiceConstants } from '../../../service-constants';
 import { AppConfigAggregate } from '../../domain/aggregates';
 import { AppConfigProjectionKeys } from '../../app-config-projection-keys';
-import { AppConfigId } from '../../domain/value-objects';
+import { AppConfigCode } from '../../domain/value-objects';
 import { AppConfigDeletedEvent } from '../../domain/events';
 import { IAppConfigWriter } from '../../application/ports';
 
@@ -85,7 +85,7 @@ export class AppConfigWriterRepository
       correlationId,
       actor,
       {
-        aggregateId: appConfig.id.toString(),
+        aggregateId: appConfig.id.value,
         currentVersion: appConfig.version,
         eventCount: appConfig.uncommittedEvents?.length ?? 0,
       },
@@ -109,14 +109,14 @@ export class AppConfigWriterRepository
       {
         operationType: 'aggregate_save',
         scope: 'app-config_events',
-        aggregateId: appConfig.id.toString(),
+        aggregateId: appConfig.id.value,
       },
     );
 
     const stream = this.buildStreamName(
       actor.tenant,
       AppConfigProjectionKeys.getEventStoreStreamPrefix(),
-      appConfig.id.toString(),
+      appConfig.id.value,
     );
     const events = appConfig.uncommittedEvents ?? [];
 
@@ -130,7 +130,7 @@ export class AppConfigWriterRepository
 
       const receipt: SaveReceipt = {
         stream,
-        aggregateId: appConfig.id.toString(),
+        aggregateId: appConfig.id.value,
         tenant: actor.tenant ?? 'default',
         eventCount: 0,
         newVersion: appConfig.version,
@@ -227,7 +227,7 @@ export class AppConfigWriterRepository
 
       const receipt: SaveReceipt = {
         stream,
-        aggregateId: appConfig.id.toString(),
+        aggregateId: appConfig.id.value,
         tenant: actor.tenant ?? 'default',
         eventCount: eventsToStore.length,
         newVersion: prevVersion + eventsToStore.length,
@@ -277,13 +277,13 @@ export class AppConfigWriterRepository
   /**
    * Delete a AppConfig by its unique identifier using EventStoreDB-first approach
    * @param actor - The authenticated user context
-   * @param id - The unique identifier of the AppConfig to delete
+   * @param code - The unique identifier of the AppConfig to delete
    * @param opts - Optional parameters including expected version and metadata
    * @returns Result with SaveReceipt containing revision tracking or domain error
    */
   async delete(
     actor: ActorContext,
-    id: AppConfigId,
+    code: AppConfigCode,
     opts?: {
       expectedVersion?: number;
       meta?: {
@@ -305,7 +305,7 @@ export class AppConfigWriterRepository
       correlationId,
       actor,
       {
-        appConfigId: id.toString(),
+        appConfigCode: code.value,
         expectedVersion: opts?.expectedVersion,
         hasMetadata: !!opts?.meta,
       },
@@ -329,14 +329,14 @@ export class AppConfigWriterRepository
       {
         operationType: 'aggregate_delete',
         scope: 'app-config_deletion',
-        appConfigId: id.toString(),
+        appConfigCode: code.value,
       },
     );
 
     const stream = this.buildStreamName(
       actor.tenant,
       AppConfigProjectionKeys.getEventStoreStreamPrefix(),
-      id.toString(),
+      code.value,
     );
 
     // Create proper domain event metadata
@@ -359,7 +359,7 @@ export class AppConfigWriterRepository
     // Create proper AppConfigDeletedEvent
     const deletedEvent = AppConfigDeletedEvent.create(
       {
-        id: id.value,
+        code: code.value,
         deletedAt: this.clock.now(),
         version: opts?.expectedVersion ?? 1,
       },
@@ -371,7 +371,7 @@ export class AppConfigWriterRepository
       type: deletedEvent.eventType,
       version: 1, // Convert string version to number
       occurredAt: this.clock.now(),
-      aggregateId: id.toString(),
+      aggregateId: code.value,
       aggregateType: 'AppConfig',
       data: deletedEvent.payload,
       metadata: eventMetadata,
@@ -392,7 +392,7 @@ export class AppConfigWriterRepository
         {
           ...logContext,
           stream,
-          appConfigId: id.toString(),
+          appConfigCode: code.value,
           expectedRevision: expectedRevision.toString(),
           eventType: domainEvent.type,
         },
@@ -413,7 +413,7 @@ export class AppConfigWriterRepository
 
       const receipt: SaveReceipt = {
         stream,
-        aggregateId: id.toString(),
+        aggregateId: code.value,
         tenant: actor.tenant ?? 'default',
         eventCount: 1,
         // newVersion omitted - we don't know it with ANY expectedRevision
@@ -432,7 +432,7 @@ export class AppConfigWriterRepository
           dataQuality: 'good',
           sampleData: {
             stream,
-            appConfigId: id.toString(),
+            appConfigCode: code.value,
             streamRevision: appendResult?.nextExpectedRevision?.toString(),
             eventType: 'AppConfigDeletedEvent',
           },

@@ -11,9 +11,9 @@ import {
   ChannelCreatedAt,
   ChannelUpdatedAt,
   ChannelVersion,
-  ChannelId,
+  ChannelCode,
   ChannelName,
-  ChannelWorkspaceId,
+  ChannelWorkspaceCode,
   ChannelIsPrivate,
   ChannelIsDm,
   ChannelTopic,
@@ -35,15 +35,15 @@ export function createChannelAggregateFromProps(
   // },
 ): Result<ChannelAggregate, DomainError> {
   // Validate each property by creating value objects
-  const idResult = ChannelId.from(props.id);
-  if (!idResult.ok) {
+  const codeResult = ChannelCode.from(props.code);
+  if (!codeResult.ok) {
     return err(
-      withContext(idResult.error, {
-        ...idResult.error.context,
+      withContext(codeResult.error, {
+        ...codeResult.error.context,
         correlationId: metadata.correlationId,
         userId: metadata.userId,
         operation: 'create_channel',
-        id: props.id,
+        code: props.code,
       }),
     );
   }
@@ -61,15 +61,15 @@ export function createChannelAggregateFromProps(
     );
   }
 
-  const workspaceIdResult = ChannelWorkspaceId.from(props.workspaceId);
-  if (!workspaceIdResult.ok) {
+  const workspaceCodeResult = ChannelWorkspaceCode.from(props.workspaceCode);
+  if (!workspaceCodeResult.ok) {
     return err(
-      withContext(workspaceIdResult.error, {
-        ...workspaceIdResult.error.context,
+      withContext(workspaceCodeResult.error, {
+        ...workspaceCodeResult.error.context,
         correlationId: metadata.correlationId,
         userId: metadata.userId,
         operation: 'create_channel',
-        workspaceId: props.workspaceId,
+        workspaceCode: props.workspaceCode,
       }),
     );
   }
@@ -171,9 +171,9 @@ export function createChannelAggregateFromProps(
 
   // Create the entity properties with validated value objects
   const entityProps: ChannelDomainState = {
-    id: idResult.value,
+    code: codeResult.value,
     name: nameResult.value,
-    workspaceId: workspaceIdResult.value,
+    workspaceCode: workspaceCodeResult.value,
     isPrivate: isPrivateResult.value,
     isDm: isDmResult.value,
     topic: topicResult.value,

@@ -2,13 +2,13 @@
 // REMOVE THIS COMMENT TO STOP AUTOMATIC UPDATES TO THIS BLOCK
 
 import { IUserToken } from 'src/shared/security';
-import { ListAppConfigFilterRequest } from '../dtos';
+import { ListTemplateFilterRequest } from '../dtos';
 
 // ✅ Clean query - just a data transfer object
-export class ListAppConfigQuery {
+export class ListTemplateQuery {
   constructor(
     public readonly user: IUserToken,
-    public readonly filter = new ListAppConfigFilterRequest(),
+    public readonly filter = new ListTemplateFilterRequest(),
     public readonly correlationId?: string,
   ) {}
 }

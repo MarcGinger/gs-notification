@@ -4,6 +4,7 @@
 import {
   Controller,
   Get,
+  Query,
   Post,
   Body,
   Put,
@@ -32,8 +33,12 @@ import {
   DetailTemplateResponse,
   CreateTemplateRequest,
   UpdateTemplateRequest,
+  TemplatePageResponse,
+  ListTemplateFilterRequest,
+  ListTemplateResponse,
 } from '../../../application/dtos';
 import { Result, ResultInterceptor, DomainError } from 'src/shared/errors';
+import { PaginatedResponse } from 'src/shared/application/dtos';
 import {
   TemplateReadResource,
   TemplateCreateResource,
@@ -50,6 +55,29 @@ export class TemplateController {
   constructor(
     private readonly templateApplicationService: TemplateApplicationService,
   ) {}
+
+  @Get()
+  @TemplateReadResource()
+  @ApiOperation({
+    summary: 'List Templates',
+    description:
+      'Retrieves a list of Templates with optional filtering. Supports pagination and filtering by name or category. Requires READ permission (LOW risk).',
+  })
+  @ApiOkResponse({
+    description: 'List of Templates retrieved successfully',
+    type: TemplatePageResponse,
+  })
+  @ApiCommonErrors()
+  async list(
+    @CurrentUser() user: IUserToken,
+    @Query() pageRequest?: ListTemplateFilterRequest,
+  ): Promise<Result<PaginatedResponse<ListTemplateResponse>, DomainError>> {
+    const result = await this.templateApplicationService.listTemplates(
+      user,
+      pageRequest,
+    );
+    return result;
+  }
 
   @Get(':code')
   @TemplateReadResource()

@@ -8,7 +8,7 @@ import { EventMetadata } from 'src/shared/domain/events';
  * Contains identifying information about the deleted appConfig
  */
 export interface AppConfigDeletedEventPayload {
-  id: number;
+  code: string;
   deletedAt: Date;
   version: number;
   metadata: EventMetadata;
@@ -43,8 +43,8 @@ export class AppConfigDeletedEvent {
     });
   }
 
-  get id(): number {
-    return this.payload.id;
+  get code(): string {
+    return this.payload.code;
   }
 
   get deletedAt(): Date {

@@ -8,16 +8,16 @@ import { AppConfigDomainState } from '../state';
 import { AppConfigErrors } from '../errors/app-config.errors';
 import {
   AppConfigAuditChannelId,
+  AppConfigCode,
   AppConfigCreatedAt,
   AppConfigUpdatedAt,
   AppConfigVersion,
   AppConfigDefaultLocale,
-  AppConfigId,
   AppConfigLoggingEnabled,
   AppConfigMaxRetryAttempts,
   AppConfigMetadata,
   AppConfigRetryBackoffSeconds,
-  AppConfigWorkspaceId,
+  AppConfigWorkspaceCode,
 } from '../value-objects';
 
 /**
@@ -27,7 +27,7 @@ import {
  * Encapsulates appConfig data, identity, and basic entity behavior.
  *
  * This entity follows DDD principles:
- * - Identity: Id as unique identifier
+ * - Identity: Code as unique identifier
  * - Immutability: Changes create new instances
  * - Encapsulation: Private state with controlled access
  * - Business validation: Domain rules enforced
@@ -44,7 +44,7 @@ import {
  */
 export class AppConfigEntity extends EntityIdBase<
   AppConfigDomainState,
-  AppConfigId
+  AppConfigCode
 > {
   private static clock: { now: () => Date } = { now: () => new Date() };
 
@@ -113,7 +113,7 @@ export class AppConfigEntity extends EntityIdBase<
   }
 
   private constructor(props: AppConfigDomainState) {
-    super(props, props.id);
+    super(props, props.code);
   }
 
   /**
@@ -153,13 +153,15 @@ export class AppConfigEntity extends EntityIdBase<
   public static fromSnapshot(
     snapshot: AppConfigSnapshotProps,
   ): Result<AppConfigEntity, DomainError> {
-    const idResult = AppConfigId.from(snapshot.id);
-    if (!idResult.ok) {
-      return err(idResult.error);
+    const codeResult = AppConfigCode.from(snapshot.code);
+    if (!codeResult.ok) {
+      return err(codeResult.error);
     }
-    const workspaceIdResult = AppConfigWorkspaceId.from(snapshot.workspaceId);
-    if (!workspaceIdResult.ok) {
-      return err(workspaceIdResult.error);
+    const workspaceCodeResult = AppConfigWorkspaceCode.from(
+      snapshot.workspaceCode,
+    );
+    if (!workspaceCodeResult.ok) {
+      return err(workspaceCodeResult.error);
     }
     const maxRetryAttemptsResult = AppConfigMaxRetryAttempts.from(
       snapshot.maxRetryAttempts,
@@ -211,8 +213,8 @@ export class AppConfigEntity extends EntityIdBase<
     }
 
     const props: AppConfigDomainState = {
-      id: idResult.value,
-      workspaceId: workspaceIdResult.value,
+      code: codeResult.value,
+      workspaceCode: workspaceCodeResult.value,
       maxRetryAttempts: maxRetryAttemptsResult.value,
       retryBackoffSeconds: retryBackoffSecondsResult.value,
       defaultLocale: defaultLocaleResult.value,
@@ -237,11 +239,11 @@ export class AppConfigEntity extends EntityIdBase<
     props: AppConfigDomainState,
   ): Result<void, DomainError> {
     // Basic validation
-    if (!props.id) {
-      return err(AppConfigErrors.INVALID_ID_DATA);
+    if (!props.code) {
+      return err(AppConfigErrors.INVALID_CODE_DATA);
     }
-    if (!props.workspaceId) {
-      return err(AppConfigErrors.INVALID_WORKSPACE_ID_DATA);
+    if (!props.workspaceCode) {
+      return err(AppConfigErrors.INVALID_WORKSPACE_CODE_DATA);
     }
     if (!props.maxRetryAttempts) {
       return err(AppConfigErrors.INVALID_MAX_RETRY_ATTEMPTS_DATA);
@@ -263,12 +265,12 @@ export class AppConfigEntity extends EntityIdBase<
   // Getters (Public API)
   // ======================
 
-  public get id(): AppConfigId {
-    return this.props.id;
+  public get code(): AppConfigCode {
+    return this.props.code;
   }
 
-  public get workspaceId(): AppConfigWorkspaceId {
-    return this.props.workspaceId;
+  public get workspaceCode(): AppConfigWorkspaceCode {
+    return this.props.workspaceCode;
   }
 
   public get maxRetryAttempts(): AppConfigMaxRetryAttempts {
@@ -312,18 +314,18 @@ export class AppConfigEntity extends EntityIdBase<
   // ======================
 
   /**
-   * Creates a new entity with updated workspaceId (pure state transition)
+   * Creates a new entity with updated workspaceCode (pure state transition)
    *
-   * @param workspaceId - New workspace_id value
+   * @param workspaceCode - New workspace_code value
    * @param updatedAt - Optional timestamp (uses clock if not provided)
    * @returns Result<AppConfigEntity, DomainError>
    */
-  public withWorkspaceId(
-    workspaceId: AppConfigWorkspaceId,
+  public withWorkspaceCode(
+    workspaceCode: AppConfigWorkspaceCode,
     updatedAt?: Date,
     version?: number,
   ): Result<AppConfigEntity, DomainError> {
-    return this.createUpdatedEntity({ workspaceId }, updatedAt, version);
+    return this.createUpdatedEntity({ workspaceCode }, updatedAt, version);
   }
 
   /**
@@ -430,7 +432,7 @@ export class AppConfigEntity extends EntityIdBase<
    * @param other - Other appConfig to compare
    */
   public sameAs(other: AppConfigEntity): boolean {
-    return this.props.id.equals(other.props.id);
+    return this.props.code.equals(other.props.code);
   }
 
   /**
@@ -438,8 +440,8 @@ export class AppConfigEntity extends EntityIdBase<
    */
   public toSnapshot(): AppConfigSnapshotProps {
     return {
-      id: this.props.id.value,
-      workspaceId: this.props.workspaceId.value,
+      code: this.props.code.value,
+      workspaceCode: this.props.workspaceCode.value,
       maxRetryAttempts: this.props.maxRetryAttempts.value,
       retryBackoffSeconds: this.props.retryBackoffSeconds.value,
       defaultLocale: this.props.defaultLocale.value,

@@ -24,7 +24,7 @@ import { SlackConfigServiceConstants } from '../../../service-constants';
 // Domain types and errors
 import { WorkspaceAggregate } from '../../domain/aggregates';
 import { CreateWorkspaceProps, UpsertWorkspaceProps } from '../../domain/props';
-import { WorkspaceId } from '../../domain/value-objects';
+import { WorkspaceCode } from '../../domain/value-objects';
 import {
   createWorkspaceAggregateFromProps,
   updateWorkspaceAggregateFromSnapshot,
@@ -83,7 +83,7 @@ export class UpsertWorkspaceUseCase implements IUpsertWorkspaceUseCase {
   }
   async execute(params: {
     user: IUserToken;
-    id: string;
+    code: string;
     props: UpsertWorkspaceProps;
     correlationId: string;
     authorizationReason: string;
@@ -94,7 +94,7 @@ export class UpsertWorkspaceUseCase implements IUpsertWorkspaceUseCase {
     // Create a command-like object for internal use
     const command = {
       user: params.user,
-      id: params.id,
+      code: params.code,
       props: params.props,
       correlationId: params.correlationId,
       authorizationReason: params.authorizationReason,
@@ -138,7 +138,7 @@ export class UpsertWorkspaceUseCase implements IUpsertWorkspaceUseCase {
         timestamp: command.timestamp,
       },
       {
-        workspaceId: command.id,
+        workspaceCode: command.code,
         operationRisk: UseCaseLoggingUtil.assessOperationRisk(operation),
       },
     );
@@ -196,7 +196,7 @@ export class UpsertWorkspaceUseCase implements IUpsertWorkspaceUseCase {
     // We first try to load; if not found, we'll "create" instead of erroring.
 
     // Discover existence ahead of time to configure auth intent correctly
-    const codeR = WorkspaceId.create(command.id);
+    const codeR = WorkspaceCode.create(command.code);
     if (!codeR.ok) return err(codeR.error);
 
     // Create actor context using the standard utility
@@ -253,7 +253,7 @@ export class UpsertWorkspaceUseCase implements IUpsertWorkspaceUseCase {
         : {
             type: 'update' as const,
             operation: 'update' as const,
-            resourceId: command.id,
+            resourceId: command.code,
             fields: fieldsToUpdate.map(String),
           },
       authContext: {
@@ -311,7 +311,7 @@ export class UpsertWorkspaceUseCase implements IUpsertWorkspaceUseCase {
         // CREATE path - Validate and transform, no default creation
         const upsertProps = {
           ...(rawProps || {}),
-          id: command.id,
+          code: command.code,
         };
 
         const createProps = upsertProps as CreateWorkspaceProps;

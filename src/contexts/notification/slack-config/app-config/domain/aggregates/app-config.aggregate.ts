@@ -10,7 +10,7 @@ import { AppConfigEntity } from '../entities';
 import { AppConfigSnapshotProps } from '../props';
 import { ValidatedAppConfigUpdateFields } from '../types';
 import {
-  AppConfigId,
+  AppConfigCode,
   createAppConfigCreatedAt,
   createAppConfigUpdatedAt,
   createdAtNow,
@@ -135,8 +135,8 @@ export class AppConfigAggregate extends AggregateRootBase {
 
     // Create typed AppConfigCreatedEvent with only business data
     const createdEvent = AppConfigCreatedEvent.create({
-      id: entityProps.id.value,
-      workspaceId: entityProps.workspaceId.value,
+      code: entityProps.code.value,
+      workspaceCode: entityProps.workspaceCode.value,
       maxRetryAttempts: entityProps.maxRetryAttempts.value,
       retryBackoffSeconds: entityProps.retryBackoffSeconds.value,
       defaultLocale: entityProps.defaultLocale.value,
@@ -150,7 +150,7 @@ export class AppConfigAggregate extends AggregateRootBase {
       type: createdEvent.eventType,
       version: Number(createdEvent.eventVersion),
       occurredAt: clock.now(),
-      aggregateId: entityProps.id.toString(),
+      aggregateId: entityProps.code.value,
       aggregateType: 'AppConfig',
       data: createdEvent.payload,
       metadata: eventMetadata,
@@ -189,8 +189,8 @@ export class AppConfigAggregate extends AggregateRootBase {
       case 'NotificationSlackConfigAppConfigUpdated.v1': {
         // Both events now have the same domain shape - simple merge
         const d = event.data as {
-          id: number;
-          workspaceId: string;
+          code: string;
+          workspaceCode: string;
           maxRetryAttempts: number;
           retryBackoffSeconds: number;
           defaultLocale: string;
@@ -204,8 +204,8 @@ export class AppConfigAggregate extends AggregateRootBase {
         const currentSnapshot = this._entity?.toSnapshot() || {};
 
         const entityResult = AppConfigEntity.fromSnapshot({
-          id: d.id,
-          workspaceId: d.workspaceId,
+          code: d.code,
+          workspaceCode: d.workspaceCode,
           maxRetryAttempts: d.maxRetryAttempts,
           retryBackoffSeconds: d.retryBackoffSeconds,
           defaultLocale: d.defaultLocale,
@@ -251,7 +251,7 @@ export class AppConfigAggregate extends AggregateRootBase {
         retryable: false,
         context: {
           originalError: entityResult.error,
-          snapshotCode: snapshot.id,
+          snapshotCode: snapshot.code,
         },
       });
     }
@@ -288,8 +288,8 @@ export class AppConfigAggregate extends AggregateRootBase {
   /**
    * Get the aggregate ID (required for aggregate identity)
    */
-  public get id(): AppConfigId {
-    return this._entity.id;
+  public get id(): AppConfigCode {
+    return this._entity.code;
   }
 
   /**
@@ -313,9 +313,12 @@ export class AppConfigAggregate extends AggregateRootBase {
     validatedFields: ValidatedAppConfigUpdateFields,
   ): boolean {
     // Check each field for actual value changes using value object equality
-    if (validatedFields.workspaceId !== undefined) {
+    if (validatedFields.workspaceCode !== undefined) {
       if (
-        hasValueChanged(this._entity.workspaceId, validatedFields.workspaceId)
+        hasValueChanged(
+          this._entity.workspaceCode,
+          validatedFields.workspaceCode,
+        )
       ) {
         return true;
       }
@@ -410,7 +413,7 @@ export class AppConfigAggregate extends AggregateRootBase {
         context: {
           expected: expectedVersion,
           actual: this._entity.version.value,
-          aggregateId: this._entity.id.value,
+          aggregateId: this._entity.code.value,
         },
       });
     }
@@ -450,9 +453,9 @@ export class AppConfigAggregate extends AggregateRootBase {
     let currentEntity = this._entity;
 
     // Apply each validated field change with type safety
-    if (validatedFields.workspaceId !== undefined) {
-      const entityResult = currentEntity.withWorkspaceId(
-        validatedFields.workspaceId,
+    if (validatedFields.workspaceCode !== undefined) {
+      const entityResult = currentEntity.withWorkspaceCode(
+        validatedFields.workspaceCode,
         updatedAt,
         nextVersion,
       );
@@ -525,8 +528,8 @@ export class AppConfigAggregate extends AggregateRootBase {
 
     // Create domain-shaped update event (same structure as created event)
     const updatedEvent = AppConfigUpdatedEvent.create({
-      id: this._entity.id.value,
-      workspaceId: this._entity.workspaceId.value,
+      code: this._entity.code.value,
+      workspaceCode: this._entity.workspaceCode.value,
       maxRetryAttempts: this._entity.maxRetryAttempts.value,
       retryBackoffSeconds: this._entity.retryBackoffSeconds.value,
       defaultLocale: this._entity.defaultLocale.value,
@@ -540,7 +543,7 @@ export class AppConfigAggregate extends AggregateRootBase {
       type: updatedEvent.eventType,
       version: Number(updatedEvent.eventVersion),
       occurredAt: updatedAt,
-      aggregateId: this._entity.id.toString(),
+      aggregateId: this._entity.code.value,
       aggregateType: 'AppConfig',
       data: updatedEvent.payload,
       metadata: this.eventMetadata,
@@ -568,7 +571,7 @@ export class AppConfigAggregate extends AggregateRootBase {
       type: 'AppConfigDeleted',
       version: 1,
       occurredAt: deletedAtResult.value.value, // Extract Date from VO
-      aggregateId: this._entity.id.toString(),
+      aggregateId: this._entity.code.value,
       aggregateType: 'AppConfig',
     };
 

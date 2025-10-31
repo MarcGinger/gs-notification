@@ -3,7 +3,13 @@
 
 import { applyDecorators } from '@nestjs/common';
 import { ApiProperty } from '@nestjs/swagger';
-import { IsOptional, IsNotEmpty, IsString, MaxLength } from 'class-validator';
+import {
+  IsOptional,
+  IsNotEmpty,
+  IsString,
+  MinLength,
+  MaxLength,
+} from 'class-validator';
 
 /**
  * Options for property decorators
@@ -13,22 +19,23 @@ interface PropOptions {
 }
 
 /**
- * Property decorator for Channel WorkspaceId
+ * Property decorator for Channel Code
  * @param {Object} options - Options for the decorator
  * @returns {PropertyDecorator}
  */
-export function ApiChannelWorkspaceId(options: PropOptions = {}) {
+export function ApiChannelCode(options: PropOptions = {}) {
   const { required = true } = options;
 
   return applyDecorators(
     ApiProperty({
-      description: `Foreign key reference to the workspace this channel belongs to. Establishes the parent-child relationship between workspace and channels for multi-tenant support.`,
-      example: `T01EXAMPLE123`,
+      description: `Unique Slack channel identifier provided by Slack API. Used for all channel-specific operations including message posting and permissions validation.`,
+      example: `C01EXAMPLE001`,
       type: String,
       required,
     }),
     IsString(),
-    MaxLength(64),
+    MinLength(10),
+    MaxLength(11),
     required ? IsNotEmpty() : IsOptional(),
   );
 }

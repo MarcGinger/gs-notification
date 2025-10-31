@@ -88,7 +88,7 @@ export class GetAppConfigUseCase implements IGetAppConfigUseCase {
 
   async execute(params: {
     user: IUserToken;
-    id: number;
+    code: string;
     correlationId: string;
   }): Promise<Result<DetailAppConfigResponse, DomainError>> {
     const operation = 'get_app_config';
@@ -97,7 +97,7 @@ export class GetAppConfigUseCase implements IGetAppConfigUseCase {
 
     // Step 1: Extract raw properties for domain logic (no PII protection at domain level)
     const rawProps = {
-      id: params.id,
+      code: params.code,
     };
 
     // Step 2: Create safe logging context (no PII, deferred retention metadata)
@@ -107,7 +107,7 @@ export class GetAppConfigUseCase implements IGetAppConfigUseCase {
       operation,
       params as any, // Query doesn't extend BaseUseCaseCommand but has similar structure
       {
-        appConfigId: rawProps.id,
+        appConfigCode: rawProps.code,
         operationRisk: UseCaseLoggingUtil.assessOperationRisk(operation),
         readOperation: true,
         cacheEnabled: true,
@@ -127,7 +127,7 @@ export class GetAppConfigUseCase implements IGetAppConfigUseCase {
     // Step 1: Check authorization first
     const authResult = await this.authorizationService.canReadResource(
       params.user.sub,
-      String(params.id), // Convert numeric id as appConfig identifier
+      params.code, // Using code as appConfig identifier
       correlationId,
       {
         tenant: params.user.tenant,
@@ -154,7 +154,7 @@ export class GetAppConfigUseCase implements IGetAppConfigUseCase {
         category: 'security' as const,
         context: {
           userId: params.user.sub,
-          appConfigId: params.id,
+          appConfigCode: params.code,
           operation: 'read',
         },
       };
@@ -169,13 +169,17 @@ export class GetAppConfigUseCase implements IGetAppConfigUseCase {
     }
 
     // Step 2: Simple validation for query-side operations (CQRS compliant)
-    if (!Number.isInteger(params.id) || params.id <= 0) {
+    if (
+      !params.code ||
+      typeof params.code !== 'string' ||
+      params.code.trim().length === 0
+    ) {
       const validationError = {
         code: 'APP_CONFIG.INVALID_THE_CODE' as const,
-        title: 'Invalid appConfig id',
+        title: 'Invalid appConfig code',
         category: 'validation' as const,
         context: {
-          id: params.id,
+          code: params.code,
           correlationId,
           userId: params.user.sub,
           operation: 'get_appConfig',
@@ -208,7 +212,7 @@ export class GetAppConfigUseCase implements IGetAppConfigUseCase {
         correlationId,
         userId: params.user.sub,
         operation: 'get_app_config',
-        id: params.id,
+        code: params.code,
       });
       UseCaseLoggingUtil.logOperationError(
         this.logger,
@@ -223,7 +227,7 @@ export class GetAppConfigUseCase implements IGetAppConfigUseCase {
 
     const appConfigResult = await this.query.findById(
       actor,
-      params.id,
+      params.code,
       repositoryOptions,
     );
 
@@ -232,7 +236,7 @@ export class GetAppConfigUseCase implements IGetAppConfigUseCase {
         correlationId,
         userId: params.user.sub,
         operation: 'get_app_config',
-        id: params.id,
+        code: params.code,
       });
       UseCaseLoggingUtil.logOperationError(
         this.logger,
@@ -252,13 +256,13 @@ export class GetAppConfigUseCase implements IGetAppConfigUseCase {
     // Step 5.1: Return 404 error if appConfig not found
     if (!appConfigDto) {
       const notFoundError = withContext(AppConfigErrors.APP_CONFIG_NOT_FOUND, {
-        id: params.id,
-        workspaceId: '', // Default values for required fields
+        code: params.code,
+        workspaceCode: '', // Default values for required fields
         maxRetryAttempts: 0, // Default values for required fields
         retryBackoffSeconds: 0, // Default values for required fields
         defaultLocale: '', // Default values for required fields
         loggingEnabled: false, // Default values for required fields
-        appConfigId: params.id,
+        appConfigCode: params.code,
         correlationId,
         userId: params.user.sub,
         operation: 'get_app_config',
@@ -305,7 +309,7 @@ export class GetAppConfigUseCase implements IGetAppConfigUseCase {
       {
         executionTimeMs: executionTime,
         businessData: {
-          appConfigId: params.id,
+          appConfigCode: params.code,
           found: true,
           cacheEnabled: true,
           cacheTtl: repositoryOptions.cache?.ttl,

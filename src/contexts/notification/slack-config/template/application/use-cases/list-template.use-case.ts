@@ -26,11 +26,11 @@ import { SlackConfigServiceConstants } from '../../../service-constants';
 // Using string literals for service constants
 
 // Application layer
-import { ListAppConfigQuery } from '../queries';
-import { IAppConfigQuery, APP_CONFIG_QUERY_TOKEN } from '../ports';
-import { AppConfigAuthorizationAdapter } from '../services';
-import { ListAppConfigFilterRequest, AppConfigPageResponse } from '../dtos';
-import { IListAppConfigUseCase } from './contracts';
+import { ListTemplateQuery } from '../queries';
+import { ITemplateQuery, TEMPLATE_QUERY_TOKEN } from '../ports';
+import { TemplateAuthorizationAdapter } from '../services';
+import { ListTemplateFilterRequest, TemplatePageResponse } from '../dtos';
+import { IListTemplateUseCase } from './contracts';
 
 // Shared compliance services (lightweight for list operations)
 import {
@@ -40,7 +40,7 @@ import {
 } from 'src/shared/services/compliance';
 
 /**
- * ✅ Enhanced List AppConfig Use Case with Enterprise Logging and Compliance
+ * ✅ Enhanced List Template Use Case with Enterprise Logging and Compliance
  *
  * Features:
  * - Classification-only PII approach (no domain data mutation)
@@ -51,14 +51,14 @@ import {
  * - Pagination validation and security controls
  */
 @Injectable()
-export class ListAppConfigUseCase implements IListAppConfigUseCase {
+export class ListTemplateUseCase implements IListTemplateUseCase {
   private readonly logger: Logger;
   private readonly loggingConfig: UseCaseLoggingConfig;
 
   constructor(
-    @Inject(APP_CONFIG_QUERY_TOKEN)
-    private readonly query: IAppConfigQuery,
-    private readonly authorizationService: AppConfigAuthorizationAdapter,
+    @Inject(TEMPLATE_QUERY_TOKEN)
+    private readonly query: ITemplateQuery,
+    private readonly authorizationService: TemplateAuthorizationAdapter,
     @Inject(APP_LOGGER) moduleLogger: Logger,
     @Inject(CLOCK) private readonly clock: Clock,
     private readonly piiClassificationService: PIIClassificationService,
@@ -67,30 +67,30 @@ export class ListAppConfigUseCase implements IListAppConfigUseCase {
   ) {
     this.loggingConfig = {
       serviceName: SlackConfigServiceConstants.SERVICE_NAME,
-      component: 'ListAppConfigUseCase',
+      component: 'ListTemplateUseCase',
       domain: 'slack_config',
-      entityType: 'app_config',
+      entityType: 'template',
     };
     this.logger = componentLogger(moduleLogger, this.loggingConfig.component);
   }
 
   /**
-   * Execute the list appConfig query with enhanced pagination, validation, and compliance
+   * Execute the list template query with enhanced pagination, validation, and compliance
    */
   async execute(params: {
     user: IUserToken;
-    filter?: ListAppConfigFilterRequest;
+    filter?: ListTemplateFilterRequest;
     correlationId: string;
-  }): Promise<Result<AppConfigPageResponse, DomainError>> {
-    const operation = 'list_app_config';
+  }): Promise<Result<TemplatePageResponse, DomainError>> {
+    const operation = 'list_template';
     const startTime = this.clock.nowMs();
 
     // Create query object from params for internal use
-    // Ensure we always have a proper ListAppConfigFilterRequest instance with prototype methods
+    // Ensure we always have a proper ListTemplateFilterRequest instance with prototype methods
     const filter = params.filter
-      ? Object.assign(new ListAppConfigFilterRequest(), params.filter)
-      : new ListAppConfigFilterRequest();
-    const query = new ListAppConfigQuery(
+      ? Object.assign(new ListTemplateFilterRequest(), params.filter)
+      : new ListTemplateFilterRequest();
+    const query = new ListTemplateQuery(
       params.user,
       filter,
       params.correlationId,
@@ -160,22 +160,22 @@ export class ListAppConfigUseCase implements IListAppConfigUseCase {
       }
 
       // Step 3: Execute the repository query
-      const appConfigResult = await this.fetchAppConfig(query);
-      if (!appConfigResult.ok) {
+      const templateResult = await this.fetchTemplate(query);
+      if (!templateResult.ok) {
         UseCaseLoggingUtil.logOperationError(
           this.logger,
           operation,
           safeLogContext,
-          appConfigResult.error,
+          templateResult.error,
           'HIGH',
         );
-        return err(appConfigResult.error);
+        return err(templateResult.error);
       }
 
-      // Step 4: Filter AppConfig based on authorization
+      // Step 4: Filter Template based on authorization
       const correlationId = query.correlationId ?? 'unknown';
-      const authorizedAppConfigResult = await this.filterAuthorizedAppConfigs(
-        appConfigResult.value,
+      const authorizedTemplateResult = await this.filterAuthorizedTemplates(
+        templateResult.value,
         query.user.sub,
         correlationId,
         {
@@ -185,19 +185,19 @@ export class ListAppConfigUseCase implements IListAppConfigUseCase {
         },
       );
 
-      if (!authorizedAppConfigResult.ok) {
+      if (!authorizedTemplateResult.ok) {
         UseCaseLoggingUtil.logOperationError(
           this.logger,
           operation,
           safeLogContext,
-          authorizedAppConfigResult.error,
+          authorizedTemplateResult.error,
           'HIGH',
         );
-        return err(authorizedAppConfigResult.error);
+        return err(authorizedTemplateResult.error);
       }
 
       // Step 5: Light compliance check for list operations (audit log only)
-      const finalResult = authorizedAppConfigResult.value;
+      const finalResult = authorizedTemplateResult.value;
       if (finalResult.data && finalResult.data.length > 0) {
         // For list operations, we log bulk data access for compliance audit
         const sampleData = finalResult.data[0]; // Use first item for classification
@@ -206,7 +206,7 @@ export class ListAppConfigUseCase implements IListAppConfigUseCase {
           {
             domain: 'slack-config',
             tenant: query.user.tenant,
-            // entityType: 'AppConfig' // Future: for entity-level rules
+            // entityType: 'Template' // Future: for entity-level rules
           },
         );
 
@@ -242,12 +242,12 @@ export class ListAppConfigUseCase implements IListAppConfigUseCase {
         },
       );
 
-      return authorizedAppConfigResult;
+      return authorizedTemplateResult;
     } catch (error) {
       const domainError = withContext(
         {
-          code: 'NOTIFICATION_SLACK_CONFIG.LIST_APP_CONFIGS_FAILED',
-          title: 'Failed to list appConfig',
+          code: 'NOTIFICATION_SLACK_CONFIG.LIST_TEMPLATES_FAILED',
+          title: 'Failed to list template',
           category: 'infrastructure' as const,
           retryable: true,
         },
@@ -270,16 +270,16 @@ export class ListAppConfigUseCase implements IListAppConfigUseCase {
   }
 
   /**
-   * ✅ Fetch appConfig from repository with error handling
+   * ✅ Fetch template from repository with error handling
    */
-  private async fetchAppConfig(
-    query: ListAppConfigQuery,
-  ): Promise<Result<AppConfigPageResponse, DomainError>> {
+  private async fetchTemplate(
+    query: ListTemplateQuery,
+  ): Promise<Result<TemplatePageResponse, DomainError>> {
     try {
       // ✅ Use enhanced repository with proper Result handling
       const repositoryOptions = {
         correlationId: query.correlationId,
-        source: 'list-app-config-use-case',
+        source: 'list-template-use-case',
         cache: {
           ttl: DEFAULT_LIST_CACHE_CONFIG.defaultTtl, // Use configurable cache TTL
           skipCache: false,
@@ -289,29 +289,29 @@ export class ListAppConfigUseCase implements IListAppConfigUseCase {
       // ✅ Convert IUserToken to ActorContext for enhanced repository methods
       const actor = ActorContextAdapter.fromUserToken(query.user);
 
-      // ✅ Use findPaginated directly since we have IAppConfigQuery
-      const appConfigResult = await this.query.findPaginated(
+      // ✅ Use findPaginated directly since we have ITemplateQuery
+      const templateResult = await this.query.findPaginated(
         actor,
         query.filter,
         repositoryOptions,
       );
 
-      if (!appConfigResult.ok) {
-        return err(appConfigResult.error);
+      if (!templateResult.ok) {
+        return err(templateResult.error);
       }
 
-      return ok(appConfigResult.value);
+      return ok(templateResult.value);
     } catch (error) {
       return err(
         withContext(
           {
             code: 'NOTIFICATION_SLACK_CONFIG.REPOSITORY_FETCH_FAILED',
-            title: 'Failed to fetch appConfig from repository',
+            title: 'Failed to fetch template from repository',
             category: 'infrastructure',
             retryable: true,
           },
           {
-            operation: 'fetch_appConfig',
+            operation: 'fetch_template',
             error: error instanceof Error ? error.message : String(error),
           },
         ),
@@ -320,33 +320,31 @@ export class ListAppConfigUseCase implements IListAppConfigUseCase {
   }
 
   /**
-   * Filter appConfigs based on user authorization
+   * Filter templates based on user authorization
    */
-  private async filterAuthorizedAppConfigs(
-    appConfigPage: AppConfigPageResponse,
+  private async filterAuthorizedTemplates(
+    templatePage: TemplatePageResponse,
     userId: string,
     correlationId: string,
     context: Record<string, any>,
-  ): Promise<Result<AppConfigPageResponse, DomainError>> {
+  ): Promise<Result<TemplatePageResponse, DomainError>> {
     try {
-      if (!appConfigPage.data || appConfigPage.data.length === 0) {
-        return ok(appConfigPage); // Empty page, nothing to filter
+      if (!templatePage.data || templatePage.data.length === 0) {
+        return ok(templatePage); // Empty page, nothing to filter
       }
 
-      // Extract appConfig codes for batch authorization check
-      const ids = appConfigPage.data
-        .map((item) => item.id)
-        .filter((id): id is number => id !== undefined && id !== null)
-        .map((id) => String(id)); // Convert numeric codes to strings for authorization
-
-      if (ids.length === 0) {
-        return ok(appConfigPage); // No valid appConfig ids
+      // Extract template codes for batch authorization check
+      const codes = templatePage.data
+        .map((item) => item.code)
+        .filter((code): code is string => code !== undefined && code !== null);
+      if (codes.length === 0) {
+        return ok(templatePage); // No valid template codes
       }
 
       // Perform batch authorization check
-      const authResult = await this.authorizationService.authorizeAppConfigList(
+      const authResult = await this.authorizationService.authorizeTemplateList(
         userId,
-        ids,
+        codes,
         correlationId,
         'read',
         context,
@@ -358,29 +356,29 @@ export class ListAppConfigUseCase implements IListAppConfigUseCase {
 
       const { authorized } = authResult.value;
 
-      // Filter items to only include authorized appConfigs
-      const authorizedItems = appConfigPage.data.filter((item) =>
-        authorized.includes(String(item.id)),
+      // Filter items to only include authorized templates
+      const authorizedItems = templatePage.data.filter((item) =>
+        authorized.includes(item.code),
       );
 
       // Update the page response with filtered results
-      const filteredPage = AppConfigPageResponse.create(
+      const filteredPage = TemplatePageResponse.create(
         authorizedItems,
-        appConfigPage.meta, // Keep original metadata for now
+        templatePage.meta, // Keep original metadata for now
       );
 
       // Log filtering results
-      if (authorizedItems.length < appConfigPage.data.length) {
+      if (authorizedItems.length < templatePage.data.length) {
         this.logger.info(
-          `Filtered appConfig list: originalCount=${appConfigPage.data.length} authorizedCount=${authorizedItems.length} userId=${userId} correlationId=${correlationId}`,
+          `Filtered template list: originalCount=${templatePage.data.length} authorizedCount=${authorizedItems.length} userId=${userId} correlationId=${correlationId}`,
         );
       }
 
       return ok(filteredPage);
     } catch (error) {
       return err({
-        code: 'APP_CONFIG.LIST_AUTHORIZATION_FAILED',
-        title: 'Failed to authorize appConfig list',
+        code: 'TEMPLATE.LIST_AUTHORIZATION_FAILED',
+        title: 'Failed to authorize template list',
         category: 'security',
         context: {
           userId,
@@ -395,12 +393,12 @@ export class ListAppConfigUseCase implements IListAppConfigUseCase {
 /**
  * ✅ Type-safe use case result
  */
-export type ListAppConfigUseCaseResult = AppConfigPageResponse;
+export type ListTemplateUseCaseResult = TemplatePageResponse;
 
 /**
  * ✅ Use case execution context for dependency injection
  */
-export interface ListAppConfigUseCaseContext {
+export interface ListTemplateUseCaseContext {
   correlationId?: string;
   userId?: string;
   tenant?: string;
@@ -409,10 +407,10 @@ export interface ListAppConfigUseCaseContext {
 /**
  * ✅ Factory function for creating queries with context
  */
-export function createListAppConfigQuery(
+export function createListTemplateQuery(
   user: IUserToken,
-  filter: ListAppConfigFilterRequest,
-  context: ListAppConfigUseCaseContext,
-): ListAppConfigQuery {
-  return new ListAppConfigQuery(user, filter, context.correlationId);
+  filter: ListTemplateFilterRequest,
+  context: ListTemplateUseCaseContext,
+): ListTemplateQuery {
+  return new ListTemplateQuery(user, filter, context.correlationId);
 }

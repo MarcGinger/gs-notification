@@ -17,7 +17,7 @@ import {
   TemplateName,
   TemplateSamplePayload,
   TemplateVariables,
-  TemplateWorkspaceId,
+  TemplateWorkspaceCode,
 } from '../value-objects';
 
 /**
@@ -157,9 +157,11 @@ export class TemplateEntity extends EntityIdBase<
     if (!codeResult.ok) {
       return err(codeResult.error);
     }
-    const workspaceIdResult = TemplateWorkspaceId.from(snapshot.workspaceId);
-    if (!workspaceIdResult.ok) {
-      return err(workspaceIdResult.error);
+    const workspaceCodeResult = TemplateWorkspaceCode.from(
+      snapshot.workspaceCode,
+    );
+    if (!workspaceCodeResult.ok) {
+      return err(workspaceCodeResult.error);
     }
     const nameResult = TemplateName.from(snapshot.name);
     if (!nameResult.ok) {
@@ -206,7 +208,7 @@ export class TemplateEntity extends EntityIdBase<
 
     const props: TemplateDomainState = {
       code: codeResult.value,
-      workspaceId: workspaceIdResult.value,
+      workspaceCode: workspaceCodeResult.value,
       name: nameResult.value,
       description: descriptionResult.value,
       contentBlocks: contentBlocksResult.value,
@@ -234,8 +236,8 @@ export class TemplateEntity extends EntityIdBase<
     if (!props.code) {
       return err(TemplateErrors.INVALID_CODE_DATA);
     }
-    if (!props.workspaceId) {
-      return err(TemplateErrors.INVALID_WORKSPACE_ID_DATA);
+    if (!props.workspaceCode) {
+      return err(TemplateErrors.INVALID_WORKSPACE_CODE_DATA);
     }
     if (!props.name) {
       return err(TemplateErrors.INVALID_NAME_DATA);
@@ -258,8 +260,8 @@ export class TemplateEntity extends EntityIdBase<
     return this.props.code;
   }
 
-  public get workspaceId(): TemplateWorkspaceId {
-    return this.props.workspaceId;
+  public get workspaceCode(): TemplateWorkspaceCode {
+    return this.props.workspaceCode;
   }
 
   public get name(): TemplateName {
@@ -303,18 +305,18 @@ export class TemplateEntity extends EntityIdBase<
   // ======================
 
   /**
-   * Creates a new entity with updated workspaceId (pure state transition)
+   * Creates a new entity with updated workspaceCode (pure state transition)
    *
-   * @param workspaceId - New workspace_id value
+   * @param workspaceCode - New workspace_code value
    * @param updatedAt - Optional timestamp (uses clock if not provided)
    * @returns Result<TemplateEntity, DomainError>
    */
-  public withWorkspaceId(
-    workspaceId: TemplateWorkspaceId,
+  public withWorkspaceCode(
+    workspaceCode: TemplateWorkspaceCode,
     updatedAt?: Date,
     version?: number,
   ): Result<TemplateEntity, DomainError> {
-    return this.createUpdatedEntity({ workspaceId }, updatedAt, version);
+    return this.createUpdatedEntity({ workspaceCode }, updatedAt, version);
   }
 
   /**
@@ -426,7 +428,7 @@ export class TemplateEntity extends EntityIdBase<
   public toSnapshot(): TemplateSnapshotProps {
     return {
       code: this.props.code.value,
-      workspaceId: this.props.workspaceId.value,
+      workspaceCode: this.props.workspaceCode.value,
       name: this.props.name.value,
       description: this.props.description?.value,
       contentBlocks: this.props.contentBlocks.toArray(),

@@ -2,9 +2,9 @@
 // REMOVE THIS COMMENT TO STOP AUTOMATIC UPDATES TO THIS BLOCK
 
 export interface UpdateChannelProps {
-  id: string;
+  code: string;
   name?: string;
-  workspaceId?: string;
+  workspaceCode?: string;
   isPrivate?: boolean;
   isDm?: boolean;
   topic?: string;

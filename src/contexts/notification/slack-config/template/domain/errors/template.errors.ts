@@ -167,20 +167,20 @@ export const TemplateErrors = {
     category: 'validation',
     retryable: false,
   } as DomainError<'TEMPLATE.INVALID_VARIABLES_DATA', TemplateContext>,
-  INVALID_WORKSPACE_ID: {
-    code: 'TEMPLATE.INVALID_WORKSPACE_ID',
+  INVALID_WORKSPACE_CODE: {
+    code: 'TEMPLATE.INVALID_WORKSPACE_CODE',
     title: 'Value Required',
     detail: 'Workspace is required for Template.',
     category: 'validation',
     retryable: false,
-  } as DomainError<'TEMPLATE.INVALID_WORKSPACE_ID', TemplateContext>,
-  INVALID_WORKSPACE_ID_DATA: {
-    code: 'TEMPLATE.INVALID_WORKSPACE_ID_DATA',
+  } as DomainError<'TEMPLATE.INVALID_WORKSPACE_CODE', TemplateContext>,
+  INVALID_WORKSPACE_CODE_DATA: {
+    code: 'TEMPLATE.INVALID_WORKSPACE_CODE_DATA',
     title: 'Value Required',
     detail: 'Workspace is required for Template.',
     category: 'validation',
     retryable: false,
-  } as DomainError<'TEMPLATE.INVALID_WORKSPACE_ID_DATA', TemplateContext>,
+  } as DomainError<'TEMPLATE.INVALID_WORKSPACE_CODE_DATA', TemplateContext>,
   NOT_BOOLEAN_ENABLED: {
     code: 'TEMPLATE.NOT_BOOLEAN_ENABLED',
     title: 'Not a Boolean',

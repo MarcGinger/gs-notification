@@ -88,7 +88,7 @@ export class GetChannelUseCase implements IGetChannelUseCase {
 
   async execute(params: {
     user: IUserToken;
-    id: string;
+    code: string;
     correlationId: string;
   }): Promise<Result<DetailChannelResponse, DomainError>> {
     const operation = 'get_channel';
@@ -97,7 +97,7 @@ export class GetChannelUseCase implements IGetChannelUseCase {
 
     // Step 1: Extract raw properties for domain logic (no PII protection at domain level)
     const rawProps = {
-      id: params.id,
+      code: params.code,
     };
 
     // Step 2: Create safe logging context (no PII, deferred retention metadata)
@@ -107,7 +107,7 @@ export class GetChannelUseCase implements IGetChannelUseCase {
       operation,
       params as any, // Query doesn't extend BaseUseCaseCommand but has similar structure
       {
-        channelId: rawProps.id,
+        channelCode: rawProps.code,
         operationRisk: UseCaseLoggingUtil.assessOperationRisk(operation),
         readOperation: true,
         cacheEnabled: true,
@@ -127,7 +127,7 @@ export class GetChannelUseCase implements IGetChannelUseCase {
     // Step 1: Check authorization first
     const authResult = await this.authorizationService.canReadResource(
       params.user.sub,
-      params.id, // Using id as channel identifier
+      params.code, // Using code as channel identifier
       correlationId,
       {
         tenant: params.user.tenant,
@@ -154,7 +154,7 @@ export class GetChannelUseCase implements IGetChannelUseCase {
         category: 'security' as const,
         context: {
           userId: params.user.sub,
-          channelId: params.id,
+          channelCode: params.code,
           operation: 'read',
         },
       };
@@ -170,16 +170,16 @@ export class GetChannelUseCase implements IGetChannelUseCase {
 
     // Step 2: Simple validation for query-side operations (CQRS compliant)
     if (
-      !params.id ||
-      typeof params.id !== 'string' ||
-      params.id.trim().length === 0
+      !params.code ||
+      typeof params.code !== 'string' ||
+      params.code.trim().length === 0
     ) {
       const validationError = {
         code: 'CHANNEL.INVALID_THE_CODE' as const,
-        title: 'Invalid channel id',
+        title: 'Invalid channel code',
         category: 'validation' as const,
         context: {
-          id: params.id,
+          code: params.code,
           correlationId,
           userId: params.user.sub,
           operation: 'get_channel',
@@ -212,7 +212,7 @@ export class GetChannelUseCase implements IGetChannelUseCase {
         correlationId,
         userId: params.user.sub,
         operation: 'get_channel',
-        id: params.id,
+        code: params.code,
       });
       UseCaseLoggingUtil.logOperationError(
         this.logger,
@@ -227,7 +227,7 @@ export class GetChannelUseCase implements IGetChannelUseCase {
 
     const channelResult = await this.query.findById(
       actor,
-      params.id,
+      params.code,
       repositoryOptions,
     );
 
@@ -236,7 +236,7 @@ export class GetChannelUseCase implements IGetChannelUseCase {
         correlationId,
         userId: params.user.sub,
         operation: 'get_channel',
-        id: params.id,
+        code: params.code,
       });
       UseCaseLoggingUtil.logOperationError(
         this.logger,
@@ -256,13 +256,13 @@ export class GetChannelUseCase implements IGetChannelUseCase {
     // Step 5.1: Return 404 error if channel not found
     if (!channelDto) {
       const notFoundError = withContext(ChannelErrors.CHANNEL_NOT_FOUND, {
-        id: params.id,
+        code: params.code,
         name: '', // Default values for required fields
-        workspaceId: '', // Default values for required fields
+        workspaceCode: '', // Default values for required fields
         isPrivate: false, // Default values for required fields
         isDm: false, // Default values for required fields
         enabled: false, // Default values for required fields
-        channelId: params.id,
+        channelCode: params.code,
         correlationId,
         userId: params.user.sub,
         operation: 'get_channel',
@@ -309,7 +309,7 @@ export class GetChannelUseCase implements IGetChannelUseCase {
       {
         executionTimeMs: executionTime,
         businessData: {
-          channelId: params.id,
+          channelCode: params.code,
           found: true,
           cacheEnabled: true,
           cacheTtl: repositoryOptions.cache?.ttl,

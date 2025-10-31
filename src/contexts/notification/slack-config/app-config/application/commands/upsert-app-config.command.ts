@@ -13,7 +13,7 @@ import { UpsertAppConfigProps } from '../../domain/props';
 export class UpsertAppConfigCommand extends BaseCommand {
   constructor(
     user: IUserToken,
-    public readonly id: number,
+    public readonly code: string,
     public readonly props: UpsertAppConfigProps,
     correlationId: string,
     securityContext: SecurityMetadata,
@@ -26,7 +26,7 @@ export class UpsertAppConfigCommand extends BaseCommand {
    */
   static create(
     user: IUserToken,
-    id: number,
+    code: string,
     props: UpsertAppConfigProps,
     correlationId: string = CorrelationUtil.generate(),
     additionalSecurityContext?: Partial<SecurityMetadata>,
@@ -38,7 +38,7 @@ export class UpsertAppConfigCommand extends BaseCommand {
 
     return new UpsertAppConfigCommand(
       user,
-      id,
+      code,
       props,
       correlationId,
       securityContext,

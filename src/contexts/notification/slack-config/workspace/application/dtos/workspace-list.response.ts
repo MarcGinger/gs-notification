@@ -5,16 +5,16 @@ import {
   ApiWorkspaceAppId,
   ApiWorkspaceBotToken,
   ApiWorkspaceBotUserId,
+  ApiWorkspaceCode,
   ApiWorkspaceDefaultChannelId,
   ApiWorkspaceEnabled,
-  ApiWorkspaceId,
   ApiWorkspaceName,
   ApiWorkspaceSigningSecret,
 } from './decorators';
 
 export class ListWorkspaceResponse {
-  @ApiWorkspaceId()
-  id: string;
+  @ApiWorkspaceCode()
+  code: string;
 
   @ApiWorkspaceName()
   name: string;

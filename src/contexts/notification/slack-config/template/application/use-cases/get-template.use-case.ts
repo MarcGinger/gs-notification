@@ -257,7 +257,7 @@ export class GetTemplateUseCase implements IGetTemplateUseCase {
     if (!templateDto) {
       const notFoundError = withContext(TemplateErrors.TEMPLATE_NOT_FOUND, {
         code: params.code,
-        workspaceId: '', // Default values for required fields
+        workspaceCode: '', // Default values for required fields
         name: '', // Default values for required fields
         contentBlocks: '', // Default values for required fields
         enabled: false, // Default values for required fields

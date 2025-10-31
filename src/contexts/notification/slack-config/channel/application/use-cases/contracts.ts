@@ -11,12 +11,16 @@
 import { Result, DomainError } from 'src/shared/errors';
 import type { IUserToken } from 'src/shared/security';
 import type { UpsertChannelProps } from '../../domain/props';
-import type { DetailChannelResponse } from '../dtos';
+import type {
+  DetailChannelResponse,
+  ChannelPageResponse,
+  ListChannelFilterRequest,
+} from '../dtos';
 
 export abstract class IUpsertChannelUseCase {
   abstract execute(params: {
     user: IUserToken;
-    id: string;
+    code: string;
     props: UpsertChannelProps;
     correlationId: string;
     authorizationReason: string;
@@ -26,7 +30,14 @@ export abstract class IUpsertChannelUseCase {
 export abstract class IGetChannelUseCase {
   abstract execute(params: {
     user: IUserToken;
-    id: string;
+    code: string;
     correlationId: string;
   }): Promise<Result<DetailChannelResponse, DomainError>>;
+}
+export abstract class IListChannelUseCase {
+  abstract execute(params: {
+    user: IUserToken;
+    filter?: ListChannelFilterRequest;
+    correlationId: string;
+  }): Promise<Result<ChannelPageResponse, DomainError>>;
 }

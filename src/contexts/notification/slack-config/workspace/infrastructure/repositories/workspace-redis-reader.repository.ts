@@ -22,7 +22,7 @@ import { RepositoryErrorFactory } from 'src/shared/domain/errors/repository.erro
 import { SLACK_CONFIG_DI_TOKENS } from '../../../slack-config.constants';
 import { WorkspaceProjectionKeys } from '../../workspace-projection-keys';
 import { WorkspaceSnapshotProps } from '../../domain/props';
-import { WorkspaceId } from '../../domain/value-objects';
+import { WorkspaceCode } from '../../domain/value-objects';
 import { IWorkspaceReader } from '../../application/ports';
 
 /**
@@ -104,7 +104,7 @@ export class WorkspaceReaderRepository implements IWorkspaceReader {
       // Extract basic fields directly from hash data
 
       return {
-        id: hashData.id,
+        code: hashData.code,
         name: hashData.name,
         botToken: hashData.botToken || undefined,
         signingSecret: hashData.signingSecret || undefined,
@@ -123,7 +123,7 @@ export class WorkspaceReaderRepository implements IWorkspaceReader {
         {
           method: 'parseRedisHashToWorkspace',
           error: (error as Error).message,
-          id: hashData?.id,
+          code: hashData?.code,
         },
       );
       return null;
@@ -159,13 +159,13 @@ export class WorkspaceReaderRepository implements IWorkspaceReader {
   /**
    * Find a Workspace by its unique identifier
    * @param actor - The authenticated user context
-   * @param id - The unique identifier of the Workspace
+   * @param code - The unique identifier of the Workspace
    * @param options - Optional repository options
    * @returns Result containing the Workspace snapshot or null if not found
    */
   async findById(
     actor: ActorContext,
-    id: WorkspaceId,
+    code: WorkspaceCode,
     options?: RepositoryOptions,
   ): Promise<Result<Option<WorkspaceSnapshotProps>, DomainError>> {
     const operation = 'findById';
@@ -176,7 +176,7 @@ export class WorkspaceReaderRepository implements IWorkspaceReader {
 
     const logContext = this.createLogContext(operation, correlationId, actor, {
       riskLevel,
-      targetId: id.value,
+      targetCode: code.value,
       customCorrelationId: !!options?.correlationId,
       source: options?.source,
       requestId: options?.requestId,
@@ -210,7 +210,7 @@ export class WorkspaceReaderRepository implements IWorkspaceReader {
 
     try {
       // Generate cluster-safe Redis key
-      const redisKey = this.generateWorkspaceKey(actor.tenant, id.value);
+      const redisKey = this.generateWorkspaceKey(actor.tenant, code.value);
 
       Log.debug(this.logger, 'Finding workspace by ID in Redis', {
         ...logContext,
@@ -263,7 +263,7 @@ export class WorkspaceReaderRepository implements IWorkspaceReader {
           resultCount: 1,
           dataQuality: 'good',
           sampleData: {
-            id: workspaceSnapshot.id,
+            code: workspaceSnapshot.code,
             version: workspaceSnapshot.version,
           },
         },
@@ -288,13 +288,13 @@ export class WorkspaceReaderRepository implements IWorkspaceReader {
   /**
    * Check if a workspace exists by ID (for write-path validation)
    * @param actor - The authenticated user context
-   * @param id - The unique identifier of the Workspace
+   * @param code - The unique identifier of the Workspace
    * @param options - Optional repository options
    * @returns Result containing boolean indicating existence
    */
   async exists(
     actor: ActorContext,
-    id: WorkspaceId,
+    code: WorkspaceCode,
     options?: RepositoryOptions,
   ): Promise<Result<boolean, DomainError>> {
     const operation = 'exists';
@@ -305,7 +305,7 @@ export class WorkspaceReaderRepository implements IWorkspaceReader {
 
     const logContext = this.createLogContext(operation, correlationId, actor, {
       riskLevel,
-      targetId: id.value,
+      targetCode: code.value,
       customCorrelationId: !!options?.correlationId,
       source: options?.source,
       requestId: options?.requestId,
@@ -330,7 +330,7 @@ export class WorkspaceReaderRepository implements IWorkspaceReader {
 
     try {
       // Generate cluster-safe Redis key
-      const redisKey = this.generateWorkspaceKey(actor.tenant, id.value);
+      const redisKey = this.generateWorkspaceKey(actor.tenant, code.value);
 
       Log.debug(this.logger, 'Checking workspace existence in Redis', {
         ...logContext,
@@ -360,7 +360,7 @@ export class WorkspaceReaderRepository implements IWorkspaceReader {
         {
           resultCount: isActive ? 1 : 0,
           dataQuality: 'good',
-          sampleData: { exists: isActive, id: id.value },
+          sampleData: { exists: isActive, code: code.value },
         },
       );
 
@@ -383,13 +383,13 @@ export class WorkspaceReaderRepository implements IWorkspaceReader {
   /**
    * Get workspace version for optimistic concurrency control
    * @param actor - The authenticated user context
-   * @param id - The unique identifier of the Workspace
+   * @param code - The unique identifier of the Workspace
    * @param options - Optional repository options
    * @returns Result containing version number or null if not found
    */
   async getVersion(
     actor: ActorContext,
-    id: WorkspaceId,
+    code: WorkspaceCode,
     options?: RepositoryOptions,
   ): Promise<Result<Option<number>, DomainError>> {
     const operation = 'getVersion';
@@ -400,7 +400,7 @@ export class WorkspaceReaderRepository implements IWorkspaceReader {
 
     const logContext = this.createLogContext(operation, correlationId, actor, {
       riskLevel,
-      targetId: id.value,
+      targetCode: code.value,
       customCorrelationId: !!options?.correlationId,
       source: options?.source,
       requestId: options?.requestId,
@@ -425,7 +425,7 @@ export class WorkspaceReaderRepository implements IWorkspaceReader {
 
     try {
       // Generate cluster-safe Redis key
-      const redisKey = this.generateWorkspaceKey(actor.tenant, id.value);
+      const redisKey = this.generateWorkspaceKey(actor.tenant, code.value);
 
       Log.debug(this.logger, 'Getting workspace version from Redis', {
         ...logContext,
@@ -468,7 +468,7 @@ export class WorkspaceReaderRepository implements IWorkspaceReader {
         {
           resultCount: 1,
           dataQuality: 'good',
-          sampleData: { id: id.value, version },
+          sampleData: { code: code.value, version },
         },
       );
 
@@ -491,15 +491,15 @@ export class WorkspaceReaderRepository implements IWorkspaceReader {
   /**
    * Get minimal workspace data for write-path operations
    * @param actor - The authenticated user context
-   * @param id - The unique identifier of the Workspace
+   * @param code - The unique identifier of the Workspace
    * @param options - Optional repository options
    * @returns Result containing minimal workspace data or null if not found
    */
   async getMinimal(
     actor: ActorContext,
-    id: WorkspaceId,
+    code: WorkspaceCode,
     options?: RepositoryOptions,
-  ): Promise<Result<Option<{ id: string; version: number }>, DomainError>> {
+  ): Promise<Result<Option<{ code: string; version: number }>, DomainError>> {
     const operation = 'getMinimal';
     const riskLevel = this.assessOperationRisk(operation);
     const correlationId =
@@ -508,7 +508,7 @@ export class WorkspaceReaderRepository implements IWorkspaceReader {
 
     const logContext = this.createLogContext(operation, correlationId, actor, {
       riskLevel,
-      targetId: id.value,
+      targetCode: code.value,
       customCorrelationId: !!options?.correlationId,
       source: options?.source,
       requestId: options?.requestId,
@@ -533,7 +533,7 @@ export class WorkspaceReaderRepository implements IWorkspaceReader {
 
     try {
       // Generate cluster-safe Redis key
-      const redisKey = this.generateWorkspaceKey(actor.tenant, id.value);
+      const redisKey = this.generateWorkspaceKey(actor.tenant, code.value);
 
       Log.debug(this.logger, 'Getting minimal workspace data from Redis', {
         ...logContext,
@@ -541,20 +541,20 @@ export class WorkspaceReaderRepository implements IWorkspaceReader {
           scope: 'redis_hash',
           method: 'redis.hmget',
           key: redisKey,
-          fields: ['id', 'version', 'deletedAt'],
+          fields: ['code', 'version', 'deletedAt'],
           optimized: true,
         },
       });
 
       // Get minimal fields from Redis efficiently
-      const [idStr, versionStr, deletedAt] = await this.redis.hmget(
+      const [codeStr, versionStr, deletedAt] = await this.redis.hmget(
         redisKey,
-        'id',
+        'code',
         'version',
         'deletedAt',
       );
 
-      if (!idStr || !versionStr || deletedAt) {
+      if (!codeStr || !versionStr || deletedAt) {
         RepositoryLoggingUtil.logQueryMetrics(
           this.logger,
           operation,
@@ -568,7 +568,7 @@ export class WorkspaceReaderRepository implements IWorkspaceReader {
       }
 
       const minimal = {
-        id: idStr,
+        code: codeStr,
         version: parseInt(versionStr, 10),
       };
 

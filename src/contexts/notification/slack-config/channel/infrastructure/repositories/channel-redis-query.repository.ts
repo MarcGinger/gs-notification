@@ -22,7 +22,13 @@ import { RepositoryErrorFactory } from 'src/shared/domain/errors/repository.erro
 import { CacheMetricsCollector } from 'src/shared/infrastructure/projections/cache-optimization';
 import { SLACK_CONFIG_DI_TOKENS } from '../../../slack-config.constants';
 import { ChannelProjectionKeys } from '../../channel-projection-keys';
-import { DetailChannelResponse } from '../../application/dtos';
+import {
+  ChannelPageResponse,
+  ListChannelFilterRequest,
+  ListChannelResponse,
+  DetailChannelResponse,
+} from '../../application/dtos';
+import { PaginationMetaResponse } from 'src/shared/application/dtos';
 import { IChannelQuery } from '../../application/ports';
 
 /**
@@ -51,7 +57,7 @@ interface ChannelCacheData extends DetailChannelResponse {
  * Redis Features Used:
  * - Hash-based channel storage with cluster-safe keys
  * - Sorted set indexing for efficient pagination and sorting
- * - Pattern matching for id and name filtering
+ * - Pattern matching for code and name filtering
  * - SCAN operations for tenant isolation
  * - Production-ready caching with metrics collection
  *
@@ -90,7 +96,7 @@ export class ChannelQueryRepository implements IChannelQuery {
   }
 
   /**
-   * Find a single channel by id using Redis hash lookup
+   * Find a single channel by code using Redis hash lookup
    *
    * Leverages the established Redis patterns from ChannelProjector
    * with cluster-safe keys and production-ready caching.
@@ -104,13 +110,13 @@ export class ChannelQueryRepository implements IChannelQuery {
    * - Soft delete awareness
    *
    * @param actor - The actor context containing authentication and request metadata.
-   * @param id - The channel id to search for.
+   * @param code - The channel code to search for.
    * @param options - Optional repository options (e.g., timeout, correlation).
    * @returns A promise resolving to a Result containing the Channel response or a DomainError.
    */
   async findById(
     actor: ActorContext,
-    id: string,
+    code: string,
     options?: RepositoryOptions,
   ): Promise<Result<Option<DetailChannelResponse>, DomainError>> {
     const operation = 'findById';
@@ -119,7 +125,7 @@ export class ChannelQueryRepository implements IChannelQuery {
       CorrelationUtil.generateForOperation('channel-query-findById');
 
     const logContext = this.createLogContext(operation, correlationId, actor, {
-      channelId: id,
+      channelCode: code,
       dataSource: 'redis-projector',
     });
 
@@ -152,7 +158,7 @@ export class ChannelQueryRepository implements IChannelQuery {
 
     try {
       // Generate cluster-safe Redis key
-      const channelKey = this.generateChannelKey(actor.tenant, id);
+      const channelKey = this.generateChannelKey(actor.tenant, code);
 
       Log.debug(this.logger, 'Executing Redis hash lookup', {
         ...logContext,
@@ -190,9 +196,9 @@ export class ChannelQueryRepository implements IChannelQuery {
 
       // Transform to DetailChannelResponse DTO (excluding internal fields)
       const detailResponse: DetailChannelResponse = {
-        id: channel.id,
+        code: channel.code,
         name: channel.name,
-        workspaceId: channel.workspaceId,
+        workspaceCode: channel.workspaceCode,
         isPrivate: channel.isPrivate,
         isDm: channel.isDm,
         topic: channel.topic,
@@ -204,7 +210,7 @@ export class ChannelQueryRepository implements IChannelQuery {
       Log.debug(this.logger, 'Channel found successfully in Redis', {
         ...logContext,
         resultData: {
-          channelId: detailResponse.id,
+          channelCode: detailResponse.code,
           channelName: detailResponse.name,
           cacheHit: true,
         },
@@ -271,9 +277,9 @@ export class ChannelQueryRepository implements IChannelQuery {
       // Extract basic fields directly from hash data
 
       return {
-        id: hashData.id,
+        code: hashData.code,
         name: hashData.name,
-        workspaceId: hashData.workspaceId,
+        workspaceCode: hashData.workspaceCode,
         isPrivate: hashData.isPrivate === 'true',
         isDm: hashData.isDm === 'true',
         topic: hashData.topic || undefined,
@@ -291,11 +297,113 @@ export class ChannelQueryRepository implements IChannelQuery {
         {
           method: 'parseRedisHashToChannel',
           error: (error as Error).message,
-          id: hashData?.id,
+          code: hashData?.code,
         },
       );
       return null;
     }
+  }
+
+  /**
+   * Transform Channel CacheData to ListChannelResponse DTO
+   */
+  private toListResponse(channel: ChannelCacheData): ListChannelResponse {
+    return {
+      code: channel.code,
+      name: channel.name,
+      workspaceCode: channel.workspaceCode,
+      isPrivate: channel.isPrivate,
+      isDm: channel.isDm,
+      topic: channel.topic,
+      purpose: channel.purpose,
+      subscribedEvents: channel.subscribedEvents,
+      enabled: channel.enabled,
+    } as ListChannelResponse;
+  }
+
+  /**
+   * Apply filters to channel data using Redis pattern matching and client-side filtering
+   */
+  private matchesFilter(
+    channel: ChannelCacheData,
+    filter?: ListChannelFilterRequest,
+  ): boolean {
+    if (!filter) return true;
+
+    // Filter by name (partial match)
+    if (filter.code) {
+      if (!channel.code.toLowerCase().includes(filter.code.toLowerCase())) {
+        return false;
+      }
+    }
+    // Filter by name (partial match)
+    if (filter.name) {
+      if (!channel.name.toLowerCase().includes(filter.name.toLowerCase())) {
+        return false;
+      }
+    }
+    // Filter by name (partial match)
+    if (filter.workspaceCode) {
+      if (
+        !channel.workspaceCode
+          .toLowerCase()
+          .includes(filter.workspaceCode.toLowerCase())
+      ) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  /**
+   * Sort channels based on sort criteria
+   */
+  private sortChannels(
+    channels: ChannelCacheData[],
+    sortBy?: Record<string, string>,
+  ): ChannelCacheData[] {
+    if (!sortBy || Object.keys(sortBy).length === 0) {
+      // No sorting criteria provided, return as-is
+      return channels;
+    }
+
+    return channels.sort((a, b) => {
+      for (const [field, direction] of Object.entries(sortBy)) {
+        let aVal: number | Date | string;
+        let bVal: number | Date | string;
+
+        switch (field) {
+          case 'code':
+            aVal = a.code;
+            bVal = b.code;
+            break;
+          case 'name':
+            aVal = a.name;
+            bVal = b.name;
+            break;
+          case 'workspaceCode':
+            aVal = a.workspaceCode;
+            bVal = b.workspaceCode;
+            break;
+          case 'createdAt':
+            aVal = a.createdAt;
+            bVal = b.createdAt;
+            break;
+          case 'updatedAt':
+            aVal = a.updatedAt;
+            bVal = b.updatedAt;
+            break;
+          default:
+            continue;
+        }
+
+        if (aVal === bVal) continue;
+
+        const comparison = aVal < bVal ? -1 : 1;
+        return direction?.toLowerCase() === 'desc' ? -comparison : comparison;
+      }
+      return 0;
+    });
   }
   /**
    * Helper to create consistent logging context using shared utilities
@@ -314,5 +422,227 @@ export class ChannelQueryRepository implements IChannelQuery {
       actor,
       additionalContext,
     );
+  }
+
+  /**
+   * Find Channel records with pagination and filtering using Redis projections.
+   *
+   * Leverages the established Redis patterns from ChannelProjector and ChannelReaderRepository
+   * with cluster-safe keys and production-ready caching.
+   *
+   * Features:
+   * - Cluster-safe Redis keys with hash tags for co-location
+   * - Client-side filtering for code patterns and name search
+   * - Efficient in-memory sorting with configurable directions
+   * - Pagination with total count calculation
+   * - Tenant isolation using Redis key patterns
+   * - Comprehensive logging and error handling
+   * - Production-ready metrics collection
+   *
+   * @param actor - The actor context containing authentication and request metadata.
+   * @param filter - Optional filter criteria for the channel search.
+   * @param options - Optional repository options (e.g., pagination, sorting).
+   * @returns A promise resolving to a Result containing paginated Channel responses or a DomainError.
+   */
+  async findPaginated(
+    actor: ActorContext,
+    filter?: ListChannelFilterRequest,
+    options?: RepositoryOptions,
+  ): Promise<Result<ChannelPageResponse, DomainError>> {
+    const operation = 'findPaginated';
+    const correlationId =
+      options?.correlationId ??
+      CorrelationUtil.generateForOperation('channel-query-paginated');
+
+    const logContext = this.createLogContext(operation, correlationId, actor, {
+      filterCode: filter?.code,
+      filterName: filter?.name,
+      filterWorkspaceCode: filter?.workspaceCode,
+      page: filter?.page,
+      size: filter?.size,
+      sortBy: filter?.sortBy,
+      dataSource: 'redis-projector',
+    });
+
+    // Validate actor context with enhanced security logging
+    const validation = RepositoryLoggingUtil.validateActorContext(
+      this.logger,
+      actor,
+      logContext,
+    );
+    if (!validation.ok) return err(validation.error);
+
+    // Guard tenant explicitly
+    if (!actor.tenant) {
+      return err(
+        RepositoryErrorFactory.validationError('tenant', 'Missing tenant id'),
+      );
+    }
+
+    // Log successful authorization
+    RepositoryLoggingUtil.logAuthorizationSuccess(
+      this.logger,
+      operation,
+      logContext,
+      {
+        operationType: 'channel_query_paginated',
+        scope: 'redis_projection_search',
+        tenant: actor.tenant,
+      },
+    );
+
+    try {
+      const page = filter?.page ?? 1;
+      const size = Math.min(filter?.size ?? 20, 100); // Cap at 100 items per page
+
+      // Generate the proper Redis key pattern using centralized ChannelProjectionKeys
+      const pattern = ChannelProjectionKeys.getRedisTenantChannelPattern(
+        actor.tenant,
+      );
+
+      Log.debug(this.logger, 'Scanning Redis for tenant channels', {
+        ...logContext,
+        queryDetails: {
+          scope: 'redis_scan',
+          method: 'redis.scan',
+          pattern,
+          clusterSafe: true,
+        },
+      });
+
+      // Use Redis SCAN to find all channel keys for the tenant
+      const channelKeys: string[] = [];
+      const scanIterator = this.redis.scanStream({
+        match: pattern,
+        count: 1000, // Batch size for scanning
+      });
+
+      for await (const keys of scanIterator) {
+        channelKeys.push(...(keys as string[]));
+      }
+
+      if (channelKeys.length === 0) {
+        // No channels found for tenant
+        const meta = new PaginationMetaResponse({
+          page,
+          size,
+          totalItems: 0,
+          totalPages: 0,
+          hasNextPage: false,
+          hasPreviousPage: false,
+        });
+
+        const response = ChannelPageResponse.create([], meta);
+
+        Log.debug(this.logger, 'No channels found for tenant', {
+          ...logContext,
+          totalItems: 0,
+        });
+
+        return ok(response);
+      }
+
+      // Batch fetch all channel hashes using pipeline for efficiency
+      const pipeline = this.redis.pipeline();
+      channelKeys.forEach((key) => {
+        pipeline.hgetall(key);
+      });
+
+      const results = await pipeline.exec();
+
+      if (!results) {
+        throw new Error('Redis pipeline execution failed');
+      }
+
+      // Parse all channels from Redis hashes
+      const allChannels: ChannelCacheData[] = [];
+      for (let i = 0; i < results.length; i++) {
+        const [error, hashData] = results[i];
+        if (!error && hashData) {
+          const channel = this.parseRedisHashToChannel(
+            hashData as Record<string, string>,
+          );
+          if (channel) {
+            allChannels.push(channel);
+          }
+        }
+      }
+
+      // Apply client-side filtering
+      const filteredChannels = allChannels.filter((channel) =>
+        this.matchesFilter(channel, filter),
+      );
+
+      // Apply client-side sorting
+      const sortedChannels = this.sortChannels(
+        filteredChannels,
+        filter?.sortBy,
+      );
+
+      // Calculate pagination metadata
+      const totalItems = sortedChannels.length;
+      const totalPages = Math.ceil(totalItems / size);
+      const hasNextPage = page < totalPages;
+      const hasPreviousPage = page > 1;
+
+      // Apply pagination
+      const startIndex = (page - 1) * size;
+      const endIndex = startIndex + size;
+      const paginatedChannels = sortedChannels.slice(startIndex, endIndex);
+
+      // Transform to DTOs
+      const channelResponses = paginatedChannels.map((channel) =>
+        this.toListResponse(channel),
+      );
+
+      const meta = new PaginationMetaResponse({
+        page,
+        size,
+        totalItems,
+        totalPages,
+        hasNextPage,
+        hasPreviousPage,
+      });
+
+      const response = ChannelPageResponse.create(channelResponses, meta);
+
+      // Log successful query metrics
+      RepositoryLoggingUtil.logQueryMetrics(
+        this.logger,
+        operation,
+        logContext,
+        {
+          resultCount: paginatedChannels.length,
+          dataQuality: paginatedChannels.length > 0 ? 'good' : 'empty',
+          sampleData: {
+            totalItems,
+            totalKeysScanned: channelKeys.length,
+            filteredCount: filteredChannels.length,
+            page,
+            size,
+            hasFilters: !!(
+              filter?.code ||
+              filter?.name ||
+              filter?.workspaceCode
+            ),
+            sortFields: Object.keys(filter?.sortBy ?? {}),
+          },
+        },
+      );
+
+      return ok(response);
+    } catch (error) {
+      // Log operation error using shared utility
+      RepositoryLoggingUtil.logOperationError(
+        this.logger,
+        operation,
+        logContext,
+        error as Error,
+        'HIGH',
+      );
+
+      // Handle and return the classified error using shared utility
+      return handleRepositoryError(error);
+    }
   }
 }

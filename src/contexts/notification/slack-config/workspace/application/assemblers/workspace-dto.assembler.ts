@@ -28,7 +28,7 @@ export class WorkspaceDtoAssembler {
     const dto = new DetailWorkspaceResponse();
 
     // Extract primitive values from VOs
-    dto.id = domainState.id.value;
+    dto.code = domainState.code.value;
     dto.name = domainState.name.value;
     dto.botToken = domainState.botToken?.value;
     dto.signingSecret = domainState.signingSecret?.value;
@@ -52,7 +52,7 @@ export class WorkspaceDtoAssembler {
     const dto = new ListWorkspaceResponse();
 
     // Extract primitive values from VOs
-    dto.id = domainState.id.value;
+    dto.code = domainState.code.value;
     dto.name = domainState.name.value;
     dto.botToken = domainState.botToken?.value;
     dto.signingSecret = domainState.signingSecret?.value;

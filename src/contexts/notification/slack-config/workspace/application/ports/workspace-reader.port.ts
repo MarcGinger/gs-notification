@@ -6,7 +6,7 @@ import { RepositoryOptions } from 'src/shared/infrastructure/repositories';
 import { ActorContext } from 'src/shared/application/context';
 import { Option } from 'src/shared/domain/types';
 import { WorkspaceSnapshotProps } from '../../domain/props';
-import { WorkspaceId } from '../../domain/value-objects';
+import { WorkspaceCode } from '../../domain/value-objects';
 
 /**
  * Token for injecting IWorkspaceReader port implementation
@@ -33,52 +33,52 @@ export interface IWorkspaceReader {
   /**
    * Find a Workspace by its unique identifier
    * @param actor - The authenticated user context
-   * @param id - The unique identifier of the Workspace
+   * @param code - The unique identifier of the Workspace
    * @param options - Optional repository options
    * @returns Result containing the Workspace snapshot or null if not found
    */
   findById(
     actor: ActorContext,
-    id: WorkspaceId,
+    code: WorkspaceCode,
     options?: RepositoryOptions,
   ): Promise<Result<Option<WorkspaceSnapshotProps>, DomainError>>;
 
   /**
    * Check if a workspace exists by ID (for write-path validation)
    * @param actor - The authenticated user context
-   * @param id - The unique identifier of the Workspace
+   * @param code - The unique identifier of the Workspace
    * @param options - Optional repository options
    * @returns Result containing boolean indicating existence
    */
   exists(
     actor: ActorContext,
-    id: WorkspaceId,
+    code: WorkspaceCode,
     options?: RepositoryOptions,
   ): Promise<Result<boolean, DomainError>>;
 
   /**
    * Get workspace version for optimistic concurrency control
    * @param actor - The authenticated user context
-   * @param id - The unique identifier of the Workspace
+   * @param code - The unique identifier of the Workspace
    * @param options - Optional repository options
    * @returns Result containing version number or null if not found
    */
   getVersion(
     actor: ActorContext,
-    id: WorkspaceId,
+    code: WorkspaceCode,
     options?: RepositoryOptions,
   ): Promise<Result<Option<number>, DomainError>>;
 
   /**
    * Get minimal workspace data for write-path operations
    * @param actor - The authenticated user context
-   * @param id - The unique identifier of the Workspace
+   * @param code - The unique identifier of the Workspace
    * @param options - Optional repository options
    * @returns Result containing minimal workspace data or null if not found
    */
   getMinimal(
     actor: ActorContext,
-    id: WorkspaceId,
+    code: WorkspaceCode,
     options?: RepositoryOptions,
-  ): Promise<Result<Option<{ id: string; version: number }>, DomainError>>;
+  ): Promise<Result<Option<{ code: string; version: number }>, DomainError>>;
 }

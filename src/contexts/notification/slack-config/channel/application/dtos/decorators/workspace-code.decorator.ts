@@ -3,7 +3,8 @@
 
 import { applyDecorators } from '@nestjs/common';
 import { ApiProperty } from '@nestjs/swagger';
-import { IsInt, IsOptional, IsNotEmpty } from 'class-validator';
+import { IsOptional, IsNotEmpty, IsString, MaxLength } from 'class-validator';
+
 /**
  * Options for property decorators
  */
@@ -12,21 +13,22 @@ interface PropOptions {
 }
 
 /**
- * Property decorator for AppConfig Id
+ * Property decorator for Channel WorkspaceCode
  * @param {Object} options - Options for the decorator
  * @returns {PropertyDecorator}
  */
-export function ApiAppConfigId(options: PropOptions = {}) {
+export function ApiChannelWorkspaceCode(options: PropOptions = {}) {
   const { required = true } = options;
 
   return applyDecorators(
     ApiProperty({
-      description: `Auto-incrementing primary key for app configuration records. Each workspace typically has one configuration record.`,
-      example: 1,
-      type: Number,
+      description: `Foreign key reference to the workspace this channel belongs to. Establishes the parent-child relationship between workspace and channels for multi-tenant support.`,
+      example: `T01EXAMPLE123`,
+      type: String,
       required,
     }),
-    IsInt(),
+    IsString(),
+    MaxLength(11),
     required ? IsNotEmpty() : IsOptional(),
   );
 }

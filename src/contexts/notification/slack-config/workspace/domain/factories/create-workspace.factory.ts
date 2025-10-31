@@ -11,7 +11,7 @@ import {
   WorkspaceCreatedAt,
   WorkspaceUpdatedAt,
   WorkspaceVersion,
-  WorkspaceId,
+  WorkspaceCode,
   WorkspaceName,
   WorkspaceBotToken,
   WorkspaceSigningSecret,
@@ -34,15 +34,15 @@ export function createWorkspaceAggregateFromProps(
   // },
 ): Result<WorkspaceAggregate, DomainError> {
   // Validate each property by creating value objects
-  const idResult = WorkspaceId.from(props.id);
-  if (!idResult.ok) {
+  const codeResult = WorkspaceCode.from(props.code);
+  if (!codeResult.ok) {
     return err(
-      withContext(idResult.error, {
-        ...idResult.error.context,
+      withContext(codeResult.error, {
+        ...codeResult.error.context,
         correlationId: metadata.correlationId,
         userId: metadata.userId,
         operation: 'create_workspace',
-        id: props.id,
+        code: props.code,
       }),
     );
   }
@@ -157,7 +157,7 @@ export function createWorkspaceAggregateFromProps(
 
   // Create the entity properties with validated value objects
   const entityProps: WorkspaceDomainState = {
-    id: idResult.value,
+    code: codeResult.value,
     name: nameResult.value,
     botToken: botTokenResult.value,
     signingSecret: signingSecretResult.value,

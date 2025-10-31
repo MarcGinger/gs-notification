@@ -79,7 +79,7 @@ export class WorkspaceController {
     return result;
   }
 
-  @Get(':id')
+  @Get(':code')
   @WorkspaceReadResource()
   @ApiOperation({
     summary: 'Get Workspace by ID',
@@ -87,7 +87,7 @@ export class WorkspaceController {
       'Retrieves a single Workspace by its unique identifier. Requires READ permission (LOW risk).',
   })
   @ApiParam({
-    name: 'id',
+    name: 'code',
     type: 'string',
     description: 'Workspace unique identifier',
     example: 'T01EXAMPLE123',
@@ -99,11 +99,11 @@ export class WorkspaceController {
   @ApiCommonErrors()
   async get(
     @CurrentUser() user: IUserToken,
-    @Param('id') id: string,
+    @Param('code') code: string,
   ): Promise<Result<DetailWorkspaceResponse, DomainError>> {
     const result = await this.workspaceApplicationService.getWorkspaceById(
       user,
-      id,
+      code,
     );
 
     return result;
@@ -161,7 +161,7 @@ export class WorkspaceController {
     return result;
   }
 
-  @Put(':id')
+  @Put(':code')
   @WorkspaceUpdateResource()
   @ApiOperation({
     summary: 'Update a Workspace',
@@ -169,7 +169,7 @@ export class WorkspaceController {
       'Updates an existing Workspace with new data. Supports partial updates. Requires UPDATE permission (MEDIUM risk).',
   })
   @ApiParam({
-    name: 'id',
+    name: 'code',
     type: 'string',
     description: 'Workspace unique identifier',
     example: 'T01EXAMPLE123',
@@ -192,12 +192,12 @@ export class WorkspaceController {
   })
   async update(
     @CurrentUser() user: IUserToken,
-    @Param('id') id: string,
+    @Param('code') code: string,
     @Body() updateWorkspaceRequest: UpdateWorkspaceRequest,
   ): Promise<Result<DetailWorkspaceResponse, DomainError>> {
     const result = await this.workspaceApplicationService.updateWorkspace(
       user,
-      id,
+      code,
       updateWorkspaceRequest,
     );
 

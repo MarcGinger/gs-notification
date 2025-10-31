@@ -83,7 +83,7 @@ export class WorkspaceAuthorizationAdapter
       return err({
         ...WorkspaceErrors.NOT_IMPLEMENTED,
         context: {
-          ids: resourceId,
+          codes: resourceId,
           userId,
           correlationId,
           operation,
@@ -108,22 +108,22 @@ export class WorkspaceAuthorizationAdapter
    * Useful for list operations where you need to filter results.
    *
    * @param userId - User identifier
-   * @param ids - Array of workspace ids to authorize
+   * @param codes - Array of workspace codes to authorize
    * @param correlationId - Request correlation ID
    * @param operation - Operation type (read, update, delete)
    * @param context - Workspace authorization context
-   * @returns Result containing authorized and denied workspace ids
+   * @returns Result containing authorized and denied workspace codes
    */
   async authorizeWorkspaceList(
     userId: string,
-    ids: string[],
+    codes: string[],
     correlationId: string,
     operation: BatchOperation = 'read',
     context?: WorkspaceAuthContext,
   ): Promise<Result<{ authorized: string[]; denied: string[] }, DomainError>> {
     return this.workspaceAuthorizationService.authorizeWorkspaceList(
       userId,
-      ids,
+      codes,
       correlationId,
       operation,
       context,

@@ -16,7 +16,7 @@ export class GetWorkspaceHandler implements IQueryHandler<GetWorkspaceQuery> {
   ): Promise<Result<DetailWorkspaceResponse | null, DomainError>> {
     return this.getWorkspaceUseCase.execute({
       user: query.user,
-      id: query.id,
+      code: query.code,
       correlationId: query.correlationId || 'query-handler',
     });
   }

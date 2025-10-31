@@ -5,15 +5,15 @@ import {
   ChannelCreatedAt,
   ChannelUpdatedAt,
   ChannelVersion,
+  ChannelCode,
   ChannelEnabled,
-  ChannelId,
   ChannelIsDm,
   ChannelIsPrivate,
   ChannelName,
   ChannelPurpose,
   ChannelSubscribedEvents,
   ChannelTopic,
-  ChannelWorkspaceId,
+  ChannelWorkspaceCode,
 } from '../value-objects';
 
 /**
@@ -30,9 +30,9 @@ import {
  */
 
 export interface ChannelDomainState {
-  id: ChannelId;
+  code: ChannelCode;
   name: ChannelName;
-  workspaceId: ChannelWorkspaceId;
+  workspaceCode: ChannelWorkspaceCode;
   isPrivate: ChannelIsPrivate;
   isDm: ChannelIsDm;
   topic?: ChannelTopic;

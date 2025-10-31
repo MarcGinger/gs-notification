@@ -100,14 +100,14 @@ export class WorkspaceApplicationService {
   }
 
   /**
-   * Helper to validate required id input
+   * Helper to validate required code input
    */
-  private validateId(
-    id: string,
+  private validateCode(
+    code: string,
     operation: string,
     correlationId?: string,
   ): Result<string, DomainError> {
-    if (!id?.trim()) {
+    if (!code?.trim()) {
       return err(
         withContext(WorkspaceErrors.INVALID_WORKSPACE_DATA, {
           operation,
@@ -117,7 +117,7 @@ export class WorkspaceApplicationService {
         }),
       );
     }
-    return ok(id.trim());
+    return ok(code.trim());
   }
 
   /**
@@ -126,7 +126,7 @@ export class WorkspaceApplicationService {
   private async authorizeThenExecute<T>(args: {
     operation: 'create' | 'update' | 'read';
     user: IUserToken;
-    id?: string;
+    code?: string;
     correlationIdPrefix: string;
     doAuthorize: () => Promise<Result<boolean, DomainError>>;
     doExecute: () => Promise<Result<T, DomainError>>;
@@ -162,7 +162,7 @@ export class WorkspaceApplicationService {
           correlationId: corrId,
           userId: args.user.sub,
           operation: args.operation,
-          id: args.id,
+          code: args.code,
           category: 'security',
         }),
       );
@@ -187,7 +187,7 @@ export class WorkspaceApplicationService {
         category: 'application',
         context: {
           correlationId: corrId,
-          id: args.id,
+          code: args.code,
           operation: `${args.operation}_workspace`,
         },
       });
@@ -220,7 +220,7 @@ export class WorkspaceApplicationService {
       doExecute: () =>
         this.upsertWorkspaceUseCase.execute({
           user,
-          id: props.id,
+          code: props.code,
           props,
           correlationId,
           authorizationReason: 'create_workspace',
@@ -236,17 +236,17 @@ export class WorkspaceApplicationService {
    */
   async updateWorkspace(
     user: IUserToken,
-    id: string,
+    code: string,
     props: UpdateWorkspaceProps,
     options?: { idempotencyKey?: string; correlationId?: string },
   ): Promise<Result<DetailWorkspaceResponse, DomainError>> {
     // Early input validation
-    const idValidation = this.validateId(id, 'update');
-    if (!idValidation.ok) {
-      return err(idValidation.error);
+    const codeValidation = this.validateCode(code, 'update');
+    if (!codeValidation.ok) {
+      return err(codeValidation.error);
     }
 
-    const validatedid = idValidation.value;
+    const validatedcode = codeValidation.value;
     const authContext = this.createAuthContext(user, 'update');
     const correlationId =
       options?.correlationId ||
@@ -260,7 +260,7 @@ export class WorkspaceApplicationService {
       user.sub, 
       'update', 
       CorrelationUtil.generateForOperation('workspace-update'), 
-      validatedid, 
+      validatedcode, 
       fields, 
       authContext
     );
@@ -268,7 +268,7 @@ export class WorkspaceApplicationService {
     if (!opAuth.value.authorized) {
       return err(withContext(WorkspaceErrors.PERMISSION_DENIED, { 
         operation: 'update', 
-        id: validatedid, 
+        code: validatedcode, 
         userId: user.sub,
         category: 'security'
       }));
@@ -278,19 +278,19 @@ export class WorkspaceApplicationService {
     return this.authorizeThenExecute<DetailWorkspaceResponse>({
       operation: 'update',
       user,
-      id: validatedid,
+      code: validatedcode,
       correlationIdPrefix: 'workspace-update',
       doAuthorize: () =>
         this.workspaceAuthorizationService.canUpdateWorkspace(
           user.sub,
-          validatedid,
+          validatedcode,
           correlationId,
           authContext,
         ),
       doExecute: () =>
         this.upsertWorkspaceUseCase.execute({
           user,
-          id: validatedid,
+          code: validatedcode,
           props,
           correlationId,
           authorizationReason: 'update_workspace',
@@ -298,7 +298,7 @@ export class WorkspaceApplicationService {
             idempotencyKey: options.idempotencyKey,
           }),
         }),
-      logContext: { id: validatedid },
+      logContext: { code: validatedcode },
     });
   }
 
@@ -307,36 +307,36 @@ export class WorkspaceApplicationService {
    */
   async getWorkspaceById(
     user: IUserToken,
-    id: string,
+    code: string,
   ): Promise<Result<DetailWorkspaceResponse, DomainError>> {
     // Early input validation
-    const idValidation = this.validateId(id, 'read');
-    if (!idValidation.ok) {
-      return err(idValidation.error);
+    const codeValidation = this.validateCode(code, 'read');
+    if (!codeValidation.ok) {
+      return err(codeValidation.error);
     }
 
-    const validatedid = idValidation.value;
+    const validatedcode = codeValidation.value;
     const authContext = this.createAuthContext(user, 'read');
 
     return this.authorizeThenExecute<DetailWorkspaceResponse>({
       operation: 'read',
       user,
-      id: validatedid,
+      code: validatedcode,
       correlationIdPrefix: 'workspace-read',
       doAuthorize: () =>
         this.workspaceAuthorizationService.canReadWorkspace(
           user.sub,
-          validatedid,
+          validatedcode,
           CorrelationUtil.generateForOperation('workspace-read'),
           authContext,
         ),
       doExecute: () =>
         this.getWorkspaceUseCase.execute({
           user,
-          id: validatedid,
+          code: validatedcode,
           correlationId: CorrelationUtil.generateForOperation('workspace-read'),
         }),
-      logContext: { id: validatedid },
+      logContext: { code: validatedcode },
     });
   }
 
@@ -361,7 +361,7 @@ export class WorkspaceApplicationService {
       doAuthorize: () =>
         this.workspaceAuthorizationService.canReadWorkspace(
           user.sub,
-          'list', // Use 'list' as a special id for list operations
+          'list', // Use 'list' as a special code for list operations
           correlationId,
           authContext,
         ),

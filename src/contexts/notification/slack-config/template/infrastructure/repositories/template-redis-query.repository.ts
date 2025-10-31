@@ -22,7 +22,13 @@ import { RepositoryErrorFactory } from 'src/shared/domain/errors/repository.erro
 import { CacheMetricsCollector } from 'src/shared/infrastructure/projections/cache-optimization';
 import { SLACK_CONFIG_DI_TOKENS } from '../../../slack-config.constants';
 import { TemplateProjectionKeys } from '../../template-projection-keys';
-import { DetailTemplateResponse } from '../../application/dtos';
+import {
+  DetailTemplateResponse,
+  TemplatePageResponse,
+  ListTemplateFilterRequest,
+  ListTemplateResponse,
+} from '../../application/dtos';
+import { PaginationMetaResponse } from 'src/shared/application/dtos';
 import { ITemplateQuery } from '../../application/ports';
 
 /**
@@ -191,7 +197,7 @@ export class TemplateQueryRepository implements ITemplateQuery {
       // Transform to DetailTemplateResponse DTO (excluding internal fields)
       const detailResponse: DetailTemplateResponse = {
         code: template.code,
-        workspaceId: template.workspaceId,
+        workspaceCode: template.workspaceCode,
         name: template.name,
         description: template.description,
         contentBlocks: template.contentBlocks,
@@ -281,7 +287,7 @@ export class TemplateQueryRepository implements ITemplateQuery {
 
       return {
         code: hashData.code,
-        workspaceId: hashData.workspaceId,
+        workspaceCode: hashData.workspaceCode,
         name: hashData.name,
         description: hashData.description || undefined,
         contentBlocks,
@@ -305,6 +311,107 @@ export class TemplateQueryRepository implements ITemplateQuery {
       return null;
     }
   }
+
+  /**
+   * Transform Template CacheData to ListTemplateResponse DTO
+   */
+  private toListResponse(template: TemplateCacheData): ListTemplateResponse {
+    return {
+      code: template.code,
+      workspaceCode: template.workspaceCode,
+      name: template.name,
+      description: template.description,
+      contentBlocks: template.contentBlocks,
+      variables: template.variables,
+      samplePayload: template.samplePayload,
+      enabled: template.enabled,
+    } as ListTemplateResponse;
+  }
+
+  /**
+   * Apply filters to template data using Redis pattern matching and client-side filtering
+   */
+  private matchesFilter(
+    template: TemplateCacheData,
+    filter?: ListTemplateFilterRequest,
+  ): boolean {
+    if (!filter) return true;
+
+    // Filter by name (partial match)
+    if (filter.code) {
+      if (!template.code.toLowerCase().includes(filter.code.toLowerCase())) {
+        return false;
+      }
+    }
+    // Filter by name (partial match)
+    if (filter.name) {
+      if (!template.name.toLowerCase().includes(filter.name.toLowerCase())) {
+        return false;
+      }
+    }
+    // Filter by name (partial match)
+    if (filter.workspaceCode) {
+      if (
+        !template.workspaceCode
+          .toLowerCase()
+          .includes(filter.workspaceCode.toLowerCase())
+      ) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  /**
+   * Sort templates based on sort criteria
+   */
+  private sortTemplates(
+    templates: TemplateCacheData[],
+    sortBy?: Record<string, string>,
+  ): TemplateCacheData[] {
+    if (!sortBy || Object.keys(sortBy).length === 0) {
+      // No sorting criteria provided, return as-is
+      return templates;
+    }
+
+    return templates.sort((a, b) => {
+      for (const [field, direction] of Object.entries(sortBy)) {
+        let aVal: number | Date | string;
+        let bVal: number | Date | string;
+
+        switch (field) {
+          case 'code':
+            aVal = a.code;
+            bVal = b.code;
+            break;
+          case 'name':
+            aVal = a.name;
+            bVal = b.name;
+            break;
+          case 'workspaceCode':
+            aVal = a.workspaceCode;
+            bVal = b.workspaceCode;
+            break;
+          case 'createdAt':
+            aVal = a.createdAt;
+            bVal = b.createdAt;
+            break;
+          case 'updatedAt':
+            aVal = a.updatedAt;
+            bVal = b.updatedAt;
+            break;
+          default:
+            continue;
+        }
+
+        if (aVal === bVal) continue;
+
+        const comparison = aVal < bVal ? -1 : 1;
+        return direction?.toLowerCase() === 'desc' ? -comparison : comparison;
+      }
+      return 0;
+    });
+  }
   /**
    * Helper to create consistent logging context using shared utilities
    */
@@ -322,5 +429,227 @@ export class TemplateQueryRepository implements ITemplateQuery {
       actor,
       additionalContext,
     );
+  }
+
+  /**
+   * Find Template records with pagination and filtering using Redis projections.
+   *
+   * Leverages the established Redis patterns from TemplateProjector and TemplateReaderRepository
+   * with cluster-safe keys and production-ready caching.
+   *
+   * Features:
+   * - Cluster-safe Redis keys with hash tags for co-location
+   * - Client-side filtering for code patterns and name search
+   * - Efficient in-memory sorting with configurable directions
+   * - Pagination with total count calculation
+   * - Tenant isolation using Redis key patterns
+   * - Comprehensive logging and error handling
+   * - Production-ready metrics collection
+   *
+   * @param actor - The actor context containing authentication and request metadata.
+   * @param filter - Optional filter criteria for the template search.
+   * @param options - Optional repository options (e.g., pagination, sorting).
+   * @returns A promise resolving to a Result containing paginated Template responses or a DomainError.
+   */
+  async findPaginated(
+    actor: ActorContext,
+    filter?: ListTemplateFilterRequest,
+    options?: RepositoryOptions,
+  ): Promise<Result<TemplatePageResponse, DomainError>> {
+    const operation = 'findPaginated';
+    const correlationId =
+      options?.correlationId ??
+      CorrelationUtil.generateForOperation('template-query-paginated');
+
+    const logContext = this.createLogContext(operation, correlationId, actor, {
+      filterCode: filter?.code,
+      filterName: filter?.name,
+      filterWorkspaceCode: filter?.workspaceCode,
+      page: filter?.page,
+      size: filter?.size,
+      sortBy: filter?.sortBy,
+      dataSource: 'redis-projector',
+    });
+
+    // Validate actor context with enhanced security logging
+    const validation = RepositoryLoggingUtil.validateActorContext(
+      this.logger,
+      actor,
+      logContext,
+    );
+    if (!validation.ok) return err(validation.error);
+
+    // Guard tenant explicitly
+    if (!actor.tenant) {
+      return err(
+        RepositoryErrorFactory.validationError('tenant', 'Missing tenant id'),
+      );
+    }
+
+    // Log successful authorization
+    RepositoryLoggingUtil.logAuthorizationSuccess(
+      this.logger,
+      operation,
+      logContext,
+      {
+        operationType: 'template_query_paginated',
+        scope: 'redis_projection_search',
+        tenant: actor.tenant,
+      },
+    );
+
+    try {
+      const page = filter?.page ?? 1;
+      const size = Math.min(filter?.size ?? 20, 100); // Cap at 100 items per page
+
+      // Generate the proper Redis key pattern using centralized TemplateProjectionKeys
+      const pattern = TemplateProjectionKeys.getRedisTenantTemplatePattern(
+        actor.tenant,
+      );
+
+      Log.debug(this.logger, 'Scanning Redis for tenant templates', {
+        ...logContext,
+        queryDetails: {
+          scope: 'redis_scan',
+          method: 'redis.scan',
+          pattern,
+          clusterSafe: true,
+        },
+      });
+
+      // Use Redis SCAN to find all template keys for the tenant
+      const templateKeys: string[] = [];
+      const scanIterator = this.redis.scanStream({
+        match: pattern,
+        count: 1000, // Batch size for scanning
+      });
+
+      for await (const keys of scanIterator) {
+        templateKeys.push(...(keys as string[]));
+      }
+
+      if (templateKeys.length === 0) {
+        // No templates found for tenant
+        const meta = new PaginationMetaResponse({
+          page,
+          size,
+          totalItems: 0,
+          totalPages: 0,
+          hasNextPage: false,
+          hasPreviousPage: false,
+        });
+
+        const response = TemplatePageResponse.create([], meta);
+
+        Log.debug(this.logger, 'No templates found for tenant', {
+          ...logContext,
+          totalItems: 0,
+        });
+
+        return ok(response);
+      }
+
+      // Batch fetch all template hashes using pipeline for efficiency
+      const pipeline = this.redis.pipeline();
+      templateKeys.forEach((key) => {
+        pipeline.hgetall(key);
+      });
+
+      const results = await pipeline.exec();
+
+      if (!results) {
+        throw new Error('Redis pipeline execution failed');
+      }
+
+      // Parse all templates from Redis hashes
+      const allTemplates: TemplateCacheData[] = [];
+      for (let i = 0; i < results.length; i++) {
+        const [error, hashData] = results[i];
+        if (!error && hashData) {
+          const template = this.parseRedisHashToTemplate(
+            hashData as Record<string, string>,
+          );
+          if (template) {
+            allTemplates.push(template);
+          }
+        }
+      }
+
+      // Apply client-side filtering
+      const filteredTemplates = allTemplates.filter((template) =>
+        this.matchesFilter(template, filter),
+      );
+
+      // Apply client-side sorting
+      const sortedTemplates = this.sortTemplates(
+        filteredTemplates,
+        filter?.sortBy,
+      );
+
+      // Calculate pagination metadata
+      const totalItems = sortedTemplates.length;
+      const totalPages = Math.ceil(totalItems / size);
+      const hasNextPage = page < totalPages;
+      const hasPreviousPage = page > 1;
+
+      // Apply pagination
+      const startIndex = (page - 1) * size;
+      const endIndex = startIndex + size;
+      const paginatedTemplates = sortedTemplates.slice(startIndex, endIndex);
+
+      // Transform to DTOs
+      const templateResponses = paginatedTemplates.map((template) =>
+        this.toListResponse(template),
+      );
+
+      const meta = new PaginationMetaResponse({
+        page,
+        size,
+        totalItems,
+        totalPages,
+        hasNextPage,
+        hasPreviousPage,
+      });
+
+      const response = TemplatePageResponse.create(templateResponses, meta);
+
+      // Log successful query metrics
+      RepositoryLoggingUtil.logQueryMetrics(
+        this.logger,
+        operation,
+        logContext,
+        {
+          resultCount: paginatedTemplates.length,
+          dataQuality: paginatedTemplates.length > 0 ? 'good' : 'empty',
+          sampleData: {
+            totalItems,
+            totalKeysScanned: templateKeys.length,
+            filteredCount: filteredTemplates.length,
+            page,
+            size,
+            hasFilters: !!(
+              filter?.code ||
+              filter?.name ||
+              filter?.workspaceCode
+            ),
+            sortFields: Object.keys(filter?.sortBy ?? {}),
+          },
+        },
+      );
+
+      return ok(response);
+    } catch (error) {
+      // Log operation error using shared utility
+      RepositoryLoggingUtil.logOperationError(
+        this.logger,
+        operation,
+        logContext,
+        error as Error,
+        'HIGH',
+      );
+
+      // Handle and return the classified error using shared utility
+      return handleRepositoryError(error);
+    }
   }
 }

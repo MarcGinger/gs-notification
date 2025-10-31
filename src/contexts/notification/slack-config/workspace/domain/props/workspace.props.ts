@@ -2,7 +2,7 @@
 // REMOVE THIS COMMENT TO STOP AUTOMATIC UPDATES TO THIS BLOCK
 
 export interface WorkspaceProps {
-  id: string;
+  code: string;
   name: string;
   botToken?: string;
   signingSecret?: string;

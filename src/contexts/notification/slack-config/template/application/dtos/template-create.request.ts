@@ -10,15 +10,15 @@ import {
   ApiTemplateName,
   ApiTemplateSamplePayload,
   ApiTemplateVariables,
-  ApiTemplateWorkspaceId,
+  ApiTemplateWorkspaceCode,
 } from './decorators';
 
 export class CreateTemplateRequest implements CreateTemplateProps {
   @ApiTemplateCode()
   code: string;
 
-  @ApiTemplateWorkspaceId()
-  workspaceId: string;
+  @ApiTemplateWorkspaceCode()
+  workspaceCode: string;
 
   @ApiTemplateName()
   name: string;

@@ -11,8 +11,8 @@ import {
   AppConfigCreatedAt,
   AppConfigUpdatedAt,
   AppConfigVersion,
-  AppConfigId,
-  AppConfigWorkspaceId,
+  AppConfigCode,
+  AppConfigWorkspaceCode,
   AppConfigMaxRetryAttempts,
   AppConfigRetryBackoffSeconds,
   AppConfigDefaultLocale,
@@ -34,28 +34,28 @@ export function createAppConfigAggregateFromProps(
   // },
 ): Result<AppConfigAggregate, DomainError> {
   // Validate each property by creating value objects
-  const idResult = AppConfigId.from(props.id);
-  if (!idResult.ok) {
+  const codeResult = AppConfigCode.from(props.code);
+  if (!codeResult.ok) {
     return err(
-      withContext(idResult.error, {
-        ...idResult.error.context,
+      withContext(codeResult.error, {
+        ...codeResult.error.context,
         correlationId: metadata.correlationId,
         userId: metadata.userId,
         operation: 'create_app_config',
-        id: props.id,
+        code: props.code,
       }),
     );
   }
 
-  const workspaceIdResult = AppConfigWorkspaceId.from(props.workspaceId);
-  if (!workspaceIdResult.ok) {
+  const workspaceCodeResult = AppConfigWorkspaceCode.from(props.workspaceCode);
+  if (!workspaceCodeResult.ok) {
     return err(
-      withContext(workspaceIdResult.error, {
-        ...workspaceIdResult.error.context,
+      withContext(workspaceCodeResult.error, {
+        ...workspaceCodeResult.error.context,
         correlationId: metadata.correlationId,
         userId: metadata.userId,
         operation: 'create_app_config',
-        workspaceId: props.workspaceId,
+        workspaceCode: props.workspaceCode,
       }),
     );
   }
@@ -163,8 +163,8 @@ export function createAppConfigAggregateFromProps(
 
   // Create the entity properties with validated value objects
   const entityProps: AppConfigDomainState = {
-    id: idResult.value,
-    workspaceId: workspaceIdResult.value,
+    code: codeResult.value,
+    workspaceCode: workspaceCodeResult.value,
     maxRetryAttempts: maxRetryAttemptsResult.value,
     retryBackoffSeconds: retryBackoffSecondsResult.value,
     defaultLocale: defaultLocaleResult.value,

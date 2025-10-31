@@ -2,7 +2,7 @@
 // REMOVE THIS COMMENT TO STOP AUTOMATIC UPDATES TO THIS BLOCK
 
 import { TemplateDomainState } from '../../domain/state';
-import { DetailTemplateResponse } from '../dtos';
+import { DetailTemplateResponse, ListTemplateResponse } from '../dtos';
 
 /**
  * Template DTO Assembler
@@ -29,7 +29,7 @@ export class TemplateDtoAssembler {
 
     // Extract primitive values from VOs
     dto.code = domainState.code.value;
-    dto.workspaceId = domainState.workspaceId.value;
+    dto.workspaceCode = domainState.workspaceCode.value;
     dto.name = domainState.name.value;
     dto.description = domainState.description?.value;
     dto.contentBlocks = domainState.contentBlocks.toArray();
@@ -39,6 +39,43 @@ export class TemplateDtoAssembler {
 
     return dto;
   }
+
+  /**
+   * Convert TemplateDomainState to list response DTO
+   *
+   * @param domainState - Rich domain state with VOs
+   * @returns Clean DTO for list API response
+   */
+  static toListResponse(
+    domainState: TemplateDomainState,
+  ): ListTemplateResponse {
+    const dto = new ListTemplateResponse();
+
+    // Extract primitive values from VOs
+    dto.code = domainState.code.value;
+    dto.workspaceCode = domainState.workspaceCode.value;
+    dto.name = domainState.name.value;
+    dto.description = domainState.description?.value;
+    dto.contentBlocks = domainState.contentBlocks.toArray();
+    dto.variables = domainState.variables?.toArray();
+    dto.samplePayload = domainState.samplePayload?.value;
+    dto.enabled = domainState.enabled.value;
+
+    return dto;
+  }
+
+  /**
+   * Convert array of TemplateDomainState to array of list DTOs
+   *
+   * @param domainStates - Array of rich domain states
+   * @returns Array of clean DTOs for list API response
+   */
+  static toListResponseArray(
+    domainStates: TemplateDomainState[],
+  ): ListTemplateResponse[] {
+    return domainStates.map((domainState) => this.toListResponse(domainState));
+  }
+
   /**
    * Convert array of TemplateDomainState to array of detail DTOs
    *

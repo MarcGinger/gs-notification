@@ -9,29 +9,29 @@ import {
 import { WorkspaceErrors } from '../errors/workspace.errors';
 
 /**
- * Id Value Object
- * Represents a validated id with business rules
+ * Code Value Object
+ * Represents a validated code with business rules
  */
-export const WorkspaceId = createStringVO({
-  name: 'Id',
+export const WorkspaceCode = createStringVO({
+  name: 'Code',
   trim: true,
   caseTransform: 'none',
   allowEmpty: false,
-
-  maxLength: 64,
+  minLength: 10,
+  maxLength: 11,
 
   // Optional: declarative refinements for advanced validation
   // refinements: [
   // ],
 
-  errors: createStringVOErrors(WorkspaceErrors.INVALID_ID, 'Id'),
+  errors: createStringVOErrors(WorkspaceErrors.INVALID_CODE, 'Code'),
 });
 
 /**
- * Public instance type for Id
+ * Public instance type for Code
  */
-export type WorkspaceId = StringVOInstance;
+export type WorkspaceCode = StringVOInstance;
 
 // Convenience creators
-export const createWorkspaceId = (s: string) => WorkspaceId.create(s);
-export const workspaceIdFrom = (v: unknown) => WorkspaceId.from(v);
+export const createWorkspaceCode = (s: string) => WorkspaceCode.create(s);
+export const workspaceCodeFrom = (v: unknown) => WorkspaceCode.from(v);

@@ -2,26 +2,26 @@
 // REMOVE THIS COMMENT TO STOP AUTOMATIC UPDATES TO THIS BLOCK
 
 import {
+  ApiChannelCode,
   ApiChannelEnabled,
-  ApiChannelId,
   ApiChannelIsDm,
   ApiChannelIsPrivate,
   ApiChannelName,
   ApiChannelPurpose,
   ApiChannelSubscribedEvents,
   ApiChannelTopic,
-  ApiChannelWorkspaceId,
+  ApiChannelWorkspaceCode,
 } from './decorators';
 
 export class DetailChannelResponse {
-  @ApiChannelId()
-  id: string;
+  @ApiChannelCode()
+  code: string;
 
   @ApiChannelName()
   name: string;
 
-  @ApiChannelWorkspaceId()
-  workspaceId: string;
+  @ApiChannelWorkspaceCode()
+  workspaceCode: string;
 
   @ApiChannelIsPrivate()
   isPrivate: boolean;

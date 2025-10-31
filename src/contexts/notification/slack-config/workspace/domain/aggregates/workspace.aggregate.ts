@@ -10,7 +10,7 @@ import { WorkspaceEntity } from '../entities';
 import { WorkspaceSnapshotProps } from '../props';
 import { ValidatedWorkspaceUpdateFields } from '../types';
 import {
-  WorkspaceId,
+  WorkspaceCode,
   createWorkspaceCreatedAt,
   createWorkspaceUpdatedAt,
   createdAtNow,
@@ -135,7 +135,7 @@ export class WorkspaceAggregate extends AggregateRootBase {
 
     // Create typed WorkspaceCreatedEvent with only business data
     const createdEvent = WorkspaceCreatedEvent.create({
-      id: entityProps.id.value,
+      code: entityProps.code.value,
       name: entityProps.name.value,
       botToken: entityProps.botToken?.value,
       signingSecret: entityProps.signingSecret?.value,
@@ -150,7 +150,7 @@ export class WorkspaceAggregate extends AggregateRootBase {
       type: createdEvent.eventType,
       version: Number(createdEvent.eventVersion),
       occurredAt: clock.now(),
-      aggregateId: entityProps.id.value,
+      aggregateId: entityProps.code.value,
       aggregateType: 'Workspace',
       data: createdEvent.payload,
       metadata: eventMetadata,
@@ -189,7 +189,7 @@ export class WorkspaceAggregate extends AggregateRootBase {
       case 'NotificationSlackConfigWorkspaceUpdated.v1': {
         // Both events now have the same domain shape - simple merge
         const d = event.data as {
-          id: string;
+          code: string;
           name: string;
           botToken?: string;
           signingSecret?: string;
@@ -204,7 +204,7 @@ export class WorkspaceAggregate extends AggregateRootBase {
         const currentSnapshot = this._entity?.toSnapshot() || {};
 
         const entityResult = WorkspaceEntity.fromSnapshot({
-          id: d.id,
+          code: d.code,
           name: d.name,
           botToken: d.botToken,
           signingSecret: d.signingSecret,
@@ -251,7 +251,7 @@ export class WorkspaceAggregate extends AggregateRootBase {
         retryable: false,
         context: {
           originalError: entityResult.error,
-          snapshotCode: snapshot.id,
+          snapshotCode: snapshot.code,
         },
       });
     }
@@ -288,8 +288,8 @@ export class WorkspaceAggregate extends AggregateRootBase {
   /**
    * Get the aggregate ID (required for aggregate identity)
    */
-  public get id(): WorkspaceId {
-    return this._entity.id;
+  public get id(): WorkspaceCode {
+    return this._entity.code;
   }
 
   /**
@@ -393,7 +393,7 @@ export class WorkspaceAggregate extends AggregateRootBase {
         context: {
           expected: expectedVersion,
           actual: this._entity.version.value,
-          aggregateId: this._entity.id.value,
+          aggregateId: this._entity.code.value,
         },
       });
     }
@@ -508,7 +508,7 @@ export class WorkspaceAggregate extends AggregateRootBase {
 
     // Create domain-shaped update event (same structure as created event)
     const updatedEvent = WorkspaceUpdatedEvent.create({
-      id: this._entity.id.value,
+      code: this._entity.code.value,
       name: this._entity.name.value,
       botToken: this._entity.botToken?.value,
       signingSecret: this._entity.signingSecret?.value,
@@ -523,7 +523,7 @@ export class WorkspaceAggregate extends AggregateRootBase {
       type: updatedEvent.eventType,
       version: Number(updatedEvent.eventVersion),
       occurredAt: updatedAt,
-      aggregateId: this._entity.id.value,
+      aggregateId: this._entity.code.value,
       aggregateType: 'Workspace',
       data: updatedEvent.payload,
       metadata: this.eventMetadata,
@@ -551,7 +551,7 @@ export class WorkspaceAggregate extends AggregateRootBase {
       type: 'WorkspaceDeleted',
       version: 1,
       occurredAt: deletedAtResult.value.value, // Extract Date from VO
-      aggregateId: this._entity.id.value,
+      aggregateId: this._entity.code.value,
       aggregateType: 'Workspace',
     };
 

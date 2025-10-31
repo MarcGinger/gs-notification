@@ -26,7 +26,11 @@ import type {
   CreateChannelProps,
   UpdateChannelProps,
 } from '../../domain/props';
-import { DetailChannelResponse } from '../dtos';
+import {
+  DetailChannelResponse,
+  ListChannelFilterRequest,
+  ChannelPageResponse,
+} from '../dtos';
 
 // Application layer
 import { ChannelAuthorizationService } from './channel-authorization.service';
@@ -36,6 +40,7 @@ import { ChannelAuthContext } from '../types/channel-auth-context';
 import {
   IUpsertChannelUseCase,
   IGetChannelUseCase,
+  IListChannelUseCase,
 } from '../use-cases/contracts';
 
 /**
@@ -49,6 +54,7 @@ export class ChannelApplicationService {
     private readonly channelAuthorizationService: ChannelAuthorizationService,
     private readonly upsertChannelUseCase: IUpsertChannelUseCase,
     private readonly getChannelUseCase: IGetChannelUseCase,
+    private readonly listChannelUseCase: IListChannelUseCase,
     @Inject(CLOCK) private readonly clock: Clock,
     @Inject(APP_LOGGER) moduleLogger: Logger,
   ) {
@@ -64,6 +70,7 @@ export class ChannelApplicationService {
   ): ChannelAuthContext {
     return {
       tenant: user.tenant,
+      tenant_userId: user.tenant_id || '',
       roles: user.roles || [],
       operationType: operation,
       metadata: {
@@ -93,14 +100,14 @@ export class ChannelApplicationService {
   }
 
   /**
-   * Helper to validate required id input
+   * Helper to validate required code input
    */
-  private validateId(
-    id: string,
+  private validateCode(
+    code: string,
     operation: string,
     correlationId?: string,
   ): Result<string, DomainError> {
-    if (!id?.trim()) {
+    if (!code?.trim()) {
       return err(
         withContext(ChannelErrors.INVALID_CHANNEL_DATA, {
           operation,
@@ -110,7 +117,7 @@ export class ChannelApplicationService {
         }),
       );
     }
-    return ok(id.trim());
+    return ok(code.trim());
   }
 
   /**
@@ -119,7 +126,7 @@ export class ChannelApplicationService {
   private async authorizeThenExecute<T>(args: {
     operation: 'create' | 'update' | 'read';
     user: IUserToken;
-    id?: string;
+    code?: string;
     correlationIdPrefix: string;
     doAuthorize: () => Promise<Result<boolean, DomainError>>;
     doExecute: () => Promise<Result<T, DomainError>>;
@@ -155,7 +162,7 @@ export class ChannelApplicationService {
           correlationId: corrId,
           userId: args.user.sub,
           operation: args.operation,
-          id: args.id,
+          code: args.code,
           category: 'security',
         }),
       );
@@ -180,7 +187,7 @@ export class ChannelApplicationService {
         category: 'application',
         context: {
           correlationId: corrId,
-          id: args.id,
+          code: args.code,
           operation: `${args.operation}_channel`,
         },
       });
@@ -213,7 +220,7 @@ export class ChannelApplicationService {
       doExecute: () =>
         this.upsertChannelUseCase.execute({
           user,
-          id: props.id,
+          code: props.code,
           props,
           correlationId,
           authorizationReason: 'create_channel',
@@ -229,17 +236,17 @@ export class ChannelApplicationService {
    */
   async updateChannel(
     user: IUserToken,
-    id: string,
+    code: string,
     props: UpdateChannelProps,
     options?: { idempotencyKey?: string; correlationId?: string },
   ): Promise<Result<DetailChannelResponse, DomainError>> {
     // Early input validation
-    const idValidation = this.validateId(id, 'update');
-    if (!idValidation.ok) {
-      return err(idValidation.error);
+    const codeValidation = this.validateCode(code, 'update');
+    if (!codeValidation.ok) {
+      return err(codeValidation.error);
     }
 
-    const validatedid = idValidation.value;
+    const validatedcode = codeValidation.value;
     const authContext = this.createAuthContext(user, 'update');
     const correlationId =
       options?.correlationId ||
@@ -253,7 +260,7 @@ export class ChannelApplicationService {
       user.sub, 
       'update', 
       CorrelationUtil.generateForOperation('channel-update'), 
-      validatedid, 
+      validatedcode, 
       fields, 
       authContext
     );
@@ -261,7 +268,7 @@ export class ChannelApplicationService {
     if (!opAuth.value.authorized) {
       return err(withContext(ChannelErrors.PERMISSION_DENIED, { 
         operation: 'update', 
-        id: validatedid, 
+        code: validatedcode, 
         userId: user.sub,
         category: 'security'
       }));
@@ -271,19 +278,19 @@ export class ChannelApplicationService {
     return this.authorizeThenExecute<DetailChannelResponse>({
       operation: 'update',
       user,
-      id: validatedid,
+      code: validatedcode,
       correlationIdPrefix: 'channel-update',
       doAuthorize: () =>
         this.channelAuthorizationService.canUpdateChannel(
           user.sub,
-          validatedid,
+          validatedcode,
           correlationId,
           authContext,
         ),
       doExecute: () =>
         this.upsertChannelUseCase.execute({
           user,
-          id: validatedid,
+          code: validatedcode,
           props,
           correlationId,
           authorizationReason: 'update_channel',
@@ -291,7 +298,7 @@ export class ChannelApplicationService {
             idempotencyKey: options.idempotencyKey,
           }),
         }),
-      logContext: { id: validatedid },
+      logContext: { code: validatedcode },
     });
   }
 
@@ -300,36 +307,74 @@ export class ChannelApplicationService {
    */
   async getChannelById(
     user: IUserToken,
-    id: string,
+    code: string,
   ): Promise<Result<DetailChannelResponse, DomainError>> {
     // Early input validation
-    const idValidation = this.validateId(id, 'read');
-    if (!idValidation.ok) {
-      return err(idValidation.error);
+    const codeValidation = this.validateCode(code, 'read');
+    if (!codeValidation.ok) {
+      return err(codeValidation.error);
     }
 
-    const validatedid = idValidation.value;
+    const validatedcode = codeValidation.value;
     const authContext = this.createAuthContext(user, 'read');
 
     return this.authorizeThenExecute<DetailChannelResponse>({
       operation: 'read',
       user,
-      id: validatedid,
+      code: validatedcode,
       correlationIdPrefix: 'channel-read',
       doAuthorize: () =>
         this.channelAuthorizationService.canReadChannel(
           user.sub,
-          validatedid,
+          validatedcode,
           CorrelationUtil.generateForOperation('channel-read'),
           authContext,
         ),
       doExecute: () =>
         this.getChannelUseCase.execute({
           user,
-          id: validatedid,
+          code: validatedcode,
           correlationId: CorrelationUtil.generateForOperation('channel-read'),
         }),
-      logContext: { id: validatedid },
+      logContext: { code: validatedcode },
+    });
+  }
+
+  /**
+   * List channels with authorization and pagination
+   */
+  async listChannels(
+    user: IUserToken,
+    filter?: ListChannelFilterRequest,
+  ): Promise<Result<ChannelPageResponse, DomainError>> {
+    const authContext = this.createAuthContext(user, 'list');
+    const correlationId = CorrelationUtil.generateForOperation('channel-list');
+
+    // Ensure we always have a proper filter object
+    const safeFilter = filter || new ListChannelFilterRequest();
+
+    return this.authorizeThenExecute<ChannelPageResponse>({
+      operation: 'read', // List is a form of read operation
+      user,
+      correlationIdPrefix: 'channel-list',
+      doAuthorize: () =>
+        this.channelAuthorizationService.canReadChannel(
+          user.sub,
+          'list', // Use 'list' as a special code for list operations
+          correlationId,
+          authContext,
+        ),
+      doExecute: () =>
+        this.listChannelUseCase.execute({
+          user,
+          filter: safeFilter,
+          correlationId,
+        }),
+      logContext: {
+        operation: 'list_channels',
+        pageSize: safeFilter.size,
+        page: safeFilter.page,
+      },
     });
   }
 }

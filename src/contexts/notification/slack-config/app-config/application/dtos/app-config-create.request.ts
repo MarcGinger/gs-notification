@@ -4,21 +4,21 @@
 import { CreateAppConfigProps } from '../../domain/props';
 import {
   ApiAppConfigAuditChannelId,
+  ApiAppConfigCode,
   ApiAppConfigDefaultLocale,
-  ApiAppConfigId,
   ApiAppConfigLoggingEnabled,
   ApiAppConfigMaxRetryAttempts,
   ApiAppConfigMetadata,
   ApiAppConfigRetryBackoffSeconds,
-  ApiAppConfigWorkspaceId,
+  ApiAppConfigWorkspaceCode,
 } from './decorators';
 
 export class CreateAppConfigRequest implements CreateAppConfigProps {
-  @ApiAppConfigId()
-  id: number;
+  @ApiAppConfigCode()
+  code: string;
 
-  @ApiAppConfigWorkspaceId()
-  workspaceId: string;
+  @ApiAppConfigWorkspaceCode()
+  workspaceCode: string;
 
   @ApiAppConfigMaxRetryAttempts()
   maxRetryAttempts: number;

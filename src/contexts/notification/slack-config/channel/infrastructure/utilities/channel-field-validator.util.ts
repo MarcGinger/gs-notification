@@ -38,9 +38,9 @@ export class ChannelFieldValidatorUtil {
   } {
     // Parse array fields using safeParseJSONArray utility
     // Extract simple fields directly from event data
-    const id = aggregateData.id as string;
+    const code = aggregateData.code as string;
     const name = aggregateData.name as string;
-    const workspaceId = aggregateData.workspaceId as string;
+    const workspaceCode = aggregateData.workspaceCode as string;
     const isPrivate =
       aggregateData.isPrivate === 'true' || aggregateData.isPrivate === true;
     const isDm = aggregateData.isDm === 'true' || aggregateData.isDm === true;
@@ -67,9 +67,9 @@ export class ChannelFieldValidatorUtil {
     // safeParseJSON utilities provide error handling for invalid JSON,
     // direct field access provides type safety and truthful representation
     return {
-      id,
+      code,
       name,
-      workspaceId,
+      workspaceCode,
       isPrivate,
       isDm,
       topic,

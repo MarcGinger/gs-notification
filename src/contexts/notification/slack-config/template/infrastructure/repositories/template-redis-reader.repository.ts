@@ -122,7 +122,7 @@ export class TemplateReaderRepository implements ITemplateReader {
 
       return {
         code: hashData.code,
-        workspaceId: hashData.workspaceId,
+        workspaceCode: hashData.workspaceCode,
         name: hashData.name,
         description: hashData.description || undefined,
         contentBlocks,

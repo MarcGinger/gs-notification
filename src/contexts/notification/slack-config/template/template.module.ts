@@ -15,6 +15,8 @@ import {
   UpsertTemplateUseCase,
   IGetTemplateUseCase,
   GetTemplateUseCase,
+  IListTemplateUseCase,
+  ListTemplateUseCase,
 } from './application/use-cases';
 
 // import { ITemplateRepository } from './application/ports';
@@ -72,6 +74,10 @@ import {
     {
       provide: IGetTemplateUseCase,
       useClass: GetTemplateUseCase,
+    },
+    {
+      provide: IListTemplateUseCase,
+      useClass: ListTemplateUseCase,
     },
   ],
   exports: [

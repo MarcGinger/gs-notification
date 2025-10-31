@@ -72,9 +72,9 @@ export class WorkspaceReaderRepository implements IWorkspaceReader {
    * Generate cluster-safe Redis keys with hash tags for locality
    * Uses same pattern as WorkspaceProjector for consistency
    */
-  private generateWorkspaceKey(tenant: string, id: string): string {
+  private generateWorkspaceKey(tenant: string, code: string): string {
     // ✅ Hash-tags ensure key routes to same Redis Cluster slot as projector
-    return `notification.slack:v1:{${tenant}}:workspace:${id}`;
+    return `notification.slack:v1:{${tenant}}:workspace:${code}`;
   }
 
   /**
@@ -96,7 +96,7 @@ export class WorkspaceReaderRepository implements IWorkspaceReader {
       // Parse JSON fields using safeParseJSON utility
       // Extract fields directly from hash data
       return {
-        id: hashData.id,
+        code: hashData.code,
         name: hashData.name,
         botToken: hashData.botToken || undefined,
         signingSecret: hashData.signingSecret || undefined,
@@ -112,7 +112,7 @@ export class WorkspaceReaderRepository implements IWorkspaceReader {
         {
           method: 'parseRedisHashToWorkspace',
           error: (error as Error).message,
-          id: hashData?.id,
+          code: hashData?.code,
         },
       );
       return null;
@@ -146,20 +146,20 @@ export class WorkspaceReaderRepository implements IWorkspaceReader {
   }
 
   /**
-   * Find valid Workspace Ids for Workspace configuration
+   * Find valid Workspace Codes for Workspace configuration
    * @param actor - The authenticated user context
    * @param options - Optional repository options (correlation ID, timeout, etc.)
-   * @returns Result containing available Workspace Ids
+   * @returns Result containing available Workspace Codes
    */
-  async findValidWorkspaceIds(
+  async findValidWorkspaceCodes(
     actor: ActorContext,
     options?: RepositoryOptions,
   ): Promise<Result<string[], DomainError>> {
-    const operation = 'findValidWorkspaceIds';
+    const operation = 'findValidWorkspaceCodes';
     const riskLevel = this.assessOperationRisk(operation);
     const correlationId =
       options?.correlationId ??
-      CorrelationUtil.generateForOperation('workspace-list-ids');
+      CorrelationUtil.generateForOperation('workspace-list-codes');
 
     const logContext = this.createLogContext(operation, correlationId, actor, {
       riskLevel,
@@ -193,7 +193,7 @@ export class WorkspaceReaderRepository implements IWorkspaceReader {
     );
 
     try {
-      Log.debug(this.logger, 'Finding valid workspace ids in Redis', {
+      Log.debug(this.logger, 'Finding valid workspace codes in Redis', {
         ...logContext,
         queryDetails: {
           scope: 'redis_keys',
@@ -205,7 +205,7 @@ export class WorkspaceReaderRepository implements IWorkspaceReader {
 
       // Use Redis SCAN to find all workspace keys for the tenant
       const pattern = `workspace-projector:{${actor.tenant}}:workspace:*`;
-      const ids: string[] = [];
+      const codes: string[] = [];
       const scanIterator = this.redis.scanStream({
         match: pattern,
         count: 100,
@@ -213,34 +213,34 @@ export class WorkspaceReaderRepository implements IWorkspaceReader {
 
       for await (const keys of scanIterator) {
         for (const key of keys as string[]) {
-          // Extract id from key pattern: workspace-projector:{tenant}:workspace:{ id }
+          // Extract code from key pattern: workspace-projector:{tenant}:workspace:{ code }
           const keyParts = key.split(':');
           if (keyParts.length === 4) {
-            const id = keyParts[3];
+            const code = keyParts[3];
             // Check if channel is not soft-deleted
             const deletedAt = await this.redis.hget(key, 'deletedAt');
             if (!deletedAt) {
-              ids.push(id);
+              codes.push(code);
             }
           }
         }
       }
 
       // Sort the codes for consistent ordering
-      ids.sort((a, b) => a.localeCompare(b));
+      codes.sort((a, b) => a.localeCompare(b));
       // Log query metrics using shared utility
       RepositoryLoggingUtil.logQueryMetrics(
         this.logger,
         operation,
         logContext,
         {
-          resultCount: ids.length,
-          dataQuality: ids.length > 0 ? 'good' : 'empty',
-          sampleData: ids.slice(0, 5),
+          resultCount: codes.length,
+          dataQuality: codes.length > 0 ? 'good' : 'empty',
+          sampleData: codes.slice(0, 5),
         },
       );
 
-      return ok(ids);
+      return ok(codes);
     } catch (error) {
       // Log operation error using shared utility
       RepositoryLoggingUtil.logOperationError(
@@ -257,26 +257,26 @@ export class WorkspaceReaderRepository implements IWorkspaceReader {
   }
 
   /**
-   * Find Workspace configuration by Workspace id
+   * Find Workspace configuration by Workspace code
    * @param actor - The authenticated user context
-   * @param id - The Workspace id to lookup
+   * @param code - The Workspace code to lookup
    * @param options - Optional repository options (correlation ID, timeout, caching, etc.)
    * @returns Result containing Workspace configuration or null if not found
    */
-  async findWorkspaceById(
+  async findWorkspaceByCode(
     actor: ActorContext,
-    id: string,
+    code: string,
     options?: RepositoryOptions,
   ): Promise<Result<Option<WorkspaceReference>, DomainError>> {
-    const operation = 'findWorkspaceById';
+    const operation = 'findWorkspaceByCode';
     const riskLevel = this.assessOperationRisk(operation);
     const correlationId =
       options?.correlationId ??
-      CorrelationUtil.generateForOperation('workspace-find-by-id');
+      CorrelationUtil.generateForOperation('workspace-find-by-code');
 
     const logContext = this.createLogContext(operation, correlationId, actor, {
       riskLevel,
-      targetId: id,
+      targetCode: code,
       customCorrelationId: !!options?.correlationId,
       source: options?.source,
       requestId: options?.requestId,
@@ -301,16 +301,16 @@ export class WorkspaceReaderRepository implements IWorkspaceReader {
       }
 
       // Enhanced input validation
-      if (!id) {
-        Log.warn(this.logger, 'Invalid workspace id provided', {
+      if (!code) {
+        Log.warn(this.logger, 'Invalid workspace code provided', {
           ...logContext,
-          validationError: 'INVALID_WORKSPACE_ID',
+          validationError: 'INVALID_WORKSPACE_CODE',
           inputValidation: 'failed',
         });
         return err(
           RepositoryErrorFactory.validationError(
-            'Workspace id is required',
-            'INVALID_WORKSPACE_ID',
+            'Workspace code is required',
+            'INVALID_WORKSPACE_CODE',
           ),
         );
       }
@@ -321,12 +321,12 @@ export class WorkspaceReaderRepository implements IWorkspaceReader {
         logContext,
         {
           dataAccess: 'read',
-          targetId: id,
+          targetCode: code,
         },
       );
 
       // Fetch from Redis using cluster-safe key
-      const redisKey = this.generateWorkspaceKey(actor.tenant, id);
+      const redisKey = this.generateWorkspaceKey(actor.tenant, code);
       const hashData = await this.redis.hgetall(redisKey);
 
       if (!hashData || Object.keys(hashData).length === 0) {
@@ -355,7 +355,7 @@ export class WorkspaceReaderRepository implements IWorkspaceReader {
           resultCount: 1,
           dataQuality: 'good',
           sampleData: {
-            id: workspace.id,
+            code: workspace.code,
             name: workspace.name,
             enabled: workspace.enabled,
           },

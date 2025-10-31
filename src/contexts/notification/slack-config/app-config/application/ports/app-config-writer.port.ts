@@ -5,7 +5,7 @@ import { Result, DomainError } from 'src/shared/errors';
 import { ActorContext } from 'src/shared/application/context';
 import { SaveReceipt } from 'src/shared/infrastructure/repositories';
 import { AppConfigAggregate } from '../../domain/aggregates';
-import { AppConfigId } from '../../domain/value-objects';
+import { AppConfigCode } from '../../domain/value-objects';
 
 /**
  * Token for injecting IAppConfigWriter port implementation
@@ -45,11 +45,11 @@ export interface IAppConfigWriter {
   /**
    * Delete a AppConfig by its unique identifier
    * @param user - The authenticated user context
-   * @param id - The unique identifier of the AppConfig to delete
+   * @param code - The unique identifier of the AppConfig to delete
    * @returns Result indicating success or domain error
    */
   delete(
     actor: ActorContext,
-    id: AppConfigId,
+    code: AppConfigCode,
   ): Promise<Result<SaveReceipt, DomainError>>;
 }

@@ -3,7 +3,7 @@
 import { DomainError } from 'src/shared/errors';
 
 export interface AppConfigContext extends Record<string, unknown> {
-  id: number;
+  code: string;
   maxRetryAttempts: number;
   retryBackoffSeconds: number;
   defaultLocale: string;
@@ -126,10 +126,17 @@ export const AppConfigErrors = {
     'APP_CONFIG.INVALID_AUDIT_CHANNEL_ID_DATA',
     AppConfigContext
   >,
+  INVALID_CODE: {
+    code: 'APP_CONFIG.INVALID_CODE',
+    title: 'Value Required',
+    detail: 'Code is required for App.',
+    category: 'validation',
+    retryable: false,
+  } as DomainError<'APP_CONFIG.INVALID_CODE', AppConfigContext>,
   INVALID_CODE_DATA: {
     code: 'APP_CONFIG.INVALID_CODE_DATA',
-    title: 'Invalid Version Data',
-    detail: 'The app_config version data is invalid.',
+    title: 'Value Required',
+    detail: 'Code is required for App.',
     category: 'validation',
     retryable: false,
   } as DomainError<'APP_CONFIG.INVALID_CODE_DATA', AppConfigContext>,
@@ -147,20 +154,6 @@ export const AppConfigErrors = {
     category: 'validation',
     retryable: false,
   } as DomainError<'APP_CONFIG.INVALID_DEFAULT_LOCALE_DATA', AppConfigContext>,
-  INVALID_ID: {
-    code: 'APP_CONFIG.INVALID_ID',
-    title: 'Value Required',
-    detail: 'Id is required for App.',
-    category: 'validation',
-    retryable: false,
-  } as DomainError<'APP_CONFIG.INVALID_ID', AppConfigContext>,
-  INVALID_ID_DATA: {
-    code: 'APP_CONFIG.INVALID_ID_DATA',
-    title: 'Value Required',
-    detail: 'Id is required for App.',
-    category: 'validation',
-    retryable: false,
-  } as DomainError<'APP_CONFIG.INVALID_ID_DATA', AppConfigContext>,
   INVALID_LOGGING_ENABLED: {
     code: 'APP_CONFIG.INVALID_LOGGING_ENABLED',
     title: 'Value Required',
@@ -226,20 +219,20 @@ export const AppConfigErrors = {
     'APP_CONFIG.INVALID_RETRY_BACKOFF_SECONDS_DATA',
     AppConfigContext
   >,
-  INVALID_WORKSPACE_ID: {
-    code: 'APP_CONFIG.INVALID_WORKSPACE_ID',
+  INVALID_WORKSPACE_CODE: {
+    code: 'APP_CONFIG.INVALID_WORKSPACE_CODE',
     title: 'Value Required',
     detail: 'Workspace is required for App.',
     category: 'validation',
     retryable: false,
-  } as DomainError<'APP_CONFIG.INVALID_WORKSPACE_ID', AppConfigContext>,
-  INVALID_WORKSPACE_ID_DATA: {
-    code: 'APP_CONFIG.INVALID_WORKSPACE_ID_DATA',
+  } as DomainError<'APP_CONFIG.INVALID_WORKSPACE_CODE', AppConfigContext>,
+  INVALID_WORKSPACE_CODE_DATA: {
+    code: 'APP_CONFIG.INVALID_WORKSPACE_CODE_DATA',
     title: 'Value Required',
     detail: 'Workspace is required for App.',
     category: 'validation',
     retryable: false,
-  } as DomainError<'APP_CONFIG.INVALID_WORKSPACE_ID_DATA', AppConfigContext>,
+  } as DomainError<'APP_CONFIG.INVALID_WORKSPACE_CODE_DATA', AppConfigContext>,
   NOT_BOOLEAN_LOGGING_ENABLED: {
     code: 'APP_CONFIG.NOT_BOOLEAN_LOGGING_ENABLED',
     title: 'Not a Boolean',
@@ -254,13 +247,6 @@ export const AppConfigErrors = {
     category: 'validation',
     retryable: false,
   } as DomainError<'APP_CONFIG.NOT_IMPLEMENTED', AppConfigContext>,
-  NOT_INTEGER_ID: {
-    code: 'APP_CONFIG.NOT_INTEGER_ID',
-    title: 'Not an Integer',
-    detail: 'Id must be a whole number.',
-    category: 'validation',
-    retryable: false,
-  } as DomainError<'APP_CONFIG.NOT_INTEGER_ID', AppConfigContext>,
   NOT_INTEGER_MAX_RETRY_ATTEMPTS: {
     code: 'APP_CONFIG.NOT_INTEGER_MAX_RETRY_ATTEMPTS',
     title: 'Not an Integer',
@@ -281,13 +267,6 @@ export const AppConfigErrors = {
     'APP_CONFIG.NOT_INTEGER_RETRY_BACKOFF_SECONDS',
     AppConfigContext
   >,
-  OUT_OF_RANGE_ID: {
-    code: 'APP_CONFIG.OUT_OF_RANGE_ID',
-    title: 'Value Out of Range',
-    detail: 'Id is outside the allowed range for App.',
-    category: 'validation',
-    retryable: false,
-  } as DomainError<'APP_CONFIG.OUT_OF_RANGE_ID', AppConfigContext>,
   OUT_OF_RANGE_MAX_RETRY_ATTEMPTS: {
     code: 'APP_CONFIG.OUT_OF_RANGE_MAX_RETRY_ATTEMPTS',
     title: 'Value Out of Range',

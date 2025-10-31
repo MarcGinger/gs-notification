@@ -3,7 +3,7 @@
 import { DomainError } from 'src/shared/errors';
 
 export interface WorkspaceContext extends Record<string, unknown> {
-  id: string;
+  code: string;
   name: string;
   botToken?: string;
   signingSecret?: string;
@@ -91,10 +91,17 @@ export const WorkspaceErrors = {
     category: 'validation',
     retryable: false,
   } as DomainError<'WORKSPACE.INVALID_BOT_USER_ID_DATA', WorkspaceContext>,
+  INVALID_CODE: {
+    code: 'WORKSPACE.INVALID_CODE',
+    title: 'Value Required',
+    detail: 'Code is required for Workspace.',
+    category: 'validation',
+    retryable: false,
+  } as DomainError<'WORKSPACE.INVALID_CODE', WorkspaceContext>,
   INVALID_CODE_DATA: {
     code: 'WORKSPACE.INVALID_CODE_DATA',
-    title: 'Invalid Version Data',
-    detail: 'The workspace version data is invalid.',
+    title: 'Value Required',
+    detail: 'Code is required for Workspace.',
     category: 'validation',
     retryable: false,
   } as DomainError<'WORKSPACE.INVALID_CODE_DATA', WorkspaceContext>,
@@ -129,20 +136,6 @@ export const WorkspaceErrors = {
     category: 'validation',
     retryable: false,
   } as DomainError<'WORKSPACE.INVALID_ENABLED_DATA', WorkspaceContext>,
-  INVALID_ID: {
-    code: 'WORKSPACE.INVALID_ID',
-    title: 'Value Required',
-    detail: 'Id is required for Workspace.',
-    category: 'validation',
-    retryable: false,
-  } as DomainError<'WORKSPACE.INVALID_ID', WorkspaceContext>,
-  INVALID_ID_DATA: {
-    code: 'WORKSPACE.INVALID_ID_DATA',
-    title: 'Value Required',
-    detail: 'Id is required for Workspace.',
-    category: 'validation',
-    retryable: false,
-  } as DomainError<'WORKSPACE.INVALID_ID_DATA', WorkspaceContext>,
   INVALID_NAME: {
     code: 'WORKSPACE.INVALID_NAME',
     title: 'Value Required',

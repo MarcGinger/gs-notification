@@ -23,7 +23,7 @@ import { RepositoryErrorFactory } from 'src/shared/domain/errors/repository.erro
 import { SLACK_CONFIG_DI_TOKENS } from '../../../slack-config.constants';
 import { ChannelProjectionKeys } from '../../channel-projection-keys';
 import { ChannelSnapshotProps } from '../../domain/props';
-import { ChannelId } from '../../domain/value-objects';
+import { ChannelCode } from '../../domain/value-objects';
 import { IChannelReader } from '../../application/ports';
 
 /**
@@ -111,9 +111,9 @@ export class ChannelReaderRepository implements IChannelReader {
       // Extract basic fields directly from hash data
 
       return {
-        id: hashData.id,
+        code: hashData.code,
         name: hashData.name,
-        workspaceId: hashData.workspaceId,
+        workspaceCode: hashData.workspaceCode,
         isPrivate: hashData.isPrivate === 'true',
         isDm: hashData.isDm === 'true',
         topic: hashData.topic || undefined,
@@ -131,7 +131,7 @@ export class ChannelReaderRepository implements IChannelReader {
         {
           method: 'parseRedisHashToChannel',
           error: (error as Error).message,
-          id: hashData?.id,
+          code: hashData?.code,
         },
       );
       return null;
@@ -167,13 +167,13 @@ export class ChannelReaderRepository implements IChannelReader {
   /**
    * Find a Channel by its unique identifier
    * @param actor - The authenticated user context
-   * @param id - The unique identifier of the Channel
+   * @param code - The unique identifier of the Channel
    * @param options - Optional repository options
    * @returns Result containing the Channel snapshot or null if not found
    */
   async findById(
     actor: ActorContext,
-    id: ChannelId,
+    code: ChannelCode,
     options?: RepositoryOptions,
   ): Promise<Result<Option<ChannelSnapshotProps>, DomainError>> {
     const operation = 'findById';
@@ -184,7 +184,7 @@ export class ChannelReaderRepository implements IChannelReader {
 
     const logContext = this.createLogContext(operation, correlationId, actor, {
       riskLevel,
-      targetId: id.value,
+      targetCode: code.value,
       customCorrelationId: !!options?.correlationId,
       source: options?.source,
       requestId: options?.requestId,
@@ -218,7 +218,7 @@ export class ChannelReaderRepository implements IChannelReader {
 
     try {
       // Generate cluster-safe Redis key
-      const redisKey = this.generateChannelKey(actor.tenant, id.value);
+      const redisKey = this.generateChannelKey(actor.tenant, code.value);
 
       Log.debug(this.logger, 'Finding channel by ID in Redis', {
         ...logContext,
@@ -271,7 +271,7 @@ export class ChannelReaderRepository implements IChannelReader {
           resultCount: 1,
           dataQuality: 'good',
           sampleData: {
-            id: channelSnapshot.id,
+            code: channelSnapshot.code,
             version: channelSnapshot.version,
           },
         },
@@ -296,13 +296,13 @@ export class ChannelReaderRepository implements IChannelReader {
   /**
    * Check if a channel exists by ID (for write-path validation)
    * @param actor - The authenticated user context
-   * @param id - The unique identifier of the Channel
+   * @param code - The unique identifier of the Channel
    * @param options - Optional repository options
    * @returns Result containing boolean indicating existence
    */
   async exists(
     actor: ActorContext,
-    id: ChannelId,
+    code: ChannelCode,
     options?: RepositoryOptions,
   ): Promise<Result<boolean, DomainError>> {
     const operation = 'exists';
@@ -313,7 +313,7 @@ export class ChannelReaderRepository implements IChannelReader {
 
     const logContext = this.createLogContext(operation, correlationId, actor, {
       riskLevel,
-      targetId: id.value,
+      targetCode: code.value,
       customCorrelationId: !!options?.correlationId,
       source: options?.source,
       requestId: options?.requestId,
@@ -338,7 +338,7 @@ export class ChannelReaderRepository implements IChannelReader {
 
     try {
       // Generate cluster-safe Redis key
-      const redisKey = this.generateChannelKey(actor.tenant, id.value);
+      const redisKey = this.generateChannelKey(actor.tenant, code.value);
 
       Log.debug(this.logger, 'Checking channel existence in Redis', {
         ...logContext,
@@ -368,7 +368,7 @@ export class ChannelReaderRepository implements IChannelReader {
         {
           resultCount: isActive ? 1 : 0,
           dataQuality: 'good',
-          sampleData: { exists: isActive, id: id.value },
+          sampleData: { exists: isActive, code: code.value },
         },
       );
 
@@ -391,13 +391,13 @@ export class ChannelReaderRepository implements IChannelReader {
   /**
    * Get channel version for optimistic concurrency control
    * @param actor - The authenticated user context
-   * @param id - The unique identifier of the Channel
+   * @param code - The unique identifier of the Channel
    * @param options - Optional repository options
    * @returns Result containing version number or null if not found
    */
   async getVersion(
     actor: ActorContext,
-    id: ChannelId,
+    code: ChannelCode,
     options?: RepositoryOptions,
   ): Promise<Result<Option<number>, DomainError>> {
     const operation = 'getVersion';
@@ -408,7 +408,7 @@ export class ChannelReaderRepository implements IChannelReader {
 
     const logContext = this.createLogContext(operation, correlationId, actor, {
       riskLevel,
-      targetId: id.value,
+      targetCode: code.value,
       customCorrelationId: !!options?.correlationId,
       source: options?.source,
       requestId: options?.requestId,
@@ -433,7 +433,7 @@ export class ChannelReaderRepository implements IChannelReader {
 
     try {
       // Generate cluster-safe Redis key
-      const redisKey = this.generateChannelKey(actor.tenant, id.value);
+      const redisKey = this.generateChannelKey(actor.tenant, code.value);
 
       Log.debug(this.logger, 'Getting channel version from Redis', {
         ...logContext,
@@ -476,7 +476,7 @@ export class ChannelReaderRepository implements IChannelReader {
         {
           resultCount: 1,
           dataQuality: 'good',
-          sampleData: { id: id.value, version },
+          sampleData: { code: code.value, version },
         },
       );
 
@@ -499,15 +499,15 @@ export class ChannelReaderRepository implements IChannelReader {
   /**
    * Get minimal channel data for write-path operations
    * @param actor - The authenticated user context
-   * @param id - The unique identifier of the Channel
+   * @param code - The unique identifier of the Channel
    * @param options - Optional repository options
    * @returns Result containing minimal channel data or null if not found
    */
   async getMinimal(
     actor: ActorContext,
-    id: ChannelId,
+    code: ChannelCode,
     options?: RepositoryOptions,
-  ): Promise<Result<Option<{ id: string; version: number }>, DomainError>> {
+  ): Promise<Result<Option<{ code: string; version: number }>, DomainError>> {
     const operation = 'getMinimal';
     const riskLevel = this.assessOperationRisk(operation);
     const correlationId =
@@ -516,7 +516,7 @@ export class ChannelReaderRepository implements IChannelReader {
 
     const logContext = this.createLogContext(operation, correlationId, actor, {
       riskLevel,
-      targetId: id.value,
+      targetCode: code.value,
       customCorrelationId: !!options?.correlationId,
       source: options?.source,
       requestId: options?.requestId,
@@ -541,7 +541,7 @@ export class ChannelReaderRepository implements IChannelReader {
 
     try {
       // Generate cluster-safe Redis key
-      const redisKey = this.generateChannelKey(actor.tenant, id.value);
+      const redisKey = this.generateChannelKey(actor.tenant, code.value);
 
       Log.debug(this.logger, 'Getting minimal channel data from Redis', {
         ...logContext,
@@ -549,20 +549,20 @@ export class ChannelReaderRepository implements IChannelReader {
           scope: 'redis_hash',
           method: 'redis.hmget',
           key: redisKey,
-          fields: ['id', 'version', 'deletedAt'],
+          fields: ['code', 'version', 'deletedAt'],
           optimized: true,
         },
       });
 
       // Get minimal fields from Redis efficiently
-      const [idStr, versionStr, deletedAt] = await this.redis.hmget(
+      const [codeStr, versionStr, deletedAt] = await this.redis.hmget(
         redisKey,
-        'id',
+        'code',
         'version',
         'deletedAt',
       );
 
-      if (!idStr || !versionStr || deletedAt) {
+      if (!codeStr || !versionStr || deletedAt) {
         RepositoryLoggingUtil.logQueryMetrics(
           this.logger,
           operation,
@@ -576,7 +576,7 @@ export class ChannelReaderRepository implements IChannelReader {
       }
 
       const minimal = {
-        id: idStr,
+        code: codeStr,
         version: parseInt(versionStr, 10),
       };
 

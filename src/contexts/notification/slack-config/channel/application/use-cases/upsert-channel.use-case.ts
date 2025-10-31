@@ -24,7 +24,7 @@ import { SlackConfigServiceConstants } from '../../../service-constants';
 // Domain types and errors
 import { ChannelAggregate } from '../../domain/aggregates';
 import { CreateChannelProps, UpsertChannelProps } from '../../domain/props';
-import { ChannelId } from '../../domain/value-objects';
+import { ChannelCode } from '../../domain/value-objects';
 import {
   createChannelAggregateFromProps,
   updateChannelAggregateFromSnapshot,
@@ -85,7 +85,7 @@ export class UpsertChannelUseCase implements IUpsertChannelUseCase {
   }
   async execute(params: {
     user: IUserToken;
-    id: string;
+    code: string;
     props: UpsertChannelProps;
     correlationId: string;
     authorizationReason: string;
@@ -96,7 +96,7 @@ export class UpsertChannelUseCase implements IUpsertChannelUseCase {
     // Create a command-like object for internal use
     const command = {
       user: params.user,
-      id: params.id,
+      code: params.code,
       props: params.props,
       correlationId: params.correlationId,
       authorizationReason: params.authorizationReason,
@@ -140,7 +140,7 @@ export class UpsertChannelUseCase implements IUpsertChannelUseCase {
         timestamp: command.timestamp,
       },
       {
-        channelId: command.id,
+        channelCode: command.code,
         operationRisk: UseCaseLoggingUtil.assessOperationRisk(operation),
       },
     );
@@ -198,7 +198,7 @@ export class UpsertChannelUseCase implements IUpsertChannelUseCase {
     // We first try to load; if not found, we'll "create" instead of erroring.
 
     // Discover existence ahead of time to configure auth intent correctly
-    const codeR = ChannelId.create(command.id);
+    const codeR = ChannelCode.create(command.code);
     if (!codeR.ok) return err(codeR.error);
 
     // Create actor context using the standard utility
@@ -256,7 +256,7 @@ export class UpsertChannelUseCase implements IUpsertChannelUseCase {
         : {
             type: 'update' as const,
             operation: 'update' as const,
-            resourceId: command.id,
+            resourceId: command.code,
             fields: fieldsToUpdate.map(String),
           },
       authContext: {
@@ -311,7 +311,7 @@ export class UpsertChannelUseCase implements IUpsertChannelUseCase {
         // CREATE path - Validate and transform, no default creation
         const upsertProps = {
           ...(rawProps || {}),
-          id: command.id,
+          code: command.code,
         };
 
         const createProps = upsertProps as CreateChannelProps;

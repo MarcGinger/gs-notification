@@ -17,8 +17,8 @@ export const TemplateCode = createStringVO({
   trim: true,
   caseTransform: 'none',
   allowEmpty: false,
-
-  maxLength: 64,
+  minLength: 10,
+  maxLength: 11,
 
   // Optional: declarative refinements for advanced validation
   // refinements: [

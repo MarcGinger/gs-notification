@@ -26,11 +26,7 @@ import type {
   CreateAppConfigProps,
   UpdateAppConfigProps,
 } from '../../domain/props';
-import {
-  DetailAppConfigResponse,
-  ListAppConfigFilterRequest,
-  AppConfigPageResponse,
-} from '../dtos';
+import { DetailAppConfigResponse } from '../dtos';
 
 // Application layer
 import { AppConfigAuthorizationService } from './app-config-authorization.service';
@@ -40,7 +36,6 @@ import { AppConfigAuthContext } from '../types/app-config-auth-context';
 import {
   IUpsertAppConfigUseCase,
   IGetAppConfigUseCase,
-  IListAppConfigUseCase,
 } from '../use-cases/contracts';
 
 /**
@@ -54,7 +49,6 @@ export class AppConfigApplicationService {
     private readonly appConfigAuthorizationService: AppConfigAuthorizationService,
     private readonly upsertAppConfigUseCase: IUpsertAppConfigUseCase,
     private readonly getAppConfigUseCase: IGetAppConfigUseCase,
-    private readonly listAppConfigUseCase: IListAppConfigUseCase,
     @Inject(CLOCK) private readonly clock: Clock,
     @Inject(APP_LOGGER) moduleLogger: Logger,
   ) {
@@ -70,6 +64,7 @@ export class AppConfigApplicationService {
   ): AppConfigAuthContext {
     return {
       tenant: user.tenant,
+      tenant_userId: user.tenant_id || '',
       roles: user.roles || [],
       operationType: operation,
       metadata: {
@@ -99,14 +94,24 @@ export class AppConfigApplicationService {
   }
 
   /**
-   * Helper to validate required id input
+   * Helper to validate required code input
    */
-  private validateId(
-    id: number,
+  private validateCode(
+    code: string,
     operation: string,
     correlationId?: string,
-  ): Result<number, DomainError> {
-    return ok(id);
+  ): Result<string, DomainError> {
+    if (!code?.trim()) {
+      return err(
+        withContext(AppConfigErrors.INVALID_APP_CONFIG_DATA, {
+          operation,
+          correlationId:
+            correlationId ||
+            CorrelationUtil.generateForOperation(`app-config-${operation}`),
+        }),
+      );
+    }
+    return ok(code.trim());
   }
 
   /**
@@ -115,7 +120,7 @@ export class AppConfigApplicationService {
   private async authorizeThenExecute<T>(args: {
     operation: 'create' | 'update' | 'read';
     user: IUserToken;
-    id?: number;
+    code?: string;
     correlationIdPrefix: string;
     doAuthorize: () => Promise<Result<boolean, DomainError>>;
     doExecute: () => Promise<Result<T, DomainError>>;
@@ -151,7 +156,7 @@ export class AppConfigApplicationService {
           correlationId: corrId,
           userId: args.user.sub,
           operation: args.operation,
-          id: args.id,
+          code: args.code,
           category: 'security',
         }),
       );
@@ -176,7 +181,7 @@ export class AppConfigApplicationService {
         category: 'application',
         context: {
           correlationId: corrId,
-          id: args.id,
+          code: args.code,
           operation: `${args.operation}_app_config`,
         },
       });
@@ -209,7 +214,7 @@ export class AppConfigApplicationService {
       doExecute: () =>
         this.upsertAppConfigUseCase.execute({
           user,
-          id: props.id,
+          code: props.code,
           props,
           correlationId,
           authorizationReason: 'create_app_config',
@@ -225,17 +230,17 @@ export class AppConfigApplicationService {
    */
   async updateAppConfig(
     user: IUserToken,
-    id: number,
+    code: string,
     props: UpdateAppConfigProps,
     options?: { idempotencyKey?: string; correlationId?: string },
   ): Promise<Result<DetailAppConfigResponse, DomainError>> {
     // Early input validation
-    const idValidation = this.validateId(id, 'update');
-    if (!idValidation.ok) {
-      return err(idValidation.error);
+    const codeValidation = this.validateCode(code, 'update');
+    if (!codeValidation.ok) {
+      return err(codeValidation.error);
     }
 
-    const validatedid = idValidation.value;
+    const validatedcode = codeValidation.value;
     const authContext = this.createAuthContext(user, 'update');
     const correlationId =
       options?.correlationId ||
@@ -249,7 +254,7 @@ export class AppConfigApplicationService {
       user.sub, 
       'update', 
       CorrelationUtil.generateForOperation('app-config-update'), 
-      validatedid, 
+      validatedcode, 
       fields, 
       authContext
     );
@@ -257,7 +262,7 @@ export class AppConfigApplicationService {
     if (!opAuth.value.authorized) {
       return err(withContext(AppConfigErrors.PERMISSION_DENIED, { 
         operation: 'update', 
-        id: validatedid, 
+        code: validatedcode, 
         userId: user.sub,
         category: 'security'
       }));
@@ -267,19 +272,19 @@ export class AppConfigApplicationService {
     return this.authorizeThenExecute<DetailAppConfigResponse>({
       operation: 'update',
       user,
-      id: validatedid,
+      code: validatedcode,
       correlationIdPrefix: 'app-config-update',
       doAuthorize: () =>
         this.appConfigAuthorizationService.canUpdateAppConfig(
           user.sub,
-          String(validatedid),
+          validatedcode,
           correlationId,
           authContext,
         ),
       doExecute: () =>
         this.upsertAppConfigUseCase.execute({
           user,
-          id: validatedid,
+          code: validatedcode,
           props,
           correlationId,
           authorizationReason: 'update_app_config',
@@ -287,7 +292,7 @@ export class AppConfigApplicationService {
             idempotencyKey: options.idempotencyKey,
           }),
         }),
-      logContext: { id: validatedid },
+      logContext: { code: validatedcode },
     });
   }
 
@@ -296,76 +301,37 @@ export class AppConfigApplicationService {
    */
   async getAppConfigById(
     user: IUserToken,
-    id: number,
+    code: string,
   ): Promise<Result<DetailAppConfigResponse, DomainError>> {
     // Early input validation
-    const idValidation = this.validateId(id, 'read');
-    if (!idValidation.ok) {
-      return err(idValidation.error);
+    const codeValidation = this.validateCode(code, 'read');
+    if (!codeValidation.ok) {
+      return err(codeValidation.error);
     }
 
-    const validatedid = idValidation.value;
+    const validatedcode = codeValidation.value;
     const authContext = this.createAuthContext(user, 'read');
 
     return this.authorizeThenExecute<DetailAppConfigResponse>({
       operation: 'read',
       user,
-      id: validatedid,
+      code: validatedcode,
       correlationIdPrefix: 'app-config-read',
       doAuthorize: () =>
         this.appConfigAuthorizationService.canReadAppConfig(
           user.sub,
-          String(validatedid),
+          validatedcode,
           CorrelationUtil.generateForOperation('app-config-read'),
           authContext,
         ),
       doExecute: () =>
         this.getAppConfigUseCase.execute({
           user,
-          id: validatedid,
+          code: validatedcode,
           correlationId:
             CorrelationUtil.generateForOperation('app-config-read'),
         }),
-      logContext: { id: validatedid },
-    });
-  }
-
-  /**
-   * List appConfigs with authorization and pagination
-   */
-  async listAppConfigs(
-    user: IUserToken,
-    filter?: ListAppConfigFilterRequest,
-  ): Promise<Result<AppConfigPageResponse, DomainError>> {
-    const authContext = this.createAuthContext(user, 'list');
-    const correlationId =
-      CorrelationUtil.generateForOperation('app-config-list');
-
-    // Ensure we always have a proper filter object
-    const safeFilter = filter || new ListAppConfigFilterRequest();
-
-    return this.authorizeThenExecute<AppConfigPageResponse>({
-      operation: 'read', // List is a form of read operation
-      user,
-      correlationIdPrefix: 'app-config-list',
-      doAuthorize: () =>
-        this.appConfigAuthorizationService.canReadAppConfig(
-          user.sub,
-          'list', // Use 'list' as a special id for list operations
-          correlationId,
-          authContext,
-        ),
-      doExecute: () =>
-        this.listAppConfigUseCase.execute({
-          user,
-          filter: safeFilter,
-          correlationId,
-        }),
-      logContext: {
-        operation: 'list_app_configs',
-        pageSize: safeFilter.size,
-        page: safeFilter.page,
-      },
+      logContext: { code: validatedcode },
     });
   }
 }

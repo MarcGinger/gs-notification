@@ -85,7 +85,7 @@ export class TemplateProjectionKeys {
   // Redis projection key patterns
   static readonly REDIS_KEY_PREFIX =
     SlackConfigServiceConstants.MODULE_NAMESPACE;
-  static readonly REDIS_VERSION = SlackConfigServiceConstants.SERVICE_VERSION;
+  static readonly REDIS_VERSION = 'v1';
   static readonly PROJECTOR_NAME = 'template-projector';
   static readonly SUBSCRIPTION_GROUP = 'template-projection';
 

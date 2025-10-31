@@ -4,6 +4,7 @@
 import {
   Controller,
   Get,
+  Query,
   Post,
   Body,
   Put,
@@ -32,8 +33,12 @@ import {
   DetailChannelResponse,
   CreateChannelRequest,
   UpdateChannelRequest,
+  ChannelPageResponse,
+  ListChannelFilterRequest,
+  ListChannelResponse,
 } from '../../../application/dtos';
 import { Result, ResultInterceptor, DomainError } from 'src/shared/errors';
+import { PaginatedResponse } from 'src/shared/application/dtos';
 import {
   ChannelReadResource,
   ChannelCreateResource,
@@ -51,7 +56,30 @@ export class ChannelController {
     private readonly channelApplicationService: ChannelApplicationService,
   ) {}
 
-  @Get(':id')
+  @Get()
+  @ChannelReadResource()
+  @ApiOperation({
+    summary: 'List Channels',
+    description:
+      'Retrieves a list of Channels with optional filtering. Supports pagination and filtering by name or category. Requires READ permission (LOW risk).',
+  })
+  @ApiOkResponse({
+    description: 'List of Channels retrieved successfully',
+    type: ChannelPageResponse,
+  })
+  @ApiCommonErrors()
+  async list(
+    @CurrentUser() user: IUserToken,
+    @Query() pageRequest?: ListChannelFilterRequest,
+  ): Promise<Result<PaginatedResponse<ListChannelResponse>, DomainError>> {
+    const result = await this.channelApplicationService.listChannels(
+      user,
+      pageRequest,
+    );
+    return result;
+  }
+
+  @Get(':code')
   @ChannelReadResource()
   @ApiOperation({
     summary: 'Get Channel by ID',
@@ -59,7 +87,7 @@ export class ChannelController {
       'Retrieves a single Channel by its unique identifier. Requires READ permission (LOW risk).',
   })
   @ApiParam({
-    name: 'id',
+    name: 'code',
     type: 'string',
     description: 'Channel unique identifier',
     example: 'C01EXAMPLE001',
@@ -71,11 +99,11 @@ export class ChannelController {
   @ApiCommonErrors()
   async get(
     @CurrentUser() user: IUserToken,
-    @Param('id') id: string,
+    @Param('code') code: string,
   ): Promise<Result<DetailChannelResponse, DomainError>> {
     const result = await this.channelApplicationService.getChannelById(
       user,
-      id,
+      code,
     );
 
     return result;
@@ -133,7 +161,7 @@ export class ChannelController {
     return result;
   }
 
-  @Put(':id')
+  @Put(':code')
   @ChannelUpdateResource()
   @ApiOperation({
     summary: 'Update a Channel',
@@ -141,7 +169,7 @@ export class ChannelController {
       'Updates an existing Channel with new data. Supports partial updates. Requires UPDATE permission (MEDIUM risk).',
   })
   @ApiParam({
-    name: 'id',
+    name: 'code',
     type: 'string',
     description: 'Channel unique identifier',
     example: 'C01EXAMPLE001',
@@ -164,12 +192,12 @@ export class ChannelController {
   })
   async update(
     @CurrentUser() user: IUserToken,
-    @Param('id') id: string,
+    @Param('code') code: string,
     @Body() updateChannelRequest: UpdateChannelRequest,
   ): Promise<Result<DetailChannelResponse, DomainError>> {
     const result = await this.channelApplicationService.updateChannel(
       user,
-      id,
+      code,
       updateChannelRequest,
     );
 

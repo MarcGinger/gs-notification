@@ -9,12 +9,12 @@ import {
   TemplateName,
   TemplateSamplePayload,
   TemplateVariables,
-  TemplateWorkspaceId,
+  TemplateWorkspaceCode,
 } from '../value-objects';
 
 export interface ValidatedTemplateUpdateFields {
   code?: TemplateCode;
-  workspaceId?: TemplateWorkspaceId;
+  workspaceCode?: TemplateWorkspaceCode;
   name?: TemplateName;
   description?: TemplateDescription;
   contentBlocks?: TemplateContentBlocks;

@@ -5,7 +5,11 @@ import { Result, DomainError } from 'src/shared/errors';
 import { RepositoryOptions } from 'src/shared/infrastructure/repositories';
 import { ActorContext } from 'src/shared/application/context';
 import { Option } from 'src/shared/domain/types';
-import { DetailChannelResponse } from '../dtos';
+import {
+  ChannelPageResponse,
+  ListChannelFilterRequest,
+  DetailChannelResponse,
+} from '../dtos';
 
 /**
  * Token for injecting IChannelQuery port implementation
@@ -32,13 +36,26 @@ export interface IChannelQuery {
   /**
    * Find a single Channel by its unique identifier (for CQRS query operations)
    * @param actor - The actor context containing authentication and request metadata
-   * @param id - The unique identifier of the Channel
+   * @param code - The unique identifier of the Channel
    * @param options - Optional repository options
    * @returns A promise resolving to a Result containing the Channel or null if not found
    */
   findById(
     actor: ActorContext,
-    id: string,
+    code: string,
     options?: RepositoryOptions,
   ): Promise<Result<Option<DetailChannelResponse>, DomainError>>;
+
+  /**
+   * Find Channel records with pagination and filtering.
+   * @param actor - The actor context containing authentication and request metadata.
+   * @param filter - Optional filter criteria for the product search.
+   * @param options - Optional repository options (e.g., pagination, sorting).
+   * @returns A promise resolving to a Result containing paginated Channel responses or a DomainError.
+   */
+  findPaginated(
+    actor: ActorContext,
+    filter?: ListChannelFilterRequest,
+    options?: RepositoryOptions,
+  ): Promise<Result<ChannelPageResponse, DomainError>>;
 }

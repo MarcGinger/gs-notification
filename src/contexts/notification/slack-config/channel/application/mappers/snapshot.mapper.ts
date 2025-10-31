@@ -16,9 +16,9 @@ export const mapChannelSnapshotToDto = (
   snapshot: ChannelSnapshotProps,
 ): DetailChannelResponse => {
   return {
-    id: snapshot.id,
+    code: snapshot.code,
     name: snapshot.name,
-    workspaceId: snapshot.workspaceId,
+    workspaceCode: snapshot.workspaceCode,
     isPrivate: snapshot.isPrivate,
     isDm: snapshot.isDm,
     topic: snapshot.topic,

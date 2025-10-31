@@ -2,7 +2,7 @@
 // REMOVE THIS COMMENT TO STOP AUTOMATIC UPDATES TO THIS BLOCK
 
 import { ChannelDomainState } from '../../domain/state';
-import { DetailChannelResponse } from '../dtos';
+import { DetailChannelResponse, ListChannelResponse } from '../dtos';
 
 /**
  * Channel DTO Assembler
@@ -28,9 +28,9 @@ export class ChannelDtoAssembler {
     const dto = new DetailChannelResponse();
 
     // Extract primitive values from VOs
-    dto.id = domainState.id.value;
+    dto.code = domainState.code.value;
     dto.name = domainState.name.value;
-    dto.workspaceId = domainState.workspaceId.value;
+    dto.workspaceCode = domainState.workspaceCode.value;
     dto.isPrivate = domainState.isPrivate.value;
     dto.isDm = domainState.isDm.value;
     dto.topic = domainState.topic?.value;
@@ -40,6 +40,42 @@ export class ChannelDtoAssembler {
 
     return dto;
   }
+
+  /**
+   * Convert ChannelDomainState to list response DTO
+   *
+   * @param domainState - Rich domain state with VOs
+   * @returns Clean DTO for list API response
+   */
+  static toListResponse(domainState: ChannelDomainState): ListChannelResponse {
+    const dto = new ListChannelResponse();
+
+    // Extract primitive values from VOs
+    dto.code = domainState.code.value;
+    dto.name = domainState.name.value;
+    dto.workspaceCode = domainState.workspaceCode.value;
+    dto.isPrivate = domainState.isPrivate.value;
+    dto.isDm = domainState.isDm.value;
+    dto.topic = domainState.topic?.value;
+    dto.purpose = domainState.purpose?.value;
+    dto.subscribedEvents = domainState.subscribedEvents?.toArray();
+    dto.enabled = domainState.enabled.value;
+
+    return dto;
+  }
+
+  /**
+   * Convert array of ChannelDomainState to array of list DTOs
+   *
+   * @param domainStates - Array of rich domain states
+   * @returns Array of clean DTOs for list API response
+   */
+  static toListResponseArray(
+    domainStates: ChannelDomainState[],
+  ): ListChannelResponse[] {
+    return domainStates.map((domainState) => this.toListResponse(domainState));
+  }
+
   /**
    * Convert array of ChannelDomainState to array of detail DTOs
    *

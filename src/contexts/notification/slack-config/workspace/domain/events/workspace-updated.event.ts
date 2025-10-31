@@ -7,7 +7,7 @@
  * Same shape as Created event for consistent replayability
  */
 export interface WorkspaceUpdatedEventPayload {
-  id: string;
+  code: string;
   name: string;
   botToken?: string;
   signingSecret?: string;
@@ -34,8 +34,8 @@ export class WorkspaceUpdatedEvent {
     return new WorkspaceUpdatedEvent(data);
   }
 
-  get id(): string {
-    return this.payload.id;
+  get code(): string {
+    return this.payload.code;
   }
 
   get name(): string {

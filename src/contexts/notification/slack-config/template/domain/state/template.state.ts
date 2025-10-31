@@ -12,7 +12,7 @@ import {
   TemplateName,
   TemplateSamplePayload,
   TemplateVariables,
-  TemplateWorkspaceId,
+  TemplateWorkspaceCode,
 } from '../value-objects';
 
 /**
@@ -30,7 +30,7 @@ import {
 
 export interface TemplateDomainState {
   code: TemplateCode;
-  workspaceId: TemplateWorkspaceId;
+  workspaceCode: TemplateWorkspaceCode;
   name: TemplateName;
   description?: TemplateDescription;
   contentBlocks: TemplateContentBlocks;
