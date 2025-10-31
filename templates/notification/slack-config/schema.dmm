@@ -1088,7 +1088,7 @@
 		},
 		"type": "MARIADB",
 		"version": 1,
-		"lastSaved": 1761902163468,
+		"lastSaved": 1761903792785,
 		"beforeScript": "",
 		"afterScript": "",
 		"sqlSettings": {
@@ -1134,8 +1134,8 @@
 			"diagramItems": {
 				"cd5f87d5-b86c-47eb-8bd6-6699ed90dc28": {
 					"referencedItemId": "cd5f87d5-b86c-47eb-8bd6-6699ed90dc28",
-					"x": 45,
-					"y": 232,
+					"x": 53,
+					"y": 254,
 					"gHeight": 218,
 					"gWidth": 268,
 					"color": "#ffffff",

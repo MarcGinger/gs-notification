@@ -28,7 +28,7 @@ export function ApiTemplateWorkspaceCode(options: PropOptions = {}) {
       required,
     }),
     IsString(),
-    MaxLength(11),
+    MaxLength(32),
     required ? IsNotEmpty() : IsOptional(),
   );
 }

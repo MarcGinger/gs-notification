@@ -35,7 +35,7 @@ export function ApiWorkspaceCode(options: PropOptions = {}) {
     }),
     IsString(),
     MinLength(10),
-    MaxLength(11),
+    MaxLength(32),
     required ? IsNotEmpty() : IsOptional(),
   );
 }

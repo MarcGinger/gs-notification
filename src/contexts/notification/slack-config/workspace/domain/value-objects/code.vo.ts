@@ -18,7 +18,7 @@ export const WorkspaceCode = createStringVO({
   caseTransform: 'none',
   allowEmpty: false,
   minLength: 10,
-  maxLength: 11,
+  maxLength: 32,
 
   // Optional: declarative refinements for advanced validation
   // refinements: [

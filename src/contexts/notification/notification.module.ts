@@ -5,7 +5,6 @@ import { Module } from '@nestjs/common';
 
 // SlackConfig Application
 import { NotificationSlackConfigModule } from './slack-config/slack-config.module';
-
 /**
  * Notification Bounded Context Module
  *
@@ -14,6 +13,7 @@ import { NotificationSlackConfigModule } from './slack-config/slack-config.modul
  *
  * Applications in this context:
  * - SlackConfig: slack-config application
+ * - SlackRequest: slack-request application
  */
 @Module({
   imports: [NotificationSlackConfigModule],
