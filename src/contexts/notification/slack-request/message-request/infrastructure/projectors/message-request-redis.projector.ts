@@ -41,6 +41,7 @@ import { NotificationSlackProjectorConfig } from '../../../projector.config';
 import { MessageRequestProjectionKeys } from '../../message-request-projection-keys';
 import { MessageRequestFieldValidatorUtil } from '../utilities/message-request-field-validator.util';
 import { DetailMessageRequestResponse } from '../../application/dtos';
+import { MessageRequestQueueService } from '../services';
 
 /**
  * MessageRequest projector error catalog using shared error definitions
@@ -111,6 +112,7 @@ export class MessageRequestProjector
     private readonly redis: Redis,
     @Inject(SLACK_REQUEST_DI_TOKENS.CACHE_SERVICE)
     private readonly cache: CacheService,
+    private readonly queueService: MessageRequestQueueService,
   ) {
     super(
       MessageRequestProjectionKeys.PROJECTOR_NAME,
@@ -339,6 +341,9 @@ export class MessageRequestProjector
         ? ProjectionOutcome.APPLIED
         : ProjectionOutcome.STALE_OCC;
 
+      // ✅ Dispatch async jobs based on event types
+      await this.dispatchJobsForEvent(event, params, tenant);
+
       // ✅ Update cache hint to prevent reprocessing (race-free SET EX)
       await CacheOptimizationUtils.updateVersionHint(
         this.redis,
@@ -492,6 +497,117 @@ export class MessageRequestProjector
           originalError: e.message,
         }).detail,
       );
+    }
+  }
+
+  /**
+   * Dispatch async jobs based on event types and conditions
+   */
+  private async dispatchJobsForEvent(
+    event: ProjectionEvent,
+    params: MessageRequestRowParams,
+    tenant: string,
+  ): Promise<void> {
+    try {
+      // Type-safe access to params with null checks
+      const messageRequestId = params.id;
+      const status = params.status;
+
+      if (!messageRequestId) {
+        Log.warn(this.logger, 'No message request ID found in event params', {
+          method: 'dispatchJobsForEvent',
+          eventType: event.type,
+        });
+        return;
+      }
+
+      // Only dispatch jobs for successful Redis operations
+      switch (event.type) {
+        case 'MessageRequestCreated':
+          // Queue send message job for newly created requests
+          await this.queueService.queueSendMessageRequest(
+            messageRequestId,
+            tenant,
+            {
+              priority: 0,
+              delay: 0,
+            },
+          );
+
+          Log.info(this.logger, 'Queued send message job for created request', {
+            method: 'dispatchJobsForEvent',
+            eventType: event.type,
+            messageRequestId,
+            tenant,
+          });
+          break;
+
+        case 'MessageRequestFailed':
+          // Queue retry job for failed requests
+          await this.queueService.queueRetryFailedMessageRequest(
+            messageRequestId,
+            tenant,
+            'Event-driven retry after failure',
+            {
+              priority: 1,
+              delay: 5000,
+            },
+          );
+
+          Log.info(this.logger, 'Queued retry job for failed request', {
+            method: 'dispatchJobsForEvent',
+            eventType: event.type,
+            messageRequestId,
+            tenant,
+          });
+          break;
+
+        case 'MessageRequestUpdated':
+          // Only queue jobs if status changed to a state requiring action
+          if (status === 'queued') {
+            await this.queueService.queueSendMessageRequest(
+              messageRequestId,
+              tenant,
+              {
+                priority: 0,
+                delay: 0,
+              },
+            );
+
+            Log.info(
+              this.logger,
+              'Queued send message job for updated request',
+              {
+                method: 'dispatchJobsForEvent',
+                eventType: event.type,
+                messageRequestId,
+                status,
+                tenant,
+              },
+            );
+          }
+          break;
+
+        default:
+          // No job dispatching for other event types
+          Log.debug(this.logger, 'No job dispatching for event type', {
+            method: 'dispatchJobsForEvent',
+            eventType: event.type,
+            messageRequestId,
+          });
+          break;
+      }
+    } catch (error) {
+      const e = error as Error;
+      // Log error but don't fail the projection
+      Log.error(this.logger, 'Failed to dispatch jobs for event', {
+        method: 'dispatchJobsForEvent',
+        eventType: event.type,
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+        messageRequestId: params.id,
+        tenant,
+        error: e.message,
+      });
     }
   }
 }
