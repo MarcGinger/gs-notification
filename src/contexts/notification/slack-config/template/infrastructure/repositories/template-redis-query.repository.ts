@@ -131,10 +131,10 @@ export class TemplateQueryRepository implements ITemplateQuery {
     );
     if (!validation.ok) return err(validation.error);
 
-    // Guard tenant explicitly3222234
+    // Guard tenant explicitly
     if (!actor.tenant) {
       return err(
-        RepositoryErrorFactory.validationError('tenant', 'Missing tenant'),
+        RepositoryErrorFactory.validationError('tenant', 'Missing tenant id'),
       );
     }
 

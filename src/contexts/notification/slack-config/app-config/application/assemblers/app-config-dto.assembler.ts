@@ -2,7 +2,7 @@
 // REMOVE THIS COMMENT TO STOP AUTOMATIC UPDATES TO THIS BLOCK
 
 import { AppConfigDomainState } from '../../domain/state';
-import { DetailAppConfigResponse } from '../dtos';
+import { DetailAppConfigResponse, ListAppConfigResponse } from '../dtos';
 
 /**
  * AppConfig DTO Assembler
@@ -39,6 +39,43 @@ export class AppConfigDtoAssembler {
 
     return dto;
   }
+
+  /**
+   * Convert AppConfigDomainState to list response DTO
+   *
+   * @param domainState - Rich domain state with VOs
+   * @returns Clean DTO for list API response
+   */
+  static toListResponse(
+    domainState: AppConfigDomainState,
+  ): ListAppConfigResponse {
+    const dto = new ListAppConfigResponse();
+
+    // Extract primitive values from VOs
+    dto.id = domainState.id.value;
+    dto.workspaceId = domainState.workspaceId.value;
+    dto.maxRetryAttempts = domainState.maxRetryAttempts.value;
+    dto.retryBackoffSeconds = domainState.retryBackoffSeconds.value;
+    dto.defaultLocale = domainState.defaultLocale.value;
+    dto.loggingEnabled = domainState.loggingEnabled.value;
+    dto.auditChannelId = domainState.auditChannelId?.value;
+    dto.metadata = domainState.metadata?.value;
+
+    return dto;
+  }
+
+  /**
+   * Convert array of AppConfigDomainState to array of list DTOs
+   *
+   * @param domainStates - Array of rich domain states
+   * @returns Array of clean DTOs for list API response
+   */
+  static toListResponseArray(
+    domainStates: AppConfigDomainState[],
+  ): ListAppConfigResponse[] {
+    return domainStates.map((domainState) => this.toListResponse(domainState));
+  }
+
   /**
    * Convert array of AppConfigDomainState to array of detail DTOs
    *

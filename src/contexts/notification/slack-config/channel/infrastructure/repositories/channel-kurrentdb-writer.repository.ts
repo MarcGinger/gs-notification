@@ -343,7 +343,7 @@ export class ChannelWriterRepository
       actor: {
         userId: actor.userId,
         tenant: actor.tenant,
-        tenant_userId: actor.tenant_userId || '',
+        tenant_userId: actor.tenant_userId,
       },
       correlationId,
       causationId: opts?.meta?.causationId,

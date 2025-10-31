@@ -1,3 +1,4 @@
+export * from './app-config-list-pagination.decorator';
 export * from './audit-channel-id.decorator';
 export * from './default-locale.decorator';
 export * from './id.decorator';

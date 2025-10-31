@@ -26,7 +26,11 @@ import type {
   CreateAppConfigProps,
   UpdateAppConfigProps,
 } from '../../domain/props';
-import { DetailAppConfigResponse } from '../dtos';
+import {
+  DetailAppConfigResponse,
+  ListAppConfigFilterRequest,
+  AppConfigPageResponse,
+} from '../dtos';
 
 // Application layer
 import { AppConfigAuthorizationService } from './app-config-authorization.service';
@@ -36,6 +40,7 @@ import { AppConfigAuthContext } from '../types/app-config-auth-context';
 import {
   IUpsertAppConfigUseCase,
   IGetAppConfigUseCase,
+  IListAppConfigUseCase,
 } from '../use-cases/contracts';
 
 /**
@@ -49,6 +54,7 @@ export class AppConfigApplicationService {
     private readonly appConfigAuthorizationService: AppConfigAuthorizationService,
     private readonly upsertAppConfigUseCase: IUpsertAppConfigUseCase,
     private readonly getAppConfigUseCase: IGetAppConfigUseCase,
+    private readonly listAppConfigUseCase: IListAppConfigUseCase,
     @Inject(CLOCK) private readonly clock: Clock,
     @Inject(APP_LOGGER) moduleLogger: Logger,
   ) {
@@ -321,6 +327,45 @@ export class AppConfigApplicationService {
             CorrelationUtil.generateForOperation('app-config-read'),
         }),
       logContext: { id: validatedid },
+    });
+  }
+
+  /**
+   * List appConfigs with authorization and pagination
+   */
+  async listAppConfigs(
+    user: IUserToken,
+    filter?: ListAppConfigFilterRequest,
+  ): Promise<Result<AppConfigPageResponse, DomainError>> {
+    const authContext = this.createAuthContext(user, 'list');
+    const correlationId =
+      CorrelationUtil.generateForOperation('app-config-list');
+
+    // Ensure we always have a proper filter object
+    const safeFilter = filter || new ListAppConfigFilterRequest();
+
+    return this.authorizeThenExecute<AppConfigPageResponse>({
+      operation: 'read', // List is a form of read operation
+      user,
+      correlationIdPrefix: 'app-config-list',
+      doAuthorize: () =>
+        this.appConfigAuthorizationService.canReadAppConfig(
+          user.sub,
+          'list', // Use 'list' as a special id for list operations
+          correlationId,
+          authContext,
+        ),
+      doExecute: () =>
+        this.listAppConfigUseCase.execute({
+          user,
+          filter: safeFilter,
+          correlationId,
+        }),
+      logContext: {
+        operation: 'list_app_configs',
+        pageSize: safeFilter.size,
+        page: safeFilter.page,
+      },
     });
   }
 }

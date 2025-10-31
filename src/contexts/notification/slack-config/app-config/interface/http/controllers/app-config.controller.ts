@@ -4,6 +4,7 @@
 import {
   Controller,
   Get,
+  Query,
   Post,
   Body,
   Put,
@@ -33,8 +34,12 @@ import {
   DetailAppConfigResponse,
   CreateAppConfigRequest,
   UpdateAppConfigRequest,
+  AppConfigPageResponse,
+  ListAppConfigFilterRequest,
+  ListAppConfigResponse,
 } from '../../../application/dtos';
 import { Result, ResultInterceptor, DomainError } from 'src/shared/errors';
+import { PaginatedResponse } from 'src/shared/application/dtos';
 import {
   AppConfigReadResource,
   AppConfigCreateResource,
@@ -51,6 +56,29 @@ export class AppConfigController {
   constructor(
     private readonly appConfigApplicationService: AppConfigApplicationService,
   ) {}
+
+  @Get()
+  @AppConfigReadResource()
+  @ApiOperation({
+    summary: 'List Apps',
+    description:
+      'Retrieves a list of Apps with optional filtering. Supports pagination and filtering by name or category. Requires READ permission (LOW risk).',
+  })
+  @ApiOkResponse({
+    description: 'List of Apps retrieved successfully',
+    type: AppConfigPageResponse,
+  })
+  @ApiCommonErrors()
+  async list(
+    @CurrentUser() user: IUserToken,
+    @Query() pageRequest?: ListAppConfigFilterRequest,
+  ): Promise<Result<PaginatedResponse<ListAppConfigResponse>, DomainError>> {
+    const result = await this.appConfigApplicationService.listAppConfigs(
+      user,
+      pageRequest,
+    );
+    return result;
+  }
 
   @Get(':id')
   @AppConfigReadResource()

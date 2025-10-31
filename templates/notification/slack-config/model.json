@@ -1397,7 +1397,52 @@
           }
         }
       ],
-      "indexes": [],
+      "indexes": [
+        {
+          "name": "id",
+          "type": "number",
+          "childRelationshipType": "",
+          "parentRelationshipType": "",
+          "datatype": "INT",
+          "primaryKey": true,
+          "required": true,
+          "description": "Auto-incrementing primary key for app configuration records. Each workspace typically has one configuration record.",
+          "defaultvalue": "",
+          "example": "1",
+          "autoIncrement": false,
+          "array": false,
+          "isPII": "",
+          "parentRelationship": "",
+          "childRelationship": "",
+          "meta": {
+            "kind": "number",
+            "autoIncrement": false
+          }
+        },
+        {
+          "name": "workspace_id",
+          "type": "string",
+          "childRelationshipType": "",
+          "parentRelationshipType": "Workspace",
+          "datatype": "VARCHAR",
+          "primaryKey": false,
+          "required": true,
+          "description": "Foreign key reference to the workspace these operational settings apply to. Allows per-workspace customization of retry logic and behavior.",
+          "defaultvalue": "",
+          "example": "T01EXAMPLE123",
+          "autoIncrement": false,
+          "maxLength": "64",
+          "array": false,
+          "isPII": "",
+          "relationship": "one",
+          "parentRelationship": "workspace_app_config",
+          "childRelationship": "",
+          "meta": {
+            "kind": "string",
+            "maxLength": 64
+          }
+        }
+      ],
       "docs": {
         "name": "App_config",
         "summary": "Configuration for app_config table",
