@@ -7,13 +7,47 @@ import { APP_LOGGER, Log, Logger, componentLogger } from 'src/shared/logging';
 import { CreateMessageRequestRequest } from '../../application/dtos';
 import { IUserToken } from 'src/shared/security';
 import { MessageRequestJobs } from '../processors';
+import { Result, DomainError, err, fromError } from 'src/shared/errors';
+import { ActorContext } from 'src/shared/application/context';
+import { Option } from 'src/shared/domain/types';
+import { ConfigErrors } from 'src/shared/config/errors/config.errors';
+
+// Import slack-config query interfaces and tokens
+import {
+  IWorkspaceQuery,
+  WORKSPACE_QUERY_TOKEN,
+} from 'src/contexts/notification/slack-config/workspace/application/ports';
+import {
+  ITemplateQuery,
+  TEMPLATE_QUERY_TOKEN,
+} from 'src/contexts/notification/slack-config/template/application/ports';
+import {
+  IChannelQuery,
+  CHANNEL_QUERY_TOKEN,
+} from 'src/contexts/notification/slack-config/channel/application/ports';
+import {
+  IAppConfigQuery,
+  APP_CONFIG_QUERY_TOKEN,
+} from 'src/contexts/notification/slack-config/app-config/application/ports';
+
+// Import response DTOs
+import { DetailWorkspaceResponse } from 'src/contexts/notification/slack-config/workspace/application/dtos';
+import { DetailTemplateResponse } from 'src/contexts/notification/slack-config/template/application/dtos';
+import { DetailChannelResponse } from 'src/contexts/notification/slack-config/channel/application/dtos';
+import { DetailAppConfigResponse } from 'src/contexts/notification/slack-config/app-config/application/dtos';
 
 /**
  * Message Request Queue Service
  *
- * Service for adding jobs to the MessageRequestQueue for asynchronous processing.
- * Provides methods to queue various message request operations with proper
- * job configuration and error handling.
+ * Enhanced service for adding jobs to the MessageRequestQueue with tenant configuration support.
+ * Integrates with Redis repositories to enrich job data with workspace, template, channel,
+ * and app configuration information needed for message processing.
+ *
+ * Features:
+ * - Job queuing with tenant-aware configuration
+ * - Redis-based tenant data enrichment
+ * - Comprehensive job validation and error handling
+ * - Production-ready logging and monitoring
  */
 @Injectable()
 export class MessageRequestQueueService {
@@ -22,8 +56,224 @@ export class MessageRequestQueueService {
   constructor(
     @Inject(APP_LOGGER) baseLogger: Logger,
     @Inject('Queue:MessageRequestQueue') private readonly queue: Queue,
+    @Inject(WORKSPACE_QUERY_TOKEN)
+    private readonly workspaceQuery: IWorkspaceQuery,
+    @Inject(TEMPLATE_QUERY_TOKEN)
+    private readonly templateQuery: ITemplateQuery,
+    @Inject(CHANNEL_QUERY_TOKEN)
+    private readonly channelQuery: IChannelQuery,
+    @Inject(APP_CONFIG_QUERY_TOKEN)
+    private readonly appConfigQuery: IAppConfigQuery,
   ) {
     this.logger = componentLogger(baseLogger, 'MessageRequestQueueService');
+
+    Log.info(
+      this.logger,
+      'MessageRequestQueueService initialized with Redis repositories',
+      {
+        component: 'MessageRequestQueueService',
+        repositoriesWired: {
+          workspace: !!this.workspaceQuery,
+          template: !!this.templateQuery,
+          channel: !!this.channelQuery,
+          appConfig: !!this.appConfigQuery,
+        },
+      },
+    );
+  }
+
+  /**
+   * Enhanced method to queue a send message job with tenant configuration data
+   *
+   * Fetches workspace, template, channel, and app config from Redis repositories
+   * to provide all necessary context for message processing.
+   */
+  async queueEnrichedSendMessageRequest(
+    messageRequestId: string,
+    tenant: string,
+    workspaceCode: string,
+    templateCode?: string,
+    channelCode?: string,
+    options?: {
+      delay?: number;
+      priority?: number;
+    },
+  ): Promise<Result<string, DomainError>> {
+    const actor: ActorContext = {
+      tenant,
+      userId: 'system',
+      tenant_userId: 'system',
+    };
+
+    try {
+      // Fetch tenant configuration data in parallel
+      const [workspaceResult, templateResult, channelResult, appConfigResult] =
+        await Promise.all([
+          this.workspaceQuery.findById(actor, workspaceCode),
+          templateCode
+            ? this.templateQuery.findById(actor, templateCode)
+            : Promise.resolve({
+                ok: true,
+                value: Option.none(),
+              } as Result<Option<DetailTemplateResponse>, DomainError>),
+          channelCode
+            ? this.channelQuery.findById(actor, channelCode)
+            : Promise.resolve({
+                ok: true,
+                value: Option.none(),
+              } as Result<Option<DetailChannelResponse>, DomainError>),
+          this.appConfigQuery.findById(actor, workspaceCode),
+        ]);
+
+      // Check for fetch errors
+      if (!workspaceResult.ok) {
+        Log.error(this.logger, 'Failed to fetch workspace configuration', {
+          method: 'queueEnrichedSendMessageRequest',
+          messageRequestId,
+          tenant,
+          workspaceCode,
+          error: workspaceResult.error.detail,
+        });
+        return workspaceResult;
+      }
+
+      if (templateCode && templateResult && !templateResult.ok) {
+        Log.error(this.logger, 'Failed to fetch template configuration', {
+          method: 'queueEnrichedSendMessageRequest',
+          messageRequestId,
+          tenant,
+          templateCode,
+          error: templateResult.error.detail,
+        });
+        return templateResult;
+      }
+
+      if (channelCode && channelResult && !channelResult.ok) {
+        Log.error(this.logger, 'Failed to fetch channel configuration', {
+          method: 'queueEnrichedSendMessageRequest',
+          messageRequestId,
+          tenant,
+          channelCode,
+          error: channelResult.error.detail,
+        });
+        return channelResult;
+      }
+
+      if (!appConfigResult.ok) {
+        Log.error(this.logger, 'Failed to fetch app configuration', {
+          method: 'queueEnrichedSendMessageRequest',
+          messageRequestId,
+          tenant,
+          workspaceCode,
+          error: appConfigResult.error.detail,
+        });
+        return appConfigResult;
+      }
+
+      // Extract configuration data using proper Option handling
+      const workspace = Option.isSome(workspaceResult.value)
+        ? workspaceResult.value.value
+        : null;
+      const template =
+        templateResult &&
+        templateResult.ok &&
+        Option.isSome(templateResult.value)
+          ? templateResult.value.value
+          : null;
+      const channel =
+        channelResult && channelResult.ok && Option.isSome(channelResult.value)
+          ? channelResult.value.value
+          : null;
+      const appConfig = Option.isSome(appConfigResult.value)
+        ? appConfigResult.value.value
+        : null;
+
+      if (!workspace) {
+        const error = `Workspace not found: ${workspaceCode}`;
+        Log.error(this.logger, error, {
+          method: 'queueEnrichedSendMessageRequest',
+          messageRequestId,
+          tenant,
+          workspaceCode,
+        });
+        return err(
+          fromError(ConfigErrors.VALIDATION_FAILED, error, {
+            configKey: 'workspace',
+            messageRequestId,
+            tenant,
+            workspaceCode,
+          }),
+        );
+      }
+
+      // Create enriched job data
+      const enrichedJobData: MessageRequestJobs['send-message-request'] & {
+        tenantConfig?: {
+          workspace: DetailWorkspaceResponse;
+          template?: DetailTemplateResponse;
+          channel?: DetailChannelResponse;
+          appConfig?: DetailAppConfigResponse;
+        };
+      } = {
+        messageRequestId,
+        tenant,
+        tenantConfig: {
+          workspace,
+          template: template || undefined,
+          channel: channel || undefined,
+          appConfig: appConfig || undefined,
+        },
+      };
+
+      const job = await this.queue.add(
+        'send-message-request',
+        enrichedJobData,
+        {
+          delay: options?.delay || 0,
+          priority: options?.priority || 0,
+          removeOnComplete: 100,
+          removeOnFail: 50,
+          attempts: 3,
+          backoff: {
+            type: 'exponential',
+            delay: 2000,
+          },
+        },
+      );
+
+      Log.info(this.logger, 'Queued enriched send message request job', {
+        method: 'queueEnrichedSendMessageRequest',
+        jobId: job.id,
+        messageRequestId,
+        tenant,
+        configurationLoaded: {
+          workspace: !!workspace,
+          template: !!template,
+          channel: !!channel,
+          appConfig: !!appConfig,
+        },
+        delay: options?.delay || 0,
+        priority: options?.priority || 0,
+      });
+
+      return { ok: true, value: job.id?.toString() || 'unknown' };
+    } catch (error) {
+      const e = error as Error;
+      Log.error(this.logger, 'Error queuing enriched send message request', {
+        method: 'queueEnrichedSendMessageRequest',
+        messageRequestId,
+        tenant,
+        error: e.message,
+        stack: e.stack,
+      });
+      return err(
+        fromError(ConfigErrors.VALIDATION_FAILED, e, {
+          configKey: 'queue',
+          messageRequestId,
+          tenant,
+        }),
+      );
+    }
   }
 
   /**

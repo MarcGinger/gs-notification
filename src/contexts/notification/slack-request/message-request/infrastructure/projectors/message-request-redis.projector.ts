@@ -52,20 +52,26 @@ const MessageRequestProjectorErrors = createProjectorErrorCatalog(
 );
 
 /**
- * MessageRequest row parameters for Redis projection operations
+ * Projection parameters for MessageRequest Redis operations
  *
- * Extends DetailMessageRequestResponse DTO with projection-specific fields needed for event sourcing.
+ * Combines DetailMessageRequestResponse DTO with projection-specific metadata
+ * needed for event sourcing and Redis storage operations.
  *
- * Key Additions to DetailMessageRequestResponse:
+ * Projection-specific additions:
  * - tenant: Multi-tenant support for Redis key generation
+ * - version: Event sourcing version for optimistic concurrency
+ * - createdAt/updatedAt: Event envelope timestamps
  * - deletedAt: Soft delete timestamp for TTL-based cleanup
  * - lastStreamRevision: Event sourcing revision tracking
  */
-interface MessageRequestRowParams extends DetailMessageRequestResponse {
-  // Projection-specific fields for Redis storage
+interface MessageRequestProjectionParams extends DetailMessageRequestResponse {
+  // Event sourcing metadata
   tenant: string;
   version: number;
+  createdAt: Date;
   updatedAt: Date;
+
+  // Projection-specific fields
   deletedAt?: Date | null;
   lastStreamRevision?: string | null;
 }
@@ -342,7 +348,7 @@ export class MessageRequestProjector
         : ProjectionOutcome.STALE_OCC;
 
       // ✅ Dispatch async jobs based on event types
-      await this.dispatchJobsForEvent(event, params, tenant);
+      await this.dispatchJobsForEvent(event, params);
 
       // ✅ Update cache hint to prevent reprocessing (race-free SET EX)
       await CacheOptimizationUtils.updateVersionHint(
@@ -425,7 +431,7 @@ export class MessageRequestProjector
   /**
    * Generate cluster-safe Redis keys with hash-tags for locality
    */
-  private generateClusterSafeKeys(params: MessageRequestRowParams): {
+  private generateClusterSafeKeys(params: MessageRequestProjectionParams): {
     entityKey: string;
     indexKey: string;
   } {
@@ -453,7 +459,7 @@ export class MessageRequestProjector
   private extractMessageRequestParams(
     event: ProjectionEvent,
     operation: string,
-  ): MessageRequestRowParams {
+  ): MessageRequestProjectionParams {
     try {
       const eventData = event.data as Record<string, any>;
 
@@ -505,97 +511,48 @@ export class MessageRequestProjector
    */
   private async dispatchJobsForEvent(
     event: ProjectionEvent,
-    params: MessageRequestRowParams,
-    tenant: string,
+    params: MessageRequestProjectionParams,
   ): Promise<void> {
     try {
-      // Type-safe access to params with null checks
+      // Validate required parameters
       const messageRequestId = params.id;
+      const tenant = params.tenant;
       const status = params.status;
 
       if (!messageRequestId) {
-        Log.warn(this.logger, 'No message request ID found in event params', {
+        Log.warn(
+          this.logger,
+          'No message request ID found in projection params',
+          {
+            method: 'dispatchJobsForEvent',
+            eventType: event.type,
+          },
+        );
+        return;
+      }
+
+      if (!tenant) {
+        Log.warn(this.logger, 'No tenant found in projection params', {
           method: 'dispatchJobsForEvent',
           eventType: event.type,
+          messageRequestId,
         });
         return;
       }
 
-      // Only dispatch jobs for successful Redis operations
-      switch (event.type) {
-        case 'MessageRequestCreated':
-          // Queue send message job for newly created requests
-          await this.queueService.queueSendMessageRequest(
-            messageRequestId,
-            tenant,
-            {
-              priority: 0,
-              delay: 0,
-            },
-          );
+      // Dispatch jobs based on event type with specific business logic
+      const jobDispatched = await this.handleJobDispatchingByEventType(
+        event.type,
+        { messageRequestId, tenant, status },
+      );
 
-          Log.info(this.logger, 'Queued send message job for created request', {
-            method: 'dispatchJobsForEvent',
-            eventType: event.type,
-            messageRequestId,
-            tenant,
-          });
-          break;
-
-        case 'MessageRequestFailed':
-          // Queue retry job for failed requests
-          await this.queueService.queueRetryFailedMessageRequest(
-            messageRequestId,
-            tenant,
-            'Event-driven retry after failure',
-            {
-              priority: 1,
-              delay: 5000,
-            },
-          );
-
-          Log.info(this.logger, 'Queued retry job for failed request', {
-            method: 'dispatchJobsForEvent',
-            eventType: event.type,
-            messageRequestId,
-            tenant,
-          });
-          break;
-
-        case 'MessageRequestUpdated':
-          // Only queue jobs if status changed to a state requiring action
-          if (status === 'queued') {
-            await this.queueService.queueSendMessageRequest(
-              messageRequestId,
-              tenant,
-              {
-                priority: 0,
-                delay: 0,
-              },
-            );
-
-            Log.info(
-              this.logger,
-              'Queued send message job for updated request',
-              {
-                method: 'dispatchJobsForEvent',
-                eventType: event.type,
-                messageRequestId,
-                status,
-                tenant,
-              },
-            );
-          }
-          break;
-
-        default:
-          // No job dispatching for other event types
-          Log.debug(this.logger, 'No job dispatching for event type', {
-            method: 'dispatchJobsForEvent',
-            eventType: event.type,
-            messageRequestId,
-          });
-          break;
+      if (jobDispatched) {
+        Log.debug(this.logger, 'Job dispatching completed successfully', {
+          method: 'dispatchJobsForEvent',
+          eventType: event.type,
+          messageRequestId,
+          tenant,
+        });
       }
     } catch (error) {
       const e = error as Error;
@@ -603,11 +560,125 @@ export class MessageRequestProjector
       Log.error(this.logger, 'Failed to dispatch jobs for event', {
         method: 'dispatchJobsForEvent',
         eventType: event.type,
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
         messageRequestId: params.id,
-        tenant,
+        tenant: params.tenant,
         error: e.message,
       });
     }
+  }
+
+  /**
+   * Handle job dispatching based on specific event types
+   *
+   * @returns Promise<boolean> - true if a job was dispatched, false otherwise
+   */
+  private async handleJobDispatchingByEventType(
+    eventType: string,
+    context: {
+      messageRequestId: string;
+      tenant: string;
+      status?: string;
+    },
+  ): Promise<boolean> {
+    const { messageRequestId, tenant, status } = context;
+
+    switch (eventType) {
+      case 'MessageRequestCreated':
+        return await this.dispatchSendMessageJob(
+          messageRequestId,
+          tenant,
+          'created',
+          { priority: 0, delay: 0 },
+        );
+
+      case 'MessageRequestFailed':
+        return await this.dispatchRetryMessageJob(
+          messageRequestId,
+          tenant,
+          'Event-driven retry after failure',
+          { priority: 1, delay: 5000 },
+        );
+
+      case 'MessageRequestUpdated':
+        // Only queue jobs if status changed to a state requiring action
+        if (status === 'queued') {
+          return await this.dispatchSendMessageJob(
+            messageRequestId,
+            tenant,
+            'updated',
+            { priority: 0, delay: 0 },
+          );
+        }
+        Log.debug(this.logger, 'No job needed for status update', {
+          method: 'handleJobDispatchingByEventType',
+          eventType,
+          messageRequestId,
+          status,
+        });
+        return false;
+
+      default:
+        Log.debug(this.logger, 'No job dispatching for event type', {
+          method: 'handleJobDispatchingByEventType',
+          eventType,
+          messageRequestId,
+        });
+        return false;
+    }
+  }
+
+  /**
+   * Dispatch a send message job with consistent logging
+   */
+  private async dispatchSendMessageJob(
+    messageRequestId: string,
+    tenant: string,
+    trigger: string,
+    options: { priority: number; delay: number },
+  ): Promise<boolean> {
+    await this.queueService.queueSendMessageRequest(
+      messageRequestId,
+      tenant,
+      options,
+    );
+
+    Log.info(this.logger, `Queued send message job for ${trigger} request`, {
+      method: 'dispatchSendMessageJob',
+      trigger,
+      messageRequestId,
+      tenant,
+      priority: options.priority,
+      delay: options.delay,
+    });
+
+    return true;
+  }
+
+  /**
+   * Dispatch a retry message job with consistent logging
+   */
+  private async dispatchRetryMessageJob(
+    messageRequestId: string,
+    tenant: string,
+    retryReason: string,
+    options: { priority: number; delay: number },
+  ): Promise<boolean> {
+    await this.queueService.queueRetryFailedMessageRequest(
+      messageRequestId,
+      tenant,
+      retryReason,
+      options,
+    );
+
+    Log.info(this.logger, 'Queued retry job for failed request', {
+      method: 'dispatchRetryMessageJob',
+      messageRequestId,
+      tenant,
+      retryReason,
+      priority: options.priority,
+      delay: options.delay,
+    });
+
+    return true;
   }
 }

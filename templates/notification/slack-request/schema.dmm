@@ -1012,7 +1012,7 @@
 					"id": "164ecce1-8380-4845-bf7c-4942b84d5f98",
 					"name": "recipient",
 					"datatype": "VARCHAR",
-					"param": "10",
+					"param": "32",
 					"pk": false,
 					"nn": false,
 					"fk": false,
@@ -1397,7 +1397,7 @@
 		},
 		"type": "MARIADB",
 		"version": 1,
-		"lastSaved": 1761943069843,
+		"lastSaved": 1761943555295,
 		"beforeScript": "",
 		"afterScript": "",
 		"sqlSettings": {
@@ -1443,8 +1443,8 @@
 			"diagramItems": {
 				"cd5f87d5-b86c-47eb-8bd6-6699ed90dc28": {
 					"referencedItemId": "cd5f87d5-b86c-47eb-8bd6-6699ed90dc28",
-					"x": 229,
-					"y": 205,
+					"x": 376,
+					"y": 186,
 					"gHeight": 218,
 					"gWidth": 268,
 					"color": "#ffffff",
@@ -1482,8 +1482,8 @@
 				},
 				"00829685-51b5-4cea-a843-525855771acd": {
 					"referencedItemId": "00829685-51b5-4cea-a843-525855771acd",
-					"x": 229,
-					"y": 35,
+					"x": 386,
+					"y": 30,
 					"gHeight": 153,
 					"gWidth": 258,
 					"color": "#ffffff",
@@ -1495,8 +1495,8 @@
 				},
 				"7d2c60c7-3d03-40f9-a36b-92dbb7c656bc": {
 					"referencedItemId": "7d2c60c7-3d03-40f9-a36b-92dbb7c656bc",
-					"x": 393,
-					"y": 458,
+					"x": 398,
+					"y": 412,
 					"gHeight": 200,
 					"gWidth": 256,
 					"color": "#ffffff",

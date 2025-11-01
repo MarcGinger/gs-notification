@@ -25,6 +25,7 @@ import type { CheckpointStore } from 'src/shared/infrastructure/projections/chec
 
 import { MessageRequestProjector } from './infrastructure/projectors';
 import { MessageRequestProjectorHealthController } from './interface/http/controllers';
+import { MessageRequestModule } from './message-request.module';
 
 @Module({
   imports: [
@@ -39,6 +40,9 @@ import { MessageRequestProjectorHealthController } from './interface/http/contro
 
     // Database access for raw SQL operations
     TypeOrmModule.forFeature([]),
+
+    // Import MessageRequestModule to access MessageRequestQueueService
+    MessageRequestModule,
   ],
   providers: [
     // Map slack-request domain tokens to infrastructure tokens

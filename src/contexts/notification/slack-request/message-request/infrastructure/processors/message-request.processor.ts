@@ -8,6 +8,28 @@ import { MessageRequestApplicationService } from '../../application/services';
 import { CreateMessageRequestRequest } from '../../application/dtos';
 import { IUserToken } from 'src/shared/security';
 
+// Import response DTOs for tenant configuration
+import { DetailWorkspaceResponse } from 'src/contexts/notification/slack-config/workspace/application/dtos';
+import { DetailTemplateResponse } from 'src/contexts/notification/slack-config/template/application/dtos';
+import { DetailChannelResponse } from 'src/contexts/notification/slack-config/channel/application/dtos';
+import { DetailAppConfigResponse } from 'src/contexts/notification/slack-config/app-config/application/dtos';
+
+// Import Slack API and template services
+import { SlackApiService } from 'src/shared/infrastructure/slack/slack-api.service';
+import { TemplateRendererService } from '../services/template-renderer.service';
+
+// Import repositories and error handling
+import { ActorContext } from 'src/shared/application/context';
+import { Option } from 'src/shared/domain/types';
+import {
+  MESSAGE_REQUEST_QUERY_TOKEN,
+  MESSAGE_REQUEST_WRITER_TOKEN,
+} from '../../application/ports';
+import type {
+  IMessageRequestQuery,
+  IMessageRequestWriter,
+} from '../../application/ports';
+
 /**
  * Message Request Queue Job Types
  */
@@ -22,6 +44,13 @@ export interface MessageRequestJobs {
   'send-message-request': {
     messageRequestId: string;
     tenant: string;
+    threadTs?: string | null;
+    tenantConfig?: {
+      workspace: DetailWorkspaceResponse;
+      template?: DetailTemplateResponse;
+      channel?: DetailChannelResponse;
+      appConfig?: DetailAppConfigResponse;
+    };
   };
   'retry-failed-message-request': {
     messageRequestId: string;
@@ -50,6 +79,12 @@ export class MessageRequestProcessor {
   constructor(
     @Inject(APP_LOGGER) baseLogger: Logger,
     private readonly messageRequestService: MessageRequestApplicationService,
+    private readonly slackApiService: SlackApiService,
+    private readonly templateRenderer: TemplateRendererService,
+    @Inject(MESSAGE_REQUEST_QUERY_TOKEN)
+    private readonly messageRequestQuery: IMessageRequestQuery,
+    @Inject(MESSAGE_REQUEST_WRITER_TOKEN)
+    private readonly messageRequestWriter: IMessageRequestWriter,
   ) {
     this.logger = componentLogger(baseLogger, 'MessageRequestProcessor');
   }
@@ -120,38 +155,143 @@ export class MessageRequestProcessor {
   }
 
   /**
-   * Process message sending jobs
+   * Process message sending jobs with tenant configuration and Slack API integration
    */
   async handleSendMessageRequest(
     job: Job<MessageRequestJobs['send-message-request']>,
   ): Promise<void> {
-    const { messageRequestId, tenant } = job.data;
+    const { messageRequestId, tenant, tenantConfig } = job.data;
     const jobId = job.id;
+    const actor: ActorContext = {
+      tenant,
+      userId: 'system',
+      tenant_userId: 'system',
+    };
 
     Log.info(this.logger, 'Processing send message request job', {
       method: 'handleSendMessageRequest',
       jobId,
       messageRequestId,
       tenant,
+      hasConfig: !!tenantConfig,
     });
 
     try {
-      // This would integrate with Slack API or other messaging services
-      // For now, just log the intent
-      await new Promise((resolve) => setTimeout(resolve, 100)); // Simulate async work
+      // 1. Fetch message request details
+      const requestResult = await this.messageRequestQuery.findById(
+        actor,
+        messageRequestId,
+      );
+      if (!requestResult.ok || !requestResult.value) {
+        this.fail(messageRequestId, 'request_not_found');
+        return;
+      }
 
-      Log.info(this.logger, 'Message request sent successfully', {
+      const request = requestResult.value;
+
+      // 2. Extract tenant configuration
+      const { workspace, template, channel, appConfig } = tenantConfig || {};
+      if (!workspace) {
+        this.fail(messageRequestId, 'workspace_missing');
+        return;
+      }
+
+      const botToken = workspace.botToken;
+      if (!botToken) {
+        this.fail(messageRequestId, 'bot_token_missing');
+        return;
+      }
+
+      // Safely extract properties from Option type
+      const recipient = Option.isSome(request)
+        ? request.value.recipient
+        : undefined;
+      const requestData = Option.isSome(request)
+        ? request.value.data || {}
+        : {};
+
+      const channelId =
+        channel?.code || recipient || workspace.defaultChannelId;
+      if (!channelId) {
+        this.fail(messageRequestId, 'channel_missing');
+        return;
+      }
+
+      // 3. Render message template if available
+      let renderedBlocks: unknown[] = [];
+      if (template) {
+        const renderResult = this.templateRenderer.renderTemplate({
+          template,
+          variables: requestData,
+        });
+        if (!renderResult.ok) {
+          this.fail(messageRequestId, `render_error:${renderResult.error}`);
+          return;
+        }
+        renderedBlocks = renderResult.value as unknown[];
+      } else {
+        // Default message block if no template
+        renderedBlocks = [
+          {
+            type: 'section',
+            text: {
+              type: 'mrkdwn',
+              text: `Message from ${workspace.name}`,
+            },
+          },
+        ];
+      }
+
+      // 4. Send via Slack API with retry logic
+      const maxAttempts = appConfig?.maxRetryAttempts ?? 3;
+      const baseBackoff = appConfig?.retryBackoffSeconds ?? 2;
+
+      let attempt = 0;
+      let lastErr: string | undefined;
+
+      while (attempt < maxAttempts) {
+        attempt++;
+        const res = await this.slackApiService.sendMessage({
+          botToken,
+          channel: channelId,
+          blocks: renderedBlocks,
+          text: `Message from ${workspace.name}`,
+          thread_ts: job.data.threadTs || null,
+        });
+
+        if (res.ok) {
+          // Success - log and exit (no status update since writer doesn't support it)
+          Log.info(this.logger, 'Message request sent successfully', {
+            method: 'handleSendMessageRequest',
+            jobId,
+            messageRequestId,
+            slackTs: res.value.ts,
+            slackChannel: res.value.channel,
+            attempts: attempt,
+          });
+          return;
+        }
+
+        lastErr = res.error;
+        if (!res.retryable) break; // Don't retry non-retryable errors
+
+        // Wait with exponential backoff and jitter
+        const delay =
+          (res.retryAfterSec ?? baseBackoff * Math.pow(2, attempt)) * 1000;
+        await this.sleepWithJitter(delay);
+      }
+
+      // All attempts failed
+      Log.error(this.logger, 'Message request failed after all attempts', {
         method: 'handleSendMessageRequest',
         jobId,
         messageRequestId,
-        status: 'sent',
+        lastError: lastErr,
+        attempts: attempt,
       });
 
-      // In a real implementation:
-      // 1. Fetch message request details
-      // 2. Format message using template
-      // 3. Send via Slack API
-      // 4. Update message request status to 'sent' or 'failed'
+      // Re-throw to trigger BullMQ retry logic
+      throw new Error(`Slack message send failed: ${lastErr}`);
     } catch (error) {
       const e = error as Error;
       Log.error(this.logger, 'Error processing send message request job', {
@@ -163,6 +303,23 @@ export class MessageRequestProcessor {
       });
       throw error; // Re-throw to trigger BullMQ retry logic
     }
+  }
+
+  private async sleepWithJitter(ms: number): Promise<void> {
+    await new Promise((r) =>
+      setTimeout(r, Math.floor(ms * (0.8 + Math.random() * 0.4))),
+    );
+  }
+
+  private fail(messageRequestId: string, code: string): never {
+    Log.error(this.logger, 'Message request failed', {
+      method: 'handleSendMessageRequest',
+      messageRequestId,
+      reason: code,
+    });
+
+    // Since we can't update status through writer, throw error to trigger retry
+    throw new Error(`Message request failed: ${code}`);
   }
 
   /**

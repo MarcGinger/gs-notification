@@ -130,6 +130,7 @@ export class BullMQModule implements OnApplicationShutdown {
             // Use connection options so BullMQ manages role-specific connections internally
             const queue = new Queue(queueConfig.name, {
               connection: connectionOptions,
+              prefix: moduleOpts.keyPrefix, // Use BullMQ prefix option instead of Redis keyPrefix
               defaultJobOptions: {
                 removeOnComplete: 100,
                 removeOnFail: 50,
@@ -172,6 +173,7 @@ export class BullMQModule implements OnApplicationShutdown {
 
           const queueEvents = new QueueEvents(queueConfig.name, {
             connection: eventsConnection,
+            prefix: moduleOpts.keyPrefix, // Use BullMQ prefix option
             autorun: true,
           });
 
@@ -192,13 +194,17 @@ export class BullMQModule implements OnApplicationShutdown {
       // Worker providers (if configured)
       ...(options.workers || []).map((workerConfig) => ({
         provide: `Worker:${workerConfig.queueName}`,
-        inject: [BULLMQ_CONNECTION_OPTIONS],
-        useFactory: (connectionOptions: RedisOptions) => {
+        inject: [BULLMQ_CONNECTION_OPTIONS, BULLMQ_MODULE_OPTIONS],
+        useFactory: (
+          connectionOptions: RedisOptions,
+          moduleOpts: BullModuleOptions,
+        ) => {
           const worker = new Worker(
             workerConfig.queueName,
             workerConfig.processor,
             {
               connection: connectionOptions,
+              prefix: moduleOpts.keyPrefix, // Use BullMQ prefix option
               ...workerConfig.options,
             },
           );
@@ -245,7 +251,7 @@ export class BullMQModule implements OnApplicationShutdown {
     if (options.redis) {
       return {
         ...options.redis,
-        keyPrefix: options.keyPrefix,
+        // Remove keyPrefix - BullMQ handles prefixes at queue level
         maxRetriesPerRequest: null, // Required for BullMQ blocking operations
         lazyConnect: true,
         enableReadyCheck: false,
@@ -266,7 +272,7 @@ export class BullMQModule implements OnApplicationShutdown {
       username: url.username || undefined,
       db: url.pathname ? parseInt(url.pathname.slice(1)) || 0 : 0,
       tls: isTLS ? {} : undefined,
-      keyPrefix: options.keyPrefix,
+      // Remove keyPrefix - BullMQ handles prefixes at queue level
       maxRetriesPerRequest: null, // Required for BullMQ
       lazyConnect: true,
       enableReadyCheck: false,

@@ -12,6 +12,24 @@ Event Store → Projector → Redis + Job Queue
               [Redis Projection] + [Async Job Dispatch]
 ```
 
+## Refactored Design
+
+### Type Safety & Structure
+
+- **`MessageRequestProjectionParams`**: Replaces `MessageRequestRowParams` with clearer naming
+- **Modular Methods**: Job dispatching split into focused, testable methods
+- **Parameter Consolidation**: Removed redundant `tenant` parameter (now part of projection params)
+- **Validation**: Added comprehensive parameter validation with early returns
+
+### Method Structure
+
+```typescript
+dispatchJobsForEvent()           // Main orchestrator
+├── handleJobDispatchingByEventType()  // Event type routing
+├── dispatchSendMessageJob()           // Send job handler
+└── dispatchRetryMessageJob()          // Retry job handler
+```
+
 ## Job Dispatching Logic
 
 The projector dispatches jobs based on specific event types after successful Redis operations:
@@ -40,22 +58,35 @@ The projector dispatches jobs based on specific event types after successful Red
 
 ## Implementation Details
 
-### Job Dispatching Method
+### Refactored Job Dispatching Methods
 
 ```typescript
+// Main orchestrator with proper type safety
 private async dispatchJobsForEvent(
   event: ProjectionEvent,
-  params: any,
-  tenant: string,
+  params: MessageRequestProjectionParams,
 ): Promise<void>
+
+// Event type routing with return value indication
+private async handleJobDispatchingByEventType(
+  eventType: string,
+  context: { messageRequestId: string; tenant: string; status?: string },
+): Promise<boolean>
+
+// Specialized job dispatchers with consistent logging
+private async dispatchSendMessageJob(...): Promise<boolean>
+private async dispatchRetryMessageJob(...): Promise<boolean>
 ```
 
-### Key Features
+### Key Improvements
 
-1. **Type Safety**: Uses type assertions with null checks and ESLint suppressions
-2. **Error Isolation**: Job dispatching errors don't fail the projection
-3. **Conditional Logic**: Jobs are only dispatched for specific conditions
-4. **Comprehensive Logging**: All job dispatching is logged for monitoring
+1. **Strong Type Safety**: Uses `MessageRequestProjectionParams` interface instead of `any`
+2. **Parameter Consolidation**: Tenant extracted from projection params, removing redundancy
+3. **Modular Design**: Separate methods for different job types, improving testability
+4. **Return Indicators**: Methods return boolean to indicate if jobs were dispatched
+5. **Enhanced Validation**: Comprehensive parameter validation with descriptive logging
+6. **Error Isolation**: Job dispatching errors don't fail the projection
+7. **Consistent Logging**: Structured logging across all dispatching methods
 
 ### Error Handling
 
@@ -79,11 +110,21 @@ private async dispatchJobsForEvent(
 
 ## Benefits
 
+### Architectural Benefits
+
 1. **Event-Driven**: Jobs are automatically triggered by domain events
 2. **Decoupled**: Projections and job processing are independent
 3. **Resilient**: Failures in one system don't affect the other
 4. **Observable**: Comprehensive logging for monitoring and debugging
 5. **Scalable**: Background processing handles high-throughput scenarios
+
+### Code Quality Benefits
+
+6. **Type Safety**: Strong typing with `MessageRequestProjectionParams` eliminates runtime errors
+7. **Maintainable**: Modular method structure makes code easier to understand and modify
+8. **Testable**: Separate methods for different concerns enable focused unit testing
+9. **Readable**: Clear method names and parameter validation improve code clarity
+10. **Consistent**: Standardized logging and error handling patterns
 
 ## Monitoring
 

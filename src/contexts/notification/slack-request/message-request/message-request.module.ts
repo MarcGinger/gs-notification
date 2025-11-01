@@ -5,6 +5,12 @@ import { Module } from '@nestjs/common';
 import { BullMQModule } from 'src/shared/infrastructure/queue/bullmq.module';
 import { AppConfigUtil } from 'src/shared/config/app-config.util';
 import { SlackRequestSharedModule } from '../slack-request-shared.module';
+
+// Import slack-config modules for query interfaces
+import { WorkspaceModule } from 'src/contexts/notification/slack-config/workspace/workspace.module';
+import { TemplateModule } from 'src/contexts/notification/slack-config/template/template.module';
+import { ChannelModule } from 'src/contexts/notification/slack-config/channel/channel.module';
+import { AppConfigModule } from 'src/contexts/notification/slack-config/app-config/app-config.module';
 import { MessageRequestController } from './interface/http/controllers';
 import {
   MessageRequestApplicationService,
@@ -32,6 +38,7 @@ import {
 } from './infrastructure/repositories';
 import { MessageRequestQueueService } from './infrastructure/services';
 import { MessageRequestProcessor } from './infrastructure/processors';
+import { TemplateRendererService } from './infrastructure/services/template-renderer.service';
 
 // Tokens for injection - imported directly from port files
 import {
@@ -45,6 +52,11 @@ import {
 @Module({
   imports: [
     SlackRequestSharedModule, // Provides all common infrastructure and services
+    // Import slack-config modules for query interfaces
+    WorkspaceModule,
+    TemplateModule,
+    ChannelModule,
+    AppConfigModule,
     // Domain-specific BullMQ queue registration
     BullMQModule.register({
       redisUrl: AppConfigUtil.getRedisConfig().url,
@@ -106,6 +118,7 @@ import {
     // Queue and processing services
     MessageRequestQueueService,
     MessageRequestProcessor,
+    TemplateRendererService,
 
     // Use case implementations
     {
