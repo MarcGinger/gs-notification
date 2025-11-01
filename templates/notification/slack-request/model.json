@@ -2058,7 +2058,7 @@
           "defaultvalue": "",
           "example": "",
           "autoIncrement": false,
-          "maxLength": "10",
+          "maxLength": "32",
           "array": false,
           "isPII": "",
           "create": true,
@@ -2069,7 +2069,7 @@
           "childRelationship": "",
           "meta": {
             "kind": "string",
-            "maxLength": 10
+            "maxLength": 32
           }
         },
         {
@@ -2464,7 +2464,7 @@
           "defaultvalue": "",
           "example": "",
           "autoIncrement": false,
-          "maxLength": "10",
+          "maxLength": "32",
           "array": false,
           "isPII": "",
           "create": true,
@@ -2475,7 +2475,7 @@
           "childRelationship": "",
           "meta": {
             "kind": "string",
-            "maxLength": 10
+            "maxLength": 32
           }
         },
         {

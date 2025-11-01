@@ -27,7 +27,7 @@ export function ApiMessageRequestRecipient(options: PropOptions = {}) {
       required,
     }),
     IsString(),
-    MaxLength(10),
+    MaxLength(32),
     required ? IsNotEmpty() : IsOptional(),
   );
 }

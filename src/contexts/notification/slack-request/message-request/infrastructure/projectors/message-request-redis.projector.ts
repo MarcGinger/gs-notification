@@ -582,7 +582,13 @@ export class MessageRequestProjector
   ): Promise<boolean> {
     const { messageRequestId, tenant, status } = context;
 
-    switch (eventType) {
+    // Extract the simple event name from the full type (e.g., "NotificationSlackRequestMessageRequestCreated.v1" -> "MessageRequestCreated")
+    const simpleEventType = eventType
+      .replace(/^.*\./, '') // Remove namespace prefix
+      .replace(/\.v\d+$/, '') // Remove version suffix
+      .replace(/^NotificationSlackRequest/, ''); // Remove domain prefix
+
+    switch (simpleEventType) {
       case 'MessageRequestCreated':
         return await this.dispatchSendMessageJob(
           messageRequestId,
@@ -612,6 +618,7 @@ export class MessageRequestProjector
         Log.debug(this.logger, 'No job needed for status update', {
           method: 'handleJobDispatchingByEventType',
           eventType,
+          simpleEventType,
           messageRequestId,
           status,
         });
@@ -621,6 +628,7 @@ export class MessageRequestProjector
         Log.debug(this.logger, 'No job dispatching for event type', {
           method: 'handleJobDispatchingByEventType',
           eventType,
+          simpleEventType,
           messageRequestId,
         });
         return false;

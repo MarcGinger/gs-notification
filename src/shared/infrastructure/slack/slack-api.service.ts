@@ -83,7 +83,7 @@ export class SlackApiService {
       const error = err as Record<string, unknown>;
       const dataError = (error.data as Record<string, unknown>)?.error;
       const code = error.code;
-      
+
       if (typeof dataError === 'string') return dataError;
       if (typeof code === 'string') return code;
     }

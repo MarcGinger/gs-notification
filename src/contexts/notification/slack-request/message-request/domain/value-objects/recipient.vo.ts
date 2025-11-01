@@ -18,7 +18,7 @@ export const MessageRequestRecipient = createStringVO({
   caseTransform: 'none',
   allowEmpty: true,
 
-  maxLength: 10,
+  maxLength: 32,
 
   // Optional: declarative refinements for advanced validation
   // refinements: [
