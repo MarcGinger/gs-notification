@@ -543,7 +543,14 @@ export class MessageRequestProjector
       // Dispatch jobs based on event type with specific business logic
       const jobDispatched = await this.handleJobDispatchingByEventType(
         event.type,
-        { messageRequestId, tenant, status },
+        {
+          messageRequestId,
+          tenant,
+          status,
+          workspaceCode: params.workspaceCode,
+          templateCode: params.templateCode,
+          channelCode: params.channelCode,
+        },
       );
 
       if (jobDispatched) {
@@ -578,14 +585,23 @@ export class MessageRequestProjector
       messageRequestId: string;
       tenant: string;
       status?: string;
+      workspaceCode: string;
+      templateCode?: string;
+      channelCode?: string;
     },
   ): Promise<boolean> {
-    const { messageRequestId, tenant, status } = context;
+    const {
+      messageRequestId,
+      tenant,
+      status,
+      workspaceCode,
+      templateCode,
+      channelCode,
+    } = context;
 
     // Extract the simple event name from the full type (e.g., "NotificationSlackRequestMessageRequestCreated.v1" -> "MessageRequestCreated")
     const simpleEventType = eventType
-      .replace(/^.*\./, '') // Remove namespace prefix
-      .replace(/\.v\d+$/, '') // Remove version suffix
+      .replace(/\.v\d+$/, '') // Remove version suffix first
       .replace(/^NotificationSlackRequest/, ''); // Remove domain prefix
 
     switch (simpleEventType) {
@@ -595,6 +611,7 @@ export class MessageRequestProjector
           tenant,
           'created',
           { priority: 0, delay: 0 },
+          { workspaceCode, templateCode, channelCode },
         );
 
       case 'MessageRequestFailed':
@@ -613,6 +630,7 @@ export class MessageRequestProjector
             tenant,
             'updated',
             { priority: 0, delay: 0 },
+            { workspaceCode, templateCode, channelCode },
           );
         }
         Log.debug(this.logger, 'No job needed for status update', {
@@ -636,28 +654,60 @@ export class MessageRequestProjector
   }
 
   /**
-   * Dispatch a send message job with consistent logging
+   * Dispatch a send message job with consistent logging and tenant configuration
    */
   private async dispatchSendMessageJob(
     messageRequestId: string,
     tenant: string,
     trigger: string,
     options: { priority: number; delay: number },
+    config: {
+      workspaceCode: string;
+      templateCode?: string;
+      channelCode?: string;
+    },
   ): Promise<boolean> {
-    await this.queueService.queueSendMessageRequest(
+    // Use enriched queue method that fetches tenant configuration
+    const result = await this.queueService.queueEnrichedSendMessageRequest(
       messageRequestId,
       tenant,
+      config.workspaceCode,
+      config.templateCode,
+      config.channelCode,
       options,
     );
 
-    Log.info(this.logger, `Queued send message job for ${trigger} request`, {
-      method: 'dispatchSendMessageJob',
-      trigger,
-      messageRequestId,
-      tenant,
-      priority: options.priority,
-      delay: options.delay,
-    });
+    if (!result.ok) {
+      Log.error(
+        this.logger,
+        `Failed to queue send message job for ${trigger} request`,
+        {
+          method: 'dispatchSendMessageJob',
+          trigger,
+          messageRequestId,
+          tenant,
+          error: result.error.detail,
+        },
+      );
+      return false;
+    }
+
+    Log.info(
+      this.logger,
+      `Queued enriched send message job for ${trigger} request`,
+      {
+        method: 'dispatchSendMessageJob',
+        trigger,
+        messageRequestId,
+        tenant,
+        workspaceCode: config.workspaceCode,
+        templateCode: config.templateCode,
+        channelCode: config.channelCode,
+        priority: options.priority,
+        delay: options.delay,
+        jobId: result.value,
+      },
+    );
 
     return true;
   }
