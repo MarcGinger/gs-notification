@@ -351,8 +351,18 @@ export class MessageRequestProcessor implements OnModuleInit, OnModuleDestroy {
           variables: requestData,
         });
         if (!renderResult.ok) {
-          this.fail(messageRequestId, `render_error:${renderResult.error}`);
-          return;
+          // TODO fix: provide better error handling
+          renderedBlocks = [
+            {
+              type: 'section',
+              text: {
+                type: 'mrkdwn',
+                text: `Message from ${workspace.name}`,
+              },
+            },
+          ];
+          // this.fail(messageRequestId, `render_error:${renderResult.error}`);
+          // return;
         }
         renderedBlocks = renderResult.value as unknown[];
       } else {
