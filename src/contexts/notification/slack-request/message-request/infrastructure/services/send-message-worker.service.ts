@@ -346,11 +346,15 @@ export class SendMessageWorkerService implements OnModuleInit, OnModuleDestroy {
       const errorMessage =
         error instanceof Error ? error.message : 'Unknown error';
 
-      Log.error(this.logger, 'Failed to resolve MessageRequest data from Redis', {
-        messageRequestId,
-        tenant,
-        error: errorMessage,
-      });
+      Log.error(
+        this.logger,
+        'Failed to resolve MessageRequest data from Redis',
+        {
+          messageRequestId,
+          tenant,
+          error: errorMessage,
+        },
+      );
 
       return {
         success: false,
@@ -500,13 +504,17 @@ export class SendMessageWorkerService implements OnModuleInit, OnModuleDestroy {
             attempts: 1,
           });
         } catch (reportError) {
-          Log.warn(this.logger, 'Failed to report bot token validation failure', {
-            messageRequestId: job.data.messageRequestId,
-            reportError:
-              reportError instanceof Error
-                ? reportError.message
-                : 'Unknown error',
-          });
+          Log.warn(
+            this.logger,
+            'Failed to report bot token validation failure',
+            {
+              messageRequestId: job.data.messageRequestId,
+              reportError:
+                reportError instanceof Error
+                  ? reportError.message
+                  : 'Unknown error',
+            },
+          );
         }
 
         return {
@@ -666,18 +674,26 @@ export class SendMessageWorkerService implements OnModuleInit, OnModuleDestroy {
             attempts: 1, // BullMQ handles retries at job level
           });
 
-          Log.debug(this.logger, 'Recorded Slack API failure to MessageRequest', {
-            messageRequestId: job.data.messageRequestId,
-            slackError: slackResult.error,
-          });
+          Log.debug(
+            this.logger,
+            'Recorded Slack API failure to MessageRequest',
+            {
+              messageRequestId: job.data.messageRequestId,
+              slackError: slackResult.error,
+            },
+          );
         } catch (reportError) {
-          Log.warn(this.logger, 'Failed to report Slack failure to MessageRequest', {
-            messageRequestId: job.data.messageRequestId,
-            reportError:
-              reportError instanceof Error
-                ? reportError.message
-                : 'Unknown error',
-          });
+          Log.warn(
+            this.logger,
+            'Failed to report Slack failure to MessageRequest',
+            {
+              messageRequestId: job.data.messageRequestId,
+              reportError:
+                reportError instanceof Error
+                  ? reportError.message
+                  : 'Unknown error',
+            },
+          );
         }
 
         return {
@@ -702,10 +718,14 @@ export class SendMessageWorkerService implements OnModuleInit, OnModuleDestroy {
           attempts: 1, // BullMQ handles retries at job level
         });
 
-        Log.debug(this.logger, 'Recorded successful delivery to MessageRequest', {
-          messageRequestId: job.data.messageRequestId,
-          slackTs: slackResult.value.ts,
-        });
+        Log.debug(
+          this.logger,
+          'Recorded successful delivery to MessageRequest',
+          {
+            messageRequestId: job.data.messageRequestId,
+            slackTs: slackResult.value.ts,
+          },
+        );
       } catch (reportError) {
         // Don't fail the job if reporting fails - the message was sent successfully
         Log.warn(this.logger, 'Failed to report success to MessageRequest', {
