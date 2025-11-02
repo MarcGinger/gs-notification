@@ -498,10 +498,10 @@ export class SendMessageWorkerService implements OnModuleInit, OnModuleDestroy {
         try {
           await this.messageRequestAppPort.recordFailed({
             id: job.data.messageRequestId,
-            tenant: job.data.tenant,
             reason: errorMsg,
             retryable: false, // Configuration error, not retryable
             attempts: 1,
+            tenant: job.data.tenant,
           });
         } catch (reportError) {
           Log.warn(
@@ -554,10 +554,10 @@ export class SendMessageWorkerService implements OnModuleInit, OnModuleDestroy {
         try {
           await this.messageRequestAppPort.recordFailed({
             id: job.data.messageRequestId,
-            tenant: job.data.tenant,
             reason: errorMsg,
             retryable: false, // Configuration error, not retryable
             attempts: 1,
+            tenant: job.data.tenant,
           });
         } catch (reportError) {
           Log.warn(this.logger, 'Failed to report channel validation failure', {
@@ -668,10 +668,10 @@ export class SendMessageWorkerService implements OnModuleInit, OnModuleDestroy {
         try {
           await this.messageRequestAppPort.recordFailed({
             id: job.data.messageRequestId,
-            tenant: job.data.tenant,
             reason: slackResult.error,
             retryable: slackResult.retryable,
             attempts: 1, // BullMQ handles retries at job level
+            tenant: job.data.tenant,
           });
 
           Log.debug(
@@ -712,10 +712,8 @@ export class SendMessageWorkerService implements OnModuleInit, OnModuleDestroy {
       try {
         await this.messageRequestAppPort.recordSent({
           id: job.data.messageRequestId,
-          tenant: job.data.tenant,
-          slackTs: slackResult.value.ts,
-          slackChannel: slackResult.value.channel,
           attempts: 1, // BullMQ handles retries at job level
+          tenant: job.data.tenant,
         });
 
         Log.debug(
@@ -757,9 +755,9 @@ export class SendMessageWorkerService implements OnModuleInit, OnModuleDestroy {
       try {
         await this.messageRequestAppPort.recordFailed({
           id: job.data.messageRequestId,
-          tenant: job.data.tenant,
           reason: errorMessage,
           attempts: 1, // BullMQ handles retries at job level
+          tenant: job.data.tenant,
         });
 
         Log.debug(this.logger, 'Recorded failure to MessageRequest', {

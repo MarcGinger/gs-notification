@@ -494,9 +494,6 @@ export class MessageRequestProcessor implements OnModuleInit, OnModuleDestroy {
           // Success - record delivery through application port
           await this.messageRequestAppPort.recordSent({
             id: messageRequestId,
-            tenant,
-            slackTs: res.value.ts,
-            slackChannel: res.value.channel,
             attempts: attempt,
             // Note: correlationId, causationId, and actor not available in send-message-request job data
             // Future: Could be passed through from create-message-request job
@@ -527,7 +524,6 @@ export class MessageRequestProcessor implements OnModuleInit, OnModuleDestroy {
       // Record failure through application port
       await this.messageRequestAppPort.recordFailed({
         id: messageRequestId,
-        tenant,
         reason: 'max_attempts_exceeded',
         attempts: attempt,
         retryable: false,
@@ -550,7 +546,6 @@ export class MessageRequestProcessor implements OnModuleInit, OnModuleDestroy {
       // Record failure through application port
       await this.messageRequestAppPort.recordFailed({
         id: messageRequestId,
-        tenant,
         reason: 'unexpected_error',
         attempts: 1, // This is an unexpected error, not a retry
         retryable: false,
@@ -614,7 +609,6 @@ export class MessageRequestProcessor implements OnModuleInit, OnModuleDestroy {
     // Record failure through application port
     await this.messageRequestAppPort.recordFailed({
       id: messageRequestId,
-      tenant,
       reason: code,
       attempts: 1,
       retryable: false,

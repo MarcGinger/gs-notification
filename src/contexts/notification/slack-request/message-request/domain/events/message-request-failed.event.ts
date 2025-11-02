@@ -3,21 +3,14 @@
 
 /**
  * MessageRequest Failed Event Payload
- * Domain-shaped payload with failure details
+ * Contains only business facts - no envelope metadata, timestamps, or versioning
  */
 export interface MessageRequestFailedEventPayload {
   id: string;
-  tenant: string;
   reason: string; // normalized error code (e.g., 'invalid_auth')
   attempts: number;
   retryable?: boolean;
   lastError?: string;
-  correlationId?: string;
-  causationId?: string;
-  actor?: {
-    userId: string;
-    roles?: string[];
-  };
 }
 
 /**
@@ -32,7 +25,7 @@ export class MessageRequestFailedEvent {
 
   constructor(public readonly payload: MessageRequestFailedEventPayload) {}
 
-  // Factory method - rich domain data with failure metadata
+  // Factory method - no metadata needed, just business data
   static create(
     data: MessageRequestFailedEventPayload,
   ): MessageRequestFailedEvent {
@@ -41,10 +34,6 @@ export class MessageRequestFailedEvent {
 
   get id(): string {
     return this.payload.id;
-  }
-
-  get tenant(): string {
-    return this.payload.tenant;
   }
 
   get reason(): string {
@@ -61,17 +50,5 @@ export class MessageRequestFailedEvent {
 
   get lastError(): string | undefined {
     return this.payload.lastError;
-  }
-
-  get correlationId(): string | undefined {
-    return this.payload.correlationId;
-  }
-
-  get causationId(): string | undefined {
-    return this.payload.causationId;
-  }
-
-  get actor(): { userId: string; roles?: string[] } | undefined {
-    return this.payload.actor;
   }
 }

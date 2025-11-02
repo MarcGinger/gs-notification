@@ -18,7 +18,7 @@ import {
   MessageRequestAuthorizationAdapter,
   MessageRequestForeignKeyValidatorService,
 } from './application/services';
-import { MessageRequestAppPortAdapter } from './application/adapters/message-request-app-port.adapter';
+
 import { MESSAGE_REQUEST_APP_PORT } from './application/ports/message-request-app.port';
 import {
   ICreateMessageRequestUseCase,
@@ -27,6 +27,10 @@ import {
   GetMessageRequestUseCase,
   IListMessageRequestUseCase,
   ListMessageRequestUseCase,
+  IRecordMessageSentUseCase,
+  RecordMessageSentUseCase,
+  IRecordMessageFailedUseCase,
+  RecordMessageFailedUseCase,
 } from './application/use-cases';
 
 // import { IMessageRequestRepository } from './application/ports';
@@ -121,10 +125,10 @@ import {
     MessageRequestAuthorizationAdapter,
     MessageRequestForeignKeyValidatorService,
 
-    // Application Port Adapter (Phase 1)
+    // Application Port (Service implements interface directly)
     {
       provide: MESSAGE_REQUEST_APP_PORT,
-      useClass: MessageRequestAppPortAdapter,
+      useExisting: MessageRequestApplicationService,
     },
 
     // Queue and processing services
@@ -146,6 +150,14 @@ import {
     {
       provide: IListMessageRequestUseCase,
       useClass: ListMessageRequestUseCase,
+    },
+    {
+      provide: IRecordMessageSentUseCase,
+      useClass: RecordMessageSentUseCase,
+    },
+    {
+      provide: IRecordMessageFailedUseCase,
+      useClass: RecordMessageFailedUseCase,
     },
   ],
   exports: [

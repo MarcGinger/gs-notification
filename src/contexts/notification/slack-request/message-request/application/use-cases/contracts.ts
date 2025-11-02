@@ -17,6 +17,24 @@ import type {
   ListMessageRequestFilterRequest,
 } from '../dtos';
 
+// Props interfaces for outcome recording operations
+export interface RecordMessageSentProps {
+  id: string;
+  attempts: number;
+  correlationId?: string;
+  causationId?: string;
+}
+
+export interface RecordMessageFailedProps {
+  id: string;
+  reason: string;
+  attempts: number;
+  retryable?: boolean;
+  lastError?: string;
+  correlationId?: string;
+  causationId?: string;
+}
+
 export abstract class ICreateMessageRequestUseCase {
   abstract execute(params: {
     user: IUserToken;
@@ -39,4 +57,22 @@ export abstract class IListMessageRequestUseCase {
     filter?: ListMessageRequestFilterRequest;
     correlationId: string;
   }): Promise<Result<MessageRequestPageResponse, DomainError>>;
+}
+
+export abstract class IRecordMessageSentUseCase {
+  abstract execute(params: {
+    user: IUserToken;
+    props: RecordMessageSentProps;
+    correlationId: string;
+    authorizationReason: string;
+  }): Promise<Result<DetailMessageRequestResponse, DomainError>>;
+}
+
+export abstract class IRecordMessageFailedUseCase {
+  abstract execute(params: {
+    user: IUserToken;
+    props: RecordMessageFailedProps;
+    correlationId: string;
+    authorizationReason: string;
+  }): Promise<Result<DetailMessageRequestResponse, DomainError>>;
 }

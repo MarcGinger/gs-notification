@@ -549,17 +549,13 @@ export class MessageRequestAggregate extends AggregateRootBase {
   }
 
   /**
-   * Mark message request as failed with rich metadata
+   * Mark message request as failed with business metadata
    */
   public markFailed(metadata: {
-    tenant: string;
     reason: string;
     attempts: number;
     retryable?: boolean;
     lastError?: string;
-    correlationId?: string;
-    causationId?: string;
-    actor?: { userId: string; roles?: string[] };
   }): Result<void, DomainError> {
     // Update status to failed
     const statusResult = createMessageRequestStatus('failed');
@@ -568,24 +564,23 @@ export class MessageRequestAggregate extends AggregateRootBase {
     const updateResult = this.updateBatch({ status: statusResult.value });
     if (!updateResult.ok) return err(updateResult.error);
 
-    // Emit domain event with rich metadata
+    // Create typed MessageRequestFailedEvent with only business data
+    const failedEvent = MessageRequestFailedEvent.create({
+      id: this._entity.id.value,
+      reason: metadata.reason,
+      attempts: metadata.attempts,
+      retryable: metadata.retryable,
+      lastError: metadata.lastError,
+    });
+
+    // Apply as domain event with clean business data
     const domainEvent: DomainEvent = {
-      type: 'NotificationSlackRequestMessageFailed.v1',
-      version: 1,
+      type: failedEvent.eventType,
+      version: Number(failedEvent.eventVersion),
       occurredAt: this.clock.now(),
       aggregateId: this._entity.id.value,
       aggregateType: 'MessageRequest',
-      data: {
-        id: this._entity.id.value,
-        tenant: metadata.tenant,
-        reason: metadata.reason,
-        attempts: metadata.attempts,
-        retryable: metadata.retryable,
-        lastError: metadata.lastError,
-        correlationId: metadata.correlationId,
-        causationId: metadata.causationId,
-        actor: metadata.actor,
-      },
+      data: failedEvent.payload,
       metadata: this.eventMetadata,
     };
 
@@ -594,17 +589,9 @@ export class MessageRequestAggregate extends AggregateRootBase {
   }
 
   /**
-   * Mark message request as sent with rich metadata
+   * Mark message request as sent with business metadata
    */
-  public markSent(metadata: {
-    tenant: string;
-    slackTs: string;
-    slackChannel: string;
-    attempts: number;
-    correlationId?: string;
-    causationId?: string;
-    actor?: { userId: string; roles?: string[] };
-  }): Result<void, DomainError> {
+  public markSent(metadata: { attempts: number }): Result<void, DomainError> {
     // Update status to sent
     const statusResult = createMessageRequestStatus('sent');
     if (!statusResult.ok) return err(statusResult.error);
@@ -612,23 +599,20 @@ export class MessageRequestAggregate extends AggregateRootBase {
     const updateResult = this.updateBatch({ status: statusResult.value });
     if (!updateResult.ok) return err(updateResult.error);
 
-    // Emit domain event with rich metadata
+    // Create typed MessageRequestSentEvent with only business data
+    const sentEvent = MessageRequestSentEvent.create({
+      id: this._entity.id.value,
+      attempts: metadata.attempts,
+    });
+
+    // Apply as domain event with clean business data
     const domainEvent: DomainEvent = {
-      type: 'NotificationSlackRequestMessageSent.v1',
-      version: 1,
+      type: sentEvent.eventType,
+      version: Number(sentEvent.eventVersion),
       occurredAt: this.clock.now(),
       aggregateId: this._entity.id.value,
       aggregateType: 'MessageRequest',
-      data: {
-        id: this._entity.id.value,
-        tenant: metadata.tenant,
-        slackTs: metadata.slackTs,
-        slackChannel: metadata.slackChannel,
-        attempts: metadata.attempts,
-        correlationId: metadata.correlationId,
-        causationId: metadata.causationId,
-        actor: metadata.actor,
-      },
+      data: sentEvent.payload,
       metadata: this.eventMetadata,
     };
 

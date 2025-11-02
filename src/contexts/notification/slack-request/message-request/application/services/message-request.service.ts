@@ -14,6 +14,7 @@ import { Inject, Injectable } from '@nestjs/common';
 import { APP_LOGGER, Log, componentLogger, Logger } from 'src/shared/logging';
 import { Result, DomainError, err, ok, withContext } from 'src/shared/errors';
 import type { IUserToken } from 'src/shared/security';
+import { createSystemUserToken } from 'src/shared/security';
 import { CorrelationUtil } from 'src/shared/utilities/correlation.util';
 import { Clock, CLOCK } from 'src/shared/infrastructure/time';
 
@@ -38,13 +39,19 @@ import {
   ICreateMessageRequestUseCase,
   IGetMessageRequestUseCase,
   IListMessageRequestUseCase,
+  IRecordMessageSentUseCase,
+  IRecordMessageFailedUseCase,
 } from '../use-cases/contracts';
+import { IMessageRequestAppPort } from '../ports/message-request-app.port';
 
 /**
  * Application Service for MessageRequest operations with integrated authorization
+ * Also implements IMessageRequestAppPort for infrastructure compatibility
  */
 @Injectable()
-export class MessageRequestApplicationService {
+export class MessageRequestApplicationService
+  implements IMessageRequestAppPort
+{
   private readonly logger: Logger;
 
   constructor(
@@ -52,6 +59,8 @@ export class MessageRequestApplicationService {
     private readonly createMessageRequestUseCase: ICreateMessageRequestUseCase,
     private readonly getMessageRequestUseCase: IGetMessageRequestUseCase,
     private readonly listMessageRequestUseCase: IListMessageRequestUseCase,
+    private readonly recordSentUseCase: IRecordMessageSentUseCase,
+    private readonly recordFailedUseCase: IRecordMessageFailedUseCase,
     @Inject(CLOCK) private readonly clock: Clock,
     @Inject(APP_LOGGER) moduleLogger: Logger,
   ) {
@@ -314,5 +323,194 @@ export class MessageRequestApplicationService {
         page: safeFilter.page,
       },
     });
+  }
+
+  /**
+   * Record successful message delivery (System operation)
+   */
+  async recordMessageSent(input: {
+    id: string;
+    attempts: number;
+    tenant?: string;
+    correlationId?: string;
+    causationId?: string;
+  }): Promise<Result<DetailMessageRequestResponse, DomainError>> {
+    const correlationId =
+      input.correlationId ||
+      CorrelationUtil.generateForOperation('message-request-record-sent');
+
+    const ctx = this.createLogContext(
+      'record_message_sent',
+      correlationId,
+      'system',
+      {
+        messageRequestId: input.id,
+        attempts: input.attempts,
+      },
+    );
+
+    Log.info(this.logger, 'Recording successful message delivery', ctx);
+
+    try {
+      const systemUserToken = createSystemUserToken(input.tenant || 'system');
+
+      const result = await this.recordSentUseCase.execute({
+        user: systemUserToken,
+        props: {
+          id: input.id,
+          attempts: input.attempts,
+          correlationId: input.correlationId,
+          causationId: input.causationId,
+        },
+        correlationId,
+        authorizationReason: 'System recording message delivery outcome',
+      });
+
+      if (result.ok) {
+        Log.info(this.logger, 'Successfully recorded message delivery', {
+          ...ctx,
+          messageRequestId: result.value.id,
+          phase: 'CleanArchitecture-UseCase',
+        });
+      }
+
+      return result;
+    } catch (error) {
+      Log.error(this.logger, 'Failed to record message delivery', {
+        ...ctx,
+        error: error instanceof Error ? error.message : 'Unknown error',
+      });
+
+      return err({
+        code: 'DOMAIN.MESSAGE_REQUEST.RECORD_SENT_FAILED',
+        title: 'Failed to record message delivery',
+        detail: error instanceof Error ? error.message : 'Unknown error',
+        category: 'application',
+        context: {
+          correlationId,
+          messageRequestId: input.id,
+          operation: 'record_message_sent',
+        },
+      });
+    }
+  }
+
+  /**
+   * Record failed message delivery (System operation)
+   */
+  async recordMessageFailed(input: {
+    id: string;
+    reason: string;
+    attempts: number;
+    retryable?: boolean;
+    lastError?: string;
+    tenant?: string;
+    correlationId?: string;
+    causationId?: string;
+  }): Promise<Result<DetailMessageRequestResponse, DomainError>> {
+    const correlationId =
+      input.correlationId ||
+      CorrelationUtil.generateForOperation('message-request-record-failed');
+
+    const ctx = this.createLogContext(
+      'record_message_failed',
+      correlationId,
+      'system',
+      {
+        messageRequestId: input.id,
+        reason: input.reason,
+        attempts: input.attempts,
+        retryable: input.retryable,
+      },
+    );
+
+    Log.info(this.logger, 'Recording failed message delivery', ctx);
+
+    try {
+      const systemUserToken = createSystemUserToken(input.tenant || 'system');
+
+      const result = await this.recordFailedUseCase.execute({
+        user: systemUserToken,
+        props: {
+          id: input.id,
+          reason: input.reason,
+          attempts: input.attempts,
+          retryable: input.retryable,
+          lastError: input.lastError,
+          correlationId: input.correlationId,
+          causationId: input.causationId,
+        },
+        correlationId,
+        authorizationReason: 'System recording message delivery failure',
+      });
+
+      if (result.ok) {
+        Log.info(this.logger, 'Successfully recorded message failure', {
+          ...ctx,
+          messageRequestId: result.value.id,
+          phase: 'CleanArchitecture-UseCase',
+        });
+      }
+
+      return result;
+    } catch (error) {
+      Log.error(this.logger, 'Failed to record message failure', {
+        ...ctx,
+        error: error instanceof Error ? error.message : 'Unknown error',
+      });
+
+      return err({
+        code: 'DOMAIN.MESSAGE_REQUEST.RECORD_FAILED_FAILED',
+        title: 'Failed to record message failure',
+        detail: error instanceof Error ? error.message : 'Unknown error',
+        category: 'application',
+        context: {
+          correlationId,
+          messageRequestId: input.id,
+          operation: 'record_message_failed',
+        },
+      });
+    }
+  }
+
+  // IMessageRequestAppPort implementation (infrastructure compatibility)
+
+  /**
+   * Record successful message delivery (Infrastructure interface)
+   * Throws on failure for infrastructure compatibility
+   */
+  async recordSent(input: {
+    id: string;
+    attempts: number;
+    tenant?: string;
+    correlationId?: string;
+    causationId?: string;
+  }): Promise<void> {
+    const result = await this.recordMessageSent(input);
+    if (!result.ok) {
+      throw new Error(`Failed to record message sent: ${result.error.detail}`);
+    }
+  }
+
+  /**
+   * Record failed message delivery (Infrastructure interface)
+   * Throws on failure for infrastructure compatibility
+   */
+  async recordFailed(input: {
+    id: string;
+    reason: string;
+    attempts: number;
+    retryable?: boolean;
+    lastError?: string;
+    tenant?: string;
+    correlationId?: string;
+    causationId?: string;
+  }): Promise<void> {
+    const result = await this.recordMessageFailed(input);
+    if (!result.ok) {
+      throw new Error(
+        `Failed to record message failed: ${result.error.detail}`,
+      );
+    }
   }
 }

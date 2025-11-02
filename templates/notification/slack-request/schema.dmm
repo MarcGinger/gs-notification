@@ -625,7 +625,7 @@
 				{
 					"id": "t4d5e6f7-g8h9-0i1j-2k3l-4m5n6o7p8q9r",
 					"name": "content_blocks",
-					"datatype": "JSON",
+					"datatype": "TEXT",
 					"param": "",
 					"pk": false,
 					"nn": true,
@@ -1397,7 +1397,7 @@
 		},
 		"type": "MARIADB",
 		"version": 1,
-		"lastSaved": 1761988154173,
+		"lastSaved": 1762074548543,
 		"beforeScript": "",
 		"afterScript": "",
 		"sqlSettings": {

@@ -10,13 +10,10 @@ export interface IMessageRequestAppPort {
    */
   recordSent(input: {
     id: string; // messageRequestId
-    tenant: string;
-    slackTs: string;
-    slackChannel: string;
     attempts: number;
+    tenant?: string;
     correlationId?: string;
     causationId?: string;
-    actor?: { userId: string; roles?: string[] };
   }): Promise<void>;
 
   /**
@@ -24,14 +21,13 @@ export interface IMessageRequestAppPort {
    */
   recordFailed(input: {
     id: string;
-    tenant: string;
     reason: string; // normalized error code (e.g., 'invalid_auth')
     attempts: number;
     retryable?: boolean;
     lastError?: string;
+    tenant?: string;
     correlationId?: string;
     causationId?: string;
-    actor?: { userId: string; roles?: string[] };
   }): Promise<void>;
 }
 

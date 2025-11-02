@@ -3,20 +3,11 @@
 
 /**
  * MessageRequest Sent Event Payload
- * Domain-shaped payload with delivery details
+ * Contains only business facts - no envelope metadata, timestamps, or versioning
  */
 export interface MessageRequestSentEventPayload {
   id: string;
-  tenant: string;
-  slackTs: string;
-  slackChannel: string;
   attempts: number;
-  correlationId?: string;
-  causationId?: string;
-  actor?: {
-    userId: string;
-    roles?: string[];
-  };
 }
 
 /**
@@ -31,7 +22,7 @@ export class MessageRequestSentEvent {
 
   constructor(public readonly payload: MessageRequestSentEventPayload) {}
 
-  // Factory method - rich domain data with delivery metadata
+  // Factory method - no metadata needed, just business data
   static create(data: MessageRequestSentEventPayload): MessageRequestSentEvent {
     return new MessageRequestSentEvent(data);
   }
@@ -40,31 +31,7 @@ export class MessageRequestSentEvent {
     return this.payload.id;
   }
 
-  get tenant(): string {
-    return this.payload.tenant;
-  }
-
-  get slackTs(): string {
-    return this.payload.slackTs;
-  }
-
-  get slackChannel(): string {
-    return this.payload.slackChannel;
-  }
-
   get attempts(): number {
     return this.payload.attempts;
-  }
-
-  get correlationId(): string | undefined {
-    return this.payload.correlationId;
-  }
-
-  get causationId(): string | undefined {
-    return this.payload.causationId;
-  }
-
-  get actor(): { userId: string; roles?: string[] } | undefined {
-    return this.payload.actor;
   }
 }
