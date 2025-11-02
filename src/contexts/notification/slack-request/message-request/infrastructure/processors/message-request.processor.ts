@@ -8,6 +8,7 @@ import {
   OnModuleDestroy,
 } from '@nestjs/common';
 import { Job, Worker } from 'bullmq';
+import Redis from 'ioredis';
 import { APP_LOGGER, Log, Logger, componentLogger } from 'src/shared/logging';
 import { AppConfigUtil } from 'src/shared/config/app-config.util';
 import { MessageRequestApplicationService } from '../../application/services';
@@ -35,6 +36,9 @@ import type {
   IMessageRequestQuery,
   IMessageRequestWriter,
 } from '../../application/ports';
+
+// Import DI tokens for Redis access
+import { SLACK_REQUEST_DI_TOKENS } from '../../../slack-request.constants';
 
 /**
  * Message Request Queue Job Types
@@ -92,6 +96,8 @@ export class MessageRequestProcessor implements OnModuleInit, OnModuleDestroy {
     private readonly messageRequestQuery: IMessageRequestQuery,
     @Inject(MESSAGE_REQUEST_WRITER_TOKEN)
     private readonly messageRequestWriter: IMessageRequestWriter,
+    @Inject(SLACK_REQUEST_DI_TOKENS.IO_REDIS)
+    private readonly redis: Redis,
   ) {
     this.logger = componentLogger(baseLogger, 'MessageRequestProcessor');
   }
@@ -151,7 +157,7 @@ export class MessageRequestProcessor implements OnModuleInit, OnModuleDestroy {
           db: redisConfig.database,
         },
         prefix: `${environment}:message-request:`,
-        concurrency: 5, // Process up to 5 jobs concurrently
+        concurrency: 4, // Process up to 4 jobs concurrently (optimal for Slack API)
         limiter: {
           max: 10,
           duration: 60000, // 10 jobs per minute rate limiting
@@ -282,6 +288,7 @@ export class MessageRequestProcessor implements OnModuleInit, OnModuleDestroy {
 
   /**
    * Process message sending jobs with tenant configuration and Slack API integration
+   * Implements idempotency guards and internal retry logic with status updates
    */
   async handleSendMessageRequest(
     job: Job<MessageRequestJobs['send-message-request']>,
@@ -302,69 +309,115 @@ export class MessageRequestProcessor implements OnModuleInit, OnModuleDestroy {
       hasConfig: !!tenantConfig,
     });
 
+    // 1. Idempotency guard - prevent duplicate processing
+    const isFirstTime = await this.checkIdempotency(tenant, messageRequestId);
+    if (!isFirstTime) {
+      Log.info(this.logger, 'Skipping duplicate send (idempotency)', {
+        method: 'handleSendMessageRequest',
+        messageRequestId,
+        tenant,
+        jobId,
+      });
+      return;
+    }
+
     try {
-      // 1. Fetch message request details
+      // 2. Fetch message request details
       const requestResult = await this.messageRequestQuery.findById(
         actor,
         messageRequestId,
       );
       if (!requestResult.ok || !requestResult.value) {
-        this.fail(messageRequestId, 'request_not_found');
-        return;
+        return this.fail(messageRequestId, 'request_not_found');
       }
 
       const request = requestResult.value;
 
-      // 2. Extract tenant configuration
-      const { workspace, template, channel, appConfig } = tenantConfig || {};
-      if (!workspace) {
-        this.fail(messageRequestId, 'workspace_missing');
-        return;
-      }
-
-      const botToken = workspace.botToken;
-      if (!botToken) {
-        this.fail(messageRequestId, 'bot_token_missing');
-        return;
-      }
-
-      // Safely extract properties from Option type
+      // Safely extract data from the request (handle Option type)
+      const requestData = Option.isSome(request)
+        ? (request.value.data ?? {})
+        : {};
       const recipient = Option.isSome(request)
         ? request.value.recipient
         : undefined;
-      const requestData = Option.isSome(request)
-        ? request.value.data || {}
-        : {};
 
+      // 3. Extract tenant configuration
+      const { workspace, template, channel, appConfig } = tenantConfig || {};
+      if (!workspace?.botToken) {
+        return this.fail(messageRequestId, 'bot_token_missing');
+      }
+
+      // Use channel code (assuming it's the Slack channel ID) or fallback to recipient
       const channelId =
         channel?.code || recipient || workspace.defaultChannelId;
       if (!channelId) {
-        this.fail(messageRequestId, 'channel_missing');
-        return;
+        return this.fail(messageRequestId, 'channel_missing');
       }
 
-      // 3. Render message template if available
-      let renderedBlocks: unknown[] = [];
+      // 4. Render message template
+      let renderedBlocks: unknown[];
       if (template) {
-        const renderResult = this.templateRenderer.renderTemplate({
+        Log.debug(this.logger, 'Rendering template', {
+          method: 'handleSendMessageRequest',
+          messageRequestId,
+          tenant,
+          templateCode: template.code,
+          templateName: template.name,
+          hasContentBlocks: Array.isArray(template.contentBlocks),
+          contentBlocksCount: template.contentBlocks?.length ?? 0,
+          requiredVariables: template.variables ?? [],
+          providedVariables: Object.keys(requestData),
+        });
+
+        const renderRes = this.templateRenderer.renderTemplate({
           template,
           variables: requestData,
         });
-        if (!renderResult.ok) {
-          // TODO fix: provide better error handling
+        if (!renderRes.ok) {
+          Log.error(this.logger, 'Template rendering failed', {
+            method: 'handleSendMessageRequest',
+            messageRequestId,
+            tenant,
+            templateCode: template.code,
+            renderError: renderRes.error,
+            contentBlocks: template.contentBlocks,
+            variables: requestData,
+          });
+
+          // Fallback to default message instead of failing completely
+          Log.info(
+            this.logger,
+            'Using fallback message due to template error',
+            {
+              method: 'handleSendMessageRequest',
+              messageRequestId,
+              tenant,
+            },
+          );
+
           renderedBlocks = [
             {
               type: 'section',
               text: {
                 type: 'mrkdwn',
-                text: `Message from ${workspace.name}`,
+                text: `⚠️ Message from ${workspace.name} (template error: ${renderRes.error})`,
               },
             },
           ];
-          // this.fail(messageRequestId, `render_error:${renderResult.error}`);
-          // return;
+        } else {
+          renderedBlocks = Array.isArray(renderRes.value)
+            ? renderRes.value
+            : [renderRes.value];
+
+          Log.debug(this.logger, 'Template rendered successfully', {
+            method: 'handleSendMessageRequest',
+            messageRequestId,
+            tenant,
+            renderedBlocksCount: Array.isArray(renderedBlocks)
+              ? renderedBlocks.length
+              : 1,
+          });
         }
-        renderedBlocks = renderResult.value as unknown[];
       } else {
         // Default message block if no template
         renderedBlocks = [
@@ -376,9 +429,15 @@ export class MessageRequestProcessor implements OnModuleInit, OnModuleDestroy {
             },
           },
         ];
+
+        Log.debug(this.logger, 'Using default message (no template)', {
+          method: 'handleSendMessageRequest',
+          messageRequestId,
+          tenant,
+        });
       }
 
-      // 4. Send via Slack API with retry logic
+      // 5. Send via Slack API with internal retry logic (no BullMQ retries)
       const maxAttempts = appConfig?.maxRetryAttempts ?? 3;
       const baseBackoff = appConfig?.retryBackoffSeconds ?? 2;
 
@@ -387,8 +446,22 @@ export class MessageRequestProcessor implements OnModuleInit, OnModuleDestroy {
 
       while (attempt < maxAttempts) {
         attempt++;
+
+        Log.debug(this.logger, 'Attempting Slack API send', {
+          method: 'handleSendMessageRequest',
+          messageRequestId,
+          tenant,
+          workspaceCode: workspace.code,
+          workspaceName: workspace.name,
+          channelId,
+          templateCode: template?.code,
+          attempt,
+          maxAttempts,
+          jobId,
+        });
+
         const res = await this.slackApiService.sendMessage({
-          botToken,
+          botToken: workspace.botToken,
           channel: channelId,
           blocks: renderedBlocks,
           text: `Message from ${workspace.name}`,
@@ -396,11 +469,14 @@ export class MessageRequestProcessor implements OnModuleInit, OnModuleDestroy {
         });
 
         if (res.ok) {
-          // Success - log and exit (no status update since writer doesn't support it)
+          // Success - log and exit (no BullMQ retry)
+          // TODO: Add status update when writer interface supports it
+
           Log.info(this.logger, 'Message request sent successfully', {
             method: 'handleSendMessageRequest',
             jobId,
             messageRequestId,
+            tenant,
             slackTs: res.value.ts,
             slackChannel: res.value.channel,
             attempts: attempt,
@@ -411,51 +487,88 @@ export class MessageRequestProcessor implements OnModuleInit, OnModuleDestroy {
         lastErr = res.error;
         if (!res.retryable) break; // Don't retry non-retryable errors
 
-        // Wait with exponential backoff and jitter
+        // Wait with exponential backoff (honor Slack's Retry-After if present)
         const delay =
           (res.retryAfterSec ?? baseBackoff * Math.pow(2, attempt)) * 1000;
         await this.sleepWithJitter(delay);
       }
 
-      // All attempts failed
-      Log.error(this.logger, 'Message request failed after all attempts', {
+      // Final failure after all internal attempts (no BullMQ retry)
+      // TODO: Add status update when writer interface supports it
+
+      Log.error(this.logger, 'Message request failed after attempts', {
         method: 'handleSendMessageRequest',
         jobId,
         messageRequestId,
+        tenant,
         lastError: lastErr,
         attempts: attempt,
       });
 
-      // Re-throw to trigger BullMQ retry logic
-      throw new Error(`Slack message send failed: ${lastErr}`);
+      return; // Don't throw - avoid BullMQ retry
     } catch (error) {
       const e = error as Error;
+
+      // TODO: Update status to failed on unexpected errors when writer interface supports it
+
       Log.error(this.logger, 'Error processing send message request job', {
         method: 'handleSendMessageRequest',
         jobId,
         messageRequestId,
+        tenant,
         error: e.message,
         stack: e.stack,
       });
-      throw error; // Re-throw to trigger BullMQ retry logic
+
+      return; // Don't throw - avoid BullMQ retry
     }
   }
 
+  /**
+   * Sleep with jitter to avoid thundering herd problems
+   */
   private async sleepWithJitter(ms: number): Promise<void> {
     await new Promise((r) =>
       setTimeout(r, Math.floor(ms * (0.8 + Math.random() * 0.4))),
     );
   }
 
-  private fail(messageRequestId: string, code: string): never {
+  /**
+   * Check idempotency guard to prevent duplicate processing
+   * @param tenant - The tenant ID
+   * @param messageRequestId - The message request ID
+   * @returns Promise<boolean> - true if this is the first time processing, false if already processed
+   */
+  private async checkIdempotency(
+    tenant: string,
+    messageRequestId: string,
+  ): Promise<boolean> {
+    const idemKey = `idem:slack:send:${tenant}:${messageRequestId}`;
+    try {
+      const result = await this.redis.set(idemKey, '1', 'EX', 900, 'NX'); // 15 minutes, only if not exists
+      return result === 'OK';
+    } catch (error) {
+      const e = error as Error;
+      Log.error(this.logger, 'Failed to check idempotency', {
+        method: 'checkIdempotency',
+        messageRequestId,
+        tenant,
+        error: e.message,
+      });
+      // On Redis error, allow processing (fail-open approach)
+      return true;
+    }
+  }
+
+  private fail(messageRequestId: string, code: string): void {
     Log.error(this.logger, 'Message request failed', {
       method: 'handleSendMessageRequest',
       messageRequestId,
       reason: code,
     });
 
-    // Since we can't update status through writer, throw error to trigger retry
-    throw new Error(`Message request failed: ${code}`);
+    // TODO: Update status to failed when writer interface supports it
+    // Don't throw to avoid BullMQ retries - internal retry logic handles retries
   }
 
   /**

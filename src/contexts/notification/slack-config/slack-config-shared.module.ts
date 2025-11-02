@@ -29,10 +29,10 @@ import { NoopAuthorizationService } from 'src/shared/security/noop-authorization
 import { SlackConfigServiceConstants } from './service-constants';
 import { SLACK_CONFIG_DI_TOKENS } from './slack-config.constants';
 
-// Slack Domain Services
+// Slack config Domain Services
 import { SlackConfigPolicyService } from './slack-config-policy.service';
 /**
- * Slack Shared Module
+ * Slack config Shared Module
  *
  * Provides common infrastructure and services for all slack-config domain modules.
  * This module is marked as @Global to avoid re-importing in every domain module.

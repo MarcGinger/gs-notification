@@ -54,9 +54,9 @@ export class AppConfigController {
   @Get(':workspaceCode')
   @AppConfigReadResource()
   @ApiOperation({
-    summary: 'Get App by ID',
+    summary: 'Get App config by ID',
     description:
-      'Retrieves a single App by its unique identifier. Requires READ permission (LOW risk).',
+      'Retrieves a single App config by its unique identifier. Requires READ permission (LOW risk).',
   })
   @ApiParam({
     name: 'workspaceCode',
@@ -88,9 +88,9 @@ export class AppConfigController {
   @AppConfigCreateResource()
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({
-    summary: 'Create a new App',
+    summary: 'Create a new App config',
     description:
-      'Creates a new App in the catalog. Requires CREATE permission (MEDIUM risk).',
+      'Creates a new App config in the catalog. Requires CREATE permission (MEDIUM risk).',
   })
   @ApiHeader({
     name: 'Idempotency-Key',
@@ -136,9 +136,9 @@ export class AppConfigController {
   @Put(':workspaceCode')
   @AppConfigUpdateResource()
   @ApiOperation({
-    summary: 'Update a App',
+    summary: 'Update a App config',
     description:
-      'Updates an existing App with new data. Supports partial updates. Requires UPDATE permission (MEDIUM risk).',
+      'Updates an existing App config with new data. Supports partial updates. Requires UPDATE permission (MEDIUM risk).',
   })
   @ApiParam({
     name: 'workspaceCode',

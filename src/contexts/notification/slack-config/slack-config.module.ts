@@ -7,13 +7,17 @@ import { Module } from '@nestjs/common';
 import { SlackConfigSharedModule } from './slack-config-shared.module';
 
 // Import all slack-config domain modules
-import { WorkspaceModule } from './workspace/workspace.module';
+import { WorkspaceRouterModule } from './workspace/interface/http/workspace.router';
+
 import { WorkspaceProjectorModule } from './workspace/workspace-projector.module';
-import { ChannelModule } from './channel/channel.module';
+import { ChannelRouterModule } from './channel/interface/http/channel.router';
+
 import { ChannelProjectorModule } from './channel/channel-projector.module';
-import { TemplateModule } from './template/template.module';
+import { TemplateRouterModule } from './template/interface/http/template.router';
+
 import { TemplateProjectorModule } from './template/template-projector.module';
-import { AppConfigModule } from './app-config/app-config.module';
+import { AppConfigRouterModule } from './app-config/interface/http/app-config.router';
+
 import { AppConfigProjectorModule } from './app-config/app-config-projector.module';
 
 /**
@@ -37,24 +41,24 @@ import { AppConfigProjectorModule } from './app-config/app-config-projector.modu
   imports: [
     // Shared infrastructure (imported once for all domains)
     SlackConfigSharedModule,
-    WorkspaceModule,
+    WorkspaceRouterModule,
     WorkspaceProjectorModule,
-    ChannelModule,
+    ChannelRouterModule,
     ChannelProjectorModule,
-    TemplateModule,
+    TemplateRouterModule,
     TemplateProjectorModule,
-    AppConfigModule,
+    AppConfigRouterModule,
     AppConfigProjectorModule,
   ],
   exports: [
     // Export all modules for potential cross-domain dependencies
-    WorkspaceModule,
+    WorkspaceRouterModule,
     WorkspaceProjectorModule,
-    ChannelModule,
+    ChannelRouterModule,
     ChannelProjectorModule,
-    TemplateModule,
+    TemplateRouterModule,
     TemplateProjectorModule,
-    AppConfigModule,
+    AppConfigRouterModule,
     AppConfigProjectorModule,
   ],
 })

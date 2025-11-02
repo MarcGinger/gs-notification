@@ -51,7 +51,7 @@ export const TemplateErrors = {
   DUPLICATE_CONTENT_BLOCKS: {
     code: 'TEMPLATE.DUPLICATE_CONTENT_BLOCKS',
     title: 'Duplicate Values',
-    detail: 'Content contains duplicate values for Template.',
+    detail: 'Content blocks contains duplicate values for Template.',
     category: 'validation',
     retryable: false,
   } as DomainError<'TEMPLATE.DUPLICATE_CONTENT_BLOCKS', TemplateContext>,
@@ -79,14 +79,14 @@ export const TemplateErrors = {
   INVALID_CONTENT_BLOCKS: {
     code: 'TEMPLATE.INVALID_CONTENT_BLOCKS',
     title: 'Value Required',
-    detail: 'Content is required for Template.',
+    detail: 'Content blocks is required for Template.',
     category: 'validation',
     retryable: false,
   } as DomainError<'TEMPLATE.INVALID_CONTENT_BLOCKS', TemplateContext>,
   INVALID_CONTENT_BLOCKS_DATA: {
     code: 'TEMPLATE.INVALID_CONTENT_BLOCKS_DATA',
     title: 'Value Required',
-    detail: 'Content is required for Template.',
+    detail: 'Content blocks is required for Template.',
     category: 'validation',
     retryable: false,
   } as DomainError<'TEMPLATE.INVALID_CONTENT_BLOCKS_DATA', TemplateContext>,
@@ -135,14 +135,14 @@ export const TemplateErrors = {
   INVALID_SAMPLE_PAYLOAD: {
     code: 'TEMPLATE.INVALID_SAMPLE_PAYLOAD',
     title: 'Value Required',
-    detail: 'Sample is required for Template.',
+    detail: 'Sample payload is required for Template.',
     category: 'validation',
     retryable: false,
   } as DomainError<'TEMPLATE.INVALID_SAMPLE_PAYLOAD', TemplateContext>,
   INVALID_SAMPLE_PAYLOAD_DATA: {
     code: 'TEMPLATE.INVALID_SAMPLE_PAYLOAD_DATA',
     title: 'Value Required',
-    detail: 'Sample is required for Template.',
+    detail: 'Sample payload is required for Template.',
     category: 'validation',
     retryable: false,
   } as DomainError<'TEMPLATE.INVALID_SAMPLE_PAYLOAD_DATA', TemplateContext>,
@@ -170,14 +170,14 @@ export const TemplateErrors = {
   INVALID_WORKSPACE_CODE: {
     code: 'TEMPLATE.INVALID_WORKSPACE_CODE',
     title: 'Value Required',
-    detail: 'Workspace is required for Template.',
+    detail: 'Workspace code is required for Template.',
     category: 'validation',
     retryable: false,
   } as DomainError<'TEMPLATE.INVALID_WORKSPACE_CODE', TemplateContext>,
   INVALID_WORKSPACE_CODE_DATA: {
     code: 'TEMPLATE.INVALID_WORKSPACE_CODE_DATA',
     title: 'Value Required',
-    detail: 'Workspace is required for Template.',
+    detail: 'Workspace code is required for Template.',
     category: 'validation',
     retryable: false,
   } as DomainError<'TEMPLATE.INVALID_WORKSPACE_CODE_DATA', TemplateContext>,
@@ -267,7 +267,7 @@ export const TemplateErrors = {
   TOO_FEW_CONTENT_BLOCKS: {
     code: 'TEMPLATE.TOO_FEW_CONTENT_BLOCKS',
     title: 'Too Few Items',
-    detail: 'Content has fewer items than required for Template.',
+    detail: 'Content blocks has fewer items than required for Template.',
     category: 'validation',
     retryable: false,
   } as DomainError<'TEMPLATE.TOO_FEW_CONTENT_BLOCKS', TemplateContext>,
@@ -281,7 +281,7 @@ export const TemplateErrors = {
   TOO_MANY_CONTENT_BLOCKS: {
     code: 'TEMPLATE.TOO_MANY_CONTENT_BLOCKS',
     title: 'Too Many Items',
-    detail: 'Content exceeds maximum allowed count for Template.',
+    detail: 'Content blocks exceeds maximum allowed count for Template.',
     category: 'validation',
     retryable: false,
   } as DomainError<'TEMPLATE.TOO_MANY_CONTENT_BLOCKS', TemplateContext>,

@@ -508,6 +508,7 @@ export class MessageRequestProjector
 
   /**
    * Dispatch async jobs based on event types and conditions
+   * Implements dispatch-once pattern with idempotency guards
    */
   private async dispatchJobsForEvent(
     event: ProjectionEvent,
@@ -540,7 +541,43 @@ export class MessageRequestProjector
         return;
       }
 
-      // Dispatch jobs based on event type with specific business logic
+      // Extract simple event type for dispatch logic
+      const simpleEventType = event.type
+        .replace(/\.v\d+$/, '') // Remove version suffix
+        .replace(/^NotificationSlackRequest/, ''); // Remove domain prefix
+
+      // Determine if this event should trigger job dispatch
+      const shouldDispatch =
+        simpleEventType === 'MessageRequestCreated' ||
+        (simpleEventType === 'MessageRequestUpdated' && status === 'queued');
+
+      if (!shouldDispatch) {
+        Log.debug(this.logger, 'Event does not trigger job dispatch', {
+          method: 'dispatchJobsForEvent',
+          eventType: event.type,
+          simpleEventType,
+          messageRequestId,
+          status,
+        });
+        return;
+      }
+
+      // Check dispatch-once guard before attempting to enqueue
+      const firstTime = await this.tryMarkDispatchedOnce(
+        tenant,
+        messageRequestId,
+      );
+      if (!firstTime) {
+        Log.debug(this.logger, 'Dispatch skipped (already marked once)', {
+          method: 'dispatchJobsForEvent',
+          eventType: event.type,
+          messageRequestId,
+          tenant,
+        });
+        return;
+      }
+
+      // Dispatch the job since this is the first time
       const jobDispatched = await this.handleJobDispatchingByEventType(
         event.type,
         {
@@ -554,12 +591,16 @@ export class MessageRequestProjector
       );
 
       if (jobDispatched) {
-        Log.debug(this.logger, 'Job dispatching completed successfully', {
-          method: 'dispatchJobsForEvent',
-          eventType: event.type,
-          messageRequestId,
-          tenant,
-        });
+        Log.info(
+          this.logger,
+          'Job dispatching completed successfully (first time)',
+          {
+            method: 'dispatchJobsForEvent',
+            eventType: event.type,
+            messageRequestId,
+            tenant,
+          },
+        );
       }
     } catch (error) {
       const e = error as Error;
@@ -575,7 +616,50 @@ export class MessageRequestProjector
   }
 
   /**
+   * Try to mark a message request as dispatched exactly once using Redis SETNX
+   * @param tenant - The tenant ID
+   * @param id - The message request ID
+   * @returns Promise<boolean> - true if this is the first time (dispatch allowed), false if already dispatched
+   */
+  private async tryMarkDispatchedOnce(
+    tenant: string,
+    id: string,
+  ): Promise<boolean> {
+    const dispatchKey = `message-request:dispatched:{${tenant}}:${id}`;
+
+    try {
+      // Use SETNX (SET if Not eXists) with no expiry for permanent once-only marker
+      const result = await this.redis.set(dispatchKey, '1', 'NX');
+      const isFirstTime = result === 'OK';
+
+      Log.debug(this.logger, 'Dispatch-once check completed', {
+        method: 'tryMarkDispatchedOnce',
+        messageRequestId: id,
+        tenant,
+        dispatchKey,
+        isFirstTime,
+      });
+
+      return isFirstTime;
+    } catch (error) {
+      const e = error as Error;
+      Log.error(this.logger, 'Failed to check dispatch-once marker', {
+        method: 'tryMarkDispatchedOnce',
+        messageRequestId: id,
+        tenant,
+        dispatchKey,
+        error: e.message,
+      });
+
+      // On Redis error, allow dispatch to prevent blocking (fail-open approach)
+      // This trades perfect idempotency for availability
+      return true;
+    }
+  }
+
+  /**
    * Handle job dispatching based on specific event types
+   * Only dispatches on MessageRequestCreated or status transitions to 'queued'
    *
    * @returns Promise<boolean> - true if a job was dispatched, false otherwise
    */
@@ -614,21 +698,13 @@ export class MessageRequestProjector
           { workspaceCode, templateCode, channelCode },
         );
 
-      case 'MessageRequestFailed':
-        return await this.dispatchRetryMessageJob(
-          messageRequestId,
-          tenant,
-          'Event-driven retry after failure',
-          { priority: 1, delay: 5000 },
-        );
-
       case 'MessageRequestUpdated':
-        // Only queue jobs if status changed to a state requiring action
+        // Only queue jobs if status changed to 'queued' state
         if (status === 'queued') {
           return await this.dispatchSendMessageJob(
             messageRequestId,
             tenant,
-            'updated',
+            'queued transition',
             { priority: 0, delay: 0 },
             { workspaceCode, templateCode, channelCode },
           );
@@ -641,6 +717,10 @@ export class MessageRequestProjector
           status,
         });
         return false;
+
+      // Note: Removed MessageRequestFailed auto-retry
+      // Retries should be handled by the executor with proper backoff policy
+      // rather than automatically re-enqueuing from the projector
 
       default:
         Log.debug(this.logger, 'No job dispatching for event type', {
@@ -708,34 +788,6 @@ export class MessageRequestProjector
         jobId: result.value,
       },
     );
-
-    return true;
-  }
-
-  /**
-   * Dispatch a retry message job with consistent logging
-   */
-  private async dispatchRetryMessageJob(
-    messageRequestId: string,
-    tenant: string,
-    retryReason: string,
-    options: { priority: number; delay: number },
-  ): Promise<boolean> {
-    await this.queueService.queueRetryFailedMessageRequest(
-      messageRequestId,
-      tenant,
-      retryReason,
-      options,
-    );
-
-    Log.info(this.logger, 'Queued retry job for failed request', {
-      method: 'dispatchRetryMessageJob',
-      messageRequestId,
-      tenant,
-      retryReason,
-      priority: options.priority,
-      delay: options.delay,
-    });
 
     return true;
   }

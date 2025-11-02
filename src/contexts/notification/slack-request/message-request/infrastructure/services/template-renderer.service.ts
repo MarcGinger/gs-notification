@@ -25,14 +25,22 @@ export class TemplateRendererService {
     // Parse contentBlocks from string array to actual objects
     let parsedBlocks: unknown[];
     try {
-      parsedBlocks = template.contentBlocks.map((block) => {
+      parsedBlocks = template.contentBlocks.map((block, index) => {
         if (typeof block === 'string') {
-          return JSON.parse(block) as unknown;
+          try {
+            return JSON.parse(block) as unknown;
+          } catch (parseError) {
+            throw new Error(`Block ${index}: ${(parseError as Error).message}`);
+          }
         }
         return block as unknown;
       });
-    } catch {
-      return { ok: false as const, error: 'invalid_content_blocks' };
+    } catch (error) {
+      const e = error as Error;
+      return {
+        ok: false as const,
+        error: `invalid_content_blocks:${e.message}`,
+      };
     }
 
     const valid = this.validateTemplate(parsedBlocks);

@@ -337,33 +337,35 @@ export class TemplateQueryRepository implements ITemplateQuery {
   ): boolean {
     if (!filter) return true;
 
-    // Filter by name (partial match)
+    // Filter by code (partial match)
     if (filter.code) {
-      if (!template.code.toLowerCase().includes(filter.code.toLowerCase())) {
+      if (template.code?.toLowerCase().includes(filter.code.toLowerCase())) {
         return false;
       }
     }
     // Filter by name (partial match)
     if (filter.name) {
-      if (!template.name.toLowerCase().includes(filter.name.toLowerCase())) {
+      if (template.name?.toLowerCase().includes(filter.name.toLowerCase())) {
         return false;
       }
     }
-    // Filter by name (partial match)
+    // Filter by workspaceCode (partial match)
     if (filter.workspaceCode) {
       if (
-        !template.workspaceCode
-          .toLowerCase()
+        template.workspaceCode
+          ?.toLowerCase()
           .includes(filter.workspaceCode.toLowerCase())
       ) {
         return false;
       }
     }
+
     return true;
   }
 
   /**
    * Sort templates based on sort criteria
+   * Handles undefined/null values properly and provides stable sorting
    */
   private sortTemplates(
     templates: TemplateCacheData[],
@@ -376,8 +378,8 @@ export class TemplateQueryRepository implements ITemplateQuery {
 
     return templates.sort((a, b) => {
       for (const [field, direction] of Object.entries(sortBy)) {
-        let aVal: number | Date | string;
-        let bVal: number | Date | string;
+        let aVal: number | Date | string | undefined;
+        let bVal: number | Date | string | undefined;
 
         switch (field) {
           case 'code':
@@ -404,9 +406,27 @@ export class TemplateQueryRepository implements ITemplateQuery {
             continue;
         }
 
+        // Handle undefined/null values - put them at the end
+        if (aVal == null && bVal == null) continue;
+        if (aVal == null) return 1; // null values go to the end
+        if (bVal == null) return -1; // null values go to the end
+
         if (aVal === bVal) continue;
 
-        const comparison = aVal < bVal ? -1 : 1;
+        let comparison: number;
+
+        // Handle different types properly
+        if (aVal instanceof Date && bVal instanceof Date) {
+          comparison = aVal.getTime() - bVal.getTime() < 0 ? -1 : 1;
+        } else if (typeof aVal === 'number' && typeof bVal === 'number') {
+          comparison = aVal - bVal < 0 ? -1 : 1;
+        } else {
+          // String comparison (convert to string if needed)
+          const aStr = String(aVal).toLowerCase();
+          const bStr = String(bVal).toLowerCase();
+          comparison = aStr < bStr ? -1 : 1;
+        }
+
         return direction?.toLowerCase() === 'desc' ? -comparison : comparison;
       }
       return 0;
