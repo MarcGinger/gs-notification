@@ -38,7 +38,11 @@ import {
   TemplateReaderRepository,
   ChannelReaderRepository,
 } from './infrastructure/repositories';
-import { MessageRequestQueueService } from './infrastructure/services';
+import {
+  MessageRequestQueueService,
+  MessageRequestIdempotencyService,
+  SendMessageWorkerService,
+} from './infrastructure/services';
 import { MessageRequestProcessor } from './infrastructure/processors';
 import { TemplateRendererService } from './infrastructure/services/template-renderer.service';
 
@@ -127,6 +131,8 @@ import {
     MessageRequestQueueService,
     MessageRequestProcessor,
     TemplateRendererService,
+    MessageRequestIdempotencyService,
+    SendMessageWorkerService,
 
     // Use case implementations
     {
@@ -153,6 +159,8 @@ import {
     CHANNEL_REFERENCE_READER_TOKEN,
     // Queue service for external access
     MessageRequestQueueService,
+    // Idempotency service for projector access
+    MessageRequestIdempotencyService,
   ],
 })
 export class MessageRequestModule {}

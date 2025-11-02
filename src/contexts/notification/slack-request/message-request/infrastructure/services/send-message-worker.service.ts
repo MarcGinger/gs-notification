@@ -1,0 +1,765 @@
+/**
+ * SendMessage BullMQ Worker - Processes minimal SendMessageJob payloads
+ *
+ * Implements the worker resolution pattern from refinement.md:
+ * 1. Resolves config by codes from Redis (workspace, template, channel, app-config)
+ * 2. Acquires send-lock using SETNX for idempotency
+ * 3. Processes messages via SlackApiService
+ * 4. Reports outcomes back to MessageRequest projector
+ */
+
+import {
+  Injectable,
+  OnModuleInit,
+  OnModuleDestroy,
+  Inject,
+} from '@nestjs/common';
+import { APP_LOGGER, Log, Logger, componentLogger } from 'src/shared/logging';
+import { Worker, Job } from 'bullmq';
+import { Redis } from 'ioredis';
+import {
+  SendMessageJob,
+  MESSAGE_REQUEST_QUEUE,
+  JobProcessingResult,
+} from './message-request-queue.types';
+import { MessageRequestIdempotencyService } from './message-request-idempotency.service';
+import { SLACK_REQUEST_DI_TOKENS } from '../../../slack-request.constants';
+
+// Import config query services for resolving by codes
+import {
+  IWorkspaceQuery,
+  WORKSPACE_QUERY_TOKEN,
+} from 'src/contexts/notification/slack-config/workspace/application/ports';
+import {
+  ITemplateQuery,
+  TEMPLATE_QUERY_TOKEN,
+} from 'src/contexts/notification/slack-config/template/application/ports';
+import {
+  IChannelQuery,
+  CHANNEL_QUERY_TOKEN,
+} from 'src/contexts/notification/slack-config/channel/application/ports';
+import {
+  IAppConfigQuery,
+  APP_CONFIG_QUERY_TOKEN,
+} from 'src/contexts/notification/slack-config/app-config/application/ports';
+
+// Import response DTOs
+import { DetailWorkspaceResponse } from 'src/contexts/notification/slack-config/workspace/application/dtos';
+import { DetailTemplateResponse } from 'src/contexts/notification/slack-config/template/application/dtos';
+import { DetailChannelResponse } from 'src/contexts/notification/slack-config/channel/application/dtos';
+import { DetailAppConfigResponse } from 'src/contexts/notification/slack-config/app-config/application/dtos';
+
+import { ActorContext } from 'src/shared/application/context';
+import { Option } from 'src/shared/domain/types';
+import { Result, DomainError } from 'src/shared/errors';
+import { MessageRequestProjectionKeys } from '../../message-request-projection-keys';
+import {
+  SlackApiService,
+  SlackSendOptions,
+} from 'src/shared/infrastructure/slack/slack-api.service';
+import {
+  IMessageRequestAppPort,
+  MESSAGE_REQUEST_APP_PORT,
+} from '../../application/ports/message-request-app.port';
+import { TemplateRendererService } from './template-renderer.service';
+
+@Injectable()
+export class SendMessageWorkerService implements OnModuleInit, OnModuleDestroy {
+  private readonly logger: Logger;
+  private worker?: Worker<SendMessageJob>;
+
+  constructor(
+    @Inject(APP_LOGGER) private readonly baseLogger: Logger,
+    @Inject(SLACK_REQUEST_DI_TOKENS.IO_REDIS)
+    private readonly redis: Redis,
+    private readonly idempotencyService: MessageRequestIdempotencyService,
+    // Config resolution services
+    @Inject(WORKSPACE_QUERY_TOKEN)
+    private readonly workspaceQuery: IWorkspaceQuery,
+    @Inject(TEMPLATE_QUERY_TOKEN)
+    private readonly templateQuery: ITemplateQuery,
+    @Inject(CHANNEL_QUERY_TOKEN)
+    private readonly channelQuery: IChannelQuery,
+    @Inject(APP_CONFIG_QUERY_TOKEN)
+    private readonly appConfigQuery: IAppConfigQuery,
+    // Slack API and outcome reporting
+    private readonly slackApiService: SlackApiService,
+    @Inject(MESSAGE_REQUEST_APP_PORT)
+    private readonly messageRequestAppPort: IMessageRequestAppPort,
+    private readonly templateRenderer: TemplateRendererService,
+  ) {
+    this.logger = componentLogger(baseLogger, 'SendMessageWorkerService');
+  }
+
+  onModuleInit(): void {
+    // Note: Worker creation is handled by MessageRequestProcessor
+    // This service now acts as a job processing delegate
+    Log.info(
+      this.logger,
+      'SendMessageWorkerService initialized as processing delegate',
+      {
+        queueName: MESSAGE_REQUEST_QUEUE.NAME,
+      },
+    );
+  }
+
+  onModuleDestroy(): void {
+    // Worker cleanup is handled by MessageRequestProcessor
+    Log.info(this.logger, 'SendMessageWorkerService cleanup complete');
+  }
+
+  /**
+   * Process SendMessageJob - Main worker logic
+   */
+  async processJob(job: Job<SendMessageJob>): Promise<JobProcessingResult> {
+    const { messageRequestId, tenant, threadTs } = job.data;
+
+    Log.debug(this.logger, 'Processing SendMessageJob', {
+      jobId: job.id,
+      messageRequestId,
+      tenant,
+      threadTs,
+    });
+
+    try {
+      // Step 1: Acquire send-lock using SETNX (idempotency for processing)
+      const sendLockResult = await this.idempotencyService.acquireSendLock(
+        tenant,
+        messageRequestId,
+      );
+
+      if (!sendLockResult.success) {
+        Log.warn(
+          this.logger,
+          'Failed to acquire send lock - job may be duplicate',
+          {
+            jobId: job.id,
+            messageRequestId,
+            tenant,
+            error: sendLockResult.error,
+          },
+        );
+
+        return {
+          success: false,
+          message: sendLockResult.error || 'Failed to acquire send lock',
+        };
+      }
+
+      if (!sendLockResult.isFirst) {
+        Log.debug(
+          this.logger,
+          'Send lock already acquired - skipping duplicate processing',
+          {
+            jobId: job.id,
+            messageRequestId,
+            tenant,
+          },
+        );
+
+        return {
+          success: true,
+          message: 'Already processed (send-lock exists)',
+        };
+      }
+
+      // Step 2: Resolve MessageRequest data to get config codes
+      const messageRequestData = await this.resolveMessageRequestData(
+        tenant,
+        messageRequestId,
+      );
+
+      if (!messageRequestData.success) {
+        return {
+          success: false,
+          message:
+            messageRequestData.error || 'Failed to resolve MessageRequest data',
+        };
+      }
+
+      // Step 3: Resolve config by codes
+      const configResult = await this.resolveConfigByCodes(
+        tenant,
+        messageRequestData.data!,
+      );
+
+      if (!configResult.success) {
+        return {
+          success: false,
+          message: configResult.error || 'Failed to resolve config by codes',
+        };
+      }
+
+      // Step 4: Process the message via SlackApiService
+      const processingResult = await this.processSlackMessage(
+        job,
+        messageRequestData.data!,
+        configResult.config!,
+        threadTs || undefined,
+      );
+
+      if (!processingResult.success) {
+        return {
+          success: false,
+          message: processingResult.error || 'Failed to process Slack message',
+        };
+      }
+
+      Log.info(this.logger, 'Successfully processed SendMessageJob', {
+        jobId: job.id,
+        messageRequestId,
+        tenant,
+        slackResponse: processingResult.data,
+      });
+
+      return {
+        success: true,
+        message: 'Message processed successfully',
+        metadata: {
+          slackTs: processingResult.data?.ts,
+          slackChannel: processingResult.data?.channel,
+        },
+      };
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : 'Unknown error';
+
+      Log.error(this.logger, 'Unexpected error processing SendMessageJob', {
+        jobId: job.id,
+        messageRequestId,
+        tenant,
+        error: errorMessage,
+      });
+
+      return {
+        success: false,
+        message: errorMessage,
+      };
+    }
+  }
+
+  /**
+   * Resolve MessageRequest data from Redis to get config codes
+   */
+  private async resolveMessageRequestData(
+    tenant: string,
+    messageRequestId: string,
+  ): Promise<{
+    success: boolean;
+    data?: {
+      workspaceCode: string;
+      templateCode?: string;
+      channelCode?: string;
+      requestData?: Record<string, unknown>;
+      // Add other MessageRequest fields as needed
+    };
+    error?: string;
+  }> {
+    try {
+      // Get Redis key for MessageRequest projection
+      const redisKey = MessageRequestProjectionKeys.getRedisMessageRequestKey(
+        tenant,
+        messageRequestId,
+      );
+
+      Log.debug(this.logger, 'Resolving MessageRequest data from Redis', {
+        messageRequestId,
+        tenant,
+        redisKey,
+      });
+
+      // Fetch MessageRequest data from Redis hash
+      const messageRequestData = await this.redis.hgetall(redisKey);
+
+      if (!messageRequestData || Object.keys(messageRequestData).length === 0) {
+        Log.warn(this.logger, 'MessageRequest not found in Redis projection', {
+          messageRequestId,
+          tenant,
+          redisKey,
+        });
+
+        return {
+          success: false,
+          error: `MessageRequest not found: ${messageRequestId}`,
+        };
+      }
+
+      // Extract required config codes from the MessageRequest data
+      const workspaceCode = messageRequestData.workspaceCode;
+      const templateCode = messageRequestData.templateCode || undefined;
+      const channelCode = messageRequestData.channelCode || undefined;
+
+      // Parse requestData if it exists (it's stored as JSON string in Redis)
+      let requestData: Record<string, unknown> = {};
+      if (messageRequestData.requestData) {
+        try {
+          requestData = JSON.parse(messageRequestData.requestData) as Record<
+            string,
+            unknown
+          >;
+        } catch (error) {
+          Log.warn(this.logger, 'Failed to parse requestData JSON', {
+            messageRequestId,
+            tenant,
+            requestDataRaw: messageRequestData.requestData,
+            error: error instanceof Error ? error.message : 'Unknown error',
+          });
+        }
+      }
+
+      if (!workspaceCode) {
+        Log.error(
+          this.logger,
+          'MessageRequest missing required workspaceCode',
+          {
+            messageRequestId,
+            tenant,
+            messageRequestData,
+          },
+        );
+
+        return {
+          success: false,
+          error: 'MessageRequest missing required workspaceCode',
+        };
+      }
+
+      Log.debug(this.logger, 'Successfully resolved MessageRequest data', {
+        messageRequestId,
+        tenant,
+        workspaceCode,
+        templateCode,
+        channelCode,
+        hasRequestData: Object.keys(requestData).length > 0,
+      });
+
+      return {
+        success: true,
+        data: {
+          workspaceCode,
+          templateCode,
+          channelCode,
+          requestData,
+        },
+      };
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : 'Unknown error';
+
+      Log.error(this.logger, 'Failed to resolve MessageRequest data from Redis', {
+        messageRequestId,
+        tenant,
+        error: errorMessage,
+      });
+
+      return {
+        success: false,
+        error: errorMessage,
+      };
+    }
+  }
+
+  /**
+   * Resolve configuration by codes using query services
+   */
+  private async resolveConfigByCodes(
+    tenant: string,
+    data: {
+      workspaceCode: string;
+      templateCode?: string;
+      channelCode?: string;
+    },
+  ): Promise<{
+    success: boolean;
+    config?: {
+      workspace: DetailWorkspaceResponse;
+      template?: DetailTemplateResponse;
+      channel?: DetailChannelResponse;
+      appConfig: DetailAppConfigResponse;
+    };
+    error?: string;
+  }> {
+    const actor: ActorContext = {
+      tenant,
+      userId: 'system',
+      tenant_userId: 'system',
+    };
+
+    try {
+      // Fetch all required configurations in parallel
+      const [workspaceResult, templateResult, channelResult, appConfigResult] =
+        await Promise.all([
+          this.workspaceQuery.findById(actor, data.workspaceCode),
+          data.templateCode
+            ? this.templateQuery.findById(actor, data.templateCode)
+            : Promise.resolve({
+                ok: true,
+                value: Option.none(),
+              } as Result<Option<DetailTemplateResponse>, DomainError>),
+          data.channelCode
+            ? this.channelQuery.findById(actor, data.channelCode)
+            : Promise.resolve({
+                ok: true,
+                value: Option.none(),
+              } as Result<Option<DetailChannelResponse>, DomainError>),
+          this.appConfigQuery.findById(actor, data.workspaceCode),
+        ]);
+
+      // Validate workspace result
+      if (!workspaceResult.ok || Option.isNone(workspaceResult.value)) {
+        return {
+          success: false,
+          error: `Workspace not found or failed to fetch: ${data.workspaceCode}`,
+        };
+      }
+
+      // Validate app config result
+      if (!appConfigResult.ok || Option.isNone(appConfigResult.value)) {
+        return {
+          success: false,
+          error: `App config not found or failed to fetch for workspace: ${data.workspaceCode}`,
+        };
+      }
+
+      // Extract the configuration data
+      const workspace = workspaceResult.value.value;
+      const appConfig = appConfigResult.value.value;
+
+      const template =
+        templateResult &&
+        templateResult.ok &&
+        Option.isSome(templateResult.value)
+          ? templateResult.value.value
+          : undefined;
+
+      const channel =
+        channelResult && channelResult.ok && Option.isSome(channelResult.value)
+          ? channelResult.value.value
+          : undefined;
+
+      return {
+        success: true,
+        config: {
+          workspace,
+          template,
+          channel,
+          appConfig,
+        },
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error',
+      };
+    }
+  }
+
+  /**
+   * Process Slack message via SlackApiService
+   */
+  private async processSlackMessage(
+    job: Job<SendMessageJob>,
+    messageData: {
+      workspaceCode: string;
+      templateCode?: string;
+      channelCode?: string;
+      requestData?: Record<string, unknown>;
+    },
+    config: {
+      workspace: DetailWorkspaceResponse;
+      template?: DetailTemplateResponse;
+      channel?: DetailChannelResponse;
+      appConfig: DetailAppConfigResponse;
+    },
+    threadTs?: string,
+  ): Promise<{
+    success: boolean;
+    data?: { ts: string; channel: string };
+    error?: string;
+  }> {
+    try {
+      const { workspace, template, channel } = config;
+      const requestData = messageData.requestData || {};
+
+      // Validate workspace has bot token
+      if (!workspace.botToken) {
+        const errorMsg = `Workspace ${workspace.code} missing bot token`;
+
+        Log.error(this.logger, 'Bot token validation failed', {
+          workspaceCode: workspace.code,
+          messageRequestId: job.data.messageRequestId,
+        });
+
+        // Report failure back to MessageRequest
+        try {
+          await this.messageRequestAppPort.recordFailed({
+            id: job.data.messageRequestId,
+            tenant: job.data.tenant,
+            reason: errorMsg,
+            retryable: false, // Configuration error, not retryable
+            attempts: 1,
+          });
+        } catch (reportError) {
+          Log.warn(this.logger, 'Failed to report bot token validation failure', {
+            messageRequestId: job.data.messageRequestId,
+            reportError:
+              reportError instanceof Error
+                ? reportError.message
+                : 'Unknown error',
+          });
+        }
+
+        return {
+          success: false,
+          error: errorMsg,
+        };
+      }
+
+      // 1. Determine target channel ID
+      let targetChannelId: string;
+      if (channel) {
+        // Use channel code as channelId (follows existing processor pattern)
+        targetChannelId = channel.code;
+        Log.debug(this.logger, 'Using configured channel', {
+          channelCode: messageData.channelCode,
+          channelId: targetChannelId,
+          channelName: channel.name,
+        });
+      } else {
+        // Fallback to default channel from workspace
+        targetChannelId = workspace.defaultChannelId || '';
+        Log.debug(this.logger, 'Using default channel from workspace', {
+          channelId: targetChannelId,
+        });
+      }
+
+      if (!targetChannelId) {
+        const errorMsg =
+          'No target channel specified and no default channel configured';
+
+        Log.error(this.logger, 'Channel validation failed', {
+          error: errorMsg,
+          messageRequestId: job.data.messageRequestId,
+        });
+
+        // Report failure back to MessageRequest
+        try {
+          await this.messageRequestAppPort.recordFailed({
+            id: job.data.messageRequestId,
+            tenant: job.data.tenant,
+            reason: errorMsg,
+            retryable: false, // Configuration error, not retryable
+            attempts: 1,
+          });
+        } catch (reportError) {
+          Log.warn(this.logger, 'Failed to report channel validation failure', {
+            messageRequestId: job.data.messageRequestId,
+            reportError:
+              reportError instanceof Error
+                ? reportError.message
+                : 'Unknown error',
+          });
+        }
+
+        return {
+          success: false,
+          error: errorMsg,
+        };
+      }
+
+      // 2. Render message blocks
+      let renderedBlocks: unknown[];
+      if (template) {
+        Log.debug(this.logger, 'Rendering template', {
+          templateCode: template.code,
+          templateName: template.name,
+          hasContentBlocks: Array.isArray(template.contentBlocks),
+          contentBlocksCount: template.contentBlocks?.length ?? 0,
+          requiredVariables: template.variables ?? [],
+          providedVariables: Object.keys(requestData),
+        });
+
+        const renderRes = this.templateRenderer.renderTemplate({
+          template,
+          variables: requestData,
+        });
+
+        if (!renderRes.ok) {
+          Log.error(this.logger, 'Template rendering failed', {
+            templateCode: template.code,
+            renderError: renderRes.error,
+            contentBlocks: template.contentBlocks,
+            variables: requestData,
+          });
+
+          // Fallback to default message
+          renderedBlocks = [
+            {
+              type: 'section',
+              text: {
+                type: 'mrkdwn',
+                text: `⚠️ Message from ${workspace.name} (template error: ${renderRes.error})`,
+              },
+            },
+          ];
+        } else {
+          renderedBlocks = Array.isArray(renderRes.value)
+            ? renderRes.value
+            : [renderRes.value];
+
+          Log.debug(this.logger, 'Template rendered successfully', {
+            templateCode: template.code,
+            renderedBlocksCount: renderedBlocks.length,
+          });
+        }
+      } else {
+        // No template - create default message
+        renderedBlocks = [
+          {
+            type: 'section',
+            text: {
+              type: 'mrkdwn',
+              text: `📝 Message from ${workspace.name}`,
+            },
+          },
+        ];
+
+        Log.debug(this.logger, 'Using default message (no template)', {
+          workspaceName: workspace.name,
+        });
+      }
+
+      // 3. Send message via Slack API
+      const slackSendOptions: SlackSendOptions = {
+        botToken: workspace.botToken,
+        channel: targetChannelId,
+        blocks: renderedBlocks,
+        text: `Message from ${workspace.name}`,
+        thread_ts: threadTs || undefined,
+      };
+
+      Log.debug(this.logger, 'Sending message to Slack', {
+        channel: targetChannelId,
+        blocksCount: renderedBlocks.length,
+        hasThreadTs: !!threadTs,
+        workspaceName: workspace.name,
+      });
+
+      const slackResult =
+        await this.slackApiService.sendMessage(slackSendOptions);
+
+      if (!slackResult.ok) {
+        Log.error(this.logger, 'Slack API call failed', {
+          error: slackResult.error,
+          retryable: slackResult.retryable,
+          retryAfterSec: slackResult.retryAfterSec,
+          messageRequestId: job.data.messageRequestId,
+        });
+
+        // Report failure back to MessageRequest
+        try {
+          await this.messageRequestAppPort.recordFailed({
+            id: job.data.messageRequestId,
+            tenant: job.data.tenant,
+            reason: slackResult.error,
+            retryable: slackResult.retryable,
+            attempts: 1, // BullMQ handles retries at job level
+          });
+
+          Log.debug(this.logger, 'Recorded Slack API failure to MessageRequest', {
+            messageRequestId: job.data.messageRequestId,
+            slackError: slackResult.error,
+          });
+        } catch (reportError) {
+          Log.warn(this.logger, 'Failed to report Slack failure to MessageRequest', {
+            messageRequestId: job.data.messageRequestId,
+            reportError:
+              reportError instanceof Error
+                ? reportError.message
+                : 'Unknown error',
+          });
+        }
+
+        return {
+          success: false,
+          error: slackResult.error,
+        };
+      }
+
+      Log.info(this.logger, 'Message sent successfully to Slack', {
+        slackTs: slackResult.value.ts,
+        slackChannel: slackResult.value.channel,
+        workspaceName: workspace.name,
+      });
+
+      // Report successful delivery back to MessageRequest
+      try {
+        await this.messageRequestAppPort.recordSent({
+          id: job.data.messageRequestId,
+          tenant: job.data.tenant,
+          slackTs: slackResult.value.ts,
+          slackChannel: slackResult.value.channel,
+          attempts: 1, // BullMQ handles retries at job level
+        });
+
+        Log.debug(this.logger, 'Recorded successful delivery to MessageRequest', {
+          messageRequestId: job.data.messageRequestId,
+          slackTs: slackResult.value.ts,
+        });
+      } catch (reportError) {
+        // Don't fail the job if reporting fails - the message was sent successfully
+        Log.warn(this.logger, 'Failed to report success to MessageRequest', {
+          messageRequestId: job.data.messageRequestId,
+          reportError:
+            reportError instanceof Error
+              ? reportError.message
+              : 'Unknown error',
+        });
+      }
+
+      return {
+        success: true,
+        data: {
+          ts: slackResult.value.ts,
+          channel: slackResult.value.channel,
+        },
+      };
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : 'Unknown error';
+
+      Log.error(this.logger, 'Unexpected error processing Slack message', {
+        error: errorMessage,
+        messageRequestId: job.data.messageRequestId,
+      });
+
+      // Report failure back to MessageRequest
+      try {
+        await this.messageRequestAppPort.recordFailed({
+          id: job.data.messageRequestId,
+          tenant: job.data.tenant,
+          reason: errorMessage,
+          attempts: 1, // BullMQ handles retries at job level
+        });
+
+        Log.debug(this.logger, 'Recorded failure to MessageRequest', {
+          messageRequestId: job.data.messageRequestId,
+          errorMessage,
+        });
+      } catch (reportError) {
+        Log.warn(this.logger, 'Failed to report failure to MessageRequest', {
+          messageRequestId: job.data.messageRequestId,
+          reportError:
+            reportError instanceof Error
+              ? reportError.message
+              : 'Unknown error',
+        });
+      }
+
+      return {
+        success: false,
+        error: errorMessage,
+      };
+    }
+  }
+}

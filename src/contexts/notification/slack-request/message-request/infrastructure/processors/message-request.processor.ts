@@ -13,7 +13,11 @@ import { APP_LOGGER, Log, Logger, componentLogger } from 'src/shared/logging';
 import { AppConfigUtil } from 'src/shared/config/app-config.util';
 import { MessageRequestApplicationService } from '../../application/services';
 import { CreateMessageRequestRequest } from '../../application/dtos';
+import { MessageRequestErrors } from '../../domain/errors';
+import { withContext } from 'src/shared/errors';
 import { IUserToken } from 'src/shared/security';
+import { SendMessageJob } from '../services/message-request-queue.types';
+import { SendMessageWorkerService } from '../services/send-message-worker.service';
 
 // Import response DTOs for tenant configuration
 import { DetailWorkspaceResponse } from 'src/contexts/notification/slack-config/workspace/application/dtos';
@@ -104,6 +108,7 @@ export class MessageRequestProcessor implements OnModuleInit, OnModuleDestroy {
     private readonly messageRequestAppPort: IMessageRequestAppPort,
     @Inject(SLACK_REQUEST_DI_TOKENS.IO_REDIS)
     private readonly redis: Redis,
+    private readonly sendMessageWorkerService: SendMessageWorkerService,
   ) {
     this.logger = componentLogger(baseLogger, 'MessageRequestProcessor');
   }
@@ -137,12 +142,23 @@ export class MessageRequestProcessor implements OnModuleInit, OnModuleDestroy {
               return await this.handleSendMessageRequest(
                 job as Job<MessageRequestJobs['send-message-request']>,
               );
+            case 'SendMessageJob':
+              return await this.handleSendMessageJob(
+                job as Job<SendMessageJob>,
+              );
             case 'retry-failed-message-request':
               return await this.handleRetryFailedMessageRequest(
                 job as Job<MessageRequestJobs['retry-failed-message-request']>,
               );
             default:
-              throw new Error(`Unknown job type: ${job.name}`);
+              throw new Error(
+                withContext(MessageRequestErrors.INVALID_DATA, {
+                  operation: 'job_processing',
+                  id: job.id || 'unknown',
+                  reason: `Unknown job type: ${job.name}`,
+                }).detail,
+                { cause: new Error(`Unknown job type: ${job.name}`) },
+              );
           }
         } catch (error) {
           const e = error as Error;
@@ -653,6 +669,39 @@ export class MessageRequestProcessor implements OnModuleInit, OnModuleDestroy {
         method: 'handleRetryFailedMessageRequest',
         jobId,
         messageRequestId,
+        error: e.message,
+        stack: e.stack,
+      });
+      throw error; // Re-throw to trigger BullMQ retry logic
+    }
+  }
+
+  /**
+   * Process SendMessageJob using the dedicated worker service
+   */
+  async handleSendMessageJob(job: Job<SendMessageJob>): Promise<void> {
+    Log.info(this.logger, 'Processing SendMessageJob', {
+      method: 'handleSendMessageJob',
+      jobId: job.id,
+      messageRequestId: job.data.messageRequestId,
+      tenant: job.data.tenant,
+    });
+
+    try {
+      // Delegate to the specialized SendMessageWorkerService
+      await this.sendMessageWorkerService.processJob(job);
+
+      Log.info(this.logger, 'Successfully processed SendMessageJob', {
+        method: 'handleSendMessageJob',
+        jobId: job.id,
+        messageRequestId: job.data.messageRequestId,
+      });
+    } catch (error) {
+      const e = error as Error;
+      Log.error(this.logger, 'Error processing SendMessageJob', {
+        method: 'handleSendMessageJob',
+        jobId: job.id,
+        messageRequestId: job.data.messageRequestId,
         error: e.message,
         stack: e.stack,
       });

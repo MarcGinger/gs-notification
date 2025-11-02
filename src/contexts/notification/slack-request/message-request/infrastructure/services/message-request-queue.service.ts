@@ -11,6 +11,7 @@ import { Result, DomainError, err, fromError } from 'src/shared/errors';
 import { ActorContext } from 'src/shared/application/context';
 import { Option } from 'src/shared/domain/types';
 import { ConfigErrors } from 'src/shared/config/errors/config.errors';
+import { SendMessageJob } from './message-request-queue.types';
 
 // Import slack-config query interfaces and tokens
 import {
@@ -403,6 +404,75 @@ export class MessageRequestQueueService {
     });
 
     return job.id?.toString() || 'unknown';
+  }
+
+  /**
+   * Simple BullMQ job enqueue with minimal payload (following refinement.md)
+   *
+   * Enqueues a SendMessageJob with minimal payload following the reference-only,
+   * secret-free principles. The worker will resolve configuration by codes.
+   */
+  async enqueueSimpleSendMessageJob(
+    job: SendMessageJob,
+    options?: {
+      priority?: number;
+      delay?: number;
+      attempts?: number;
+    },
+  ): Promise<{
+    success: boolean;
+    jobId?: string;
+    error?: string;
+  }> {
+    const { messageRequestId, tenant } = job;
+
+    try {
+      Log.debug(this.logger, 'Enqueuing simple SendMessageJob', {
+        method: 'enqueueSimpleSendMessageJob',
+        messageRequestId,
+        tenant,
+        threadTs: job.threadTs,
+        options,
+      });
+
+      const bullmqJob = await this.queue.add('SendMessageJob', job, {
+        priority: options?.priority || 0,
+        delay: options?.delay || 0,
+        attempts: options?.attempts || 1,
+        // Minimal job options - no complex retry logic here
+        // Worker handles retries via send-lock SETNX patterns
+      });
+
+      Log.info(this.logger, 'Successfully enqueued simple SendMessageJob', {
+        method: 'enqueueSimpleSendMessageJob',
+        messageRequestId,
+        tenant,
+        jobId: bullmqJob.id,
+        priority: options?.priority || 0,
+        delay: options?.delay || 0,
+        attempts: options?.attempts || 1,
+      });
+
+      return {
+        success: true,
+        jobId: bullmqJob.id?.toString(),
+      };
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : 'Unknown error';
+
+      Log.error(this.logger, 'Failed to enqueue simple SendMessageJob', {
+        method: 'enqueueSimpleSendMessageJob',
+        messageRequestId,
+        tenant,
+        error: errorMessage,
+      });
+
+      return {
+        success: false,
+        error: errorMessage,
+      };
+    }
   }
 
   /**

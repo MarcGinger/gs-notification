@@ -1195,7 +1195,7 @@
 			"embeddable": false,
 			"generate": true,
 			"generateCustomCode": true,
-			"customCode": "write('kurrentdb')\nread('redis')\nquery('redis')\nprojector('redis')\nsoftDelete(false)\nupdate(false)\ncreate(true)",
+			"customCode": "write('kurrentdb')\nread('redis')\nquery('redis')\nprojector('redis')\nqueue(true)\nsoftDelete(false)\nupdate(false)\ncreate(true)",
 			"tabletype": "InnoDB",
 			"collation": "utf8mb4_general_ci",
 			"charset": "utf8mb4",
@@ -1397,7 +1397,7 @@
 		},
 		"type": "MARIADB",
 		"version": 1,
-		"lastSaved": 1761984654247,
+		"lastSaved": 1761988154173,
 		"beforeScript": "",
 		"afterScript": "",
 		"sqlSettings": {

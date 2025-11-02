@@ -42,6 +42,8 @@ import { MessageRequestProjectionKeys } from '../../message-request-projection-k
 import { MessageRequestFieldValidatorUtil } from '../utilities/message-request-field-validator.util';
 import { DetailMessageRequestResponse } from '../../application/dtos';
 import { MessageRequestQueueService } from '../services';
+import { SendMessageJob } from '../services/message-request-queue.types';
+import { MessageRequestIdempotencyService } from '../services/message-request-idempotency.service';
 
 /**
  * MessageRequest projector error catalog using shared error definitions
@@ -119,6 +121,7 @@ export class MessageRequestProjector
     @Inject(SLACK_REQUEST_DI_TOKENS.CACHE_SERVICE)
     private readonly cache: CacheService,
     private readonly queueService: MessageRequestQueueService,
+    private readonly idempotencyService: MessageRequestIdempotencyService,
   ) {
     super(
       MessageRequestProjectionKeys.PROJECTOR_NAME,
@@ -734,61 +737,124 @@ export class MessageRequestProjector
   }
 
   /**
-   * Dispatch a send message job with consistent logging and tenant configuration
+   * Dispatch a send message job with dispatch-once SETNX pattern
+   *
+   * Uses simple BullMQ job with minimal payload as per refinement.md specification.
+   * Implements dispatch-once semantics using Redis SETNX to prevent duplicate jobs.
    */
   private async dispatchSendMessageJob(
     messageRequestId: string,
     tenant: string,
     trigger: string,
     options: { priority: number; delay: number },
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     config: {
       workspaceCode: string;
       templateCode?: string;
       channelCode?: string;
     },
   ): Promise<boolean> {
-    // Use enriched queue method that fetches tenant configuration
-    const result = await this.queueService.queueEnrichedSendMessageRequest(
-      messageRequestId,
-      tenant,
-      config.workspaceCode,
-      config.templateCode,
-      config.channelCode,
-      options,
-    );
+    try {
+      // Step 1: Acquire dispatch-once lock using SETNX pattern
+      const dispatchResult = await this.idempotencyService.acquireDispatchLock(
+        tenant,
+        messageRequestId,
+      );
 
-    if (!result.ok) {
-      Log.error(
+      if (!dispatchResult.success) {
+        Log.error(
+          this.logger,
+          `Failed to acquire dispatch lock for ${trigger} request`,
+          {
+            method: 'dispatchSendMessageJob',
+            trigger,
+            messageRequestId,
+            tenant,
+            error: dispatchResult.error,
+          },
+        );
+        return false;
+      }
+
+      // Step 2: If not first time, skip enqueuing (already dispatched)
+      if (!dispatchResult.isFirst) {
+        Log.debug(
+          this.logger,
+          `MessageRequest ${messageRequestId} already dispatched for ${trigger}, skipping`,
+          {
+            method: 'dispatchSendMessageJob',
+            trigger,
+            messageRequestId,
+            tenant,
+          },
+        );
+        return true; // Return true because dispatch was successful (just not first time)
+      }
+
+      // Step 3: First time - create minimal BullMQ job payload
+      const job: SendMessageJob = {
+        messageRequestId,
+        tenant,
+        // Include threadTs if available from config (for thread replies)
+        threadTs: undefined, // Will be resolved by worker from MessageRequest data
+      };
+
+      // Step 4: Enqueue the job using simple queue service method
+      const enqueuResult: {
+        success: boolean;
+        jobId?: string;
+        error?: string;
+      } = await this.queueService.enqueueSimpleSendMessageJob(job, {
+        priority: options.priority,
+        delay: options.delay,
+        // Minimal attempts - worker should handle retries via Redis locks
+        attempts: 1,
+      });
+
+      if (!enqueuResult.success) {
+        Log.error(
+          this.logger,
+          `Failed to enqueue simple send message job for ${trigger} request`,
+          {
+            method: 'dispatchSendMessageJob',
+            trigger,
+            messageRequestId,
+            tenant,
+            error: enqueuResult.error,
+          },
+        );
+        return false;
+      }
+
+      Log.info(
         this.logger,
-        `Failed to queue send message job for ${trigger} request`,
+        `Successfully dispatched simple send message job for ${trigger} request`,
         {
           method: 'dispatchSendMessageJob',
           trigger,
           messageRequestId,
           tenant,
-          error: result.error.detail,
+          jobId: enqueuResult.jobId,
+          priority: options.priority,
+          delay: options.delay,
+          isFirstDispatch: dispatchResult.isFirst,
+        },
+      );
+
+      return true;
+    } catch (error) {
+      Log.error(
+        this.logger,
+        `Unexpected error dispatching send message job for ${trigger} request`,
+        {
+          method: 'dispatchSendMessageJob',
+          trigger,
+          messageRequestId,
+          tenant,
+          error: error instanceof Error ? error.message : 'Unknown error',
         },
       );
       return false;
     }
-
-    Log.info(
-      this.logger,
-      `Queued enriched send message job for ${trigger} request`,
-      {
-        method: 'dispatchSendMessageJob',
-        trigger,
-        messageRequestId,
-        tenant,
-        workspaceCode: config.workspaceCode,
-        templateCode: config.templateCode,
-        channelCode: config.channelCode,
-        priority: options.priority,
-        delay: options.delay,
-        jobId: result.value,
-      },
-    );
-
-    return true;
   }
 }
