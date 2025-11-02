@@ -557,16 +557,24 @@ export class MessageRequestAggregate extends AggregateRootBase {
     retryable?: boolean;
     lastError?: string;
   }): Result<void, DomainError> {
-    // Update status to failed
+    // Update status to failed directly without generating update event
     const statusResult = createMessageRequestStatus('failed');
     if (!statusResult.ok) return err(statusResult.error);
 
-    const updateResult = this.updateBatch({ status: statusResult.value });
-    if (!updateResult.ok) return err(updateResult.error);
+    const entityResult = this._entity.withStatus(statusResult.value);
+    if (!entityResult.ok) return err(entityResult.error);
 
-    // Create typed MessageRequestFailedEvent with only business data
+    this._entity = entityResult.value;
+
+    // Create typed MessageRequestFailedEvent with complete business data
     const failedEvent = MessageRequestFailedEvent.create({
       id: this._entity.id.value,
+      recipient: this._entity.recipient?.value || '',
+      data: this._entity.data?.value || {},
+      status: this._entity.status?.value || 'failed',
+      workspaceCode: this._entity.workspaceCode.value,
+      templateCode: this._entity.templateCode.value,
+      channelCode: this._entity.channelCode?.value || '',
       reason: metadata.reason,
       attempts: metadata.attempts,
       retryable: metadata.retryable,
@@ -592,16 +600,24 @@ export class MessageRequestAggregate extends AggregateRootBase {
    * Mark message request as sent with business metadata
    */
   public markSent(metadata: { attempts: number }): Result<void, DomainError> {
-    // Update status to sent
+    // Update status to sent directly without generating update event
     const statusResult = createMessageRequestStatus('sent');
     if (!statusResult.ok) return err(statusResult.error);
 
-    const updateResult = this.updateBatch({ status: statusResult.value });
-    if (!updateResult.ok) return err(updateResult.error);
+    const entityResult = this._entity.withStatus(statusResult.value);
+    if (!entityResult.ok) return err(entityResult.error);
 
-    // Create typed MessageRequestSentEvent with only business data
+    this._entity = entityResult.value;
+
+    // Create typed MessageRequestSentEvent with complete business data
     const sentEvent = MessageRequestSentEvent.create({
       id: this._entity.id.value,
+      recipient: this._entity.recipient?.value || '',
+      data: this._entity.data?.value || {},
+      status: this._entity.status?.value || 'sent',
+      workspaceCode: this._entity.workspaceCode.value,
+      templateCode: this._entity.templateCode.value,
+      channelCode: this._entity.channelCode?.value || '',
       attempts: metadata.attempts,
     });
 
