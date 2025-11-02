@@ -36,6 +36,10 @@ import type {
   IMessageRequestQuery,
   IMessageRequestWriter,
 } from '../../application/ports';
+import {
+  IMessageRequestAppPort,
+  MESSAGE_REQUEST_APP_PORT,
+} from '../../application/ports/message-request-app.port';
 
 // Import DI tokens for Redis access
 import { SLACK_REQUEST_DI_TOKENS } from '../../../slack-request.constants';
@@ -96,6 +100,8 @@ export class MessageRequestProcessor implements OnModuleInit, OnModuleDestroy {
     private readonly messageRequestQuery: IMessageRequestQuery,
     @Inject(MESSAGE_REQUEST_WRITER_TOKEN)
     private readonly messageRequestWriter: IMessageRequestWriter,
+    @Inject(MESSAGE_REQUEST_APP_PORT)
+    private readonly messageRequestAppPort: IMessageRequestAppPort,
     @Inject(SLACK_REQUEST_DI_TOKENS.IO_REDIS)
     private readonly redis: Redis,
   ) {
@@ -328,7 +334,7 @@ export class MessageRequestProcessor implements OnModuleInit, OnModuleDestroy {
         messageRequestId,
       );
       if (!requestResult.ok || !requestResult.value) {
-        return this.fail(messageRequestId, 'request_not_found');
+        return await this.fail(messageRequestId, tenant, 'request_not_found');
       }
 
       const request = requestResult.value;
@@ -344,14 +350,14 @@ export class MessageRequestProcessor implements OnModuleInit, OnModuleDestroy {
       // 3. Extract tenant configuration
       const { workspace, template, channel, appConfig } = tenantConfig || {};
       if (!workspace?.botToken) {
-        return this.fail(messageRequestId, 'bot_token_missing');
+        return await this.fail(messageRequestId, tenant, 'bot_token_missing');
       }
 
       // Use channel code (assuming it's the Slack channel ID) or fallback to recipient
       const channelId =
         channel?.code || recipient || workspace.defaultChannelId;
       if (!channelId) {
-        return this.fail(messageRequestId, 'channel_missing');
+        return await this.fail(messageRequestId, tenant, 'channel_missing');
       }
 
       // 4. Render message template
@@ -469,8 +475,16 @@ export class MessageRequestProcessor implements OnModuleInit, OnModuleDestroy {
         });
 
         if (res.ok) {
-          // Success - log and exit (no BullMQ retry)
-          // TODO: Add status update when writer interface supports it
+          // Success - record delivery through application port
+          await this.messageRequestAppPort.recordSent({
+            id: messageRequestId,
+            tenant,
+            slackTs: res.value.ts,
+            slackChannel: res.value.channel,
+            attempts: attempt,
+            // Note: correlationId, causationId, and actor not available in send-message-request job data
+            // Future: Could be passed through from create-message-request job
+          });
 
           Log.info(this.logger, 'Message request sent successfully', {
             method: 'handleSendMessageRequest',
@@ -494,7 +508,15 @@ export class MessageRequestProcessor implements OnModuleInit, OnModuleDestroy {
       }
 
       // Final failure after all internal attempts (no BullMQ retry)
-      // TODO: Add status update when writer interface supports it
+      // Record failure through application port
+      await this.messageRequestAppPort.recordFailed({
+        id: messageRequestId,
+        tenant,
+        reason: 'max_attempts_exceeded',
+        attempts: attempt,
+        retryable: false,
+        lastError: lastErr || 'Unknown error after max attempts',
+      });
 
       Log.error(this.logger, 'Message request failed after attempts', {
         method: 'handleSendMessageRequest',
@@ -509,7 +531,15 @@ export class MessageRequestProcessor implements OnModuleInit, OnModuleDestroy {
     } catch (error) {
       const e = error as Error;
 
-      // TODO: Update status to failed on unexpected errors when writer interface supports it
+      // Record failure through application port
+      await this.messageRequestAppPort.recordFailed({
+        id: messageRequestId,
+        tenant,
+        reason: 'unexpected_error',
+        attempts: 1, // This is an unexpected error, not a retry
+        retryable: false,
+        lastError: e.message,
+      });
 
       Log.error(this.logger, 'Error processing send message request job', {
         method: 'handleSendMessageRequest',
@@ -560,14 +590,27 @@ export class MessageRequestProcessor implements OnModuleInit, OnModuleDestroy {
     }
   }
 
-  private fail(messageRequestId: string, code: string): void {
+  private async fail(
+    messageRequestId: string,
+    tenant: string,
+    code: string,
+  ): Promise<void> {
+    // Record failure through application port
+    await this.messageRequestAppPort.recordFailed({
+      id: messageRequestId,
+      tenant,
+      reason: code,
+      attempts: 1,
+      retryable: false,
+      lastError: `Validation failure: ${code}`,
+    });
+
     Log.error(this.logger, 'Message request failed', {
       method: 'handleSendMessageRequest',
       messageRequestId,
       reason: code,
     });
 
-    // TODO: Update status to failed when writer interface supports it
     // Don't throw to avoid BullMQ retries - internal retry logic handles retries
   }
 

@@ -25,6 +25,8 @@ import {
 } from '../value-objects';
 import {
   MessageRequestCreatedEvent,
+  MessageRequestFailedEvent,
+  MessageRequestSentEvent,
   MessageRequestUpdatedEvent,
 } from '../events';
 import { MessageRequestErrors } from '../errors';
@@ -547,7 +549,96 @@ export class MessageRequestAggregate extends AggregateRootBase {
   }
 
   /**
-   * Set entity to failed
+   * Mark message request as failed with rich metadata
+   */
+  public markFailed(metadata: {
+    tenant: string;
+    reason: string;
+    attempts: number;
+    retryable?: boolean;
+    lastError?: string;
+    correlationId?: string;
+    causationId?: string;
+    actor?: { userId: string; roles?: string[] };
+  }): Result<void, DomainError> {
+    // Update status to failed
+    const statusResult = createMessageRequestStatus('failed');
+    if (!statusResult.ok) return err(statusResult.error);
+
+    const updateResult = this.updateBatch({ status: statusResult.value });
+    if (!updateResult.ok) return err(updateResult.error);
+
+    // Emit domain event with rich metadata
+    const domainEvent: DomainEvent = {
+      type: 'NotificationSlackRequestMessageFailed.v1',
+      version: 1,
+      occurredAt: this.clock.now(),
+      aggregateId: this._entity.id.value,
+      aggregateType: 'MessageRequest',
+      data: {
+        id: this._entity.id.value,
+        tenant: metadata.tenant,
+        reason: metadata.reason,
+        attempts: metadata.attempts,
+        retryable: metadata.retryable,
+        lastError: metadata.lastError,
+        correlationId: metadata.correlationId,
+        causationId: metadata.causationId,
+        actor: metadata.actor,
+      },
+      metadata: this.eventMetadata,
+    };
+
+    this.apply(domainEvent);
+    return ok(undefined);
+  }
+
+  /**
+   * Mark message request as sent with rich metadata
+   */
+  public markSent(metadata: {
+    tenant: string;
+    slackTs: string;
+    slackChannel: string;
+    attempts: number;
+    correlationId?: string;
+    causationId?: string;
+    actor?: { userId: string; roles?: string[] };
+  }): Result<void, DomainError> {
+    // Update status to sent
+    const statusResult = createMessageRequestStatus('sent');
+    if (!statusResult.ok) return err(statusResult.error);
+
+    const updateResult = this.updateBatch({ status: statusResult.value });
+    if (!updateResult.ok) return err(updateResult.error);
+
+    // Emit domain event with rich metadata
+    const domainEvent: DomainEvent = {
+      type: 'NotificationSlackRequestMessageSent.v1',
+      version: 1,
+      occurredAt: this.clock.now(),
+      aggregateId: this._entity.id.value,
+      aggregateType: 'MessageRequest',
+      data: {
+        id: this._entity.id.value,
+        tenant: metadata.tenant,
+        slackTs: metadata.slackTs,
+        slackChannel: metadata.slackChannel,
+        attempts: metadata.attempts,
+        correlationId: metadata.correlationId,
+        causationId: metadata.causationId,
+        actor: metadata.actor,
+      },
+      metadata: this.eventMetadata,
+    };
+
+    this.apply(domainEvent);
+    return ok(undefined);
+  }
+
+  /**
+   * Set entity to failed (legacy method - kept for backward compatibility)
+   * @deprecated Use markFailed() with rich metadata instead
    */
   public failed(): Result<void, DomainError> {
     const statusResult = createMessageRequestStatus('failed');
@@ -556,7 +647,8 @@ export class MessageRequestAggregate extends AggregateRootBase {
   }
 
   /**
-   * Set entity to sent
+   * Set entity to sent (legacy method - kept for backward compatibility)
+   * @deprecated Use markSent() with rich metadata instead
    */
   public sent(): Result<void, DomainError> {
     const statusResult = createMessageRequestStatus('sent');

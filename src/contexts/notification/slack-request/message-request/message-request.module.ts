@@ -18,6 +18,8 @@ import {
   MessageRequestAuthorizationAdapter,
   MessageRequestForeignKeyValidatorService,
 } from './application/services';
+import { MessageRequestAppPortAdapter } from './application/adapters/message-request-app-port.adapter';
+import { MESSAGE_REQUEST_APP_PORT } from './application/ports/message-request-app.port';
 import {
   ICreateMessageRequestUseCase,
   CreateMessageRequestUseCase,
@@ -114,6 +116,12 @@ import {
     MessageRequestAuthorizationService,
     MessageRequestAuthorizationAdapter,
     MessageRequestForeignKeyValidatorService,
+
+    // Application Port Adapter (Phase 1)
+    {
+      provide: MESSAGE_REQUEST_APP_PORT,
+      useClass: MessageRequestAppPortAdapter,
+    },
 
     // Queue and processing services
     MessageRequestQueueService,
