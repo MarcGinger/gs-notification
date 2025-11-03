@@ -2,7 +2,7 @@
  * Record Message Sent Props
  * Domain props for recording successful message delivery
  */
-export interface RecordMessageSentProps {
+export interface MessageRequestSentProps {
   id: string;
   attempts: number;
   correlationId?: string;

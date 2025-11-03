@@ -9,6 +9,7 @@ import { ActorContext } from 'src/shared/application/context';
 // Shared utilities and infrastructure
 import { APP_LOGGER, componentLogger, Logger } from 'src/shared/logging';
 import { Clock, CLOCK } from 'src/shared/infrastructure/time';
+
 import {
   UseCaseLoggingUtil,
   UseCaseLoggingConfig,
@@ -28,6 +29,7 @@ import { EventMetadata } from 'src/shared/domain/events';
 import { SystemClock } from 'src/shared/infrastructure/time';
 
 // Application layer
+
 import {
   IMessageRequestReader,
   IMessageRequestWriter,
@@ -40,8 +42,8 @@ import {
 } from '../services';
 import { DetailMessageRequestResponse } from '../dtos';
 import { MessageRequestDtoAssembler } from '../assemblers';
-import { IRecordMessageFailedUseCase } from './contracts';
-import { RecordMessageFailedProps } from '../../domain/props';
+import { IMessageRequestSentUseCase } from './contracts';
+import { MessageRequestSentProps } from '../../domain/props';
 
 // Shared compliance services
 import {
@@ -51,7 +53,7 @@ import {
 } from 'src/shared/services/compliance';
 
 @Injectable()
-export class RecordMessageFailedUseCase implements IRecordMessageFailedUseCase {
+export class MessageRequestSentUseCase implements IMessageRequestSentUseCase {
   private readonly logger: Logger;
   private readonly loggingConfig: UseCaseLoggingConfig;
 
@@ -72,7 +74,7 @@ export class RecordMessageFailedUseCase implements IRecordMessageFailedUseCase {
   ) {
     this.loggingConfig = {
       serviceName: SlackRequestServiceConstants.SERVICE_NAME,
-      component: 'RecordMessageFailedUseCase',
+      component: 'MessageRequestSentUseCase',
       domain: 'slack-request',
       entityType: 'message-request',
     };
@@ -81,11 +83,11 @@ export class RecordMessageFailedUseCase implements IRecordMessageFailedUseCase {
 
   async execute(params: {
     user: IUserToken;
-    props: RecordMessageFailedProps;
+    props: MessageRequestSentProps;
     correlationId: string;
     authorizationReason: string;
   }): Promise<Result<DetailMessageRequestResponse, DomainError>> {
-    const operation = 'record_message_failed';
+    const operation = 'record_message_sent';
     const startTime = this.clock.nowMs();
 
     // Create a command-like object for internal use
@@ -137,7 +139,6 @@ export class RecordMessageFailedUseCase implements IRecordMessageFailedUseCase {
         operationRisk: UseCaseLoggingUtil.assessOperationRisk(operation),
         messageRequestId: params.props.id,
         attempts: params.props.attempts,
-        retryable: params.props.retryable,
       },
     );
 
@@ -194,7 +195,7 @@ export class RecordMessageFailedUseCase implements IRecordMessageFailedUseCase {
         causationId: params.props.causationId,
         actor: {
           ...actor,
-          sessionId: 'record-message-failed-use-case',
+          sessionId: 'record-message-sent-use-case',
         },
         service: 'notification-service',
         timestampIso: new SystemClock().nowIso(),
@@ -210,15 +211,12 @@ export class RecordMessageFailedUseCase implements IRecordMessageFailedUseCase {
       );
 
       // Apply domain operation
-      const failedResult = aggregate.markFailed({
-        reason: params.props.reason,
+      const sentResult = aggregate.markSent({
         attempts: params.props.attempts,
-        retryable: params.props.retryable,
-        lastError: params.props.lastError,
       });
 
-      if (!failedResult.ok) {
-        return err(failedResult.error);
+      if (!sentResult.ok) {
+        return err(sentResult.error);
       }
 
       // Save the updated aggregate
@@ -265,8 +263,7 @@ export class RecordMessageFailedUseCase implements IRecordMessageFailedUseCase {
         eventCount: aggregate.uncommittedEvents?.length ?? 0,
         businessData: {
           messageRequestCode: dto.id,
-          reason: params.props.reason,
-          failureRecorded: true,
+          deliveryRecorded: true,
         },
       },
     );

@@ -39,8 +39,8 @@ import {
   ICreateMessageRequestUseCase,
   IGetMessageRequestUseCase,
   IListMessageRequestUseCase,
-  IRecordMessageSentUseCase,
-  IRecordMessageFailedUseCase,
+  IMessageRequestSentUseCase,
+  IMessageRequestFailedUseCase,
 } from '../use-cases/contracts';
 import { IMessageRequestAppPort } from '../ports/message-request-app.port';
 
@@ -59,8 +59,8 @@ export class MessageRequestApplicationService
     private readonly createMessageRequestUseCase: ICreateMessageRequestUseCase,
     private readonly getMessageRequestUseCase: IGetMessageRequestUseCase,
     private readonly listMessageRequestUseCase: IListMessageRequestUseCase,
-    private readonly recordSentUseCase: IRecordMessageSentUseCase,
-    private readonly recordFailedUseCase: IRecordMessageFailedUseCase,
+    private readonly recordSentUseCase: IMessageRequestSentUseCase,
+    private readonly recordFailedUseCase: IMessageRequestFailedUseCase,
     @Inject(CLOCK) private readonly clock: Clock,
     @Inject(APP_LOGGER) moduleLogger: Logger,
   ) {
@@ -328,7 +328,7 @@ export class MessageRequestApplicationService
   /**
    * Record successful message delivery (System operation)
    */
-  async recordMessageSent(input: {
+  async MessageRequestSent(input: {
     id: string;
     attempts: number;
     tenant?: string;
@@ -398,7 +398,7 @@ export class MessageRequestApplicationService
   /**
    * Record failed message delivery (System operation)
    */
-  async recordMessageFailed(input: {
+  async MessageRequestFailed(input: {
     id: string;
     reason: string;
     attempts: number;
@@ -486,7 +486,7 @@ export class MessageRequestApplicationService
     correlationId?: string;
     causationId?: string;
   }): Promise<void> {
-    const result = await this.recordMessageSent(input);
+    const result = await this.MessageRequestSent(input);
     if (!result.ok) {
       throw new Error(`Failed to record message sent: ${result.error.detail}`);
     }
@@ -506,7 +506,7 @@ export class MessageRequestApplicationService
     correlationId?: string;
     causationId?: string;
   }): Promise<void> {
-    const result = await this.recordMessageFailed(input);
+    const result = await this.MessageRequestFailed(input);
     if (!result.ok) {
       throw new Error(
         `Failed to record message failed: ${result.error.detail}`,

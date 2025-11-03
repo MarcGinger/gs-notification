@@ -12,8 +12,8 @@ import { Result, DomainError } from 'src/shared/errors';
 import type { IUserToken } from 'src/shared/security';
 import type {
   CreateMessageRequestProps,
-  RecordMessageFailedProps,
-  RecordMessageSentProps,
+  MessageRequestFailedProps,
+  MessageRequestSentProps,
 } from '../../domain/props';
 import type {
   DetailMessageRequestResponse,
@@ -45,19 +45,19 @@ export abstract class IListMessageRequestUseCase {
   }): Promise<Result<MessageRequestPageResponse, DomainError>>;
 }
 
-export abstract class IRecordMessageSentUseCase {
+export abstract class IMessageRequestSentUseCase {
   abstract execute(params: {
     user: IUserToken;
-    props: RecordMessageSentProps;
+    props: MessageRequestSentProps;
     correlationId: string;
     authorizationReason: string;
   }): Promise<Result<DetailMessageRequestResponse, DomainError>>;
 }
 
-export abstract class IRecordMessageFailedUseCase {
+export abstract class IMessageRequestFailedUseCase {
   abstract execute(params: {
     user: IUserToken;
-    props: RecordMessageFailedProps;
+    props: MessageRequestFailedProps;
     correlationId: string;
     authorizationReason: string;
   }): Promise<Result<DetailMessageRequestResponse, DomainError>>;

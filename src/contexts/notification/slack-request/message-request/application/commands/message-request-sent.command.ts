@@ -2,15 +2,15 @@ import { BaseCommand } from 'src/shared/application/commands/base.command';
 import { IUserToken } from 'src/shared/security';
 import { CorrelationUtil } from 'src/shared/utilities/correlation.util';
 import { SecurityMetadata } from 'src/shared/domain/events/event-metadata';
-import { RecordMessageFailedProps } from '../../domain/props';
+import { MessageRequestSentProps } from '../../domain/props';
 
 /**
- * Enhanced Record Message Failed Command with security context and metadata
+ * Enhanced Record Message Sent Command with security context and metadata
  */
-export class RecordMessageFailedCommand extends BaseCommand {
+export class RecordMessageSentCommand extends BaseCommand {
   constructor(
     user: IUserToken,
-    public readonly props: RecordMessageFailedProps,
+    public readonly props: MessageRequestSentProps,
     correlationId: string,
     securityContext: SecurityMetadata,
   ) {
@@ -22,16 +22,16 @@ export class RecordMessageFailedCommand extends BaseCommand {
    */
   static create(
     user: IUserToken,
-    props: RecordMessageFailedProps,
+    props: MessageRequestSentProps,
     correlationId: string = CorrelationUtil.generate(),
     additionalSecurityContext?: Partial<SecurityMetadata>,
-  ): RecordMessageFailedCommand {
+  ): RecordMessageSentCommand {
     const securityContext = BaseCommand.createSecurityMetadata(
       user,
       additionalSecurityContext,
     );
 
-    return new RecordMessageFailedCommand(
+    return new RecordMessageSentCommand(
       user,
       props,
       correlationId,

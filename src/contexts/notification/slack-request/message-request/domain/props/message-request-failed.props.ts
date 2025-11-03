@@ -2,7 +2,7 @@
  * Record Message Failed Props
  * Domain props for recording message delivery failure
  */
-export interface RecordMessageFailedProps {
+export interface MessageRequestFailedProps {
   id: string;
   reason: string;
   attempts: number;
