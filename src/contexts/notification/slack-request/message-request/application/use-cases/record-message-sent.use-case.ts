@@ -42,7 +42,8 @@ import {
 } from '../services';
 import { DetailMessageRequestResponse } from '../dtos';
 import { MessageRequestDtoAssembler } from '../assemblers';
-import { IRecordMessageSentUseCase, RecordMessageSentProps } from './contracts';
+import { IRecordMessageSentUseCase } from './contracts';
+import { RecordMessageSentProps } from '../../domain/props';
 
 // Shared compliance services
 import {

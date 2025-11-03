@@ -10,30 +10,16 @@
 
 import { Result, DomainError } from 'src/shared/errors';
 import type { IUserToken } from 'src/shared/security';
-import type { CreateMessageRequestProps } from '../../domain/props';
+import type {
+  CreateMessageRequestProps,
+  RecordMessageFailedProps,
+  RecordMessageSentProps,
+} from '../../domain/props';
 import type {
   DetailMessageRequestResponse,
   MessageRequestPageResponse,
   ListMessageRequestFilterRequest,
 } from '../dtos';
-
-// Props interfaces for outcome recording operations
-export interface RecordMessageSentProps {
-  id: string;
-  attempts: number;
-  correlationId?: string;
-  causationId?: string;
-}
-
-export interface RecordMessageFailedProps {
-  id: string;
-  reason: string;
-  attempts: number;
-  retryable?: boolean;
-  lastError?: string;
-  correlationId?: string;
-  causationId?: string;
-}
 
 export abstract class ICreateMessageRequestUseCase {
   abstract execute(params: {

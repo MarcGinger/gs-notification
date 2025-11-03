@@ -40,10 +40,8 @@ import {
 } from '../services';
 import { DetailMessageRequestResponse } from '../dtos';
 import { MessageRequestDtoAssembler } from '../assemblers';
-import {
-  IRecordMessageFailedUseCase,
-  RecordMessageFailedProps,
-} from './contracts';
+import { IRecordMessageFailedUseCase } from './contracts';
+import { RecordMessageFailedProps } from '../../domain/props';
 
 // Shared compliance services
 import {
