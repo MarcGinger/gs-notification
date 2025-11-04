@@ -27,10 +27,10 @@ import {
   GetMessageRequestUseCase,
   IListMessageRequestUseCase,
   ListMessageRequestUseCase,
-  IMessageRequestSentUseCase,
-  MessageRequestSentUseCase,
-  IMessageRequestFailedUseCase,
-  MessageRequestFailedUseCase,
+  ISentMessageRequestUseCase,
+  SentMessageRequestUseCase,
+  IFailedMessageRequestUseCase,
+  FailedMessageRequestUseCase,
 } from './application/use-cases';
 
 // import { IMessageRequestRepository } from './application/ports';
@@ -152,12 +152,12 @@ import {
       useClass: ListMessageRequestUseCase,
     },
     {
-      provide: IMessageRequestSentUseCase,
-      useClass: MessageRequestSentUseCase,
+      provide: ISentMessageRequestUseCase,
+      useClass: SentMessageRequestUseCase,
     },
     {
-      provide: IMessageRequestFailedUseCase,
-      useClass: MessageRequestFailedUseCase,
+      provide: IFailedMessageRequestUseCase,
+      useClass: FailedMessageRequestUseCase,
     },
   ],
   exports: [

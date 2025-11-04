@@ -40,8 +40,8 @@ import {
 } from '../services';
 import { DetailMessageRequestResponse } from '../dtos';
 import { MessageRequestDtoAssembler } from '../assemblers';
-import { IMessageRequestFailedUseCase } from './contracts';
-import { MessageRequestFailedProps } from '../../domain/props';
+import { IFailedMessageRequestUseCase } from './contracts';
+import { FailedMessageRequestProps } from '../../domain/props';
 
 // Shared compliance services
 import {
@@ -51,8 +51,8 @@ import {
 } from 'src/shared/services/compliance';
 
 @Injectable()
-export class MessageRequestFailedUseCase
-  implements IMessageRequestFailedUseCase
+export class FailedMessageRequestUseCase
+  implements IFailedMessageRequestUseCase
 {
   private readonly logger: Logger;
   private readonly loggingConfig: UseCaseLoggingConfig;
@@ -74,20 +74,19 @@ export class MessageRequestFailedUseCase
   ) {
     this.loggingConfig = {
       serviceName: SlackRequestServiceConstants.SERVICE_NAME,
-      component: 'MessageRequestFailedUseCase',
+      component: 'FailedMessageRequestUseCase',
       domain: 'slack-request',
       entityType: 'message-request',
     };
     this.logger = componentLogger(moduleLogger, this.loggingConfig.component);
   }
-
   async execute(params: {
     user: IUserToken;
-    props: MessageRequestFailedProps;
+    props: FailedMessageRequestProps;
     correlationId: string;
     authorizationReason: string;
   }): Promise<Result<DetailMessageRequestResponse, DomainError>> {
-    const operation = 'record_message_failed';
+    const operation = 'record_message_request_failed';
     const startTime = this.clock.nowMs();
 
     // Create a command-like object for internal use
@@ -155,7 +154,7 @@ export class MessageRequestFailedUseCase
     let updateResult: Result<MessageRequestAggregate, DomainError>;
 
     try {
-      // Create message request ID value object
+      // Create messageRequest id value object
       const messageRequestIdResult = createMessageRequestId(params.props.id);
       if (!messageRequestIdResult.ok) {
         return err(MessageRequestErrors.INVALID_ID);
@@ -196,7 +195,7 @@ export class MessageRequestFailedUseCase
         causationId: params.props.causationId,
         actor: {
           ...actor,
-          sessionId: 'record-message-failed-use-case',
+          sessionId: 'record-message-request-failed-use-case',
         },
         service: 'notification-service',
         timestampIso: new SystemClock().nowIso(),

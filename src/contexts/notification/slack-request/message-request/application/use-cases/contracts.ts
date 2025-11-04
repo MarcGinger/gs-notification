@@ -12,8 +12,8 @@ import { Result, DomainError } from 'src/shared/errors';
 import type { IUserToken } from 'src/shared/security';
 import type {
   CreateMessageRequestProps,
-  MessageRequestFailedProps,
-  MessageRequestSentProps,
+  FailedMessageRequestProps,
+  SentMessageRequestProps,
 } from '../../domain/props';
 import type {
   DetailMessageRequestResponse,
@@ -25,6 +25,24 @@ export abstract class ICreateMessageRequestUseCase {
   abstract execute(params: {
     user: IUserToken;
     props: CreateMessageRequestProps;
+    correlationId: string;
+    authorizationReason: string;
+  }): Promise<Result<DetailMessageRequestResponse, DomainError>>;
+}
+
+export abstract class ISentMessageRequestUseCase {
+  abstract execute(params: {
+    user: IUserToken;
+    props: SentMessageRequestProps;
+    correlationId: string;
+    authorizationReason: string;
+  }): Promise<Result<DetailMessageRequestResponse, DomainError>>;
+}
+
+export abstract class IFailedMessageRequestUseCase {
+  abstract execute(params: {
+    user: IUserToken;
+    props: FailedMessageRequestProps;
     correlationId: string;
     authorizationReason: string;
   }): Promise<Result<DetailMessageRequestResponse, DomainError>>;
@@ -43,22 +61,4 @@ export abstract class IListMessageRequestUseCase {
     filter?: ListMessageRequestFilterRequest;
     correlationId: string;
   }): Promise<Result<MessageRequestPageResponse, DomainError>>;
-}
-
-export abstract class IMessageRequestSentUseCase {
-  abstract execute(params: {
-    user: IUserToken;
-    props: MessageRequestSentProps;
-    correlationId: string;
-    authorizationReason: string;
-  }): Promise<Result<DetailMessageRequestResponse, DomainError>>;
-}
-
-export abstract class IMessageRequestFailedUseCase {
-  abstract execute(params: {
-    user: IUserToken;
-    props: MessageRequestFailedProps;
-    correlationId: string;
-    authorizationReason: string;
-  }): Promise<Result<DetailMessageRequestResponse, DomainError>>;
 }

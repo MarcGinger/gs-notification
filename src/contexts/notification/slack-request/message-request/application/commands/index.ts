@@ -1,3 +1,3 @@
 export * from './create-message-request.command';
-export * from './message-request-sent.command';
-export * from './message-request-failed.command';
+export * from './failed-message-request.command';
+export * from './sent-message-request.command';

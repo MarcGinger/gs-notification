@@ -25,9 +25,9 @@ import {
 } from '../value-objects';
 import {
   MessageRequestCreatedEvent,
-  MessageRequestFailedEvent,
-  MessageRequestSentEvent,
   MessageRequestUpdatedEvent,
+  MessageRequestSentEvent,
+  MessageRequestFailedEvent,
 } from '../events';
 import { MessageRequestErrors } from '../errors';
 import { MessageRequestDomainState } from '../state';
@@ -522,34 +522,7 @@ export class MessageRequestAggregate extends AggregateRootBase {
   }
 
   /**
-   * Set entity to requested
-   */
-  public requested(): Result<void, DomainError> {
-    const statusResult = createMessageRequestStatus('requested');
-    if (!statusResult.ok) return err(statusResult.error);
-    return this.updateBatch({ status: statusResult.value });
-  }
-
-  /**
-   * Set entity to validated
-   */
-  public validated(): Result<void, DomainError> {
-    const statusResult = createMessageRequestStatus('validated');
-    if (!statusResult.ok) return err(statusResult.error);
-    return this.updateBatch({ status: statusResult.value });
-  }
-
-  /**
-   * Set entity to queued
-   */
-  public queued(): Result<void, DomainError> {
-    const statusResult = createMessageRequestStatus('queued');
-    if (!statusResult.ok) return err(statusResult.error);
-    return this.updateBatch({ status: statusResult.value });
-  }
-
-  /**
-   * Mark message request as failed with business metadata
+   * Mark messageRequest request as failed with business metadata
    */
   public markFailed(metadata: {
     reason: string;
@@ -569,12 +542,12 @@ export class MessageRequestAggregate extends AggregateRootBase {
     // Create typed MessageRequestFailedEvent with complete business data
     const failedEvent = MessageRequestFailedEvent.create({
       id: this._entity.id.value,
-      recipient: this._entity.recipient?.value || '',
-      data: this._entity.data?.value || {},
-      status: this._entity.status?.value || 'failed',
+      recipient: this._entity.recipient?.value,
+      data: this._entity.data?.value,
+      status: this._entity.status?.value,
       workspaceCode: this._entity.workspaceCode.value,
       templateCode: this._entity.templateCode.value,
-      channelCode: this._entity.channelCode?.value || '',
+      channelCode: this._entity.channelCode?.value,
       reason: metadata.reason,
       attempts: metadata.attempts,
       retryable: metadata.retryable,
@@ -597,7 +570,7 @@ export class MessageRequestAggregate extends AggregateRootBase {
   }
 
   /**
-   * Mark message request as sent with business metadata
+   * Mark messageRequest request as sent with business metadata
    */
   public markSent(metadata: { attempts: number }): Result<void, DomainError> {
     // Update status to sent directly without generating update event
@@ -612,12 +585,12 @@ export class MessageRequestAggregate extends AggregateRootBase {
     // Create typed MessageRequestSentEvent with complete business data
     const sentEvent = MessageRequestSentEvent.create({
       id: this._entity.id.value,
-      recipient: this._entity.recipient?.value || '',
-      data: this._entity.data?.value || {},
-      status: this._entity.status?.value || 'sent',
+      recipient: this._entity.recipient?.value,
+      data: this._entity.data?.value,
+      status: this._entity.status?.value,
       workspaceCode: this._entity.workspaceCode.value,
       templateCode: this._entity.templateCode.value,
-      channelCode: this._entity.channelCode?.value || '',
+      channelCode: this._entity.channelCode?.value,
       attempts: metadata.attempts,
     });
 
@@ -635,7 +608,6 @@ export class MessageRequestAggregate extends AggregateRootBase {
     this.apply(domainEvent);
     return ok(undefined);
   }
-
   /**
    * Set entity to failed (legacy method - kept for backward compatibility)
    * @deprecated Use markFailed() with rich metadata instead

@@ -42,8 +42,8 @@ import {
 } from '../services';
 import { DetailMessageRequestResponse } from '../dtos';
 import { MessageRequestDtoAssembler } from '../assemblers';
-import { IMessageRequestSentUseCase } from './contracts';
-import { MessageRequestSentProps } from '../../domain/props';
+import { ISentMessageRequestUseCase } from './contracts';
+import { SentMessageRequestProps } from '../../domain/props';
 
 // Shared compliance services
 import {
@@ -53,7 +53,7 @@ import {
 } from 'src/shared/services/compliance';
 
 @Injectable()
-export class MessageRequestSentUseCase implements IMessageRequestSentUseCase {
+export class SentMessageRequestUseCase implements ISentMessageRequestUseCase {
   private readonly logger: Logger;
   private readonly loggingConfig: UseCaseLoggingConfig;
 
@@ -74,20 +74,19 @@ export class MessageRequestSentUseCase implements IMessageRequestSentUseCase {
   ) {
     this.loggingConfig = {
       serviceName: SlackRequestServiceConstants.SERVICE_NAME,
-      component: 'MessageRequestSentUseCase',
+      component: 'SentMessageRequestUseCase',
       domain: 'slack-request',
       entityType: 'message-request',
     };
     this.logger = componentLogger(moduleLogger, this.loggingConfig.component);
   }
-
   async execute(params: {
     user: IUserToken;
-    props: MessageRequestSentProps;
+    props: SentMessageRequestProps;
     correlationId: string;
     authorizationReason: string;
   }): Promise<Result<DetailMessageRequestResponse, DomainError>> {
-    const operation = 'record_message_sent';
+    const operation = 'record_message_request_sent';
     const startTime = this.clock.nowMs();
 
     // Create a command-like object for internal use
@@ -154,7 +153,7 @@ export class MessageRequestSentUseCase implements IMessageRequestSentUseCase {
     let updateResult: Result<MessageRequestAggregate, DomainError>;
 
     try {
-      // Create message request ID value object
+      // Create messageRequest id value object
       const messageRequestIdResult = createMessageRequestId(params.props.id);
       if (!messageRequestIdResult.ok) {
         return err(MessageRequestErrors.INVALID_ID);
@@ -195,7 +194,7 @@ export class MessageRequestSentUseCase implements IMessageRequestSentUseCase {
         causationId: params.props.causationId,
         actor: {
           ...actor,
-          sessionId: 'record-message-sent-use-case',
+          sessionId: 'record-message-request-sent-use-case',
         },
         service: 'notification-service',
         timestampIso: new SystemClock().nowIso(),

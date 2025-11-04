@@ -39,8 +39,8 @@ import {
   ICreateMessageRequestUseCase,
   IGetMessageRequestUseCase,
   IListMessageRequestUseCase,
-  IMessageRequestSentUseCase,
-  IMessageRequestFailedUseCase,
+  ISentMessageRequestUseCase,
+  IFailedMessageRequestUseCase,
 } from '../use-cases/contracts';
 import { IMessageRequestAppPort } from '../ports/message-request-app.port';
 
@@ -59,8 +59,8 @@ export class MessageRequestApplicationService
     private readonly createMessageRequestUseCase: ICreateMessageRequestUseCase,
     private readonly getMessageRequestUseCase: IGetMessageRequestUseCase,
     private readonly listMessageRequestUseCase: IListMessageRequestUseCase,
-    private readonly recordSentUseCase: IMessageRequestSentUseCase,
-    private readonly recordFailedUseCase: IMessageRequestFailedUseCase,
+    private readonly recordSentUseCase: ISentMessageRequestUseCase,
+    private readonly recordFailedUseCase: IFailedMessageRequestUseCase,
     @Inject(CLOCK) private readonly clock: Clock,
     @Inject(APP_LOGGER) moduleLogger: Logger,
   ) {
@@ -324,7 +324,6 @@ export class MessageRequestApplicationService
       },
     });
   }
-
   /**
    * Record successful message delivery (System operation)
    */
@@ -340,7 +339,7 @@ export class MessageRequestApplicationService
       CorrelationUtil.generateForOperation('message-request-record-sent');
 
     const ctx = this.createLogContext(
-      'record_message_sent',
+      'record_message_request_sent',
       correlationId,
       'system',
       {
@@ -389,7 +388,7 @@ export class MessageRequestApplicationService
         context: {
           correlationId,
           messageRequestId: input.id,
-          operation: 'record_message_sent',
+          operation: 'record_message_request_sent',
         },
       });
     }
@@ -413,7 +412,7 @@ export class MessageRequestApplicationService
       CorrelationUtil.generateForOperation('message-request-record-failed');
 
     const ctx = this.createLogContext(
-      'record_message_failed',
+      'record_message_request_failed',
       correlationId,
       'system',
       {
@@ -467,7 +466,7 @@ export class MessageRequestApplicationService
         context: {
           correlationId,
           messageRequestId: input.id,
-          operation: 'record_message_failed',
+          operation: 'record_message_request_failed',
         },
       });
     }
