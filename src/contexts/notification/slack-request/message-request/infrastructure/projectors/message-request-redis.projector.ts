@@ -43,7 +43,7 @@ import { MessageRequestFieldValidatorUtil } from '../utilities/message-request-f
 import { DetailMessageRequestResponse } from '../../application/dtos';
 import { MessageRequestQueueService } from '../services';
 import { SendMessageJob } from '../services/message-request-queue.types';
-import { IRedisIdempotencyService } from 'src/shared/infrastructure/idempotency';
+import { IRedisIdempotencyService } from 'src/shared/infrastructure';
 
 /**
  * MessageRequest projector error catalog using shared error definitions
@@ -121,6 +121,7 @@ export class MessageRequestProjector
     @Inject(SLACK_REQUEST_DI_TOKENS.CACHE_SERVICE)
     private readonly cache: CacheService,
     private readonly queueService: MessageRequestQueueService,
+    @Inject('MessageRequestIdempotencyService')
     private readonly idempotencyService: IRedisIdempotencyService,
   ) {
     super(

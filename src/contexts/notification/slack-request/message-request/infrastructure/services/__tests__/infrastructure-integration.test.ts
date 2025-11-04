@@ -15,7 +15,7 @@ import { SLACK_REQUEST_DI_TOKENS } from 'src/contexts/notification/slack-request
 import {
   IRedisIdempotencyService,
   RedisIdempotencyService,
-} from 'src/shared/infrastructure/idempotency';
+} from 'src/shared/infrastructure';
 import { MessageRequestQueueService } from '../message-request-queue.service';
 import { SendMessageJob } from '../message-request-queue.types';
 import { SendMessageWorkerService } from '../send-message-worker.service';

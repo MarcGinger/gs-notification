@@ -20,9 +20,9 @@ import { Redis } from 'ioredis';
 import {
   SendMessageJob,
   MESSAGE_REQUEST_QUEUE,
-  JobProcessingResult,
 } from './message-request-queue.types';
-import { IRedisIdempotencyService } from 'src/shared/infrastructure/idempotency';
+import { JobProcessingResult } from 'src/shared/infrastructure';
+import { IRedisIdempotencyService } from 'src/shared/infrastructure';
 import { SLACK_REQUEST_DI_TOKENS } from '../../../slack-request.constants';
 
 // Import config query services for resolving by codes
@@ -74,6 +74,7 @@ export class SendMessageWorkerService implements OnModuleInit, OnModuleDestroy {
     @Inject(APP_LOGGER) private readonly baseLogger: Logger,
     @Inject(SLACK_REQUEST_DI_TOKENS.IO_REDIS)
     private readonly redis: Redis,
+    @Inject('MessageRequestIdempotencyService')
     private readonly idempotencyService: IRedisIdempotencyService,
     // Config resolution services
     @Inject(WORKSPACE_QUERY_TOKEN)
@@ -218,8 +219,8 @@ export class SendMessageWorkerService implements OnModuleInit, OnModuleDestroy {
         success: true,
         message: 'Message processed successfully',
         metadata: {
-          slackTs: processingResult.data?.ts,
-          slackChannel: processingResult.data?.channel,
+          messageTimestamp: processingResult.data?.ts,
+          targetChannel: processingResult.data?.channel,
         },
       };
     } catch (error) {

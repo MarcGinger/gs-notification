@@ -5,6 +5,7 @@ import { Module } from '@nestjs/common';
 import { BullMQModule } from 'src/shared/infrastructure/queue/bullmq.module';
 import { AppConfigUtil } from 'src/shared/config/app-config.util';
 import { SlackRequestSharedModule } from '../slack-request-shared.module';
+import { SLACK_REQUEST_DI_TOKENS } from '../slack-request.constants';
 
 // Import slack-config modules for query interfaces
 import { WorkspaceModule } from 'src/contexts/notification/slack-config/workspace/workspace.module';
@@ -49,7 +50,7 @@ import {
 import {
   RedisIdempotencyService,
   IdempotencyConfig,
-} from 'src/shared/infrastructure/idempotency';
+} from 'src/shared/infrastructure';
 import { MessageRequestProcessor } from './infrastructure/processors';
 import { TemplateRendererService } from './infrastructure/services/template-renderer.service';
 
@@ -149,6 +150,10 @@ import {
         entityType: 'message-request',
         executionTtl: 900, // 15 minutes
       } as IdempotencyConfig,
+    },
+    {
+      provide: 'REDIS',
+      useExisting: SLACK_REQUEST_DI_TOKENS.IO_REDIS,
     },
     {
       provide: 'MessageRequestIdempotencyService',
