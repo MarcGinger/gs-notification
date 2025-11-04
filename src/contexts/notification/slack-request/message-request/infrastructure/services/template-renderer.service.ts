@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
+import { TemplateReference } from '../../application/ports';
 
 // Import the actual DTO type from your existing template response
-import { DetailTemplateResponse } from 'src/contexts/notification/slack-config/template/application/dtos';
 
 @Injectable()
 export class TemplateRendererService {
@@ -17,7 +17,7 @@ export class TemplateRendererService {
   }
 
   renderTemplate(opts: {
-    template: DetailTemplateResponse;
+    template: TemplateReference;
     variables: Record<string, unknown>;
   }) {
     const { template, variables } = opts;

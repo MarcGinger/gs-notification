@@ -12,7 +12,10 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { Redis } from 'ioredis';
 import { SLACK_REQUEST_DI_TOKENS } from 'src/contexts/notification/slack-request/slack-request.constants';
-import { MessageRequestIdempotencyService } from '../message-request-idempotency.service';
+import {
+  IRedisIdempotencyService,
+  RedisIdempotencyService,
+} from 'src/shared/infrastructure/idempotency';
 import { MessageRequestQueueService } from '../message-request-queue.service';
 import { SendMessageJob } from '../message-request-queue.types';
 import { SendMessageWorkerService } from '../send-message-worker.service';
@@ -20,7 +23,7 @@ import { SendMessageWorkerService } from '../send-message-worker.service';
 describe('Infrastructure Integration', () => {
   let module: TestingModule;
   let redis: Redis;
-  let idempotencyService: MessageRequestIdempotencyService;
+  let idempotencyService: IRedisIdempotencyService;
   let queueService: MessageRequestQueueService;
   let workerService: SendMessageWorkerService;
 
@@ -37,7 +40,32 @@ describe('Infrastructure Integration', () => {
     // Create test module with minimal dependencies
     module = await Test.createTestingModule({
       providers: [
-        MessageRequestIdempotencyService,
+        {
+          provide: 'MessageRequestIdempotencyService',
+          useClass: RedisIdempotencyService,
+        },
+        {
+          provide: 'IDEMPOTENCY_CONFIG',
+          useValue: {
+            namespace: 'notification.slack',
+            version: 'v1',
+            entityType: 'message-request',
+            executionTtl: 900,
+          },
+        },
+        {
+          provide: 'APP_LOGGER',
+          useValue: {
+            info: jest.fn(),
+            error: jest.fn(),
+            warn: jest.fn(),
+            debug: jest.fn(),
+          },
+        },
+        {
+          provide: 'REDIS',
+          useFactory: () => redis, // Use the mock redis from above
+        },
         MessageRequestQueueService,
         SendMessageWorkerService,
         {
@@ -97,8 +125,8 @@ describe('Infrastructure Integration', () => {
 
     // Get service instances
     redis = module.get<Redis>(SLACK_REQUEST_DI_TOKENS.IO_REDIS);
-    idempotencyService = module.get<MessageRequestIdempotencyService>(
-      MessageRequestIdempotencyService,
+    idempotencyService = module.get<IRedisIdempotencyService>(
+      'MessageRequestIdempotencyService',
     );
     queueService = module.get<MessageRequestQueueService>(
       MessageRequestQueueService,
@@ -162,7 +190,7 @@ describe('Infrastructure Integration', () => {
       // Mock SETNX to return 1 (success, first time)
       (redis.setnx as jest.Mock).mockResolvedValue(1);
 
-      const result = await idempotencyService.acquireSendLock(
+      const result = await idempotencyService.acquireExecutionLock(
         testTenant,
         testMessageRequestId,
       );
@@ -251,9 +279,9 @@ describe('Infrastructure Integration', () => {
       expect(enqueueResult.success).toBe(true);
       expect(enqueueResult.jobId).toBeDefined();
 
-      // Step 3: Worker would process job (using send-lock for idempotency)
+      // Step 3: Worker would process job (using execution-lock for idempotency)
       (redis.setnx as jest.Mock).mockResolvedValue(1); // First time processing
-      const sendLockResult = await idempotencyService.acquireSendLock(
+      const sendLockResult = await idempotencyService.acquireExecutionLock(
         testTenant,
         testMessageRequestId,
       );
@@ -293,7 +321,7 @@ describe('Infrastructure Integration', () => {
       // Mock send lock already exists (not first time)
       (redis.setnx as jest.Mock).mockResolvedValue(0);
 
-      const sendLockResult = await idempotencyService.acquireSendLock(
+      const sendLockResult = await idempotencyService.acquireExecutionLock(
         testTenant,
         testMessageRequestId,
       );

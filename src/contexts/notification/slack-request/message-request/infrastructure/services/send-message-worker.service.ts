@@ -22,7 +22,7 @@ import {
   MESSAGE_REQUEST_QUEUE,
   JobProcessingResult,
 } from './message-request-queue.types';
-import { MessageRequestIdempotencyService } from './message-request-idempotency.service';
+import { IRedisIdempotencyService } from 'src/shared/infrastructure/idempotency';
 import { SLACK_REQUEST_DI_TOKENS } from '../../../slack-request.constants';
 
 // Import config query services for resolving by codes
@@ -38,6 +38,7 @@ import {
   IChannelQuery,
   CHANNEL_QUERY_TOKEN,
 } from 'src/contexts/notification/slack-config/channel/application/ports';
+
 import {
   IAppConfigQuery,
   APP_CONFIG_QUERY_TOKEN,
@@ -62,6 +63,7 @@ import {
   MESSAGE_REQUEST_APP_PORT,
 } from '../../application/ports/message-request-app.port';
 import { TemplateRendererService } from './template-renderer.service';
+import { createSystemUserToken } from 'src/shared/security/auth';
 
 @Injectable()
 export class SendMessageWorkerService implements OnModuleInit, OnModuleDestroy {
@@ -72,7 +74,7 @@ export class SendMessageWorkerService implements OnModuleInit, OnModuleDestroy {
     @Inject(APP_LOGGER) private readonly baseLogger: Logger,
     @Inject(SLACK_REQUEST_DI_TOKENS.IO_REDIS)
     private readonly redis: Redis,
-    private readonly idempotencyService: MessageRequestIdempotencyService,
+    private readonly idempotencyService: IRedisIdempotencyService,
     // Config resolution services
     @Inject(WORKSPACE_QUERY_TOKEN)
     private readonly workspaceQuery: IWorkspaceQuery,
@@ -123,7 +125,7 @@ export class SendMessageWorkerService implements OnModuleInit, OnModuleDestroy {
 
     try {
       // Step 1: Acquire send-lock using SETNX (idempotency for processing)
-      const sendLockResult = await this.idempotencyService.acquireSendLock(
+      const sendLockResult = await this.idempotencyService.acquireExecutionLock(
         tenant,
         messageRequestId,
       );
@@ -383,10 +385,13 @@ export class SendMessageWorkerService implements OnModuleInit, OnModuleDestroy {
     };
     error?: string;
   }> {
+    const systemUserToken = createSystemUserToken(tenant || 'system');
     const actor: ActorContext = {
-      tenant,
-      userId: 'system',
-      tenant_userId: 'system',
+      tenant: systemUserToken.tenant,
+      userId: systemUserToken.sub,
+      tenant_userId: systemUserToken.sub,
+      username: systemUserToken.preferred_username,
+      roles: systemUserToken.roles,
     };
 
     try {

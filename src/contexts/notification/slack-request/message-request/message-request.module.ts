@@ -44,9 +44,12 @@ import {
 } from './infrastructure/repositories';
 import {
   MessageRequestQueueService,
-  MessageRequestIdempotencyService,
   SendMessageWorkerService,
 } from './infrastructure/services';
+import {
+  RedisIdempotencyService,
+  IdempotencyConfig,
+} from 'src/shared/infrastructure/idempotency';
 import { MessageRequestProcessor } from './infrastructure/processors';
 import { TemplateRendererService } from './infrastructure/services/template-renderer.service';
 
@@ -135,8 +138,22 @@ import {
     MessageRequestQueueService,
     MessageRequestProcessor,
     TemplateRendererService,
-    MessageRequestIdempotencyService,
     SendMessageWorkerService,
+
+    // Idempotency service configuration
+    {
+      provide: 'IDEMPOTENCY_CONFIG',
+      useValue: {
+        namespace: 'notification.slack',
+        version: 'v1',
+        entityType: 'message-request',
+        executionTtl: 900, // 15 minutes
+      } as IdempotencyConfig,
+    },
+    {
+      provide: 'MessageRequestIdempotencyService',
+      useClass: RedisIdempotencyService,
+    },
 
     // Use case implementations
     {
@@ -172,7 +189,7 @@ import {
     // Queue service for external access
     MessageRequestQueueService,
     // Idempotency service for projector access
-    MessageRequestIdempotencyService,
+    'MessageRequestIdempotencyService',
   ],
 })
 export class MessageRequestModule {}
