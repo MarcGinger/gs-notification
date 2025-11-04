@@ -1,0 +1,52 @@
+/**
+ * MessageRequest Template Adapter
+ *
+ * Adapts the generic TemplateRendererService to work with MessageRequest's
+ * TemplateReference interface. This provides a clean boundary between
+ * the generic shared service and context-specific types.
+ */
+
+import { Injectable } from '@nestjs/common';
+import {
+  TemplateRendererService,
+  RenderableTemplate,
+} from 'src/shared/infrastructure';
+import type { TemplateReference } from '../../application/ports';
+
+@Injectable()
+export class MessageRequestTemplateAdapter {
+  constructor(private readonly templateRenderer: TemplateRendererService) {}
+
+  /**
+   * Render MessageRequest template using shared renderer
+   */
+  renderTemplate(opts: {
+    template: TemplateReference;
+    variables: Record<string, unknown>;
+    maxBlocks?: number;
+  }) {
+    // Adapt TemplateReference to RenderableTemplate
+    const renderableTemplate: RenderableTemplate = {
+      code: opts.template.code,
+      name: opts.template.name,
+      description: opts.template.description,
+      contentBlocks: opts.template.contentBlocks,
+      variables: opts.template.variables,
+      samplePayload: opts.template.samplePayload,
+      enabled: opts.template.enabled,
+    };
+
+    return this.templateRenderer.renderTemplate({
+      template: renderableTemplate,
+      variables: opts.variables,
+      maxBlocks: opts.maxBlocks,
+    });
+  }
+
+  /**
+   * Validate template blocks
+   */
+  validateTemplate(blocks: unknown[], maxBlocks?: number) {
+    return this.templateRenderer.validateTemplate(blocks, maxBlocks);
+  }
+}

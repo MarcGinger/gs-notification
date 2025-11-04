@@ -62,7 +62,7 @@ import {
   IMessageRequestAppPort,
   MESSAGE_REQUEST_APP_PORT,
 } from '../../application/ports/message-request-app.port';
-import { TemplateRendererService } from './template-renderer.service';
+import { MessageRequestTemplateAdapter } from './message-request-template.adapter';
 import { createSystemUserToken } from 'src/shared/security/auth';
 
 @Injectable()
@@ -89,7 +89,7 @@ export class SendMessageWorkerService implements OnModuleInit, OnModuleDestroy {
     private readonly slackApiService: SlackApiService,
     @Inject(MESSAGE_REQUEST_APP_PORT)
     private readonly messageRequestAppPort: IMessageRequestAppPort,
-    private readonly templateRenderer: TemplateRendererService,
+    private readonly templateAdapter: MessageRequestTemplateAdapter,
   ) {
     this.logger = componentLogger(baseLogger, 'SendMessageWorkerService');
   }
@@ -593,7 +593,7 @@ export class SendMessageWorkerService implements OnModuleInit, OnModuleDestroy {
           providedVariables: Object.keys(requestData),
         });
 
-        const renderRes = this.templateRenderer.renderTemplate({
+        const renderRes = this.templateAdapter.renderTemplate({
           template,
           variables: requestData,
         });

@@ -11,4 +11,7 @@ export * from './queue';
 // Idempotency services
 export * from './idempotency';
 
+// Template rendering
+export * from './templates';
+
 // Other infrastructure components can be added here as needed

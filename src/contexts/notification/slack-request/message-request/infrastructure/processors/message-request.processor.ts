@@ -27,7 +27,7 @@ import { DetailAppConfigResponse } from 'src/contexts/notification/slack-config/
 
 // Import Slack API and template services
 import { SlackApiService } from 'src/shared/infrastructure/slack/slack-api.service';
-import { TemplateRendererService } from '../services/template-renderer.service';
+import { MessageRequestTemplateAdapter } from '../services/message-request-template.adapter';
 
 // Import repositories and error handling
 import { ActorContext } from 'src/shared/application/context';
@@ -99,7 +99,7 @@ export class MessageRequestProcessor implements OnModuleInit, OnModuleDestroy {
     @Inject(APP_LOGGER) baseLogger: Logger,
     private readonly messageRequestService: MessageRequestApplicationService,
     private readonly slackApiService: SlackApiService,
-    private readonly templateRenderer: TemplateRendererService,
+    private readonly templateAdapter: MessageRequestTemplateAdapter,
     @Inject(MESSAGE_REQUEST_QUERY_TOKEN)
     private readonly messageRequestQuery: IMessageRequestQuery,
     @Inject(MESSAGE_REQUEST_WRITER_TOKEN)
@@ -391,7 +391,7 @@ export class MessageRequestProcessor implements OnModuleInit, OnModuleDestroy {
           providedVariables: Object.keys(requestData),
         });
 
-        const renderRes = this.templateRenderer.renderTemplate({
+        const renderRes = this.templateAdapter.renderTemplate({
           template,
           variables: requestData,
         });

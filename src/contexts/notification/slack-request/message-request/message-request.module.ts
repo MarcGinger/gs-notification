@@ -52,7 +52,8 @@ import {
   IdempotencyConfig,
 } from 'src/shared/infrastructure';
 import { MessageRequestProcessor } from './infrastructure/processors';
-import { TemplateRendererService } from './infrastructure/services/template-renderer.service';
+import { MessageRequestTemplateAdapter } from './infrastructure/services/message-request-template.adapter';
+import { TemplateRendererService } from 'src/shared/infrastructure';
 
 // Tokens for injection - imported directly from port files
 import {
@@ -138,7 +139,8 @@ import {
     // Queue and processing services
     MessageRequestQueueService,
     MessageRequestProcessor,
-    TemplateRendererService,
+    TemplateRendererService, // Shared template rendering service
+    MessageRequestTemplateAdapter, // Context-specific adapter
     SendMessageWorkerService,
 
     // Idempotency service configuration
