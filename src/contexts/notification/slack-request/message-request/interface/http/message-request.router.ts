@@ -24,7 +24,7 @@ const messageRequestRoutes: Routes = [
         path: 'slack-request',
         children: [
           {
-            path: 'api/v1',
+            path: 'message-requests',
             module: MessageRequestModule,
           },
           {

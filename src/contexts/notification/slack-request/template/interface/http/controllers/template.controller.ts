@@ -29,7 +29,7 @@ import { PaginatedResponse } from 'src/shared/application/dtos';
 import { TemplateReadResource } from '../../template.resource';
 import { ApiCommonErrors } from 'src/shared/interfaces/http';
 
-@Controller('templates')
+@Controller()
 @ApiTags('Templates')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard)

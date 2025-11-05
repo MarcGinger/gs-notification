@@ -46,7 +46,7 @@ import {
 } from '../../template.resource';
 import { ApiCommonErrors } from 'src/shared/interfaces/http';
 
-@Controller('templates')
+@Controller()
 @ApiTags('Templates')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard)

@@ -24,7 +24,7 @@ const appConfigRoutes: Routes = [
         path: 'slack-config',
         children: [
           {
-            path: 'api/v1',
+            path: 'app-configs',
             module: AppConfigModule,
           },
           {

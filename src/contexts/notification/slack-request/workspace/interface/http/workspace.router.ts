@@ -23,7 +23,7 @@ const workspaceRoutes: Routes = [
         path: 'slack-request',
         children: [
           {
-            path: 'api/v1',
+            path: 'workspaces',
             module: WorkspaceModule,
           },
         ],

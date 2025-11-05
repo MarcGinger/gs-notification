@@ -41,8 +41,7 @@ import { NotificationSlackProjectorConfig } from '../../../projector.config';
 import { MessageRequestProjectionKeys } from '../../message-request-projection-keys';
 import { MessageRequestFieldValidatorUtil } from '../utilities/message-request-field-validator.util';
 import { DetailMessageRequestResponse } from '../../application/dtos';
-import { MessageRequestQueueService } from '../services';
-import { SendMessageJob } from '../services/message-request-queue.types';
+import { MessageRequestQueueService, SendMessageRequestJob } from '../services';
 import { IRedisIdempotencyService } from 'src/shared/infrastructure';
 
 /**
@@ -793,7 +792,7 @@ export class MessageRequestProjector
       }
 
       // Step 3: First time - create minimal BullMQ job payload
-      const job: SendMessageJob = {
+      const job: SendMessageRequestJob = {
         messageRequestId,
         tenant,
         // Include threadTs if available from config (for thread replies)
@@ -805,7 +804,7 @@ export class MessageRequestProjector
         success: boolean;
         jobId?: string;
         error?: string;
-      } = await this.queueService.enqueueSimpleSendMessageJob(job, {
+      } = await this.queueService.enqueueSimpleSendMessageRequestJob(job, {
         priority: options.priority,
         delay: options.delay,
         // Minimal attempts - worker should handle retries via Redis locks

@@ -29,7 +29,7 @@ import { PaginatedResponse } from 'src/shared/application/dtos';
 import { WorkspaceReadResource } from '../../workspace.resource';
 import { ApiCommonErrors } from 'src/shared/interfaces/http';
 
-@Controller('workspaces')
+@Controller()
 @ApiTags('Workspaces')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard)

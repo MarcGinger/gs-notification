@@ -22,7 +22,7 @@ import { Result, ResultInterceptor, DomainError } from 'src/shared/errors';
 import { AppConfigReadResource } from '../../app-config.resource';
 import { ApiCommonErrors } from 'src/shared/interfaces/http';
 
-@Controller('app-configs')
+@Controller()
 @ApiTags('AppConfigs')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard)

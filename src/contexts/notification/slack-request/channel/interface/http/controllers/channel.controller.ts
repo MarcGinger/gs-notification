@@ -29,7 +29,7 @@ import { PaginatedResponse } from 'src/shared/application/dtos';
 import { ChannelReadResource } from '../../channel.resource';
 import { ApiCommonErrors } from 'src/shared/interfaces/http';
 
-@Controller('channels')
+@Controller()
 @ApiTags('Channels')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard)

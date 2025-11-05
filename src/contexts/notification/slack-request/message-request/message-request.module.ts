@@ -45,7 +45,7 @@ import {
 } from './infrastructure/repositories';
 import {
   MessageRequestQueueService,
-  SendMessageWorkerService,
+  SendMessageRequestWorkerService,
 } from './infrastructure/services';
 import {
   RedisIdempotencyService,
@@ -141,7 +141,7 @@ import {
     MessageRequestProcessor,
     TemplateRendererService, // Shared template rendering service
     MessageRequestTemplateAdapter, // Context-specific adapter
-    SendMessageWorkerService,
+    SendMessageRequestWorkerService,
 
     // Idempotency service configuration
     {

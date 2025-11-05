@@ -23,7 +23,7 @@ const channelRoutes: Routes = [
         path: 'slack-request',
         children: [
           {
-            path: 'api/v1',
+            path: 'channels',
             module: ChannelModule,
           },
         ],

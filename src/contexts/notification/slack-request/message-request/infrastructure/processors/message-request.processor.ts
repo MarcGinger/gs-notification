@@ -3,40 +3,31 @@
 
 import {
   Injectable,
-  Inject,
   OnModuleInit,
   OnModuleDestroy,
+  Inject,
 } from '@nestjs/common';
-import { Job, Worker } from 'bullmq';
-import Redis from 'ioredis';
 import { APP_LOGGER, Log, Logger, componentLogger } from 'src/shared/logging';
-import { AppConfigUtil } from 'src/shared/config/app-config.util';
+import { Worker, Job } from 'bullmq';
+import { Redis } from 'ioredis';
 import { MessageRequestApplicationService } from '../../application/services';
 import { CreateMessageRequestRequest } from '../../application/dtos';
 import { MessageRequestErrors } from '../../domain/errors';
 import { withContext } from 'src/shared/errors';
 import { IUserToken } from 'src/shared/security';
-import { SendMessageJob } from '../services/message-request-queue.types';
-import { SendMessageWorkerService } from '../services/send-message-worker.service';
-
-// Import response DTOs for tenant configuration
-import { DetailWorkspaceResponse } from 'src/contexts/notification/slack-config/workspace/application/dtos';
-import { DetailTemplateResponse } from 'src/contexts/notification/slack-config/template/application/dtos';
-import { DetailChannelResponse } from 'src/contexts/notification/slack-config/channel/application/dtos';
-import { DetailAppConfigResponse } from 'src/contexts/notification/slack-config/app-config/application/dtos';
-
-// Import Slack API and template services
+import { AppConfigUtil } from 'src/shared/config/app-config.util';
+import {
+  SendMessageRequestWorkerService,
+  MessageRequestTemplateAdapter,
+  SendMessageRequestJob,
+} from '../services';
 import { SlackApiService } from 'src/shared/infrastructure/slack/slack-api.service';
-import { MessageRequestTemplateAdapter } from '../services/message-request-template.adapter';
-
-// Import repositories and error handling
-import { ActorContext } from 'src/shared/application/context';
-import { Option } from 'src/shared/domain/types';
+import { SLACK_REQUEST_DI_TOKENS } from '../../../slack-request.constants';
 import {
   MESSAGE_REQUEST_QUERY_TOKEN,
   MESSAGE_REQUEST_WRITER_TOKEN,
 } from '../../application/ports';
-import type {
+import {
   IMessageRequestQuery,
   IMessageRequestWriter,
 } from '../../application/ports';
@@ -44,12 +35,15 @@ import {
   IMessageRequestAppPort,
   MESSAGE_REQUEST_APP_PORT,
 } from '../../application/ports/message-request-app.port';
-
-// Import DI tokens for Redis access
-import { SLACK_REQUEST_DI_TOKENS } from '../../../slack-request.constants';
+import { DetailWorkspaceResponse } from 'src/contexts/notification/slack-request/workspace/application/dtos';
+import { DetailTemplateResponse } from 'src/contexts/notification/slack-request/template/application/dtos';
+import { DetailChannelResponse } from 'src/contexts/notification/slack-request/channel/application/dtos';
+import { DetailAppConfigResponse } from 'src/contexts/notification/slack-request/app-config/application/dtos';
+import { ActorContext } from 'src/shared/application/context';
+import { Option } from 'src/shared/domain/types';
 
 /**
- * Message Request Queue Job Types
+ * MessageRequest Queue Job Types
  */
 export interface MessageRequestJobs {
   'create-message-request': {
@@ -78,10 +72,10 @@ export interface MessageRequestJobs {
 }
 
 /**
- * Message Request Queue Processor
+ * MessageRequest Queue Processor
  *
- * Handles asynchronous processing of message request operations:
- * - Creating message requests
+ * Handles asynchronous processing of messageRequest operations:
+ * - Creating messageRequests
  * - Sending messages via Slack API
  * - Retrying failed operations
  *
@@ -108,7 +102,7 @@ export class MessageRequestProcessor implements OnModuleInit, OnModuleDestroy {
     private readonly messageRequestAppPort: IMessageRequestAppPort,
     @Inject(SLACK_REQUEST_DI_TOKENS.IO_REDIS)
     private readonly redis: Redis,
-    private readonly sendMessageWorkerService: SendMessageWorkerService,
+    private readonly sendMessageRequestWorkerService: SendMessageRequestWorkerService,
   ) {
     this.logger = componentLogger(baseLogger, 'MessageRequestProcessor');
   }
@@ -142,9 +136,9 @@ export class MessageRequestProcessor implements OnModuleInit, OnModuleDestroy {
               return await this.handleSendMessageRequest(
                 job as Job<MessageRequestJobs['send-message-request']>,
               );
-            case 'SendMessageJob':
-              return await this.handleSendMessageJob(
-                job as Job<SendMessageJob>,
+            case 'SendMessageRequestJob':
+              return await this.handleSendMessageRequestJob(
+                job as Job<SendMessageRequestJob>,
               );
             case 'retry-failed-message-request':
               return await this.handleRetryFailedMessageRequest(
@@ -244,7 +238,7 @@ export class MessageRequestProcessor implements OnModuleInit, OnModuleDestroy {
   }
 
   /**
-   * Process message request creation jobs
+   * Process messageRequest creation jobs
    */
   async handleCreateMessageRequest(
     job: Job<MessageRequestJobs['create-message-request']>,
@@ -252,7 +246,7 @@ export class MessageRequestProcessor implements OnModuleInit, OnModuleDestroy {
     const { user, request, options } = job.data;
     const jobId = job.id;
 
-    Log.info(this.logger, 'Processing create message request job', {
+    Log.info(this.logger, 'Processing create messageRequest job', {
       method: 'handleCreateMessageRequest',
       jobId,
       tenant: user.tenant,
@@ -270,7 +264,7 @@ export class MessageRequestProcessor implements OnModuleInit, OnModuleDestroy {
       );
 
       if (!result.ok) {
-        Log.error(this.logger, 'Failed to create message request in job', {
+        Log.error(this.logger, 'Failed to create messageRequest in job', {
           method: 'handleCreateMessageRequest',
           jobId,
           error: result.error.detail,
@@ -279,7 +273,7 @@ export class MessageRequestProcessor implements OnModuleInit, OnModuleDestroy {
         throw new Error(result.error.detail);
       }
 
-      Log.info(this.logger, 'Successfully created message request in job', {
+      Log.info(this.logger, 'Successfully created messageRequest in job', {
         method: 'handleCreateMessageRequest',
         jobId,
         messageRequestId: result.value.id,
@@ -289,7 +283,7 @@ export class MessageRequestProcessor implements OnModuleInit, OnModuleDestroy {
       // Optionally trigger next job in the pipeline (send message)
       if (result.value.status === 'validated') {
         // Could add job to send the message
-        Log.debug(this.logger, 'Message request ready for sending', {
+        Log.debug(this.logger, 'MessageRequest ready for sending', {
           method: 'handleCreateMessageRequest',
           jobId,
           messageRequestId: result.value.id,
@@ -298,7 +292,7 @@ export class MessageRequestProcessor implements OnModuleInit, OnModuleDestroy {
       }
     } catch (error) {
       const e = error as Error;
-      Log.error(this.logger, 'Error processing create message request job', {
+      Log.error(this.logger, 'Error processing create messageRequest job', {
         method: 'handleCreateMessageRequest',
         jobId,
         error: e.message,
@@ -323,7 +317,7 @@ export class MessageRequestProcessor implements OnModuleInit, OnModuleDestroy {
       tenant_userId: 'system',
     };
 
-    Log.info(this.logger, 'Processing send message request job', {
+    Log.info(this.logger, 'Processing send messageRequest job', {
       method: 'handleSendMessageRequest',
       jobId,
       messageRequestId,
@@ -344,7 +338,7 @@ export class MessageRequestProcessor implements OnModuleInit, OnModuleDestroy {
     }
 
     try {
-      // 2. Fetch message request details
+      // 2. Fetch messageRequest details
       const requestResult = await this.messageRequestQuery.findById(
         actor,
         messageRequestId,
@@ -499,7 +493,7 @@ export class MessageRequestProcessor implements OnModuleInit, OnModuleDestroy {
             // Future: Could be passed through from create-message-request job
           });
 
-          Log.info(this.logger, 'Message request sent successfully', {
+          Log.info(this.logger, 'MessageRequest sent successfully', {
             method: 'handleSendMessageRequest',
             jobId,
             messageRequestId,
@@ -530,7 +524,7 @@ export class MessageRequestProcessor implements OnModuleInit, OnModuleDestroy {
         lastError: lastErr || 'Unknown error after max attempts',
       });
 
-      Log.error(this.logger, 'Message request failed after attempts', {
+      Log.error(this.logger, 'MessageRequest failed after attempts', {
         method: 'handleSendMessageRequest',
         jobId,
         messageRequestId,
@@ -552,7 +546,7 @@ export class MessageRequestProcessor implements OnModuleInit, OnModuleDestroy {
         lastError: e.message,
       });
 
-      Log.error(this.logger, 'Error processing send message request job', {
+      Log.error(this.logger, 'Error processing send messageRequest job', {
         method: 'handleSendMessageRequest',
         jobId,
         messageRequestId,
@@ -577,7 +571,7 @@ export class MessageRequestProcessor implements OnModuleInit, OnModuleDestroy {
   /**
    * Check idempotency guard to prevent duplicate processing
    * @param tenant - The tenant ID
-   * @param messageRequestId - The message request ID
+   * @param messageRequestId - The messageRequest ID
    * @returns Promise<boolean> - true if this is the first time processing, false if already processed
    */
   private async checkIdempotency(
@@ -615,7 +609,7 @@ export class MessageRequestProcessor implements OnModuleInit, OnModuleDestroy {
       lastError: `Validation failure: ${code}`,
     });
 
-    Log.error(this.logger, 'Message request failed', {
+    Log.error(this.logger, 'MessageRequest failed', {
       method: 'handleSendMessageRequest',
       messageRequestId,
       reason: code,
@@ -625,7 +619,7 @@ export class MessageRequestProcessor implements OnModuleInit, OnModuleDestroy {
   }
 
   /**
-   * Process retry jobs for failed message requests
+   * Process retry jobs for failed messageRequests
    */
   async handleRetryFailedMessageRequest(
     job: Job<MessageRequestJobs['retry-failed-message-request']>,
@@ -633,7 +627,7 @@ export class MessageRequestProcessor implements OnModuleInit, OnModuleDestroy {
     const { messageRequestId, tenant, retryReason } = job.data;
     const jobId = job.id;
 
-    Log.info(this.logger, 'Processing retry failed message request job', {
+    Log.info(this.logger, 'Processing retry failed messageRequest job', {
       method: 'handleRetryFailedMessageRequest',
       jobId,
       messageRequestId,
@@ -642,10 +636,10 @@ export class MessageRequestProcessor implements OnModuleInit, OnModuleDestroy {
     });
 
     try {
-      // This would implement retry logic for failed message requests
+      // This would implement retry logic for failed messageRequests
       await new Promise((resolve) => setTimeout(resolve, 100)); // Simulate async work
 
-      Log.info(this.logger, 'Retried failed message request successfully', {
+      Log.info(this.logger, 'Retried failed messageRequest successfully', {
         method: 'handleRetryFailedMessageRequest',
         jobId,
         messageRequestId,
@@ -654,12 +648,12 @@ export class MessageRequestProcessor implements OnModuleInit, OnModuleDestroy {
       });
 
       // In a real implementation:
-      // 1. Fetch failed message request
+      // 1. Fetch failed messageRequest
       // 2. Determine retry strategy based on failure reason
       // 3. Re-queue for sending or mark as permanently failed
     } catch (error) {
       const e = error as Error;
-      Log.error(this.logger, 'Error processing retry message request job', {
+      Log.error(this.logger, 'Error processing retry messageRequest job', {
         method: 'handleRetryFailedMessageRequest',
         jobId,
         messageRequestId,
@@ -671,29 +665,31 @@ export class MessageRequestProcessor implements OnModuleInit, OnModuleDestroy {
   }
 
   /**
-   * Process SendMessageJob using the dedicated worker service
+   * Process SendMessageRequestJob using the dedicated worker service
    */
-  async handleSendMessageJob(job: Job<SendMessageJob>): Promise<void> {
-    Log.info(this.logger, 'Processing SendMessageJob', {
-      method: 'handleSendMessageJob',
+  async handleSendMessageRequestJob(
+    job: Job<SendMessageRequestJob>,
+  ): Promise<void> {
+    Log.info(this.logger, 'Processing SendMessageRequestJob', {
+      method: 'handleSendMessageRequestJob',
       jobId: job.id,
       messageRequestId: job.data.messageRequestId,
       tenant: job.data.tenant,
     });
 
     try {
-      // Delegate to the specialized SendMessageWorkerService
-      await this.sendMessageWorkerService.processJob(job);
+      // Delegate to the specialized SendMessageRequestWorkerService
+      await this.sendMessageRequestWorkerService.processJob(job);
 
-      Log.info(this.logger, 'Successfully processed SendMessageJob', {
-        method: 'handleSendMessageJob',
+      Log.info(this.logger, 'Successfully processed SendMessageRequestJob', {
+        method: 'handleSendMessageRequestJob',
         jobId: job.id,
         messageRequestId: job.data.messageRequestId,
       });
     } catch (error) {
       const e = error as Error;
-      Log.error(this.logger, 'Error processing SendMessageJob', {
-        method: 'handleSendMessageJob',
+      Log.error(this.logger, 'Error processing SendMessageRequestJob', {
+        method: 'handleSendMessageRequestJob',
         jobId: job.id,
         messageRequestId: job.data.messageRequestId,
         error: e.message,

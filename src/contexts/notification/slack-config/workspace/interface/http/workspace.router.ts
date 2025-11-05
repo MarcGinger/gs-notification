@@ -24,7 +24,7 @@ const workspaceRoutes: Routes = [
         path: 'slack-config',
         children: [
           {
-            path: 'api/v1',
+            path: 'workspaces',
             module: WorkspaceModule,
           },
           {
@@ -45,10 +45,10 @@ const workspaceRoutes: Routes = [
  * the nested route structure.
  *
  * Routes configured:
- * - /notification/slack-config/api/v1/workspaces (GET, POST)
- * - /notification/slack-config/api/v1/workspaces/:code (GET, PUT)
- * - /notification/slack-config/health/projectors/workspace (GET)
- * - /notification/slack-config/health/projectors/workspace/metrics (GET)
+ * - /api/v1/notification/slack-config/workspaces (GET, POST)
+ * - /api/v1/notification/slack-config/workspaces/:code (GET, PUT)
+ * - /api/v1/notification/slack-config/health/projectors/workspace (GET)
+ * - /api/v1/notification/slack-config/health/projectors/workspace/metrics (GET)
  */
 @Module({
   imports: [

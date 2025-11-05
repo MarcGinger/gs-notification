@@ -41,7 +41,7 @@ import {
 } from '../../app-config.resource';
 import { ApiCommonErrors } from 'src/shared/interfaces/http';
 
-@Controller('app-configs')
+@Controller()
 @ApiTags('AppConfigs')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard)

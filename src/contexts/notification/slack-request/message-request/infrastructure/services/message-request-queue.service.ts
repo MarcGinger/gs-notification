@@ -11,9 +11,7 @@ import { Result, DomainError, err, fromError } from 'src/shared/errors';
 import { ActorContext } from 'src/shared/application/context';
 import { Option } from 'src/shared/domain/types';
 import { ConfigErrors } from 'src/shared/config/errors/config.errors';
-import { SendMessageJob } from './message-request-queue.types';
-
-// Import slack-config query interfaces and tokens
+import { SendMessageRequestJob } from './message-request-queue.types';
 import {
   IWorkspaceQuery,
   WORKSPACE_QUERY_TOKEN,
@@ -30,15 +28,13 @@ import {
   IAppConfigQuery,
   APP_CONFIG_QUERY_TOKEN,
 } from 'src/contexts/notification/slack-config/app-config/application/ports';
-
-// Import response DTOs
 import { DetailWorkspaceResponse } from 'src/contexts/notification/slack-config/workspace/application/dtos';
 import { DetailTemplateResponse } from 'src/contexts/notification/slack-config/template/application/dtos';
 import { DetailChannelResponse } from 'src/contexts/notification/slack-config/channel/application/dtos';
 import { DetailAppConfigResponse } from 'src/contexts/notification/slack-config/app-config/application/dtos';
 
 /**
- * Message Request Queue Service
+ * MessageRequest Queue Service
  *
  * Enhanced service for adding jobs to the MessageRequestQueue with tenant configuration support.
  * Integrates with Redis repositories to enrich job data with workspace, template, channel,
@@ -242,7 +238,7 @@ export class MessageRequestQueueService {
         },
       );
 
-      Log.info(this.logger, 'Queued enriched send message request job', {
+      Log.info(this.logger, 'Queued enriched send messageRequest request job', {
         method: 'queueEnrichedSendMessageRequest',
         jobId: job.id,
         messageRequestId,
@@ -260,13 +256,17 @@ export class MessageRequestQueueService {
       return { ok: true, value: job.id?.toString() || 'unknown' };
     } catch (error) {
       const e = error as Error;
-      Log.error(this.logger, 'Error queuing enriched send message request', {
-        method: 'queueEnrichedSendMessageRequest',
-        messageRequestId,
-        tenant,
-        error: e.message,
-        stack: e.stack,
-      });
+      Log.error(
+        this.logger,
+        'Error queuing enriched send messageRequest request',
+        {
+          method: 'queueEnrichedSendMessageRequest',
+          messageRequestId,
+          tenant,
+          error: e.message,
+          stack: e.stack,
+        },
+      );
       return err(
         fromError(ConfigErrors.VALIDATION_FAILED, e, {
           configKey: 'queue',
@@ -278,7 +278,7 @@ export class MessageRequestQueueService {
   }
 
   /**
-   * Queue a message request creation job
+   * Queue a messageRequest request creation job
    */
   async queueCreateMessageRequest(
     user: IUserToken,
@@ -309,7 +309,7 @@ export class MessageRequestQueueService {
       },
     });
 
-    Log.info(this.logger, 'Queued create message request job', {
+    Log.info(this.logger, 'Queued create messageRequest request job', {
       method: 'queueCreateMessageRequest',
       jobId: job.id,
       tenant: user.tenant,
@@ -351,7 +351,7 @@ export class MessageRequestQueueService {
       },
     });
 
-    Log.info(this.logger, 'Queued send message request job', {
+    Log.info(this.logger, 'Queued send messageRequest request job', {
       method: 'queueSendMessageRequest',
       jobId: job.id,
       messageRequestId,
@@ -364,7 +364,7 @@ export class MessageRequestQueueService {
   }
 
   /**
-   * Queue a retry job for failed message requests
+   * Queue a retry job for failed messageRequest requests
    */
   async queueRetryFailedMessageRequest(
     messageRequestId: string,
@@ -393,7 +393,7 @@ export class MessageRequestQueueService {
       },
     });
 
-    Log.info(this.logger, 'Queued retry failed message request job', {
+    Log.info(this.logger, 'Queued retry failed messageRequest request job', {
       method: 'queueRetryFailedMessageRequest',
       jobId: job.id,
       messageRequestId,
@@ -409,11 +409,11 @@ export class MessageRequestQueueService {
   /**
    * Simple BullMQ job enqueue with minimal payload (following refinement.md)
    *
-   * Enqueues a SendMessageJob with minimal payload following the reference-only,
+   * Enqueues a SendMessageRequestJob with minimal payload following the reference-only,
    * secret-free principles. The worker will resolve configuration by codes.
    */
-  async enqueueSimpleSendMessageJob(
-    job: SendMessageJob,
+  async enqueueSimpleSendMessageRequestJob(
+    job: SendMessageRequestJob,
     options?: {
       priority?: number;
       delay?: number;
@@ -427,15 +427,15 @@ export class MessageRequestQueueService {
     const { messageRequestId, tenant } = job;
 
     try {
-      Log.debug(this.logger, 'Enqueuing simple SendMessageJob', {
-        method: 'enqueueSimpleSendMessageJob',
+      Log.debug(this.logger, 'Enqueuing simple SendMessageRequestJob', {
+        method: 'enqueueSimpleSendMessageRequestJob',
         messageRequestId,
         tenant,
         threadTs: job.threadTs,
         options,
       });
 
-      const bullmqJob = await this.queue.add('SendMessageJob', job, {
+      const bullmqJob = await this.queue.add('SendMessageRequestJob', job, {
         priority: options?.priority || 0,
         delay: options?.delay || 0,
         attempts: options?.attempts || 1,
@@ -443,15 +443,19 @@ export class MessageRequestQueueService {
         // Worker handles retries via send-lock SETNX patterns
       });
 
-      Log.info(this.logger, 'Successfully enqueued simple SendMessageJob', {
-        method: 'enqueueSimpleSendMessageJob',
-        messageRequestId,
-        tenant,
-        jobId: bullmqJob.id,
-        priority: options?.priority || 0,
-        delay: options?.delay || 0,
-        attempts: options?.attempts || 1,
-      });
+      Log.info(
+        this.logger,
+        'Successfully enqueued simple SendMessageRequestJob',
+        {
+          method: 'enqueueSimpleSendMessageRequestJob',
+          messageRequestId,
+          tenant,
+          jobId: bullmqJob.id,
+          priority: options?.priority || 0,
+          delay: options?.delay || 0,
+          attempts: options?.attempts || 1,
+        },
+      );
 
       return {
         success: true,
@@ -461,8 +465,8 @@ export class MessageRequestQueueService {
       const errorMessage =
         error instanceof Error ? error.message : 'Unknown error';
 
-      Log.error(this.logger, 'Failed to enqueue simple SendMessageJob', {
-        method: 'enqueueSimpleSendMessageJob',
+      Log.error(this.logger, 'Failed to enqueue simple SendMessageRequestJob', {
+        method: 'enqueueSimpleSendMessageRequestJob',
         messageRequestId,
         tenant,
         error: errorMessage,

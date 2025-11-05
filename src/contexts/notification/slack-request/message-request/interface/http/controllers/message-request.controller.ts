@@ -42,7 +42,7 @@ import {
 } from '../../message-request.resource';
 import { ApiCommonErrors } from 'src/shared/interfaces/http';
 
-@Controller('message-requests')
+@Controller()
 @ApiTags('MessageRequests')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard)
