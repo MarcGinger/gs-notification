@@ -60,7 +60,7 @@ export class RequestQueueService {
     @Inject(CHANNEL_QUERY_TOKEN)
     private readonly channelQuery: IChannelQuery,
     @Inject(CONFIG_QUERY_TOKEN)
-    private readonly appConfigQuery: IConfigQuery,
+    private readonly configQuery: IConfigQuery,
   ) {
     this.logger = componentLogger(baseLogger, 'RequestQueueService');
 
@@ -73,7 +73,7 @@ export class RequestQueueService {
           workspace: !!this.workspaceQuery,
           template: !!this.templateQuery,
           channel: !!this.channelQuery,
-          appConfig: !!this.appConfigQuery,
+          config: !!this.configQuery,
         },
       },
     );
@@ -104,7 +104,7 @@ export class RequestQueueService {
 
     try {
       // Fetch tenant configuration data in parallel
-      const [workspaceResult, templateResult, channelResult, appConfigResult] =
+      const [workspaceResult, templateResult, channelResult, configResult] =
         await Promise.all([
           this.workspaceQuery.findById(actor, workspaceCode),
           templateCode
@@ -119,7 +119,7 @@ export class RequestQueueService {
                 ok: true,
                 value: Option.none(),
               } as Result<Option<DetailChannelResponse>, DomainError>),
-          this.appConfigQuery.findById(actor, workspaceCode),
+          this.configQuery.findById(actor, workspaceCode),
         ]);
 
       // Check for fetch errors
@@ -156,15 +156,15 @@ export class RequestQueueService {
         return channelResult;
       }
 
-      if (!appConfigResult.ok) {
+      if (!configResult.ok) {
         Log.error(this.logger, 'Failed to fetch app configuration', {
           method: 'queueEnrichedSendRequest',
           requestCode,
           tenant,
           workspaceCode,
-          error: appConfigResult.error.detail,
+          error: configResult.error.detail,
         });
-        return appConfigResult;
+        return configResult;
       }
 
       // Extract configuration data using proper Option handling
@@ -181,8 +181,8 @@ export class RequestQueueService {
         channelResult && channelResult.ok && Option.isSome(channelResult.value)
           ? channelResult.value.value
           : null;
-      const appConfig = Option.isSome(appConfigResult.value)
-        ? appConfigResult.value.value
+      const config = Option.isSome(configResult.value)
+        ? configResult.value.value
         : null;
 
       if (!workspace) {
@@ -209,7 +209,7 @@ export class RequestQueueService {
           workspace: DetailWorkspaceResponse;
           template?: DetailTemplateResponse;
           channel?: DetailChannelResponse;
-          appConfig?: DetailConfigResponse;
+          config?: DetailConfigResponse;
         };
       } = {
         requestCode,
@@ -218,7 +218,7 @@ export class RequestQueueService {
           workspace,
           template: template || undefined,
           channel: channel || undefined,
-          appConfig: appConfig || undefined,
+          config: config || undefined,
         },
       };
 
@@ -243,7 +243,7 @@ export class RequestQueueService {
           workspace: !!workspace,
           template: !!template,
           channel: !!channel,
-          appConfig: !!appConfig,
+          config: !!config,
         },
         delay: options?.delay || 0,
         priority: options?.priority || 0,

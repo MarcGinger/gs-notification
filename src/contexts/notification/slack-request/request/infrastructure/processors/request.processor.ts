@@ -58,7 +58,7 @@ export interface RequestJobs {
       workspace: DetailWorkspaceResponse;
       template?: DetailTemplateResponse;
       channel?: DetailChannelResponse;
-      appConfig?: DetailConfigResponse;
+      config?: DetailConfigResponse;
     };
   };
   'retry-failed-request': {
@@ -355,7 +355,7 @@ export class RequestProcessor implements OnModuleInit, OnModuleDestroy {
         : undefined;
 
       // 3. Extract tenant configuration
-      const { workspace, template, channel, appConfig } = tenantConfig || {};
+      const { workspace, template, channel, config } = tenantConfig || {};
       if (!workspace?.botToken) {
         return await this.fail(requestCode, tenant, 'bot_token_missing');
       }
@@ -451,8 +451,8 @@ export class RequestProcessor implements OnModuleInit, OnModuleDestroy {
       }
 
       // 5. Send via Slack API with internal retry logic (no BullMQ retries)
-      const maxAttempts = appConfig?.maxRetryAttempts ?? 3;
-      const baseBackoff = appConfig?.retryBackoffSeconds ?? 2;
+      const maxAttempts = config?.maxRetryAttempts ?? 3;
+      const baseBackoff = config?.retryBackoffSeconds ?? 2;
 
       let attempt = 0;
       let lastErr: string | undefined;

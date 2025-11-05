@@ -24,6 +24,7 @@ export class NotificationDocumentation {
   |---------------|
   | [**slack-config**](/api/docs/notification/slack-config) |
   | [**slack-request**](/api/docs/notification/slack-request) |
+  | [**webhook-config**](/api/docs/notification/webhook-config) |
 
         `,
       )

@@ -5,7 +5,7 @@
  * Request BullMQ Worker - Processes minimal SendRequestJob payloads
  *
  * Implements the worker resolution pattern from refinement.md:
- * 1. Resolves config by codes from Redis (workspace, template, channel, app-config)
+ * 1. Resolves config by codes from Redis (workspace, template, channel, config)
  * 2. Acquires send-lock using SETNX for idempotency
  * 3. Processes messages via SlackApiService
  * 4. Reports outcomes back to Request projector

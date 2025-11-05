@@ -6,6 +6,7 @@ import { AppConfigUtil } from 'src/shared/config/app-config.util';
 import { NotificationDocumentation } from './notification.doc';
 import { setupNotificationSlackConfigDocs } from './slack-config/slack-config-swagger.util';
 import { setupNotificationSlackRequestDocs } from './slack-request/slack-request-swagger.util';
+import { setupNotificationWebhookConfigDocs } from './webhook-config/webhook-config-swagger.util';
 
 /**
  * Setup notification application/service Swagger documentation
@@ -28,10 +29,15 @@ export function setupNotificationConfigDocs(
     app,
     port,
   );
+  const notificationWebhookConfigUrls = setupNotificationWebhookConfigDocs(
+    app,
+    port,
+  );
 
   return {
     ...notificationUrls,
     ...notificationSlackConfigUrls,
     ...notificationSlackRequestUrls,
+    ...notificationWebhookConfigUrls,
   };
 }

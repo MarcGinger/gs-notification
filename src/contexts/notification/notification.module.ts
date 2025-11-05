@@ -7,6 +7,8 @@ import { Module } from '@nestjs/common';
 import { NotificationSlackConfigModule } from './slack-config/slack-config.module';
 // SlackRequest Application
 import { NotificationSlackRequestModule } from './slack-request/slack-request.module';
+// WebhookConfig Application
+import { NotificationWebhookConfigModule } from './webhook-config/webhook-config.module';
 
 /**
  * Notification Bounded Context Module
@@ -17,11 +19,20 @@ import { NotificationSlackRequestModule } from './slack-request/slack-request.mo
  * Applications in this context:
  * - SlackConfig: slack-config application
  * - SlackRequest: slack-request application
+ * - WebhookConfig: webhook-config application
  */
 @Module({
-  imports: [NotificationSlackConfigModule, NotificationSlackRequestModule],
+  imports: [
+    NotificationSlackConfigModule,
+    NotificationSlackRequestModule,
+    NotificationWebhookConfigModule,
+  ],
   controllers: [],
   providers: [],
-  exports: [NotificationSlackConfigModule, NotificationSlackRequestModule],
+  exports: [
+    NotificationSlackConfigModule,
+    NotificationSlackRequestModule,
+    NotificationWebhookConfigModule,
+  ],
 })
 export class NotificationModule {}

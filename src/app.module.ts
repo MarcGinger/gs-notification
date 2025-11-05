@@ -21,7 +21,7 @@ import { NotificationModule } from './contexts/notification/notification.module'
 
 // Create service-specific logger factory for the main app
 const appLoggerFactory = createServiceLoggerFactory(
-  'notification-slack-request',
+  'notification-webhook-config',
 );
 
 // ✨ NEW: Dynamic Doppler Configuration Factory
@@ -37,7 +37,7 @@ const createDopplerConfig = () => {
   };
 
   const config = {
-    project: process.env.DOPPLER_PROJECT || 'notification-slack-request-api',
+    project: process.env.DOPPLER_PROJECT || 'notification-webhook-config-api',
     config: process.env.DOPPLER_CONFIG || configMap[nodeEnv] || 'dev_main',
     enableFallback: nodeEnv !== 'production',
     enableLogging: nodeEnv === 'development',
@@ -79,7 +79,7 @@ const createDopplerConfig = () => {
   ],
   controllers: [],
   providers: [
-    // Main app logger with 'notification-slack-request' service name
+    // Main app logger with 'notification-webhook-config' service name
     appLoggerFactory.createAppLoggerProvider(),
     // Enhanced trace middleware needs to be a provider due to dependency injection
     EnhancedTraceMiddleware,
