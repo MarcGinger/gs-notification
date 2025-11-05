@@ -45,7 +45,7 @@ const authtypeRoutes: Routes = [
  * the nested route structure.
  *
  * Routes configured:
- * - /notification/webhook-config/api/v1/authtypes/:id (GET, PUT, DELETE)
+ * - /notification/webhook-config/api/v1/authtypes/:id (GET, PUT)
  * - /notification/webhook-config/health/projectors/authtype (GET)
  * - /notification/webhook-config/health/projectors/authtype/metrics (GET)
  */

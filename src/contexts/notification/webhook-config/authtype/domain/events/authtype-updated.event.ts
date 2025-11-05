@@ -12,7 +12,7 @@ import type {
  * Same shape as Created event for consistent replayability
  */
 export interface AuthtypeUpdatedEventPayload {
-  id: number;
+  id: string;
   webhookId: string;
   type: AuthtypeTypeValue;
   signingSecretRef?: string;
@@ -48,7 +48,7 @@ export class AuthtypeUpdatedEvent {
     return new AuthtypeUpdatedEvent(data);
   }
 
-  get id(): number {
+  get id(): string {
     return this.payload.id;
   }
 

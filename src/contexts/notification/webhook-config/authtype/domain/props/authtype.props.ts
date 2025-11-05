@@ -7,7 +7,7 @@ import {
 } from '../value-objects';
 
 export interface AuthtypeProps {
-  id: number;
+  id: string;
   webhookId: string;
   type: AuthtypeTypeValue;
   signingSecretRef?: string;

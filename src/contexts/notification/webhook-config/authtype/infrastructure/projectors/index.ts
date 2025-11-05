@@ -1,1 +1,1 @@
-export * from './authtype-memory.projector';
+export * from './authtype-redis.projector';

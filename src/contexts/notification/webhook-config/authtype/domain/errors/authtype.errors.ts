@@ -3,7 +3,7 @@
 import { DomainError } from 'src/shared/errors';
 
 export interface AuthtypeContext extends Record<string, unknown> {
-  id: number;
+  id: string;
   type: string;
   signingSecretRef?: string;
   signatureAlgorithm?: string;
@@ -405,20 +405,6 @@ export const AuthtypeErrors = {
     category: 'validation',
     retryable: false,
   } as DomainError<'AUTHTYPE.NOT_IMPLEMENTED', AuthtypeContext>,
-  NOT_INTEGER_ID: {
-    code: 'AUTHTYPE.NOT_INTEGER_ID',
-    title: 'Not an Integer',
-    detail: 'Id must be a whole number.',
-    category: 'validation',
-    retryable: false,
-  } as DomainError<'AUTHTYPE.NOT_INTEGER_ID', AuthtypeContext>,
-  OUT_OF_RANGE_ID: {
-    code: 'AUTHTYPE.OUT_OF_RANGE_ID',
-    title: 'Value Out of Range',
-    detail: 'Id is outside the allowed range for Authtype.',
-    category: 'validation',
-    retryable: false,
-  } as DomainError<'AUTHTYPE.OUT_OF_RANGE_ID', AuthtypeContext>,
   PERMISSION_DENIED: {
     code: 'AUTHTYPE.PERMISSION_DENIED',
     title: 'Permission Denied',

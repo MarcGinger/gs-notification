@@ -1343,10 +1343,10 @@
       "columns": [
         {
           "name": "id",
-          "type": "number",
+          "type": "string",
           "childRelationshipType": "",
           "parentRelationshipType": "",
-          "datatype": "INT",
+          "datatype": "VARCHAR",
           "primaryKey": true,
           "required": true,
           "description": "",
@@ -1362,8 +1362,7 @@
           "parentRelationship": "",
           "childRelationship": "",
           "meta": {
-            "kind": "number",
-            "autoIncrement": false
+            "kind": "string"
           }
         },
         {
@@ -1894,10 +1893,10 @@
       "keys": [
         {
           "name": "id",
-          "type": "number",
+          "type": "string",
           "childRelationshipType": "",
           "parentRelationshipType": "",
-          "datatype": "INT",
+          "datatype": "VARCHAR",
           "primaryKey": true,
           "required": true,
           "description": "",
@@ -1913,8 +1912,7 @@
           "parentRelationship": "",
           "childRelationship": "",
           "meta": {
-            "kind": "number",
-            "autoIncrement": false
+            "kind": "string"
           }
         }
       ],
@@ -1926,21 +1924,21 @@
       },
       "apis": {},
       "store": {
-        "read": "memory",
-        "write": "memory",
-        "query": "memory",
-        "projector": "memory"
+        "read": "redis",
+        "write": "kurrentdb",
+        "query": "redis",
+        "projector": "redis"
       },
       "options": {
         "command": true,
         "create": true,
         "update": true,
-        "read": "memory",
-        "write": "memory",
-        "query": "memory",
-        "projector": "memory",
+        "read": "redis",
+        "write": "kurrentdb",
+        "query": "redis",
+        "projector": "redis",
         "queue": false,
-        "softDelete": true,
+        "softDelete": false,
         "timestamps": true,
         "versioning": true,
         "logging": true,
@@ -1971,6 +1969,349 @@
         "createdEvent": "NotificationWebhookConfigAuthtypeCreated.v1",
         "updatedEvent": "NotificationWebhookConfigAuthtypeUpdated.v1",
         "deletedEvent": "NotificationWebhookConfigAuthtypeDeleted.v1"
+      },
+      "permissions": {
+        "bulk": [
+          "update",
+          "delete",
+          "import"
+        ],
+        "adminOverride": true,
+        "auditView": true,
+        "custom": []
+      },
+      "domainName": "",
+      "parentPath": []
+    },
+    {
+      "name": "secure_test",
+      "description": "",
+      "columns": [
+        {
+          "name": "id",
+          "type": "string",
+          "childRelationshipType": "",
+          "parentRelationshipType": "",
+          "datatype": "VARCHAR",
+          "primaryKey": true,
+          "required": true,
+          "description": "",
+          "defaultvalue": "",
+          "example": "",
+          "autoIncrement": false,
+          "array": false,
+          "isPII": "",
+          "create": true,
+          "update": true,
+          "get": true,
+          "list": true,
+          "parentRelationship": "",
+          "childRelationship": "",
+          "meta": {
+            "kind": "string"
+          }
+        },
+        {
+          "name": "name",
+          "type": "string",
+          "childRelationshipType": "",
+          "parentRelationshipType": "",
+          "datatype": "VARCHAR",
+          "primaryKey": false,
+          "required": true,
+          "description": "",
+          "defaultvalue": "",
+          "example": "",
+          "autoIncrement": false,
+          "maxLength": "64",
+          "array": false,
+          "isPII": "",
+          "create": true,
+          "update": true,
+          "get": true,
+          "list": true,
+          "parentRelationship": "",
+          "childRelationship": "",
+          "meta": {
+            "kind": "string",
+            "maxLength": 64
+          }
+        },
+        {
+          "name": "description",
+          "type": "string",
+          "childRelationshipType": "",
+          "parentRelationshipType": "",
+          "datatype": "TEXT",
+          "primaryKey": false,
+          "required": false,
+          "description": "",
+          "defaultvalue": "",
+          "example": "",
+          "autoIncrement": false,
+          "array": false,
+          "isPII": "",
+          "create": true,
+          "update": true,
+          "get": true,
+          "list": true,
+          "parentRelationship": "",
+          "childRelationship": "",
+          "meta": {
+            "kind": "string",
+            "maxLength": 65535
+          }
+        },
+        {
+          "name": "type",
+          "type": "SecureTestTypeEnum",
+          "childRelationshipType": "",
+          "parentRelationshipType": "",
+          "datatype": "ENUM",
+          "primaryKey": false,
+          "required": true,
+          "description": "Authentication method type - none (no auth), hmac (signature-based), basic (username/password), api-key (API key), oauth2-client-credentials (OAuth2 CC flow), or mtls (mutual TLS).",
+          "defaultvalue": "none",
+          "example": "",
+          "autoIncrement": false,
+          "enum": [
+            {
+              "key": "none"
+            },
+            {
+              "key": "hmac"
+            },
+            {
+              "key": "basic"
+            },
+            {
+              "key": "api-key"
+            },
+            {
+              "key": "oauth2-client-credentials"
+            },
+            {
+              "key": "mtls"
+            }
+          ],
+          "array": false,
+          "isPII": "",
+          "create": true,
+          "update": true,
+          "get": true,
+          "list": true,
+          "parentRelationship": "",
+          "childRelationship": "",
+          "meta": {
+            "kind": "enum",
+            "enumValues": [
+              "none",
+              "hmac",
+              "basic",
+              "api-key",
+              "oauth2-client-credentials",
+              "mtls"
+            ],
+            "enumName": "type"
+          }
+        },
+        {
+          "name": "signingSecret",
+          "type": "string",
+          "childRelationshipType": "",
+          "parentRelationshipType": "",
+          "datatype": "VARCHAR",
+          "primaryKey": false,
+          "required": false,
+          "description": "Secret reference for HMAC signing key. Used with 'hmac' authentication type to generate request signatures for verification.",
+          "defaultvalue": "",
+          "example": "",
+          "autoIncrement": false,
+          "maxLength": "255",
+          "array": false,
+          "isPII": "",
+          "create": true,
+          "update": true,
+          "get": true,
+          "list": true,
+          "parentRelationship": "",
+          "childRelationship": "",
+          "meta": {
+            "kind": "string",
+            "maxLength": 255
+          }
+        },
+        {
+          "name": "signatureAlgorithm",
+          "type": "SecureTestSignatureAlgorithmEnum",
+          "childRelationshipType": "",
+          "parentRelationshipType": "",
+          "datatype": "ENUM",
+          "primaryKey": false,
+          "required": false,
+          "description": "Cryptographic algorithm for HMAC signatures - sha256 (recommended) or sha1 (legacy). Only used with 'hmac' authentication type.",
+          "defaultvalue": "sha256",
+          "example": "",
+          "autoIncrement": false,
+          "enum": [
+            {
+              "key": "sha256"
+            },
+            {
+              "key": "sha1"
+            }
+          ],
+          "array": false,
+          "isPII": "",
+          "create": true,
+          "update": true,
+          "get": true,
+          "list": true,
+          "parentRelationship": "",
+          "childRelationship": "",
+          "meta": {
+            "kind": "enum",
+            "enumValues": [
+              "sha256",
+              "sha1"
+            ],
+            "enumName": "signatureAlgorithm"
+          }
+        },
+        {
+          "name": "username",
+          "type": "string",
+          "childRelationshipType": "",
+          "parentRelationshipType": "",
+          "datatype": "VARCHAR",
+          "primaryKey": false,
+          "required": false,
+          "description": "Secret reference for Basic Auth username. Used with 'basic' authentication type for HTTP Basic Authentication.",
+          "defaultvalue": "",
+          "example": "",
+          "autoIncrement": false,
+          "maxLength": "255",
+          "array": false,
+          "isPII": "",
+          "create": true,
+          "update": true,
+          "get": true,
+          "list": true,
+          "parentRelationship": "",
+          "childRelationship": "",
+          "meta": {
+            "kind": "string",
+            "maxLength": 255
+          }
+        },
+        {
+          "name": "password",
+          "type": "string",
+          "childRelationshipType": "",
+          "parentRelationshipType": "",
+          "datatype": "VARCHAR",
+          "primaryKey": false,
+          "required": false,
+          "description": "Secret reference for Basic Auth password. Used with 'basic' authentication type for HTTP Basic Authentication.",
+          "defaultvalue": "",
+          "example": "",
+          "autoIncrement": false,
+          "maxLength": "255",
+          "array": false,
+          "isPII": "",
+          "create": true,
+          "update": true,
+          "get": true,
+          "list": true,
+          "parentRelationship": "",
+          "childRelationship": "",
+          "meta": {
+            "kind": "string",
+            "maxLength": 255
+          }
+        }
+      ],
+      "relationships": [],
+      "lines": [],
+      "keys": [
+        {
+          "name": "id",
+          "type": "string",
+          "childRelationshipType": "",
+          "parentRelationshipType": "",
+          "datatype": "VARCHAR",
+          "primaryKey": true,
+          "required": true,
+          "description": "",
+          "defaultvalue": "",
+          "example": "",
+          "autoIncrement": false,
+          "array": false,
+          "isPII": "",
+          "create": true,
+          "update": true,
+          "get": true,
+          "list": true,
+          "parentRelationship": "",
+          "childRelationship": "",
+          "meta": {
+            "kind": "string"
+          }
+        }
+      ],
+      "indexes": [],
+      "docs": {
+        "name": "Secure_test",
+        "summary": "Configuration for secure_test table",
+        "version": "1.0.0"
+      },
+      "apis": {},
+      "store": {
+        "read": "redis",
+        "write": "kurrentdb",
+        "query": "redis",
+        "projector": "redis"
+      },
+      "options": {
+        "command": true,
+        "create": true,
+        "update": true,
+        "read": "redis",
+        "write": "kurrentdb",
+        "query": "redis",
+        "projector": "redis",
+        "queue": false,
+        "softDelete": false,
+        "timestamps": true,
+        "versioning": true,
+        "logging": true,
+        "auditing": true,
+        "caching": true,
+        "eventStreaming": false
+      },
+      "cancel": {
+        "create": false,
+        "update": false,
+        "delete": false,
+        "batch": false,
+        "get": false
+      },
+      "redis": {
+        "prefix": "",
+        "version": "1.0",
+        "category": "notification:webhook-config.secure.test.v1",
+        "ttl": 3600,
+        "hash": true,
+        "aggregate": "secure_test"
+      },
+      "eventstream": {
+        "boundedContext": "notification",
+        "aggregate": "secure_test",
+        "version": "v1",
+        "stream": "notification.webhookConfig.secureTest",
+        "createdEvent": "NotificationWebhookConfigSecureTestCreated.v1",
+        "updatedEvent": "NotificationWebhookConfigSecureTestUpdated.v1",
+        "deletedEvent": "NotificationWebhookConfigSecureTestDeleted.v1"
       },
       "permissions": {
         "bulk": [

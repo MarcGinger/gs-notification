@@ -16,26 +16,17 @@ import type { DetailAuthtypeResponse } from '../dtos';
 export abstract class IUpsertAuthtypeUseCase {
   abstract execute(params: {
     user: IUserToken;
-    id: number;
+    id: string;
     props: UpsertAuthtypeProps;
     correlationId: string;
     authorizationReason: string;
   }): Promise<Result<DetailAuthtypeResponse, DomainError>>;
 }
 
-export abstract class IDeleteAuthtypeUseCase {
-  abstract execute(params: {
-    user: IUserToken;
-    id: number;
-    correlationId: string;
-    authorizationReason: string;
-  }): Promise<Result<void, DomainError>>;
-}
-
 export abstract class IGetAuthtypeUseCase {
   abstract execute(params: {
     user: IUserToken;
-    id: number;
+    id: string;
     correlationId: string;
   }): Promise<Result<DetailAuthtypeResponse, DomainError>>;
 }

@@ -10,7 +10,7 @@ import type {
  * Contains only business facts - no envelope metadata, timestamps, or versioning
  */
 export interface AuthtypeCreatedEventPayload {
-  id: number;
+  id: string;
   webhookId: string;
   type: AuthtypeTypeValue;
   signingSecretRef?: string;
@@ -47,7 +47,7 @@ export class AuthtypeCreatedEvent {
     return new AuthtypeCreatedEvent(data);
   }
 
-  get id(): number {
+  get id(): string {
     return this.payload.id;
   }
 

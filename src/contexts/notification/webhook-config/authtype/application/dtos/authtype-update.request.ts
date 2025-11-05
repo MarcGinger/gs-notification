@@ -28,7 +28,7 @@ import {
 
 export class UpdateAuthtypeRequest implements UpdateAuthtypeProps {
   @ApiAuthtypeId()
-  id: number;
+  id: string;
 
   @ApiAuthtypeWebhookId()
   webhookId?: string;

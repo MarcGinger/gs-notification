@@ -80,5 +80,5 @@ export interface IAuthtypeReader {
     actor: ActorContext,
     id: AuthtypeId,
     options?: RepositoryOptions,
-  ): Promise<Result<Option<{ id: number; version: number }>, DomainError>>;
+  ): Promise<Result<Option<{ id: string; version: number }>, DomainError>>;
 }

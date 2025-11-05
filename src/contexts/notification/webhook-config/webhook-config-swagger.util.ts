@@ -8,6 +8,7 @@ import { WebhookConfigDocumentation } from './webhook-config.doc';
 import { WebhookDocumentation } from './webhook/docs/webhook.doc';
 import { ConfigDocumentation } from './config/docs/config.doc';
 import { AuthtypeDocumentation } from './authtype/docs/authtype.doc';
+import { SecureTestDocumentation } from './secure-test/docs/secure-test.doc';
 
 /**
  * Setup notification-webhook-config application/service Swagger documentation
@@ -27,11 +28,13 @@ export function setupNotificationWebhookConfigDocs(
   const webhookUrls = WebhookDocumentation.setupAll(app, port);
   const configUrls = ConfigDocumentation.setupAll(app, port);
   const authtypeUrls = AuthtypeDocumentation.setupAll(app, port);
+  const secureTestUrls = SecureTestDocumentation.setupAll(app, port);
 
   return {
     ...boundedContextUrls,
     ...webhookUrls,
     ...configUrls,
     ...authtypeUrls,
+    ...secureTestUrls,
   };
 }

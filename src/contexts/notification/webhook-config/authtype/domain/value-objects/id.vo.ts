@@ -2,44 +2,34 @@
 // REMOVE THIS COMMENT TO STOP AUTOMATIC UPDATES TO THIS BLOCK
 
 import {
-  IntegerVOInstance,
-  createIntegerVO,
-  createIntegerVOErrors,
+  StringVOInstance,
+  createStringVO,
+  createStringVOErrors,
 } from 'src/shared/domain/value-objects';
 import { AuthtypeErrors } from '../errors/authtype.errors';
 
 /**
- * Id Integer Value Object
- * Validates whole numbers.
- *
- * Integer VO Refinements (commented examples):
- *
- * Age validation:
- * - Range validation: { minValue: 0, maxValue: 150 }
- * - Non-negative: { nonNegative: true }
- *
- * Quantity/Count validation:
- * - Inventory count: { minValue: 0, maxValue: 999999 }
- * - Zero-allowed quantity: { minValue: 0 }
- *
- * ID/Sequence validation:
- * - Primary key: { minValue: 1 }
- * - Positive integer only: { minValue: 1 }
- *
- * Score/Rating validation:
- * - Percentage score: { minValue: 0, maxValue: 100 }
- * - Star rating: { minValue: 1, maxValue: 5 }
+ * Id Value Object
+ * Represents a validated id with business rules
  */
-export const AuthtypeId = createIntegerVO({
+export const AuthtypeId = createStringVO({
   name: 'Id',
-  required: true,
+  trim: true,
+  caseTransform: 'none',
+  allowEmpty: false,
 
-  errors: createIntegerVOErrors(AuthtypeErrors.INVALID_ID, 'Id'),
+  // Optional: declarative refinements for advanced validation
+  // refinements: [
+  // ],
+
+  errors: createStringVOErrors(AuthtypeErrors.INVALID_ID, 'Id'),
 });
 
-/** Public instance type for Id */
-export type AuthtypeId = IntegerVOInstance;
+/**
+ * Public instance type for Id
+ */
+export type AuthtypeId = StringVOInstance;
 
 // Convenience creators
-export const createAuthtypeId = (v: number) => AuthtypeId.create(v);
+export const createAuthtypeId = (s: string) => AuthtypeId.create(s);
 export const authtypeIdFrom = (v: unknown) => AuthtypeId.from(v);

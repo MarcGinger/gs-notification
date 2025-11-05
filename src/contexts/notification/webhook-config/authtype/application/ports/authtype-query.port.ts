@@ -38,7 +38,7 @@ export interface IAuthtypeQuery {
    */
   findById(
     actor: ActorContext,
-    id: number,
+    id: string,
     options?: RepositoryOptions,
   ): Promise<Result<Option<DetailAuthtypeResponse>, DomainError>>;
 }

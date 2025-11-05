@@ -8,7 +8,7 @@ import { EventMetadata } from 'src/shared/domain/events';
  * Contains identifying information about the deleted authtype
  */
 export interface AuthtypeDeletedEventPayload {
-  id: number;
+  id: string;
   deletedAt: Date;
   version: number;
   metadata: EventMetadata;
@@ -43,7 +43,7 @@ export class AuthtypeDeletedEvent {
     });
   }
 
-  get id(): number {
+  get id(): string {
     return this.payload.id;
   }
 

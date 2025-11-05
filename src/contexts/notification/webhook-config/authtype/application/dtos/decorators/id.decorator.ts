@@ -3,7 +3,8 @@
 
 import { applyDecorators } from '@nestjs/common';
 import { ApiProperty } from '@nestjs/swagger';
-import { IsInt, IsOptional, IsNotEmpty } from 'class-validator';
+import { IsOptional, IsNotEmpty, IsString } from 'class-validator';
+
 /**
  * Options for property decorators
  */
@@ -22,10 +23,10 @@ export function ApiAuthtypeId(options: PropOptions = {}) {
   return applyDecorators(
     ApiProperty({
       description: `Authtype Id`,
-      type: Number,
+      type: String,
       required,
     }),
-    IsInt(),
+    IsString(),
     required ? IsNotEmpty() : IsOptional(),
   );
 }

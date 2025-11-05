@@ -27,7 +27,7 @@ import {
 
 export class DetailAuthtypeResponse {
   @ApiAuthtypeId()
-  id: number;
+  id: string;
 
   @ApiAuthtypeWebhookId()
   webhookId: string;

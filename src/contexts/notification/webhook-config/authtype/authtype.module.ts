@@ -13,8 +13,6 @@ import {
 import {
   IUpsertAuthtypeUseCase,
   UpsertAuthtypeUseCase,
-  IDeleteAuthtypeUseCase,
-  DeleteAuthtypeUseCase,
   IGetAuthtypeUseCase,
   GetAuthtypeUseCase,
 } from './application/use-cases';
@@ -70,10 +68,6 @@ import {
     {
       provide: IUpsertAuthtypeUseCase,
       useClass: UpsertAuthtypeUseCase,
-    },
-    {
-      provide: IDeleteAuthtypeUseCase,
-      useClass: DeleteAuthtypeUseCase,
     },
     {
       provide: IGetAuthtypeUseCase,

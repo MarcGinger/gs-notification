@@ -7,11 +7,9 @@ import {
   Post,
   Body,
   Put,
-  Delete,
   HttpStatus,
   HttpCode,
   Param,
-  ParseIntPipe,
   UseInterceptors,
   UseGuards,
 } from '@nestjs/common';
@@ -19,7 +17,6 @@ import {
   ApiTags,
   ApiOperation,
   ApiResponse,
-  ApiNoContentResponse,
   ApiCreatedResponse,
   ApiBody,
   ApiHeader,
@@ -41,7 +38,6 @@ import {
   AuthtypeReadResource,
   AuthtypeCreateResource,
   AuthtypeUpdateResource,
-  AuthtypeDeleteResource,
 } from '../../authtype.resource';
 import { ApiCommonErrors } from 'src/shared/interfaces/http';
 
@@ -64,9 +60,8 @@ export class AuthtypeController {
   })
   @ApiParam({
     name: 'id',
-    type: 'number',
+    type: 'string',
     description: 'Authtype unique identifier',
-    format: 'int64',
   })
   @ApiOkResponse({
     description: 'Authtype details retrieved successfully',
@@ -75,7 +70,7 @@ export class AuthtypeController {
   @ApiCommonErrors()
   async get(
     @CurrentUser() user: IUserToken,
-    @Param('id', ParseIntPipe) id: number,
+    @Param('id') id: string,
   ): Promise<Result<DetailAuthtypeResponse, DomainError>> {
     const result = await this.authtypeApplicationService.getAuthtypeById(
       user,
@@ -146,9 +141,8 @@ export class AuthtypeController {
   })
   @ApiParam({
     name: 'id',
-    type: 'number',
+    type: 'string',
     description: 'Authtype unique identifier',
-    format: 'int64',
   })
   @ApiResponse({
     status: HttpStatus.OK,
@@ -168,7 +162,7 @@ export class AuthtypeController {
   })
   async update(
     @CurrentUser() user: IUserToken,
-    @Param('id', ParseIntPipe) id: number,
+    @Param('id') id: string,
     @Body() updateAuthtypeRequest: UpdateAuthtypeRequest,
   ): Promise<Result<DetailAuthtypeResponse, DomainError>> {
     const result = await this.authtypeApplicationService.updateAuthtype(
@@ -177,35 +171,6 @@ export class AuthtypeController {
       updateAuthtypeRequest,
     );
 
-    return result;
-  }
-
-  @Delete(':id')
-  @AuthtypeDeleteResource()
-  @HttpCode(HttpStatus.NO_CONTENT)
-  @ApiOperation({
-    summary: 'Delete a Authtype',
-    description:
-      'Soft-deletes a Authtype (marks as deleted). Requires DELETE permission (HIGH risk, justification required).',
-  })
-  @ApiParam({
-    name: 'id',
-    type: 'number',
-    description: 'Authtype unique identifier',
-    format: 'int64',
-  })
-  @ApiCommonErrors()
-  @ApiNoContentResponse({
-    description: 'Authtype deleted successfully. No content returned.',
-  })
-  async remove(
-    @CurrentUser() user: IUserToken,
-    @Param('id', ParseIntPipe) id: number,
-  ): Promise<Result<void, DomainError>> {
-    const result = await this.authtypeApplicationService.deleteAuthtype(
-      user,
-      id,
-    );
     return result;
   }
 }

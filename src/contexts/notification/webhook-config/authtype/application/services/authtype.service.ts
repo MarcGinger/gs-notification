@@ -35,7 +35,6 @@ import { AuthtypeAuthContext } from '../types/authtype-auth-context';
 // Use case contracts
 import {
   IUpsertAuthtypeUseCase,
-  IDeleteAuthtypeUseCase,
   IGetAuthtypeUseCase,
 } from '../use-cases/contracts';
 
@@ -49,7 +48,6 @@ export class AuthtypeApplicationService {
   constructor(
     private readonly authtypeAuthorizationService: AuthtypeAuthorizationService,
     private readonly upsertAuthtypeUseCase: IUpsertAuthtypeUseCase,
-    private readonly deleteAuthtypeUseCase: IDeleteAuthtypeUseCase,
     private readonly getAuthtypeUseCase: IGetAuthtypeUseCase,
     @Inject(CLOCK) private readonly clock: Clock,
     @Inject(APP_LOGGER) moduleLogger: Logger,
@@ -99,20 +97,30 @@ export class AuthtypeApplicationService {
    * Helper to validate required id input
    */
   private validateId(
-    id: number,
+    id: string,
     operation: string,
     correlationId?: string,
-  ): Result<number, DomainError> {
-    return ok(id);
+  ): Result<string, DomainError> {
+    if (!id?.trim()) {
+      return err(
+        withContext(AuthtypeErrors.INVALID_AUTHTYPE_DATA, {
+          operation,
+          correlationId:
+            correlationId ||
+            CorrelationUtil.generateForOperation(`authtype-${operation}`),
+        }),
+      );
+    }
+    return ok(id.trim());
   }
 
   /**
    * Centralized auth → log → execute → catch pattern
    */
   private async authorizeThenExecute<T>(args: {
-    operation: 'create' | 'update' | 'delete' | 'read';
+    operation: 'create' | 'update' | 'read';
     user: IUserToken;
-    id?: number;
+    id?: string;
     correlationIdPrefix: string;
     doAuthorize: () => Promise<Result<boolean, DomainError>>;
     doExecute: () => Promise<Result<T, DomainError>>;
@@ -222,7 +230,7 @@ export class AuthtypeApplicationService {
    */
   async updateAuthtype(
     user: IUserToken,
-    id: number,
+    id: string,
     props: UpdateAuthtypeProps,
     options?: { idempotencyKey?: string; correlationId?: string },
   ): Promise<Result<DetailAuthtypeResponse, DomainError>> {
@@ -269,7 +277,7 @@ export class AuthtypeApplicationService {
       doAuthorize: () =>
         this.authtypeAuthorizationService.canUpdateAuthtype(
           user.sub,
-          String(validatedid),
+          validatedid,
           correlationId,
           authContext,
         ),
@@ -289,63 +297,11 @@ export class AuthtypeApplicationService {
   }
 
   /**
-   * Delete a authtype with authorization
-   */
-  async deleteAuthtype(
-    user: IUserToken,
-    id: number,
-  ): Promise<Result<void, DomainError>> {
-    // Early input validation
-    const idValidation = this.validateId(id, 'delete');
-    if (!idValidation.ok) {
-      return err(idValidation.error);
-    }
-
-    const validatedid = idValidation.value;
-    const authContext = this.createAuthContext(user, 'delete');
-
-    return this.authorizeThenExecute<void>({
-      operation: 'delete',
-      user,
-      id: validatedid,
-      correlationIdPrefix: 'authtype-delete',
-      doAuthorize: () =>
-        this.authtypeAuthorizationService.canDeleteAuthtype(
-          user.sub,
-          String(validatedid),
-          CorrelationUtil.generateForOperation('authtype-delete'),
-          authContext,
-        ),
-      doExecute: () => {
-        // Log high-risk operation before execution
-        Log.warn(
-          this.logger,
-          'Authtype deletion authorized - HIGH RISK OPERATION',
-          {
-            id: validatedid,
-            userId: user.sub,
-            riskLevel: 'HIGH',
-            operation: 'delete_authtype',
-          },
-        );
-        return this.deleteAuthtypeUseCase.execute({
-          user,
-          id: validatedid,
-          correlationId:
-            CorrelationUtil.generateForOperation('authtype-delete'),
-          authorizationReason: 'delete_authtype',
-        });
-      },
-      logContext: { id: validatedid, riskLevel: 'HIGH' },
-    });
-  }
-
-  /**
    * Get a authtype by ID with authorization
    */
   async getAuthtypeById(
     user: IUserToken,
-    id: number,
+    id: string,
   ): Promise<Result<DetailAuthtypeResponse, DomainError>> {
     // Early input validation
     const idValidation = this.validateId(id, 'read');
@@ -364,7 +320,7 @@ export class AuthtypeApplicationService {
       doAuthorize: () =>
         this.authtypeAuthorizationService.canReadAuthtype(
           user.sub,
-          String(validatedid),
+          validatedid,
           CorrelationUtil.generateForOperation('authtype-read'),
           authContext,
         ),

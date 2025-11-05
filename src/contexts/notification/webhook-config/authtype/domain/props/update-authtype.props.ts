@@ -7,7 +7,7 @@ import type {
 } from '../value-objects';
 
 export interface UpdateAuthtypeProps {
-  id: number;
+  id: string;
   webhookId?: string;
   type?: AuthtypeTypeValue;
   signingSecretRef?: string;

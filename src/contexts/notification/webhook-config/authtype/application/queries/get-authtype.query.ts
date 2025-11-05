@@ -6,7 +6,7 @@ import { IUserToken } from 'src/shared/security';
 export class GetAuthtypeQuery {
   constructor(
     public readonly user: IUserToken,
-    public readonly id: number,
+    public readonly id: string,
     // Metadata
     public readonly correlationId?: string,
   ) {}

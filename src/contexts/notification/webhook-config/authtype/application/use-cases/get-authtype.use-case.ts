@@ -88,7 +88,7 @@ export class GetAuthtypeUseCase implements IGetAuthtypeUseCase {
 
   async execute(params: {
     user: IUserToken;
-    id: number;
+    id: string;
     correlationId: string;
   }): Promise<Result<DetailAuthtypeResponse, DomainError>> {
     const operation = 'get_authtype';
@@ -127,7 +127,7 @@ export class GetAuthtypeUseCase implements IGetAuthtypeUseCase {
     // Step 1: Check authorization first
     const authResult = await this.authorizationService.canReadResource(
       params.user.sub,
-      String(params.id), // Convert numeric id as authtype identifier
+      params.id, // Using id as authtype identifier
       correlationId,
       {
         tenant: params.user.tenant,
@@ -169,7 +169,11 @@ export class GetAuthtypeUseCase implements IGetAuthtypeUseCase {
     }
 
     // Step 2: Simple validation for query-side operations (CQRS compliant)
-    if (!Number.isInteger(params.id) || params.id <= 0) {
+    if (
+      !params.id ||
+      typeof params.id !== 'string' ||
+      params.id.trim().length === 0
+    ) {
       const validationError = {
         code: 'AUTHTYPE.INVALID_THE_CODE' as const,
         title: 'Invalid authtype id',

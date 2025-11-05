@@ -42,10 +42,7 @@ export class AuthtypeFieldValidatorUtil {
   } {
     // Parse array fields using safeParseJSONArray utility
     // Extract simple fields directly from event data
-    const id =
-      typeof aggregateData.id === 'string'
-        ? parseInt(aggregateData.id, 10)
-        : (aggregateData.id as number);
+    const id = aggregateData.id as string;
     const webhookId = aggregateData.webhookId as string;
     const type = aggregateData.type as AuthtypeTypeValue;
     const signingSecretRef = aggregateData.signingSecretRef as string;

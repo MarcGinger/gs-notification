@@ -87,7 +87,7 @@ export class UpsertAuthtypeUseCase implements IUpsertAuthtypeUseCase {
   }
   async execute(params: {
     user: IUserToken;
-    id: number;
+    id: string;
     props: UpsertAuthtypeProps;
     correlationId: string;
     authorizationReason: string;
@@ -258,7 +258,7 @@ export class UpsertAuthtypeUseCase implements IUpsertAuthtypeUseCase {
         : {
             type: 'update' as const,
             operation: 'update' as const,
-            resourceId: command.id.toString(),
+            resourceId: command.id,
             fields: fieldsToUpdate.map(String),
           },
       authContext: {

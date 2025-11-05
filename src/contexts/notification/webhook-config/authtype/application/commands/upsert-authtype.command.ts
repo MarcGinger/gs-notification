@@ -13,7 +13,7 @@ import { UpsertAuthtypeProps } from '../../domain/props';
 export class UpsertAuthtypeCommand extends BaseCommand {
   constructor(
     user: IUserToken,
-    public readonly id: number,
+    public readonly id: string,
     public readonly props: UpsertAuthtypeProps,
     correlationId: string,
     securityContext: SecurityMetadata,
@@ -26,7 +26,7 @@ export class UpsertAuthtypeCommand extends BaseCommand {
    */
   static create(
     user: IUserToken,
-    id: number,
+    id: string,
     props: UpsertAuthtypeProps,
     correlationId: string = CorrelationUtil.generate(),
     additionalSecurityContext?: Partial<SecurityMetadata>,

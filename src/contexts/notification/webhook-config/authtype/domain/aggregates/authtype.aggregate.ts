@@ -163,7 +163,7 @@ export class AuthtypeAggregate extends AggregateRootBase {
       type: createdEvent.eventType,
       version: Number(createdEvent.eventVersion),
       occurredAt: clock.now(),
-      aggregateId: entityProps.id.toString(),
+      aggregateId: entityProps.id.value,
       aggregateType: 'Authtype',
       data: createdEvent.payload,
       metadata: eventMetadata,
@@ -202,7 +202,7 @@ export class AuthtypeAggregate extends AggregateRootBase {
       case 'NotificationWebhookConfigAuthtypeUpdated.v1': {
         // Both events now have the same domain shape - simple merge
         const d = event.data as {
-          id: number;
+          id: string;
           webhookId: string;
           type: AuthtypeTypeValue;
           signingSecretRef?: string;
@@ -716,7 +716,7 @@ export class AuthtypeAggregate extends AggregateRootBase {
       type: updatedEvent.eventType,
       version: Number(updatedEvent.eventVersion),
       occurredAt: updatedAt,
-      aggregateId: this._entity.id.toString(),
+      aggregateId: this._entity.id.value,
       aggregateType: 'Authtype',
       data: updatedEvent.payload,
       metadata: this.eventMetadata,
@@ -822,7 +822,7 @@ export class AuthtypeAggregate extends AggregateRootBase {
       type: 'AuthtypeDeleted',
       version: 1,
       occurredAt: deletedAtResult.value.value, // Extract Date from VO
-      aggregateId: this._entity.id.toString(),
+      aggregateId: this._entity.id.value,
       aggregateType: 'Authtype',
     };
 
