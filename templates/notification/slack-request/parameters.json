@@ -5,55 +5,6 @@
     "moduleName": "slack"
   },
   "tables": {
-    "message_request": {
-      "docs": {
-        "name": "Message_request",
-        "summary": "Configuration for message_request table",
-        "version": "1.0.0"
-      },
-      "apis": {},
-      "store": {
-        "read": "sql,eventstream,redis",
-        "write": "sql,eventstream,redis",
-        "query": "sql,eventstream,redis"
-      },
-      "redis": {
-        "prefix": "",
-        "version": "1.0",
-        "category": "notification:slack-request.message.request.v1",
-        "ttl": 3600,
-        "hash": true,
-        "aggregate": "message_request"
-      },
-      "eventstream": {
-        "boundedContext": "notification",
-        "aggregate": "message_request",
-        "version": "v1",
-        "stream": "notification.slackRequest.messageRequest",
-        "createdEvent": "NotificationSlackRequestMessageRequestCreated.v1",
-        "updatedEvent": "NotificationSlackRequestMessageRequestUpdated.v1",
-        "deletedEvent": "NotificationSlackRequestMessageRequestDeleted.v1"
-      },
-      "cols": {
-        "id": {},
-        "template_code": {},
-        "recipient": {},
-        "data": {},
-        "status": {},
-        "workspace_code": {},
-        "channel_code": {}
-      },
-      "permissions": {
-        "bulk": [
-          "update",
-          "delete",
-          "import"
-        ],
-        "adminOverride": true,
-        "auditView": true,
-        "custom": []
-      }
-    },
     "workspace": {
       "docs": {
         "name": "Workspace",
@@ -242,6 +193,55 @@
         "logging_enabled": {},
         "audit_channel_id": {},
         "metadata": {}
+      },
+      "permissions": {
+        "bulk": [
+          "update",
+          "delete",
+          "import"
+        ],
+        "adminOverride": true,
+        "auditView": true,
+        "custom": []
+      }
+    },
+    "full_message": {
+      "docs": {
+        "name": "Full_message",
+        "summary": "Configuration for full_message table",
+        "version": "1.0.0"
+      },
+      "apis": {},
+      "store": {
+        "read": "sql,eventstream,redis",
+        "write": "sql,eventstream,redis",
+        "query": "sql,eventstream,redis"
+      },
+      "redis": {
+        "prefix": "",
+        "version": "1.0",
+        "category": "notification:slack-request.full.message.v1",
+        "ttl": 3600,
+        "hash": true,
+        "aggregate": "full_message"
+      },
+      "eventstream": {
+        "boundedContext": "notification",
+        "aggregate": "full_message",
+        "version": "v1",
+        "stream": "notification.slackRequest.fullMessage",
+        "createdEvent": "NotificationSlackRequestFullMessageCreated.v1",
+        "updatedEvent": "NotificationSlackRequestFullMessageUpdated.v1",
+        "deletedEvent": "NotificationSlackRequestFullMessageDeleted.v1"
+      },
+      "cols": {
+        "id": {},
+        "recipient": {},
+        "data": {},
+        "status": {},
+        "workspace_code": {},
+        "template_code": {},
+        "channel_code": {}
       },
       "permissions": {
         "bulk": [

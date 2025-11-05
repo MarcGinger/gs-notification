@@ -15,9 +15,9 @@ import { TemplateRouterModule } from './template/interface/http/template.router'
 
 import { AppConfigRouterModule } from './app-config/interface/http/app-config.router';
 
-import { MessageRequestRouterModule } from './message-request/interface/http/message-request.router';
+import { FullMessageRouterModule } from './full-message/interface/http/full-message.router';
 
-import { MessageRequestProjectorModule } from './message-request/message-request-projector.module';
+import { FullMessageProjectorModule } from './full-message/full-message-projector.module';
 
 /**
  * SlackRequest Module - Bounded Context Entry Point
@@ -44,8 +44,8 @@ import { MessageRequestProjectorModule } from './message-request/message-request
     ChannelRouterModule,
     TemplateRouterModule,
     AppConfigRouterModule,
-    MessageRequestRouterModule,
-    MessageRequestProjectorModule,
+    FullMessageRouterModule,
+    FullMessageProjectorModule,
   ],
   exports: [
     // Export all modules for potential cross-domain dependencies
@@ -53,8 +53,8 @@ import { MessageRequestProjectorModule } from './message-request/message-request
     ChannelRouterModule,
     TemplateRouterModule,
     AppConfigRouterModule,
-    MessageRequestRouterModule,
-    MessageRequestProjectorModule,
+    FullMessageRouterModule,
+    FullMessageProjectorModule,
   ],
 })
 export class NotificationSlackRequestModule {}

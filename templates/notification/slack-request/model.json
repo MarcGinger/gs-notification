@@ -17,7 +17,7 @@
         {
           "name": "code",
           "type": "string",
-          "childRelationshipType": "MessageRequest",
+          "childRelationshipType": "FullMessage",
           "parentRelationshipType": "",
           "datatype": "VARCHAR",
           "primaryKey": true,
@@ -228,7 +228,7 @@
           "parentColumn": {
             "name": "code",
             "type": "string",
-            "childRelationshipType": "MessageRequest",
+            "childRelationshipType": "FullMessage",
             "parentRelationshipType": "",
             "datatype": "VARCHAR",
             "primaryKey": true,
@@ -290,7 +290,7 @@
           "parentColumn": {
             "name": "code",
             "type": "string",
-            "childRelationshipType": "MessageRequest",
+            "childRelationshipType": "FullMessage",
             "parentRelationshipType": "",
             "datatype": "VARCHAR",
             "primaryKey": true,
@@ -352,7 +352,7 @@
           "parentColumn": {
             "name": "code",
             "type": "string",
-            "childRelationshipType": "MessageRequest",
+            "childRelationshipType": "FullMessage",
             "parentRelationshipType": "",
             "datatype": "VARCHAR",
             "primaryKey": true,
@@ -414,7 +414,7 @@
           "parentColumn": {
             "name": "code",
             "type": "string",
-            "childRelationshipType": "MessageRequest",
+            "childRelationshipType": "FullMessage",
             "parentRelationshipType": "",
             "datatype": "VARCHAR",
             "primaryKey": true,
@@ -439,7 +439,7 @@
               "maxLength": 32
             }
           },
-          "childTable": "message_request",
+          "childTable": "full_message",
           "childColumn": {
             "name": "workspace_code",
             "type": "string",
@@ -478,7 +478,7 @@
         {
           "name": "code",
           "type": "string",
-          "childRelationshipType": "MessageRequest",
+          "childRelationshipType": "FullMessage",
           "parentRelationshipType": "",
           "datatype": "VARCHAR",
           "primaryKey": true,
@@ -508,7 +508,7 @@
         {
           "name": "code",
           "type": "string",
-          "childRelationshipType": "MessageRequest",
+          "childRelationshipType": "FullMessage",
           "parentRelationshipType": "",
           "datatype": "VARCHAR",
           "primaryKey": true,
@@ -633,7 +633,7 @@
         {
           "name": "code",
           "type": "string",
-          "childRelationshipType": "MessageRequest",
+          "childRelationshipType": "FullMessage",
           "parentRelationshipType": "",
           "datatype": "VARCHAR",
           "primaryKey": true,
@@ -867,7 +867,7 @@
           "parentColumn": {
             "name": "code",
             "type": "string",
-            "childRelationshipType": "MessageRequest",
+            "childRelationshipType": "FullMessage",
             "parentRelationshipType": "",
             "datatype": "VARCHAR",
             "primaryKey": true,
@@ -929,7 +929,7 @@
           "parentColumn": {
             "name": "code",
             "type": "string",
-            "childRelationshipType": "MessageRequest",
+            "childRelationshipType": "FullMessage",
             "parentRelationshipType": "",
             "datatype": "VARCHAR",
             "primaryKey": true,
@@ -954,7 +954,7 @@
               "maxLength": 32
             }
           },
-          "childTable": "message_request",
+          "childTable": "full_message",
           "childColumn": {
             "name": "channel_code",
             "type": "string",
@@ -993,7 +993,7 @@
         {
           "name": "code",
           "type": "string",
-          "childRelationshipType": "MessageRequest",
+          "childRelationshipType": "FullMessage",
           "parentRelationshipType": "",
           "datatype": "VARCHAR",
           "primaryKey": true,
@@ -1023,7 +1023,7 @@
         {
           "name": "code",
           "type": "string",
-          "childRelationshipType": "MessageRequest",
+          "childRelationshipType": "FullMessage",
           "parentRelationshipType": "",
           "datatype": "VARCHAR",
           "primaryKey": true,
@@ -1175,7 +1175,7 @@
         {
           "name": "code",
           "type": "string",
-          "childRelationshipType": "MessageRequest",
+          "childRelationshipType": "FullMessage",
           "parentRelationshipType": "",
           "datatype": "VARCHAR",
           "primaryKey": true,
@@ -1383,7 +1383,7 @@
           "parentColumn": {
             "name": "code",
             "type": "string",
-            "childRelationshipType": "MessageRequest",
+            "childRelationshipType": "FullMessage",
             "parentRelationshipType": "",
             "datatype": "VARCHAR",
             "primaryKey": true,
@@ -1445,7 +1445,7 @@
           "parentColumn": {
             "name": "code",
             "type": "string",
-            "childRelationshipType": "MessageRequest",
+            "childRelationshipType": "FullMessage",
             "parentRelationshipType": "",
             "datatype": "VARCHAR",
             "primaryKey": true,
@@ -1468,7 +1468,7 @@
               "maxLength": 64
             }
           },
-          "childTable": "message_request",
+          "childTable": "full_message",
           "childColumn": {
             "name": "template_code",
             "type": "string",
@@ -1505,7 +1505,7 @@
         {
           "name": "code",
           "type": "string",
-          "childRelationshipType": "MessageRequest",
+          "childRelationshipType": "FullMessage",
           "parentRelationshipType": "",
           "datatype": "VARCHAR",
           "primaryKey": true,
@@ -1533,7 +1533,7 @@
         {
           "name": "code",
           "type": "string",
-          "childRelationshipType": "MessageRequest",
+          "childRelationshipType": "FullMessage",
           "parentRelationshipType": "",
           "datatype": "VARCHAR",
           "primaryKey": true,
@@ -1866,7 +1866,7 @@
           "parentColumn": {
             "name": "code",
             "type": "string",
-            "childRelationshipType": "MessageRequest",
+            "childRelationshipType": "FullMessage",
             "parentRelationshipType": "",
             "datatype": "VARCHAR",
             "primaryKey": true,
@@ -2021,7 +2021,7 @@
       "parentPath": []
     },
     {
-      "name": "message_request",
+      "name": "full_message",
       "description": "## 🧠 SlackWorkspace\n\n### **Purpose**\n\nThe \\`SlackWorkspace\\` aggregate represents the tenant’s connection to their Slack workspace. It acts as the foundational configuration point that defines the link between the system and the tenant’s Slack organization.\n\nThis aggregate holds sensitive integration credentials — including OAuth tokens, signing secrets, and app identifiers — and ensures they are securely managed and rotated when necessary. It also tracks which workspace belongs to which tenant and whether the connection is currently active.\n\n### **Responsibilities**\n\n* Maintain the tenant-to-Slack workspace mapping.\n* Securely store and reference OAuth credentials (e.g., \\`botToken\\`, \\`signingSecret\\`).\n* Enable or disable the Slack integration per tenant.\n* Manage the default posting channel for system notifications.\n* Emit events that notify other services when configuration changes occur.\n\n### **Why It Matters**\n\nWithout the \\`SlackWorkspace\\` aggregate, the platform wouldn’t know **where** to send Slack messages or which tokens to use for authentication. It ensures tenant isolation and provides a secure boundary for Slack API interactions.\n",
       "columns": [
         {
@@ -2103,7 +2103,7 @@
         },
         {
           "name": "status",
-          "type": "MessageRequestStatusEnum",
+          "type": "FullMessageStatusEnum",
           "childRelationshipType": "",
           "parentRelationshipType": "",
           "datatype": "ENUM",
@@ -2243,7 +2243,7 @@
           "parentColumn": {
             "name": "code",
             "type": "string",
-            "childRelationshipType": "MessageRequest",
+            "childRelationshipType": "FullMessage",
             "parentRelationshipType": "",
             "datatype": "VARCHAR",
             "primaryKey": true,
@@ -2268,7 +2268,7 @@
               "maxLength": 32
             }
           },
-          "childTable": "message_request",
+          "childTable": "full_message",
           "childColumn": {
             "name": "workspace_code",
             "type": "string",
@@ -2307,7 +2307,7 @@
           "parentColumn": {
             "name": "code",
             "type": "string",
-            "childRelationshipType": "MessageRequest",
+            "childRelationshipType": "FullMessage",
             "parentRelationshipType": "",
             "datatype": "VARCHAR",
             "primaryKey": true,
@@ -2330,7 +2330,7 @@
               "maxLength": 64
             }
           },
-          "childTable": "message_request",
+          "childTable": "full_message",
           "childColumn": {
             "name": "template_code",
             "type": "string",
@@ -2367,7 +2367,7 @@
           "parentColumn": {
             "name": "code",
             "type": "string",
-            "childRelationshipType": "MessageRequest",
+            "childRelationshipType": "FullMessage",
             "parentRelationshipType": "",
             "datatype": "VARCHAR",
             "primaryKey": true,
@@ -2392,7 +2392,7 @@
               "maxLength": 32
             }
           },
-          "childTable": "message_request",
+          "childTable": "full_message",
           "childColumn": {
             "name": "channel_code",
             "type": "string",
@@ -2484,7 +2484,7 @@
         },
         {
           "name": "status",
-          "type": "MessageRequestStatusEnum",
+          "type": "FullMessageStatusEnum",
           "childRelationshipType": "",
           "parentRelationshipType": "",
           "datatype": "ENUM",
@@ -2533,8 +2533,8 @@
         }
       ],
       "docs": {
-        "name": "Message_request",
-        "summary": "Configuration for message_request table",
+        "name": "Full_message",
+        "summary": "Configuration for full_message table",
         "version": "1.0.0"
       },
       "apis": {},
@@ -2571,19 +2571,19 @@
       "redis": {
         "prefix": "",
         "version": "1.0",
-        "category": "notification:slack-request.message.request.v1",
+        "category": "notification:slack-request.full.message.v1",
         "ttl": 3600,
         "hash": true,
-        "aggregate": "message_request"
+        "aggregate": "full_message"
       },
       "eventstream": {
         "boundedContext": "notification",
-        "aggregate": "message_request",
+        "aggregate": "full_message",
         "version": "v1",
-        "stream": "notification.slackRequest.messageRequest",
-        "createdEvent": "NotificationSlackRequestMessageRequestCreated.v1",
-        "updatedEvent": "NotificationSlackRequestMessageRequestUpdated.v1",
-        "deletedEvent": "NotificationSlackRequestMessageRequestDeleted.v1"
+        "stream": "notification.slackRequest.fullMessage",
+        "createdEvent": "NotificationSlackRequestFullMessageCreated.v1",
+        "updatedEvent": "NotificationSlackRequestFullMessageUpdated.v1",
+        "deletedEvent": "NotificationSlackRequestFullMessageDeleted.v1"
       },
       "permissions": {
         "bulk": [
@@ -2606,7 +2606,7 @@
       "parentColumn": {
         "name": "code",
         "type": "string",
-        "childRelationshipType": "MessageRequest",
+        "childRelationshipType": "FullMessage",
         "parentRelationshipType": "",
         "datatype": "VARCHAR",
         "primaryKey": true,
@@ -2668,7 +2668,7 @@
       "parentColumn": {
         "name": "code",
         "type": "string",
-        "childRelationshipType": "MessageRequest",
+        "childRelationshipType": "FullMessage",
         "parentRelationshipType": "",
         "datatype": "VARCHAR",
         "primaryKey": true,
@@ -2730,7 +2730,7 @@
       "parentColumn": {
         "name": "code",
         "type": "string",
-        "childRelationshipType": "MessageRequest",
+        "childRelationshipType": "FullMessage",
         "parentRelationshipType": "",
         "datatype": "VARCHAR",
         "primaryKey": true,
@@ -2792,7 +2792,7 @@
       "parentColumn": {
         "name": "code",
         "type": "string",
-        "childRelationshipType": "MessageRequest",
+        "childRelationshipType": "FullMessage",
         "parentRelationshipType": "",
         "datatype": "VARCHAR",
         "primaryKey": true,
@@ -2817,7 +2817,7 @@
           "maxLength": 32
         }
       },
-      "childTable": "message_request",
+      "childTable": "full_message",
       "childColumn": {
         "name": "workspace_code",
         "type": "string",
@@ -2856,7 +2856,7 @@
       "parentColumn": {
         "name": "code",
         "type": "string",
-        "childRelationshipType": "MessageRequest",
+        "childRelationshipType": "FullMessage",
         "parentRelationshipType": "",
         "datatype": "VARCHAR",
         "primaryKey": true,
@@ -2879,7 +2879,7 @@
           "maxLength": 64
         }
       },
-      "childTable": "message_request",
+      "childTable": "full_message",
       "childColumn": {
         "name": "template_code",
         "type": "string",
@@ -2916,7 +2916,7 @@
       "parentColumn": {
         "name": "code",
         "type": "string",
-        "childRelationshipType": "MessageRequest",
+        "childRelationshipType": "FullMessage",
         "parentRelationshipType": "",
         "datatype": "VARCHAR",
         "primaryKey": true,
@@ -2941,7 +2941,7 @@
           "maxLength": 32
         }
       },
-      "childTable": "message_request",
+      "childTable": "full_message",
       "childColumn": {
         "name": "channel_code",
         "type": "string",

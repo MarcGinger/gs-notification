@@ -9,7 +9,7 @@ import { WorkspaceDocumentation } from './workspace/docs/workspace.doc';
 import { ChannelDocumentation } from './channel/docs/channel.doc';
 import { TemplateDocumentation } from './template/docs/template.doc';
 import { AppConfigDocumentation } from './app-config/docs/app-config.doc';
-import { MessageRequestDocumentation } from './message-request/docs/message-request.doc';
+import { FullMessageDocumentation } from './full-message/docs/full-message.doc';
 
 /**
  * Setup notification-slack-request application/service Swagger documentation
@@ -30,7 +30,7 @@ export function setupNotificationSlackRequestDocs(
   const channelUrls = ChannelDocumentation.setupAll(app, port);
   const templateUrls = TemplateDocumentation.setupAll(app, port);
   const appConfigUrls = AppConfigDocumentation.setupAll(app, port);
-  const messageRequestUrls = MessageRequestDocumentation.setupAll(app, port);
+  const fullMessageUrls = FullMessageDocumentation.setupAll(app, port);
 
   return {
     ...boundedContextUrls,
@@ -38,6 +38,6 @@ export function setupNotificationSlackRequestDocs(
     ...channelUrls,
     ...templateUrls,
     ...appConfigUrls,
-    ...messageRequestUrls,
+    ...fullMessageUrls,
   };
 }

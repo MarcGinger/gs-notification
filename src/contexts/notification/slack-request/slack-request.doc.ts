@@ -126,7 +126,7 @@ This service is a critical component of the Notification Bounded Context, enabli
   | [***channel  →***](/api/docs/notification/slack-request/channel) |
   | [***template  →***](/api/docs/notification/slack-request/template) |
   | [***app-config  →***](/api/docs/notification/slack-request/app-config) |
-  | [***message-request  →***](/api/docs/notification/slack-request/message-request) |
+  | [***full-message  →***](/api/docs/notification/slack-request/full-message) |
         `,
       )
       .setVersion('1.0.0')

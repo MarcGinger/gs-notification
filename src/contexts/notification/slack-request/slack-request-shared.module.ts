@@ -31,7 +31,9 @@ import { SLACK_REQUEST_DI_TOKENS } from './slack-request.constants';
 
 // Slack request Domain Services
 import { SlackRequestPolicyService } from './slack-request-policy.service';
+// TODO remove this line if not used
 import { SlackModule } from 'src/shared/infrastructure/slack/slack.module';
+
 /**
  * Slack request Shared Module
  *
@@ -61,6 +63,7 @@ import { SlackModule } from 'src/shared/infrastructure/slack/slack.module';
     ComplianceInfrastructureModule,
     InfrastructureModule,
     TypeOrmDatabaseModule,
+    // TODO import other shared modules as needed
     SlackModule,
   ],
   providers: [
