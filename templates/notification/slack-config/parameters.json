@@ -156,10 +156,10 @@
         "custom": []
       }
     },
-    "app_config": {
+    "config": {
       "docs": {
-        "name": "App_config",
-        "summary": "Configuration for app_config table",
+        "name": "Config",
+        "summary": "Configuration for config table",
         "version": "1.0.0"
       },
       "apis": {},
@@ -171,28 +171,28 @@
       "redis": {
         "prefix": "",
         "version": "1.0",
-        "category": "notification:slack-config.app.config.v1",
+        "category": "notification:slack-config.config.v1",
         "ttl": 3600,
         "hash": true,
-        "aggregate": "app_config"
+        "aggregate": "config"
       },
       "eventstream": {
         "boundedContext": "notification",
-        "aggregate": "app_config",
+        "aggregate": "config",
         "version": "v1",
-        "stream": "notification.slackConfig.appConfig",
-        "createdEvent": "NotificationSlackConfigAppConfigCreated.v1",
-        "updatedEvent": "NotificationSlackConfigAppConfigUpdated.v1",
-        "deletedEvent": "NotificationSlackConfigAppConfigDeleted.v1"
+        "stream": "notification.slackConfig.config",
+        "createdEvent": "NotificationSlackConfigConfigCreated.v1",
+        "updatedEvent": "NotificationSlackConfigConfigUpdated.v1",
+        "deletedEvent": "NotificationSlackConfigConfigDeleted.v1"
       },
       "cols": {
+        "workspace_code": {},
         "max_retry_attempts": {},
         "retry_backoff_seconds": {},
         "default_locale": {},
         "logging_enabled": {},
         "audit_channel_id": {},
-        "metadata": {},
-        "workspace_code": {}
+        "metadata": {}
       },
       "permissions": {
         "bulk": [

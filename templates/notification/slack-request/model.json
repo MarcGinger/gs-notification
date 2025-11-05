@@ -377,7 +377,7 @@
               "maxLength": 32
             }
           },
-          "childTable": "app_config",
+          "childTable": "config",
           "childColumn": {
             "name": "workspace_code",
             "type": "string",
@@ -1677,7 +1677,7 @@
       "parentPath": []
     },
     {
-      "name": "app_config",
+      "name": "config",
       "description": "## ⚙️ SlackAppConfig\n\n### **Purpose**\n\nThe \\`SlackAppConfig\\` aggregate manages system-wide operational parameters for the Slack integration within a tenant’s workspace. It defines how the app behaves under various runtime conditions, such as retries, logging, and audit behavior.\n\nThis configuration ensures that message delivery is resilient and aligned with organizational policies (e.g., how many times to retry sending, whether to log every event, which audit channel to use, etc.).\n\n### **Responsibilities**\n\n* Manage retry and backoff policies for message delivery.\n* Enable or disable message-level logging for auditing.\n* Define the audit channel ID for operational or compliance logs.\n* Maintain default locale, metadata, and other operational flags.\n* Emit configuration change events for runtime synchronization.\n\n### **Why It Matters**\n\n\\`SlackAppConfig\\` provides the **operational backbone** for Slack messaging. It ensures reliability, compliance, and observability — allowing organizations to manage how Slack notifications behave at scale and during failures.\n\n",
       "columns": [
         {
@@ -1891,7 +1891,7 @@
               "maxLength": 32
             }
           },
-          "childTable": "app_config",
+          "childTable": "config",
           "childColumn": {
             "name": "workspace_code",
             "type": "string",
@@ -1955,8 +1955,8 @@
       ],
       "indexes": [],
       "docs": {
-        "name": "App_config",
-        "summary": "Configuration for app_config table",
+        "name": "Config",
+        "summary": "Configuration for config table",
         "version": "1.0.0"
       },
       "apis": {},
@@ -1993,19 +1993,19 @@
       "redis": {
         "prefix": "",
         "version": "1.0",
-        "category": "notification:slack-request.app.config.v1",
+        "category": "notification:slack-request.config.v1",
         "ttl": 3600,
         "hash": true,
-        "aggregate": "app_config"
+        "aggregate": "config"
       },
       "eventstream": {
         "boundedContext": "notification",
-        "aggregate": "app_config",
+        "aggregate": "config",
         "version": "v1",
-        "stream": "notification.slackRequest.appConfig",
-        "createdEvent": "NotificationSlackRequestAppConfigCreated.v1",
-        "updatedEvent": "NotificationSlackRequestAppConfigUpdated.v1",
-        "deletedEvent": "NotificationSlackRequestAppConfigDeleted.v1"
+        "stream": "notification.slackRequest.config",
+        "createdEvent": "NotificationSlackRequestConfigCreated.v1",
+        "updatedEvent": "NotificationSlackRequestConfigUpdated.v1",
+        "deletedEvent": "NotificationSlackRequestConfigDeleted.v1"
       },
       "permissions": {
         "bulk": [
@@ -2755,7 +2755,7 @@
           "maxLength": 32
         }
       },
-      "childTable": "app_config",
+      "childTable": "config",
       "childColumn": {
         "name": "workspace_code",
         "type": "string",

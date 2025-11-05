@@ -31,6 +31,9 @@ import { SLACK_CONFIG_DI_TOKENS } from './slack-config.constants';
 
 // Slack config Domain Services
 import { SlackConfigPolicyService } from './slack-config-policy.service';
+// TODO remove this line if not used
+import { SlackModule } from 'src/shared/infrastructure/slack/slack.module';
+
 /**
  * Slack config Shared Module
  *
@@ -60,6 +63,8 @@ import { SlackConfigPolicyService } from './slack-config-policy.service';
     ComplianceInfrastructureModule,
     InfrastructureModule,
     TypeOrmDatabaseModule,
+    // TODO import other shared modules as needed
+    SlackModule,
   ],
   providers: [
     // Domain-specific policy service

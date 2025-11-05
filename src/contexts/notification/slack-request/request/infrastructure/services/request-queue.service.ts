@@ -25,13 +25,13 @@ import {
   CHANNEL_QUERY_TOKEN,
 } from 'src/contexts/notification/slack-config/channel/application/ports';
 import {
-  IAppConfigQuery,
-  APP_CONFIG_QUERY_TOKEN,
-} from 'src/contexts/notification/slack-config/app-config/application/ports';
+  IConfigQuery,
+  CONFIG_QUERY_TOKEN,
+} from 'src/contexts/notification/slack-config/config/application/ports';
 import { DetailWorkspaceResponse } from 'src/contexts/notification/slack-config/workspace/application/dtos';
 import { DetailTemplateResponse } from 'src/contexts/notification/slack-config/template/application/dtos';
 import { DetailChannelResponse } from 'src/contexts/notification/slack-config/channel/application/dtos';
-import { DetailAppConfigResponse } from 'src/contexts/notification/slack-config/app-config/application/dtos';
+import { DetailConfigResponse } from 'src/contexts/notification/slack-config/config/application/dtos';
 
 /**
  * Request Queue Service
@@ -59,8 +59,8 @@ export class RequestQueueService {
     private readonly templateQuery: ITemplateQuery,
     @Inject(CHANNEL_QUERY_TOKEN)
     private readonly channelQuery: IChannelQuery,
-    @Inject(APP_CONFIG_QUERY_TOKEN)
-    private readonly appConfigQuery: IAppConfigQuery,
+    @Inject(CONFIG_QUERY_TOKEN)
+    private readonly appConfigQuery: IConfigQuery,
   ) {
     this.logger = componentLogger(baseLogger, 'RequestQueueService');
 
@@ -209,7 +209,7 @@ export class RequestQueueService {
           workspace: DetailWorkspaceResponse;
           template?: DetailTemplateResponse;
           channel?: DetailChannelResponse;
-          appConfig?: DetailAppConfigResponse;
+          appConfig?: DetailConfigResponse;
         };
       } = {
         requestCode,

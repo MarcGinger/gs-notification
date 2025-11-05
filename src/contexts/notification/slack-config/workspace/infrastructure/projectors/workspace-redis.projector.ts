@@ -41,7 +41,6 @@ import { NotificationSlackProjectorConfig } from '../../../projector.config';
 import { WorkspaceProjectionKeys } from '../../workspace-projection-keys';
 import { WorkspaceFieldValidatorUtil } from '../utilities/workspace-field-validator.util';
 import { DetailWorkspaceResponse } from '../../application/dtos';
-
 /**
  * Workspace projector error catalog using shared error definitions
  */
@@ -60,7 +59,7 @@ const WorkspaceProjectorErrors = createProjectorErrorCatalog(
  * - deletedAt: Soft delete timestamp for TTL-based cleanup
  * - lastStreamRevision: Event sourcing revision tracking
  */
-interface WorkspaceRowParams extends DetailWorkspaceResponse {
+interface WorkspaceProjectionParams extends DetailWorkspaceResponse {
   // Projection-specific fields for Redis storage
   tenant: string;
   version: number;
@@ -416,7 +415,7 @@ export class WorkspaceProjector
   /**
    * Generate cluster-safe Redis keys with hash-tags for locality
    */
-  private generateClusterSafeKeys(params: WorkspaceRowParams): {
+  private generateClusterSafeKeys(params: WorkspaceProjectionParams): {
     entityKey: string;
     indexKey: string;
   } {
@@ -444,7 +443,7 @@ export class WorkspaceProjector
   private extractWorkspaceParams(
     event: ProjectionEvent,
     operation: string,
-  ): WorkspaceRowParams {
+  ): WorkspaceProjectionParams {
     try {
       const eventData = event.data as Record<string, any>;
 

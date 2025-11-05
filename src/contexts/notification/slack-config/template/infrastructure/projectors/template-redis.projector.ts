@@ -41,7 +41,6 @@ import { NotificationSlackProjectorConfig } from '../../../projector.config';
 import { TemplateProjectionKeys } from '../../template-projection-keys';
 import { TemplateFieldValidatorUtil } from '../utilities/template-field-validator.util';
 import { DetailTemplateResponse } from '../../application/dtos';
-
 /**
  * Template projector error catalog using shared error definitions
  */
@@ -60,7 +59,7 @@ const TemplateProjectorErrors = createProjectorErrorCatalog(
  * - deletedAt: Soft delete timestamp for TTL-based cleanup
  * - lastStreamRevision: Event sourcing revision tracking
  */
-interface TemplateRowParams extends DetailTemplateResponse {
+interface TemplateProjectionParams extends DetailTemplateResponse {
   // Projection-specific fields for Redis storage
   tenant: string;
   version: number;
@@ -415,7 +414,7 @@ export class TemplateProjector
   /**
    * Generate cluster-safe Redis keys with hash-tags for locality
    */
-  private generateClusterSafeKeys(params: TemplateRowParams): {
+  private generateClusterSafeKeys(params: TemplateProjectionParams): {
     entityKey: string;
     indexKey: string;
   } {
@@ -443,7 +442,7 @@ export class TemplateProjector
   private extractTemplateParams(
     event: ProjectionEvent,
     operation: string,
-  ): TemplateRowParams {
+  ): TemplateProjectionParams {
     try {
       const eventData = event.data as Record<string, any>;
 

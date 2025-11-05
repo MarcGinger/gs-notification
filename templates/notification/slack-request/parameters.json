@@ -156,55 +156,6 @@
         "custom": []
       }
     },
-    "app_config": {
-      "docs": {
-        "name": "App_config",
-        "summary": "Configuration for app_config table",
-        "version": "1.0.0"
-      },
-      "apis": {},
-      "store": {
-        "read": "sql,eventstream,redis",
-        "write": "sql,eventstream,redis",
-        "query": "sql,eventstream,redis"
-      },
-      "redis": {
-        "prefix": "",
-        "version": "1.0",
-        "category": "notification:slack-request.app.config.v1",
-        "ttl": 3600,
-        "hash": true,
-        "aggregate": "app_config"
-      },
-      "eventstream": {
-        "boundedContext": "notification",
-        "aggregate": "app_config",
-        "version": "v1",
-        "stream": "notification.slackRequest.appConfig",
-        "createdEvent": "NotificationSlackRequestAppConfigCreated.v1",
-        "updatedEvent": "NotificationSlackRequestAppConfigUpdated.v1",
-        "deletedEvent": "NotificationSlackRequestAppConfigDeleted.v1"
-      },
-      "cols": {
-        "workspace_code": {},
-        "max_retry_attempts": {},
-        "retry_backoff_seconds": {},
-        "default_locale": {},
-        "logging_enabled": {},
-        "audit_channel_id": {},
-        "metadata": {}
-      },
-      "permissions": {
-        "bulk": [
-          "update",
-          "delete",
-          "import"
-        ],
-        "adminOverride": true,
-        "auditView": true,
-        "custom": []
-      }
-    },
     "request": {
       "docs": {
         "name": "Request",
@@ -242,6 +193,55 @@
         "workspace_code": {},
         "template_code": {},
         "channel_code": {}
+      },
+      "permissions": {
+        "bulk": [
+          "update",
+          "delete",
+          "import"
+        ],
+        "adminOverride": true,
+        "auditView": true,
+        "custom": []
+      }
+    },
+    "config": {
+      "docs": {
+        "name": "Config",
+        "summary": "Configuration for config table",
+        "version": "1.0.0"
+      },
+      "apis": {},
+      "store": {
+        "read": "sql,eventstream,redis",
+        "write": "sql,eventstream,redis",
+        "query": "sql,eventstream,redis"
+      },
+      "redis": {
+        "prefix": "",
+        "version": "1.0",
+        "category": "notification:slack-request.config.v1",
+        "ttl": 3600,
+        "hash": true,
+        "aggregate": "config"
+      },
+      "eventstream": {
+        "boundedContext": "notification",
+        "aggregate": "config",
+        "version": "v1",
+        "stream": "notification.slackRequest.config",
+        "createdEvent": "NotificationSlackRequestConfigCreated.v1",
+        "updatedEvent": "NotificationSlackRequestConfigUpdated.v1",
+        "deletedEvent": "NotificationSlackRequestConfigDeleted.v1"
+      },
+      "cols": {
+        "workspace_code": {},
+        "max_retry_attempts": {},
+        "retry_backoff_seconds": {},
+        "default_locale": {},
+        "logging_enabled": {},
+        "audit_channel_id": {},
+        "metadata": {}
       },
       "permissions": {
         "bulk": [

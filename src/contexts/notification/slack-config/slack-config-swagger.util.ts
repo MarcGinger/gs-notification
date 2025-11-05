@@ -8,7 +8,7 @@ import { SlackConfigDocumentation } from './slack-config.doc';
 import { WorkspaceDocumentation } from './workspace/docs/workspace.doc';
 import { ChannelDocumentation } from './channel/docs/channel.doc';
 import { TemplateDocumentation } from './template/docs/template.doc';
-import { AppConfigDocumentation } from './app-config/docs/app-config.doc';
+import { ConfigDocumentation } from './config/docs/config.doc';
 
 /**
  * Setup notification-slack-config application/service Swagger documentation
@@ -28,13 +28,13 @@ export function setupNotificationSlackConfigDocs(
   const workspaceUrls = WorkspaceDocumentation.setupAll(app, port);
   const channelUrls = ChannelDocumentation.setupAll(app, port);
   const templateUrls = TemplateDocumentation.setupAll(app, port);
-  const appConfigUrls = AppConfigDocumentation.setupAll(app, port);
+  const configUrls = ConfigDocumentation.setupAll(app, port);
 
   return {
     ...boundedContextUrls,
     ...workspaceUrls,
     ...channelUrls,
     ...templateUrls,
-    ...appConfigUrls,
+    ...configUrls,
   };
 }

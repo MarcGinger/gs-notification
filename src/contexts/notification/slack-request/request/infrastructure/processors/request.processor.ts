@@ -35,7 +35,7 @@ import {
 import { DetailWorkspaceResponse } from 'src/contexts/notification/slack-request/workspace/application/dtos';
 import { DetailTemplateResponse } from 'src/contexts/notification/slack-request/template/application/dtos';
 import { DetailChannelResponse } from 'src/contexts/notification/slack-request/channel/application/dtos';
-import { DetailAppConfigResponse } from 'src/contexts/notification/slack-request/app-config/application/dtos';
+import { DetailConfigResponse } from 'src/contexts/notification/slack-request/config/application/dtos';
 import { ActorContext } from 'src/shared/application/context';
 import { Option } from 'src/shared/domain/types';
 
@@ -58,7 +58,7 @@ export interface RequestJobs {
       workspace: DetailWorkspaceResponse;
       template?: DetailTemplateResponse;
       channel?: DetailChannelResponse;
-      appConfig?: DetailAppConfigResponse;
+      appConfig?: DetailConfigResponse;
     };
   };
   'retry-failed-request': {

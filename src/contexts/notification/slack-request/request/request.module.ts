@@ -9,7 +9,7 @@ import { AppConfigUtil } from 'src/shared/config/app-config.util';
 import { WorkspaceModule } from 'src/contexts/notification/slack-config/workspace/workspace.module';
 import { TemplateModule } from 'src/contexts/notification/slack-config/template/template.module';
 import { ChannelModule } from 'src/contexts/notification/slack-config/channel/channel.module';
-import { AppConfigModule } from 'src/contexts/notification/slack-config/app-config/app-config.module';
+import { ConfigModule } from 'src/contexts/notification/slack-config/config/config.module';
 import {
   RedisIdempotencyService,
   IdempotencyConfig,
@@ -71,7 +71,7 @@ import {
     WorkspaceModule,
     TemplateModule,
     ChannelModule,
-    AppConfigModule,
+    ConfigModule,
     // Domain-specific BullMQ queue registration
     BullMQModule.register({
       redisUrl: AppConfigUtil.getRedisConfig().url,

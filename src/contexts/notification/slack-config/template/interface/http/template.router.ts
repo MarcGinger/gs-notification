@@ -45,9 +45,9 @@ const templateRoutes: Routes = [
  * the nested route structure.
  *
  * Routes configured:
- * - /api/v1/notification/slack-config/templates (GET, POST)
- * - /api/v1/notification/slack-config/templates/:code (GET, PUT)
- * - /api/v1/notification/slack-config/health/projectors/template (GET)
+ * - /notification/slack-config/api/v1/templates (GET, POST)
+ * - /notification/slack-config/api/v1/templates/:code (GET, PUT)
+ * - /notification/slack-config/health/projectors/template (GET)
  * - /notification/slack-config/health/projectors/template/metrics (GET)
  */
 @Module({

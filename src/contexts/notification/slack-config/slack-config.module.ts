@@ -16,9 +16,9 @@ import { ChannelProjectorModule } from './channel/channel-projector.module';
 import { TemplateRouterModule } from './template/interface/http/template.router';
 
 import { TemplateProjectorModule } from './template/template-projector.module';
-import { AppConfigRouterModule } from './app-config/interface/http/app-config.router';
+import { ConfigRouterModule } from './config/interface/http/config.router';
 
-import { AppConfigProjectorModule } from './app-config/app-config-projector.module';
+import { ConfigProjectorModule } from './config/config-projector.module';
 
 /**
  * SlackConfig Module - Bounded Context Entry Point
@@ -47,8 +47,8 @@ import { AppConfigProjectorModule } from './app-config/app-config-projector.modu
     ChannelProjectorModule,
     TemplateRouterModule,
     TemplateProjectorModule,
-    AppConfigRouterModule,
-    AppConfigProjectorModule,
+    ConfigRouterModule,
+    ConfigProjectorModule,
   ],
   exports: [
     // Export all modules for potential cross-domain dependencies
@@ -58,8 +58,8 @@ import { AppConfigProjectorModule } from './app-config/app-config-projector.modu
     ChannelProjectorModule,
     TemplateRouterModule,
     TemplateProjectorModule,
-    AppConfigRouterModule,
-    AppConfigProjectorModule,
+    ConfigRouterModule,
+    ConfigProjectorModule,
   ],
 })
 export class NotificationSlackConfigModule {}

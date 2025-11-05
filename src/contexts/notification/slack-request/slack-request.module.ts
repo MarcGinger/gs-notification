@@ -13,7 +13,7 @@ import { ChannelRouterModule } from './channel/interface/http/channel.router';
 
 import { TemplateRouterModule } from './template/interface/http/template.router';
 
-import { AppConfigRouterModule } from './app-config/interface/http/app-config.router';
+import { ConfigRouterModule } from './config/interface/http/config.router';
 
 import { RequestRouterModule } from './request/interface/http/request.router';
 
@@ -43,7 +43,7 @@ import { RequestProjectorModule } from './request/request-projector.module';
     WorkspaceRouterModule,
     ChannelRouterModule,
     TemplateRouterModule,
-    AppConfigRouterModule,
+    ConfigRouterModule,
     RequestRouterModule,
     RequestProjectorModule,
   ],
@@ -52,7 +52,7 @@ import { RequestProjectorModule } from './request/request-projector.module';
     WorkspaceRouterModule,
     ChannelRouterModule,
     TemplateRouterModule,
-    AppConfigRouterModule,
+    ConfigRouterModule,
     RequestRouterModule,
     RequestProjectorModule,
   ],

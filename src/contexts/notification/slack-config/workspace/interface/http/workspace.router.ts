@@ -45,10 +45,10 @@ const workspaceRoutes: Routes = [
  * the nested route structure.
  *
  * Routes configured:
- * - /api/v1/notification/slack-config/workspaces (GET, POST)
- * - /api/v1/notification/slack-config/workspaces/:code (GET, PUT)
- * - /api/v1/notification/slack-config/health/projectors/workspace (GET)
- * - /api/v1/notification/slack-config/health/projectors/workspace/metrics (GET)
+ * - /notification/slack-config/api/v1/workspaces (GET, POST)
+ * - /notification/slack-config/api/v1/workspaces/:code (GET, PUT)
+ * - /notification/slack-config/health/projectors/workspace (GET)
+ * - /notification/slack-config/health/projectors/workspace/metrics (GET)
  */
 @Module({
   imports: [

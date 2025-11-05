@@ -22,7 +22,6 @@ import { APP_LOGGER, type Logger } from 'src/shared/logging';
 import { CatchUpRunner } from 'src/shared/infrastructure/projections/catchup.runner';
 import type { Redis } from 'ioredis';
 import type { CheckpointStore } from 'src/shared/infrastructure/projections/checkpoint.store';
-
 import { WorkspaceProjector } from './infrastructure/projectors';
 import { WorkspaceProjectorHealthController } from './interface/http/controllers';
 

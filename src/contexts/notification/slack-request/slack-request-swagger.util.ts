@@ -8,7 +8,7 @@ import { SlackRequestDocumentation } from './slack-request.doc';
 import { WorkspaceDocumentation } from './workspace/docs/workspace.doc';
 import { ChannelDocumentation } from './channel/docs/channel.doc';
 import { TemplateDocumentation } from './template/docs/template.doc';
-import { AppConfigDocumentation } from './app-config/docs/app-config.doc';
+import { ConfigDocumentation } from './config/docs/config.doc';
 import { RequestDocumentation } from './request/docs/request.doc';
 
 /**
@@ -29,7 +29,7 @@ export function setupNotificationSlackRequestDocs(
   const workspaceUrls = WorkspaceDocumentation.setupAll(app, port);
   const channelUrls = ChannelDocumentation.setupAll(app, port);
   const templateUrls = TemplateDocumentation.setupAll(app, port);
-  const appConfigUrls = AppConfigDocumentation.setupAll(app, port);
+  const configUrls = ConfigDocumentation.setupAll(app, port);
   const requestUrls = RequestDocumentation.setupAll(app, port);
 
   return {
@@ -37,7 +37,7 @@ export function setupNotificationSlackRequestDocs(
     ...workspaceUrls,
     ...channelUrls,
     ...templateUrls,
-    ...appConfigUrls,
+    ...configUrls,
     ...requestUrls,
   };
 }

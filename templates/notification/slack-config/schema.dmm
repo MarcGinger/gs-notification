@@ -794,7 +794,7 @@
 		"00829685-51b5-4cea-a843-525855771acd": {
 			"id": "00829685-51b5-4cea-a843-525855771acd",
 			"visible": true,
-			"name": "app_config",
+			"name": "config",
 			"desc": "## ⚙️ SlackAppConfig\n\n### **Purpose**\n\nThe `SlackAppConfig` aggregate manages system-wide operational parameters for the Slack integration within a tenant’s workspace. It defines how the app behaves under various runtime conditions, such as retries, logging, and audit behavior.\n\nThis configuration ensures that message delivery is resilient and aligned with organizational policies (e.g., how many times to retry sending, whether to log every event, which audit channel to use, etc.).\n\n### **Responsibilities**\n\n* Manage retry and backoff policies for message delivery.\n* Enable or disable message-level logging for auditing.\n* Define the audit channel ID for operational or compliance logs.\n* Maintain default locale, metadata, and other operational flags.\n* Emit configuration change events for runtime synchronization.\n\n### **Why It Matters**\n\n`SlackAppConfig` provides the **operational backbone** for Slack messaging. It ensures reliability, compliance, and observability — allowing organizations to manage how Slack notifications behave at scale and during failures.\n\n",
 			"estimatedSize": "",
 			"cols": [
@@ -1088,7 +1088,7 @@
 		},
 		"type": "MARIADB",
 		"version": 1,
-		"lastSaved": 1762038644337,
+		"lastSaved": 1762326128476,
 		"beforeScript": "",
 		"afterScript": "",
 		"sqlSettings": {

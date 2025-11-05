@@ -39,13 +39,13 @@ import {
   CHANNEL_QUERY_TOKEN,
 } from 'src/contexts/notification/slack-request/channel/application/ports';
 import {
-  IAppConfigQuery,
-  APP_CONFIG_QUERY_TOKEN,
-} from 'src/contexts/notification/slack-request/app-config/application/ports';
+  IConfigQuery,
+  CONFIG_QUERY_TOKEN,
+} from 'src/contexts/notification/slack-request/config/application/ports';
 import { DetailWorkspaceResponse } from 'src/contexts/notification/slack-request/workspace/application/dtos';
 import { DetailTemplateResponse } from 'src/contexts/notification/slack-request/template/application/dtos';
 import { DetailChannelResponse } from 'src/contexts/notification/slack-request/channel/application/dtos';
-import { DetailAppConfigResponse } from 'src/contexts/notification/slack-request/app-config/application/dtos';
+import { DetailConfigResponse } from 'src/contexts/notification/slack-request/config/application/dtos';
 import { ActorContext } from 'src/shared/application/context';
 import { Option } from 'src/shared/domain/types';
 import { Result, DomainError } from 'src/shared/errors';
@@ -79,8 +79,8 @@ export class SendRequestWorkerService implements OnModuleInit, OnModuleDestroy {
     private readonly templateQuery: ITemplateQuery,
     @Inject(CHANNEL_QUERY_TOKEN)
     private readonly channelQuery: IChannelQuery,
-    @Inject(APP_CONFIG_QUERY_TOKEN)
-    private readonly appConfigQuery: IAppConfigQuery,
+    @Inject(CONFIG_QUERY_TOKEN)
+    private readonly appConfigQuery: IConfigQuery,
     // Slack API and outcome reporting
     private readonly slackApiService: SlackApiService,
     @Inject(REQUEST_APP_PORT)
@@ -293,7 +293,7 @@ export class SendRequestWorkerService implements OnModuleInit, OnModuleDestroy {
             unknown
           >;
         } catch (error) {
-          Log.warn(this.logger, 'Failed to parse request data JSON', {
+          Log.warn(this.logger, 'Failed to parse requestData JSON', {
             requestCode,
             tenant,
             requestDataRaw: redisHashData.data,
@@ -366,7 +366,7 @@ export class SendRequestWorkerService implements OnModuleInit, OnModuleDestroy {
       workspace: DetailWorkspaceResponse;
       template?: DetailTemplateResponse;
       channel?: DetailChannelResponse;
-      appConfig: DetailAppConfigResponse;
+      appConfig: DetailConfigResponse;
     };
     error?: string;
   }> {
@@ -463,7 +463,7 @@ export class SendRequestWorkerService implements OnModuleInit, OnModuleDestroy {
       workspace: DetailWorkspaceResponse;
       template?: DetailTemplateResponse;
       channel?: DetailChannelResponse;
-      appConfig: DetailAppConfigResponse;
+      appConfig: DetailConfigResponse;
     },
     threadTs?: string,
   ): Promise<{

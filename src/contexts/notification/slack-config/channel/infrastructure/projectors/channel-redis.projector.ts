@@ -41,7 +41,6 @@ import { NotificationSlackProjectorConfig } from '../../../projector.config';
 import { ChannelProjectionKeys } from '../../channel-projection-keys';
 import { ChannelFieldValidatorUtil } from '../utilities/channel-field-validator.util';
 import { DetailChannelResponse } from '../../application/dtos';
-
 /**
  * Channel projector error catalog using shared error definitions
  */
@@ -60,7 +59,7 @@ const ChannelProjectorErrors = createProjectorErrorCatalog(
  * - deletedAt: Soft delete timestamp for TTL-based cleanup
  * - lastStreamRevision: Event sourcing revision tracking
  */
-interface ChannelRowParams extends DetailChannelResponse {
+interface ChannelProjectionParams extends DetailChannelResponse {
   // Projection-specific fields for Redis storage
   tenant: string;
   version: number;
@@ -415,7 +414,7 @@ export class ChannelProjector
   /**
    * Generate cluster-safe Redis keys with hash-tags for locality
    */
-  private generateClusterSafeKeys(params: ChannelRowParams): {
+  private generateClusterSafeKeys(params: ChannelProjectionParams): {
     entityKey: string;
     indexKey: string;
   } {
@@ -443,7 +442,7 @@ export class ChannelProjector
   private extractChannelParams(
     event: ProjectionEvent,
     operation: string,
-  ): ChannelRowParams {
+  ): ChannelProjectionParams {
     try {
       const eventData = event.data as Record<string, any>;
 
