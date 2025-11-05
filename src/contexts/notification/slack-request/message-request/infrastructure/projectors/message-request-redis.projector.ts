@@ -43,7 +43,6 @@ import { MessageRequestFieldValidatorUtil } from '../utilities/message-request-f
 import { DetailMessageRequestResponse } from '../../application/dtos';
 import { MessageRequestQueueService, SendMessageRequestJob } from '../services';
 import { IRedisIdempotencyService } from 'src/shared/infrastructure';
-
 /**
  * MessageRequest projector error catalog using shared error definitions
  */
@@ -53,26 +52,20 @@ const MessageRequestProjectorErrors = createProjectorErrorCatalog(
 );
 
 /**
- * Projection parameters for MessageRequest Redis operations
+ * MessageRequest row parameters for Redis projection operations
  *
- * Combines DetailMessageRequestResponse DTO with projection-specific metadata
- * needed for event sourcing and Redis storage operations.
+ * Extends DetailMessageRequestResponse DTO with projection-specific fields needed for event sourcing.
  *
- * Projection-specific additions:
+ * Key Additions to DetailMessageRequestResponse:
  * - tenant: Multi-tenant support for Redis key generation
- * - version: Event sourcing version for optimistic concurrency
- * - createdAt/updatedAt: Event envelope timestamps
  * - deletedAt: Soft delete timestamp for TTL-based cleanup
  * - lastStreamRevision: Event sourcing revision tracking
  */
 interface MessageRequestProjectionParams extends DetailMessageRequestResponse {
-  // Event sourcing metadata
+  // Projection-specific fields for Redis storage
   tenant: string;
   version: number;
-  createdAt: Date;
   updatedAt: Date;
-
-  // Projection-specific fields
   deletedAt?: Date | null;
   lastStreamRevision?: string | null;
 }
@@ -747,7 +740,6 @@ export class MessageRequestProjector
     tenant: string,
     trigger: string,
     options: { priority: number; delay: number },
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     config: {
       workspaceCode: string;
       templateCode?: string;
@@ -838,6 +830,9 @@ export class MessageRequestProjector
           priority: options.priority,
           delay: options.delay,
           isFirstDispatch: dispatchResult.isFirst,
+          workspaceCode: config.workspaceCode,
+          templateCode: config.templateCode,
+          channelCode: config.channelCode,
         },
       );
 
