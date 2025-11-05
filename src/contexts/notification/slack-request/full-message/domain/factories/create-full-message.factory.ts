@@ -11,7 +11,7 @@ import {
   FullMessageCreatedAt,
   FullMessageUpdatedAt,
   FullMessageVersion,
-  FullMessageId,
+  FullMessageCode,
   FullMessageRecipient,
   FullMessageData,
   createFullMessageStatus,
@@ -34,11 +34,11 @@ export function createFullMessageAggregateFromProps(
 ): Result<FullMessageAggregate, DomainError> {
   // Validate each property by creating value objects
   // Generate a validate identity column UUID
-  const idResult = FullMessageId.generate();
-  if (!idResult.ok) {
+  const codeResult = FullMessageCode.generate();
+  if (!codeResult.ok) {
     return err(
-      withContext(idResult.error, {
-        ...idResult.error.context,
+      withContext(codeResult.error, {
+        ...codeResult.error.context,
         correlationId: metadata.correlationId,
         userId: metadata.userId,
         operation: 'create_full_message',
@@ -143,7 +143,7 @@ export function createFullMessageAggregateFromProps(
 
   // Create the entity properties with validated value objects
   const entityProps: FullMessageDomainState = {
-    id: idResult.value,
+    code: codeResult.value,
     recipient: recipientResult.value,
     data: dataResult.value,
     status: statusResult.value,

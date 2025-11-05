@@ -116,11 +116,11 @@ export class SendFullMessageWorkerService
    * Process SendFullMessageJob - Main worker logic
    */
   async processJob(job: Job<SendFullMessageJob>): Promise<JobProcessingResult> {
-    const { fullMessageId, tenant, threadTs } = job.data;
+    const { fullMessageCode, tenant, threadTs } = job.data;
 
     Log.debug(this.logger, 'Processing SendFullMessageJob', {
       jobId: job.id,
-      fullMessageId,
+      fullMessageCode,
       tenant,
       threadTs,
     });
@@ -129,7 +129,7 @@ export class SendFullMessageWorkerService
       // Step 1: Acquire send-lock using SETNX (idempotency for processing)
       const sendLockResult = await this.idempotencyService.acquireExecutionLock(
         tenant,
-        fullMessageId,
+        fullMessageCode,
       );
 
       if (!sendLockResult.success) {
@@ -138,7 +138,7 @@ export class SendFullMessageWorkerService
           'Failed to acquire send lock - job may be duplicate',
           {
             jobId: job.id,
-            fullMessageId,
+            fullMessageCode,
             tenant,
             error: sendLockResult.error,
           },
@@ -156,7 +156,7 @@ export class SendFullMessageWorkerService
           'Send lock already acquired - skipping duplicate processing',
           {
             jobId: job.id,
-            fullMessageId,
+            fullMessageCode,
             tenant,
           },
         );
@@ -170,7 +170,7 @@ export class SendFullMessageWorkerService
       // Step 2: Resolve FullMessage data to get config codes
       const fullMessageData = await this.resolveFullMessageData(
         tenant,
-        fullMessageId,
+        fullMessageCode,
       );
 
       if (!fullMessageData.success) {
@@ -211,7 +211,7 @@ export class SendFullMessageWorkerService
 
       Log.info(this.logger, 'Successfully processed SendFullMessageJob', {
         jobId: job.id,
-        fullMessageId,
+        fullMessageCode,
         tenant,
         slackResponse: processingResult.data,
       });
@@ -230,7 +230,7 @@ export class SendFullMessageWorkerService
 
       Log.error(this.logger, 'Unexpected error processing SendFullMessageJob', {
         jobId: job.id,
-        fullMessageId,
+        fullMessageCode,
         tenant,
         error: errorMessage,
       });
@@ -247,7 +247,7 @@ export class SendFullMessageWorkerService
    */
   private async resolveFullMessageData(
     tenant: string,
-    fullMessageId: string,
+    fullMessageCode: string,
   ): Promise<{
     success: boolean;
     data?: {
@@ -263,11 +263,11 @@ export class SendFullMessageWorkerService
       // Get Redis key for FullMessage projection
       const redisKey = FullMessageProjectionKeys.getRedisFullMessageKey(
         tenant,
-        fullMessageId,
+        fullMessageCode,
       );
 
       Log.debug(this.logger, 'Resolving FullMessage data from Redis', {
-        fullMessageId,
+        fullMessageCode,
         tenant,
         redisKey,
       });
@@ -277,14 +277,14 @@ export class SendFullMessageWorkerService
 
       if (!fullMessageData || Object.keys(fullMessageData).length === 0) {
         Log.warn(this.logger, 'FullMessage not found in Redis projection', {
-          fullMessageId,
+          fullMessageCode,
           tenant,
           redisKey,
         });
 
         return {
           success: false,
-          error: `FullMessage not found: ${fullMessageId}`,
+          error: `FullMessage not found: ${fullMessageCode}`,
         };
       }
 
@@ -303,7 +303,7 @@ export class SendFullMessageWorkerService
           >;
         } catch (error) {
           Log.warn(this.logger, 'Failed to parse requestData JSON', {
-            fullMessageId,
+            fullMessageCode,
             tenant,
             requestDataRaw: fullMessageData.requestData,
             error: error instanceof Error ? error.message : 'Unknown error',
@@ -313,7 +313,7 @@ export class SendFullMessageWorkerService
 
       if (!workspaceCode) {
         Log.error(this.logger, 'FullMessage missing required workspaceCode', {
-          fullMessageId,
+          fullMessageCode,
           tenant,
           fullMessageData,
         });
@@ -325,7 +325,7 @@ export class SendFullMessageWorkerService
       }
 
       Log.debug(this.logger, 'Successfully resolved FullMessage data', {
-        fullMessageId,
+        fullMessageCode,
         tenant,
         workspaceCode,
         templateCode,
@@ -347,7 +347,7 @@ export class SendFullMessageWorkerService
         error instanceof Error ? error.message : 'Unknown error';
 
       Log.error(this.logger, 'Failed to resolve FullMessage data from Redis', {
-        fullMessageId,
+        fullMessageCode,
         tenant,
         error: errorMessage,
       });
@@ -490,13 +490,13 @@ export class SendFullMessageWorkerService
 
         Log.error(this.logger, 'Bot token validation failed', {
           workspaceCode: workspace.code,
-          fullMessageId: job.data.fullMessageId,
+          fullMessageCode: job.data.fullMessageCode,
         });
 
         // Report failure back to FullMessage
         try {
           await this.fullMessageAppPort.recordFailed({
-            id: job.data.fullMessageId,
+            code: job.data.fullMessageCode,
             reason: errorMsg,
             retryable: false, // Configuration error, not retryable
             attempts: 1,
@@ -507,7 +507,7 @@ export class SendFullMessageWorkerService
             this.logger,
             'Failed to report bot token validation failure',
             {
-              fullMessageId: job.data.fullMessageId,
+              fullMessageCode: job.data.fullMessageCode,
               reportError:
                 reportError instanceof Error
                   ? reportError.message
@@ -546,13 +546,13 @@ export class SendFullMessageWorkerService
 
         Log.error(this.logger, 'Channel validation failed', {
           error: errorMsg,
-          fullMessageId: job.data.fullMessageId,
+          fullMessageCode: job.data.fullMessageCode,
         });
 
         // Report failure back to FullMessage
         try {
           await this.fullMessageAppPort.recordFailed({
-            id: job.data.fullMessageId,
+            code: job.data.fullMessageCode,
             reason: errorMsg,
             retryable: false, // Configuration error, not retryable
             attempts: 1,
@@ -560,7 +560,7 @@ export class SendFullMessageWorkerService
           });
         } catch (reportError) {
           Log.warn(this.logger, 'Failed to report channel validation failure', {
-            fullMessageId: job.data.fullMessageId,
+            fullMessageCode: job.data.fullMessageCode,
             reportError:
               reportError instanceof Error
                 ? reportError.message
@@ -660,13 +660,13 @@ export class SendFullMessageWorkerService
           error: slackResult.error,
           retryable: slackResult.retryable,
           retryAfterSec: slackResult.retryAfterSec,
-          fullMessageId: job.data.fullMessageId,
+          fullMessageCode: job.data.fullMessageCode,
         });
 
         // Report failure back to FullMessage
         try {
           await this.fullMessageAppPort.recordFailed({
-            id: job.data.fullMessageId,
+            code: job.data.fullMessageCode,
             reason: slackResult.error,
             retryable: slackResult.retryable,
             attempts: 1, // BullMQ handles retries at job level
@@ -674,7 +674,7 @@ export class SendFullMessageWorkerService
           });
 
           Log.debug(this.logger, 'Recorded Slack API failure to FullMessage', {
-            fullMessageId: job.data.fullMessageId,
+            fullMessageCode: job.data.fullMessageCode,
             slackError: slackResult.error,
           });
         } catch (reportError) {
@@ -682,7 +682,7 @@ export class SendFullMessageWorkerService
             this.logger,
             'Failed to report Slack failure to FullMessage',
             {
-              fullMessageId: job.data.fullMessageId,
+              fullMessageCode: job.data.fullMessageCode,
               reportError:
                 reportError instanceof Error
                   ? reportError.message
@@ -706,19 +706,19 @@ export class SendFullMessageWorkerService
       // Report successful delivery back to FullMessage
       try {
         await this.fullMessageAppPort.recordSent({
-          id: job.data.fullMessageId,
+          code: job.data.fullMessageCode,
           attempts: 1, // BullMQ handles retries at job level
           tenant: job.data.tenant,
         });
 
         Log.debug(this.logger, 'Recorded successful delivery to FullMessage', {
-          fullMessageId: job.data.fullMessageId,
+          fullMessageCode: job.data.fullMessageCode,
           slackTs: slackResult.value.ts,
         });
       } catch (reportError) {
         // Don't fail the job if reporting fails - the message was sent successfully
         Log.warn(this.logger, 'Failed to report success to FullMessage', {
-          fullMessageId: job.data.fullMessageId,
+          fullMessageCode: job.data.fullMessageCode,
           reportError:
             reportError instanceof Error
               ? reportError.message
@@ -739,25 +739,25 @@ export class SendFullMessageWorkerService
 
       Log.error(this.logger, 'Unexpected error processing Slack message', {
         error: errorMessage,
-        fullMessageId: job.data.fullMessageId,
+        fullMessageCode: job.data.fullMessageCode,
       });
 
       // Report failure back to FullMessage
       try {
         await this.fullMessageAppPort.recordFailed({
-          id: job.data.fullMessageId,
+          code: job.data.fullMessageCode,
           reason: errorMessage,
           attempts: 1, // BullMQ handles retries at job level
           tenant: job.data.tenant,
         });
 
         Log.debug(this.logger, 'Recorded failure to FullMessage', {
-          fullMessageId: job.data.fullMessageId,
+          fullMessageCode: job.data.fullMessageCode,
           errorMessage,
         });
       } catch (reportError) {
         Log.warn(this.logger, 'Failed to report failure to FullMessage', {
-          fullMessageId: job.data.fullMessageId,
+          fullMessageCode: job.data.fullMessageCode,
           reportError:
             reportError instanceof Error
               ? reportError.message

@@ -8,11 +8,11 @@ import { FullMessageDomainState } from '../state';
 import { FullMessageErrors } from '../errors/full-message.errors';
 import {
   FullMessageChannelCode,
+  FullMessageCode,
   FullMessageCreatedAt,
   FullMessageUpdatedAt,
   FullMessageVersion,
   FullMessageData,
-  FullMessageId,
   FullMessageRecipient,
   FullMessageStatus,
   FullMessageStatusLogic,
@@ -29,7 +29,7 @@ import {
  * Encapsulates fullMessage data, identity, and basic entity behavior.
  *
  * This entity follows DDD principles:
- * - Identity: Id as unique identifier
+ * - Identity: Code as unique identifier
  * - Immutability: Changes create new instances
  * - Encapsulation: Private state with controlled access
  * - Business validation: Domain rules enforced
@@ -46,7 +46,7 @@ import {
  */
 export class FullMessageEntity extends EntityIdBase<
   FullMessageDomainState,
-  FullMessageId
+  FullMessageCode
 > {
   private static clock: { now: () => Date } = { now: () => new Date() };
 
@@ -115,7 +115,7 @@ export class FullMessageEntity extends EntityIdBase<
   }
 
   private constructor(props: FullMessageDomainState) {
-    super(props, props.id);
+    super(props, props.code);
   }
 
   /**
@@ -155,9 +155,9 @@ export class FullMessageEntity extends EntityIdBase<
   public static fromSnapshot(
     snapshot: FullMessageSnapshotProps,
   ): Result<FullMessageEntity, DomainError> {
-    const idResult = FullMessageId.from(snapshot.id);
-    if (!idResult.ok) {
-      return err(idResult.error);
+    const codeResult = FullMessageCode.from(snapshot.code);
+    if (!codeResult.ok) {
+      return err(codeResult.error);
     }
     const recipientResult = FullMessageRecipient.from(snapshot.recipient);
     if (!recipientResult.ok) {
@@ -203,7 +203,7 @@ export class FullMessageEntity extends EntityIdBase<
     }
 
     const props: FullMessageDomainState = {
-      id: idResult.value,
+      code: codeResult.value,
       recipient: recipientResult.value,
       data: dataResult.value,
       status: statusResult.value,
@@ -228,8 +228,8 @@ export class FullMessageEntity extends EntityIdBase<
     props: FullMessageDomainState,
   ): Result<void, DomainError> {
     // Basic validation
-    if (!props.id) {
-      return err(FullMessageErrors.INVALID_ID_DATA);
+    if (!props.code) {
+      return err(FullMessageErrors.INVALID_CODE_DATA);
     }
     if (!props.workspaceCode) {
       return err(FullMessageErrors.INVALID_WORKSPACE_CODE_DATA);
@@ -245,8 +245,8 @@ export class FullMessageEntity extends EntityIdBase<
   // Getters (Public API)
   // ======================
 
-  public get id(): FullMessageId {
-    return this.props.id;
+  public get code(): FullMessageCode {
+    return this.props.code;
   }
 
   public get recipient(): FullMessageRecipient | undefined {
@@ -420,7 +420,7 @@ export class FullMessageEntity extends EntityIdBase<
    * @param other - Other fullMessage to compare
    */
   public sameAs(other: FullMessageEntity): boolean {
-    return this.props.id.equals(other.props.id);
+    return this.props.code.equals(other.props.code);
   }
 
   /**
@@ -428,7 +428,7 @@ export class FullMessageEntity extends EntityIdBase<
    */
   public toSnapshot(): FullMessageSnapshotProps {
     return {
-      id: this.props.id.value,
+      code: this.props.code.value,
       recipient: this.props.recipient?.value,
       data: this.props.data?.value,
       status: this.props.status?.value,

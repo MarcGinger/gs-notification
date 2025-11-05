@@ -22,7 +22,7 @@ import { SlackRequestServiceConstants } from '../../../service-constants';
 // Domain types and errors
 import { FullMessageAggregate } from '../../domain/aggregates';
 import { FullMessageEntity } from '../../domain/entities/full-message.entity';
-import { createFullMessageId } from '../../domain/value-objects/id.vo';
+import { createFullMessageCode } from '../../domain/value-objects/code.vo';
 import { FullMessageErrors } from '../../domain/errors';
 import { Option } from 'src/shared/domain/types/option';
 import { EventMetadata } from 'src/shared/domain/events';
@@ -136,7 +136,7 @@ export class SentFullMessageUseCase implements ISentFullMessageUseCase {
       },
       {
         operationRisk: UseCaseLoggingUtil.assessOperationRisk(operation),
-        fullMessageId: params.props.id,
+        fullMessageId: params.props.code,
         attempts: params.props.attempts,
       },
     );
@@ -153,10 +153,10 @@ export class SentFullMessageUseCase implements ISentFullMessageUseCase {
     let updateResult: Result<FullMessageAggregate, DomainError>;
 
     try {
-      // Create fullMessage id value object
-      const fullMessageIdResult = createFullMessageId(params.props.id);
+      // Create fullMessage code value object
+      const fullMessageIdResult = createFullMessageCode(params.props.code);
       if (!fullMessageIdResult.ok) {
-        return err(FullMessageErrors.INVALID_ID);
+        return err(FullMessageErrors.INVALID_CODE);
       }
 
       // Create actor context
@@ -177,7 +177,7 @@ export class SentFullMessageUseCase implements ISentFullMessageUseCase {
       }
 
       if (!snapshotResult.value || Option.isNone(snapshotResult.value)) {
-        return err(FullMessageErrors.INVALID_ID);
+        return err(FullMessageErrors.INVALID_CODE);
       }
 
       // Reconstitute entity from snapshot
@@ -261,7 +261,7 @@ export class SentFullMessageUseCase implements ISentFullMessageUseCase {
         aggregateVersion: aggregate.version,
         eventCount: aggregate.uncommittedEvents?.length ?? 0,
         businessData: {
-          fullMessageCode: dto.id,
+          fullMessageCode: dto.code,
           deliveryRecorded: true,
         },
       },

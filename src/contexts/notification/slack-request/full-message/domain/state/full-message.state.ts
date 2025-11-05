@@ -6,8 +6,8 @@ import {
   FullMessageUpdatedAt,
   FullMessageVersion,
   FullMessageChannelCode,
+  FullMessageCode,
   FullMessageData,
-  FullMessageId,
   FullMessageRecipient,
   FullMessageStatus,
   FullMessageTemplateCode,
@@ -28,7 +28,7 @@ import {
  */
 
 export interface FullMessageDomainState {
-  id: FullMessageId;
+  code: FullMessageCode;
   recipient?: FullMessageRecipient;
   data?: FullMessageData;
   status?: FullMessageStatus;

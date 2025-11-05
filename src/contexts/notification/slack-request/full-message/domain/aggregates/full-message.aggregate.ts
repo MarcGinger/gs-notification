@@ -10,7 +10,7 @@ import { FullMessageEntity } from '../entities';
 import { FullMessageSnapshotProps } from '../props';
 import { ValidatedFullMessageUpdateFields } from '../types';
 import {
-  FullMessageId,
+  FullMessageCode,
   FullMessageStatusValue,
   createFullMessageStatus,
   createFullMessageCreatedAt,
@@ -142,7 +142,7 @@ export class FullMessageAggregate extends AggregateRootBase {
 
     // Create typed FullMessageCreatedEvent with only business data
     const createdEvent = FullMessageCreatedEvent.create({
-      id: entityProps.id.value,
+      code: entityProps.code.value,
       recipient: entityProps.recipient?.value,
       data: entityProps.data?.value,
       status: entityProps.status?.value,
@@ -156,7 +156,7 @@ export class FullMessageAggregate extends AggregateRootBase {
       type: createdEvent.eventType,
       version: Number(createdEvent.eventVersion),
       occurredAt: clock.now(),
-      aggregateId: entityProps.id.value,
+      aggregateId: entityProps.code.value,
       aggregateType: 'FullMessage',
       data: createdEvent.payload,
       metadata: eventMetadata,
@@ -195,7 +195,7 @@ export class FullMessageAggregate extends AggregateRootBase {
       case 'NotificationSlackRequestFullMessageUpdated.v1': {
         // Both events now have the same domain shape - simple merge
         const d = event.data as {
-          id: string;
+          code: string;
           recipient?: string;
           data?: Record<string, unknown>;
           status?: FullMessageStatusValue;
@@ -209,7 +209,7 @@ export class FullMessageAggregate extends AggregateRootBase {
         const currentSnapshot = this._entity?.toSnapshot() || {};
 
         const entityResult = FullMessageEntity.fromSnapshot({
-          id: d.id,
+          code: d.code,
           recipient: d.recipient,
           data: d.data,
           status: d.status,
@@ -255,7 +255,7 @@ export class FullMessageAggregate extends AggregateRootBase {
         retryable: false,
         context: {
           originalError: entityResult.error,
-          snapshotCode: snapshot.id,
+          snapshotCode: snapshot.code,
         },
       });
     }
@@ -292,8 +292,8 @@ export class FullMessageAggregate extends AggregateRootBase {
   /**
    * Get the aggregate ID (required for aggregate identity)
    */
-  public get id(): FullMessageId {
-    return this._entity.id;
+  public get id(): FullMessageCode {
+    return this._entity.code;
   }
 
   /**
@@ -391,7 +391,7 @@ export class FullMessageAggregate extends AggregateRootBase {
         context: {
           expected: expectedVersion,
           actual: this._entity.version.value,
-          aggregateId: this._entity.id.value,
+          aggregateId: this._entity.code.value,
         },
       });
     }
@@ -496,7 +496,7 @@ export class FullMessageAggregate extends AggregateRootBase {
 
     // Create domain-shaped update event (same structure as created event)
     const updatedEvent = FullMessageUpdatedEvent.create({
-      id: this._entity.id.value,
+      code: this._entity.code.value,
       recipient: this._entity.recipient?.value,
       data: this._entity.data?.value,
       status: this._entity.status?.value,
@@ -510,7 +510,7 @@ export class FullMessageAggregate extends AggregateRootBase {
       type: updatedEvent.eventType,
       version: Number(updatedEvent.eventVersion),
       occurredAt: updatedAt,
-      aggregateId: this._entity.id.value,
+      aggregateId: this._entity.code.value,
       aggregateType: 'FullMessage',
       data: updatedEvent.payload,
       metadata: this.eventMetadata,
@@ -541,7 +541,7 @@ export class FullMessageAggregate extends AggregateRootBase {
 
     // Create typed FullMessageFailedEvent with complete business data
     const failedEvent = FullMessageFailedEvent.create({
-      id: this._entity.id.value,
+      code: this._entity.code.value,
       recipient: this._entity.recipient?.value,
       data: this._entity.data?.value,
       status: this._entity.status?.value,
@@ -559,7 +559,7 @@ export class FullMessageAggregate extends AggregateRootBase {
       type: failedEvent.eventType,
       version: Number(failedEvent.eventVersion),
       occurredAt: this.clock.now(),
-      aggregateId: this._entity.id.value,
+      aggregateId: this._entity.code.value,
       aggregateType: 'FullMessage',
       data: failedEvent.payload,
       metadata: this.eventMetadata,
@@ -584,7 +584,7 @@ export class FullMessageAggregate extends AggregateRootBase {
 
     // Create typed FullMessageSentEvent with complete business data
     const sentEvent = FullMessageSentEvent.create({
-      id: this._entity.id.value,
+      code: this._entity.code.value,
       recipient: this._entity.recipient?.value,
       data: this._entity.data?.value,
       status: this._entity.status?.value,
@@ -599,7 +599,7 @@ export class FullMessageAggregate extends AggregateRootBase {
       type: sentEvent.eventType,
       version: Number(sentEvent.eventVersion),
       occurredAt: this.clock.now(),
-      aggregateId: this._entity.id.value,
+      aggregateId: this._entity.code.value,
       aggregateType: 'FullMessage',
       data: sentEvent.payload,
       metadata: this.eventMetadata,
@@ -645,7 +645,7 @@ export class FullMessageAggregate extends AggregateRootBase {
       type: 'FullMessageDeleted',
       version: 1,
       occurredAt: deletedAtResult.value.value, // Extract Date from VO
-      aggregateId: this._entity.id.value,
+      aggregateId: this._entity.code.value,
       aggregateType: 'FullMessage',
     };
 

@@ -51,7 +51,7 @@ export interface FullMessageJobs {
     };
   };
   'send-full-message': {
-    fullMessageId: string;
+    fullMessageCode: string;
     tenant: string;
     threadTs?: string | null;
     tenantConfig?: {
@@ -62,7 +62,7 @@ export interface FullMessageJobs {
     };
   };
   'retry-failed-full-message': {
-    fullMessageId: string;
+    fullMessageCode: string;
     tenant: string;
     retryReason: string;
   };
@@ -145,7 +145,7 @@ export class FullMessageProcessor implements OnModuleInit, OnModuleDestroy {
               throw new Error(
                 withContext(FullMessageErrors.INVALID_DATA, {
                   operation: 'job_processing',
-                  id: job.id || 'unknown',
+                  code: job.id || 'unknown',
                   reason: `Unknown job type: ${job.name}`,
                 }).detail,
                 { cause: new Error(`Unknown job type: ${job.name}`) },
@@ -273,7 +273,7 @@ export class FullMessageProcessor implements OnModuleInit, OnModuleDestroy {
       Log.info(this.logger, 'Successfully created fullMessage in job', {
         method: 'handleCreateFullMessage',
         jobId,
-        fullMessageId: result.value.id,
+        fullMessageCode: result.value.code,
         status: result.value.status,
       });
 
@@ -283,7 +283,7 @@ export class FullMessageProcessor implements OnModuleInit, OnModuleDestroy {
         Log.debug(this.logger, 'FullMessage ready for sending', {
           method: 'handleCreateFullMessage',
           jobId,
-          fullMessageId: result.value.id,
+          fullMessageCode: result.value.code,
           nextStep: 'send-full-message',
         });
       }
@@ -306,7 +306,7 @@ export class FullMessageProcessor implements OnModuleInit, OnModuleDestroy {
   async handleSendFullMessage(
     job: Job<FullMessageJobs['send-full-message']>,
   ): Promise<void> {
-    const { fullMessageId, tenant, tenantConfig } = job.data;
+    const { fullMessageCode, tenant, tenantConfig } = job.data;
     const jobId = job.id;
     const actor: ActorContext = {
       tenant,
@@ -317,17 +317,17 @@ export class FullMessageProcessor implements OnModuleInit, OnModuleDestroy {
     Log.info(this.logger, 'Processing send fullMessage job', {
       method: 'handleSendFullMessage',
       jobId,
-      fullMessageId,
+      fullMessageCode,
       tenant,
       hasConfig: !!tenantConfig,
     });
 
     // 1. Idempotency guard - prevent duplicate processing
-    const isFirstTime = await this.checkIdempotency(tenant, fullMessageId);
+    const isFirstTime = await this.checkIdempotency(tenant, fullMessageCode);
     if (!isFirstTime) {
       Log.info(this.logger, 'Skipping duplicate send (idempotency)', {
         method: 'handleSendFullMessage',
-        fullMessageId,
+        fullMessageCode,
         tenant,
         jobId,
       });
@@ -338,10 +338,10 @@ export class FullMessageProcessor implements OnModuleInit, OnModuleDestroy {
       // 2. Fetch fullMessage details
       const requestResult = await this.fullMessageQuery.findById(
         actor,
-        fullMessageId,
+        fullMessageCode,
       );
       if (!requestResult.ok || !requestResult.value) {
-        return await this.fail(fullMessageId, tenant, 'request_not_found');
+        return await this.fail(fullMessageCode, tenant, 'request_not_found');
       }
 
       const request = requestResult.value;
@@ -357,14 +357,14 @@ export class FullMessageProcessor implements OnModuleInit, OnModuleDestroy {
       // 3. Extract tenant configuration
       const { workspace, template, channel, appConfig } = tenantConfig || {};
       if (!workspace?.botToken) {
-        return await this.fail(fullMessageId, tenant, 'bot_token_missing');
+        return await this.fail(fullMessageCode, tenant, 'bot_token_missing');
       }
 
       // Use channel code (assuming it's the Slack channel ID) or fallback to recipient
       const channelId =
         channel?.code || recipient || workspace.defaultChannelId;
       if (!channelId) {
-        return await this.fail(fullMessageId, tenant, 'channel_missing');
+        return await this.fail(fullMessageCode, tenant, 'channel_missing');
       }
 
       // 4. Render message template
@@ -372,7 +372,7 @@ export class FullMessageProcessor implements OnModuleInit, OnModuleDestroy {
       if (template) {
         Log.debug(this.logger, 'Rendering template', {
           method: 'handleSendFullMessage',
-          fullMessageId,
+          fullMessageCode,
           tenant,
           templateCode: template.code,
           templateName: template.name,
@@ -389,7 +389,7 @@ export class FullMessageProcessor implements OnModuleInit, OnModuleDestroy {
         if (!renderRes.ok) {
           Log.error(this.logger, 'Template rendering failed', {
             method: 'handleSendFullMessage',
-            fullMessageId,
+            fullMessageCode,
             tenant,
             templateCode: template.code,
             renderError: renderRes.error,
@@ -403,7 +403,7 @@ export class FullMessageProcessor implements OnModuleInit, OnModuleDestroy {
             'Using fallback message due to template error',
             {
               method: 'handleSendFullMessage',
-              fullMessageId,
+              fullMessageCode,
               tenant,
             },
           );
@@ -424,7 +424,7 @@ export class FullMessageProcessor implements OnModuleInit, OnModuleDestroy {
 
           Log.debug(this.logger, 'Template rendered successfully', {
             method: 'handleSendFullMessage',
-            fullMessageId,
+            fullMessageCode,
             tenant,
             renderedBlocksCount: Array.isArray(renderedBlocks)
               ? renderedBlocks.length
@@ -445,7 +445,7 @@ export class FullMessageProcessor implements OnModuleInit, OnModuleDestroy {
 
         Log.debug(this.logger, 'Using default message (no template)', {
           method: 'handleSendFullMessage',
-          fullMessageId,
+          fullMessageCode,
           tenant,
         });
       }
@@ -462,7 +462,7 @@ export class FullMessageProcessor implements OnModuleInit, OnModuleDestroy {
 
         Log.debug(this.logger, 'Attempting Slack API send', {
           method: 'handleSendFullMessage',
-          fullMessageId,
+          fullMessageCode,
           tenant,
           workspaceCode: workspace.code,
           workspaceName: workspace.name,
@@ -484,7 +484,7 @@ export class FullMessageProcessor implements OnModuleInit, OnModuleDestroy {
         if (res.ok) {
           // Success - record delivery through application port
           await this.fullMessageAppPort.recordSent({
-            id: fullMessageId,
+            code: fullMessageCode,
             attempts: attempt,
             // Note: correlationId, causationId, and actor not available in send-full-message job data
             // Future: Could be passed through from create-full-message job
@@ -493,7 +493,7 @@ export class FullMessageProcessor implements OnModuleInit, OnModuleDestroy {
           Log.info(this.logger, 'FullMessage sent successfully', {
             method: 'handleSendFullMessage',
             jobId,
-            fullMessageId,
+            fullMessageCode,
             tenant,
             slackTs: res.value.ts,
             slackChannel: res.value.channel,
@@ -514,7 +514,7 @@ export class FullMessageProcessor implements OnModuleInit, OnModuleDestroy {
       // Final failure after all internal attempts (no BullMQ retry)
       // Record failure through application port
       await this.fullMessageAppPort.recordFailed({
-        id: fullMessageId,
+        code: fullMessageCode,
         reason: 'max_attempts_exceeded',
         attempts: attempt,
         retryable: false,
@@ -524,7 +524,7 @@ export class FullMessageProcessor implements OnModuleInit, OnModuleDestroy {
       Log.error(this.logger, 'FullMessage failed after attempts', {
         method: 'handleSendFullMessage',
         jobId,
-        fullMessageId,
+        fullMessageCode,
         tenant,
         lastError: lastErr,
         attempts: attempt,
@@ -536,7 +536,7 @@ export class FullMessageProcessor implements OnModuleInit, OnModuleDestroy {
 
       // Record failure through application port
       await this.fullMessageAppPort.recordFailed({
-        id: fullMessageId,
+        code: fullMessageCode,
         reason: 'unexpected_error',
         attempts: 1, // This is an unexpected error, not a retry
         retryable: false,
@@ -546,7 +546,7 @@ export class FullMessageProcessor implements OnModuleInit, OnModuleDestroy {
       Log.error(this.logger, 'Error processing send fullMessage job', {
         method: 'handleSendFullMessage',
         jobId,
-        fullMessageId,
+        fullMessageCode,
         tenant,
         error: e.message,
         stack: e.stack,
@@ -568,14 +568,14 @@ export class FullMessageProcessor implements OnModuleInit, OnModuleDestroy {
   /**
    * Check idempotency guard to prevent duplicate processing
    * @param tenant - The tenant ID
-   * @param fullMessageId - The fullMessage ID
+   * @param fullMessageCode - The fullMessage ID
    * @returns Promise<boolean> - true if this is the first time processing, false if already processed
    */
   private async checkIdempotency(
     tenant: string,
-    fullMessageId: string,
+    fullMessageCode: string,
   ): Promise<boolean> {
-    const idemKey = `idem:slack:send:${tenant}:${fullMessageId}`;
+    const idemKey = `idem:slack:send:${tenant}:${fullMessageCode}`;
     try {
       const result = await this.redis.set(idemKey, '1', 'EX', 900, 'NX'); // 15 minutes, only if not exists
       return result === 'OK';
@@ -583,7 +583,7 @@ export class FullMessageProcessor implements OnModuleInit, OnModuleDestroy {
       const e = error as Error;
       Log.error(this.logger, 'Failed to check idempotency', {
         method: 'checkIdempotency',
-        fullMessageId,
+        fullMessageCode,
         tenant,
         error: e.message,
       });
@@ -593,13 +593,13 @@ export class FullMessageProcessor implements OnModuleInit, OnModuleDestroy {
   }
 
   private async fail(
-    fullMessageId: string,
+    fullMessageCode: string,
     tenant: string,
     code: string,
   ): Promise<void> {
     // Record failure through application port
     await this.fullMessageAppPort.recordFailed({
-      id: fullMessageId,
+      code: fullMessageCode,
       reason: code,
       attempts: 1,
       retryable: false,
@@ -608,7 +608,7 @@ export class FullMessageProcessor implements OnModuleInit, OnModuleDestroy {
 
     Log.error(this.logger, 'FullMessage failed', {
       method: 'handleSendFullMessage',
-      fullMessageId,
+      fullMessageCode,
       reason: code,
     });
 
@@ -621,13 +621,13 @@ export class FullMessageProcessor implements OnModuleInit, OnModuleDestroy {
   async handleRetryFailedFullMessage(
     job: Job<FullMessageJobs['retry-failed-full-message']>,
   ): Promise<void> {
-    const { fullMessageId, tenant, retryReason } = job.data;
+    const { fullMessageCode, tenant, retryReason } = job.data;
     const jobId = job.id;
 
     Log.info(this.logger, 'Processing retry failed fullMessage job', {
       method: 'handleRetryFailedFullMessage',
       jobId,
-      fullMessageId,
+      fullMessageCode,
       tenant,
       retryReason,
     });
@@ -639,7 +639,7 @@ export class FullMessageProcessor implements OnModuleInit, OnModuleDestroy {
       Log.info(this.logger, 'Retried failed fullMessage successfully', {
         method: 'handleRetryFailedFullMessage',
         jobId,
-        fullMessageId,
+        fullMessageCode,
         retryReason,
         status: 'retried',
       });
@@ -653,7 +653,7 @@ export class FullMessageProcessor implements OnModuleInit, OnModuleDestroy {
       Log.error(this.logger, 'Error processing retry fullMessage job', {
         method: 'handleRetryFailedFullMessage',
         jobId,
-        fullMessageId,
+        fullMessageCode,
         error: e.message,
         stack: e.stack,
       });
@@ -668,7 +668,7 @@ export class FullMessageProcessor implements OnModuleInit, OnModuleDestroy {
     Log.info(this.logger, 'Processing SendFullMessageJob', {
       method: 'handleSendFullMessageJob',
       jobId: job.id,
-      fullMessageId: job.data.fullMessageId,
+      fullMessageCode: job.data.fullMessageCode,
       tenant: job.data.tenant,
     });
 
@@ -679,14 +679,14 @@ export class FullMessageProcessor implements OnModuleInit, OnModuleDestroy {
       Log.info(this.logger, 'Successfully processed SendFullMessageJob', {
         method: 'handleSendFullMessageJob',
         jobId: job.id,
-        fullMessageId: job.data.fullMessageId,
+        fullMessageCode: job.data.fullMessageCode,
       });
     } catch (error) {
       const e = error as Error;
       Log.error(this.logger, 'Error processing SendFullMessageJob', {
         method: 'handleSendFullMessageJob',
         jobId: job.id,
-        fullMessageId: job.data.fullMessageId,
+        fullMessageCode: job.data.fullMessageCode,
         error: e.message,
         stack: e.stack,
       });

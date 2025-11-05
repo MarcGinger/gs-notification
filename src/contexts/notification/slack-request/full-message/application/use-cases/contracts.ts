@@ -51,7 +51,7 @@ export abstract class IFailedFullMessageUseCase {
 export abstract class IGetFullMessageUseCase {
   abstract execute(params: {
     user: IUserToken;
-    id: string;
+    code: string;
     correlationId: string;
   }): Promise<Result<DetailFullMessageResponse, DomainError>>;
 }

@@ -335,18 +335,18 @@ export class ListFullMessageUseCase implements IListFullMessageUseCase {
       }
 
       // Extract fullMessage codes for batch authorization check
-      const ids = fullMessagePage.data
-        .map((item) => item.id)
-        .filter((id): id is string => id !== undefined && id !== null);
-      if (ids.length === 0) {
-        return ok(fullMessagePage); // No valid fullMessage ids
+      const codes = fullMessagePage.data
+        .map((item) => item.code)
+        .filter((code): code is string => code !== undefined && code !== null);
+      if (codes.length === 0) {
+        return ok(fullMessagePage); // No valid fullMessage codes
       }
 
       // Perform batch authorization check
       const authResult =
         await this.authorizationService.authorizeFullMessageList(
           userId,
-          ids,
+          codes,
           correlationId,
           'read',
           context,
@@ -360,7 +360,7 @@ export class ListFullMessageUseCase implements IListFullMessageUseCase {
 
       // Filter items to only include authorized fullMessages
       const authorizedItems = fullMessagePage.data.filter((item) =>
-        authorized.includes(item.id),
+        authorized.includes(item.code),
       );
 
       // Update the page response with filtered results

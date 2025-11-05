@@ -8,7 +8,7 @@ import { EventMetadata } from 'src/shared/domain/events';
  * Contains identifying information about the deleted fullMessage
  */
 export interface FullMessageDeletedEventPayload {
-  id: string;
+  code: string;
   deletedAt: Date;
   version: number;
   metadata: EventMetadata;
@@ -43,8 +43,8 @@ export class FullMessageDeletedEvent {
     });
   }
 
-  get id(): string {
-    return this.payload.id;
+  get code(): string {
+    return this.payload.code;
   }
 
   get deletedAt(): Date {

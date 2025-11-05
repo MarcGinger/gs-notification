@@ -9,7 +9,7 @@ import {
 import { FullMessageErrors } from '../errors/full-message.errors';
 
 /**
- * Id UUID Value Object
+ * Code UUID Value Object
  * Validates RFC-4122 UUID (version=v4); normalize=lowercase.
  *
  * UUID VO Refinements (commented examples):
@@ -29,8 +29,8 @@ import { FullMessageErrors } from '../errors/full-message.errors';
  * - External ref: { acceptHyphenless: true, normalize: 'upper' }
  * - System generated: { version: 4, allowGeneration: true }
  */
-export const FullMessageId = createUuidVO({
-  name: 'Id',
+export const FullMessageCode = createUuidVO({
+  name: 'Code',
   required: true,
   version: 4,
 
@@ -40,12 +40,12 @@ export const FullMessageId = createUuidVO({
   // refinements: [
   // ],
 
-  errors: createUuidVOErrors(FullMessageErrors.INVALID_ID, 'Id'),
+  errors: createUuidVOErrors(FullMessageErrors.INVALID_CODE, 'Code'),
 });
 
-/** Public instance type for Id */
-export type FullMessageId = UuidVOInstance;
+/** Public instance type for Code */
+export type FullMessageCode = UuidVOInstance;
 
 // Convenience creators
-export const createFullMessageId = (v: string) => FullMessageId.create(v);
-export const fullMessageIdFrom = (v: unknown) => FullMessageId.from(v);
+export const createFullMessageCode = (v: string) => FullMessageCode.create(v);
+export const fullMessageCodeFrom = (v: unknown) => FullMessageCode.from(v);

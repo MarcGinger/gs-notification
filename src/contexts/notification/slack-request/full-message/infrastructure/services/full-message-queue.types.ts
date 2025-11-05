@@ -21,7 +21,7 @@ import { DEFAULT_JOB_OPTIONS } from 'src/shared/infrastructure';
  */
 export interface SendFullMessageJob {
   /** UUID of the FullMessage */
-  fullMessageId: string;
+  fullMessageCode: string;
 
   /** Logical tenant key for multi-tenancy */
   tenant: string;

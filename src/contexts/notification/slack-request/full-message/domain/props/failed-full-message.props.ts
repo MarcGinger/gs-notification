@@ -6,7 +6,7 @@
  * Domain props for recording message delivery failure
  */
 export interface FailedFullMessageProps {
-  id: string;
+  code: string;
   reason: string;
   attempts: number;
   retryable?: boolean;

@@ -6,7 +6,7 @@ import { IUserToken } from 'src/shared/security';
 export class GetFullMessageQuery {
   constructor(
     public readonly user: IUserToken,
-    public readonly id: string,
+    public readonly code: string,
     // Metadata
     public readonly correlationId?: string,
   ) {}

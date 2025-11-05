@@ -4,7 +4,7 @@
 import { FullMessageStatusValue } from '../value-objects';
 
 export interface FullMessageProps {
-  id: string;
+  code: string;
   recipient?: string;
   data?: Record<string, unknown>;
   status?: FullMessageStatusValue;

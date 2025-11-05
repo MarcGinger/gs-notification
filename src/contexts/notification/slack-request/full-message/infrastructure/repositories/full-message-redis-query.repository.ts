@@ -56,7 +56,7 @@ interface FullMessageCacheData extends DetailFullMessageResponse {
  * Redis Features Used:
  * - Hash-based fullMessage storage with cluster-safe keys
  * - Sorted set indexing for efficient pagination and sorting
- * - Pattern matching for id and name filtering
+ * - Pattern matching for code and name filtering
  * - SCAN operations for tenant isolation
  * - Production-ready caching with metrics collection
  *
@@ -95,7 +95,7 @@ export class FullMessageQueryRepository implements IFullMessageQuery {
   }
 
   /**
-   * Find a single fullMessage by id using Redis hash lookup
+   * Find a single fullMessage by code using Redis hash lookup
    *
    * Leverages the established Redis patterns from FullMessageProjector
    * with cluster-safe keys and production-ready caching.
@@ -109,13 +109,13 @@ export class FullMessageQueryRepository implements IFullMessageQuery {
    * - Soft delete awareness
    *
    * @param actor - The actor context containing authentication and request metadata.
-   * @param id - The fullMessage id to search for.
+   * @param code - The fullMessage code to search for.
    * @param options - Optional repository options (e.g., timeout, correlation).
    * @returns A promise resolving to a Result containing the FullMessage response or a DomainError.
    */
   async findById(
     actor: ActorContext,
-    id: string,
+    code: string,
     options?: RepositoryOptions,
   ): Promise<Result<Option<DetailFullMessageResponse>, DomainError>> {
     const operation = 'findById';
@@ -124,7 +124,7 @@ export class FullMessageQueryRepository implements IFullMessageQuery {
       CorrelationUtil.generateForOperation('full-message-query-findById');
 
     const logContext = this.createLogContext(operation, correlationId, actor, {
-      fullMessageId: id,
+      fullMessageCode: code,
       dataSource: 'redis-projector',
     });
 
@@ -157,7 +157,7 @@ export class FullMessageQueryRepository implements IFullMessageQuery {
 
     try {
       // Generate cluster-safe Redis key
-      const fullMessageKey = this.generateFullMessageKey(actor.tenant, id);
+      const fullMessageKey = this.generateFullMessageKey(actor.tenant, code);
 
       Log.debug(this.logger, 'Executing Redis hash lookup', {
         ...logContext,
@@ -195,7 +195,7 @@ export class FullMessageQueryRepository implements IFullMessageQuery {
 
       // Transform to DetailFullMessageResponse DTO (excluding internal fields)
       const detailResponse: DetailFullMessageResponse = {
-        id: fullMessage.id,
+        code: fullMessage.code,
         recipient: fullMessage.recipient,
         data: fullMessage.data,
         status: fullMessage.status,
@@ -207,7 +207,7 @@ export class FullMessageQueryRepository implements IFullMessageQuery {
       Log.debug(this.logger, 'FullMessage found successfully in Redis', {
         ...logContext,
         resultData: {
-          fullMessageId: detailResponse.id,
+          fullMessageCode: detailResponse.code,
           cacheHit: true,
         },
       });
@@ -274,7 +274,7 @@ export class FullMessageQueryRepository implements IFullMessageQuery {
       const status = hashData.status as DetailFullMessageResponse['status'];
 
       return {
-        id: hashData.id,
+        code: hashData.code,
         recipient: hashData.recipient || undefined,
         data,
         status,
@@ -292,7 +292,7 @@ export class FullMessageQueryRepository implements IFullMessageQuery {
         {
           method: 'parseRedisHashToFullMessage',
           error: (error as Error).message,
-          id: hashData?.id,
+          code: hashData?.code,
         },
       );
       return null;
@@ -306,7 +306,7 @@ export class FullMessageQueryRepository implements IFullMessageQuery {
     fullMessage: FullMessageCacheData,
   ): ListFullMessageResponse {
     return {
-      id: fullMessage.id,
+      code: fullMessage.code,
       recipient: fullMessage.recipient,
       data: fullMessage.data,
       status: fullMessage.status,
@@ -437,7 +437,7 @@ export class FullMessageQueryRepository implements IFullMessageQuery {
    *
    * Features:
    * - Cluster-safe Redis keys with hash tags for co-location
-   * - Client-side filtering for id patterns and name search
+   * - Client-side filtering for code patterns and name search
    * - Efficient in-memory sorting with configurable directions
    * - Pagination with total count calculation
    * - Tenant isolation using Redis key patterns

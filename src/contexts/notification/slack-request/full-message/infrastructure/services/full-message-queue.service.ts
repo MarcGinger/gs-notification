@@ -86,7 +86,7 @@ export class FullMessageQueueService {
    * to provide all necessary context for message processing.
    */
   async queueEnrichedSendFullMessage(
-    fullMessageId: string,
+    fullMessageCode: string,
     tenant: string,
     workspaceCode: string,
     templateCode?: string,
@@ -126,7 +126,7 @@ export class FullMessageQueueService {
       if (!workspaceResult.ok) {
         Log.error(this.logger, 'Failed to fetch workspace configuration', {
           method: 'queueEnrichedSendFullMessage',
-          fullMessageId,
+          fullMessageCode,
           tenant,
           workspaceCode,
           error: workspaceResult.error.detail,
@@ -137,7 +137,7 @@ export class FullMessageQueueService {
       if (templateCode && templateResult && !templateResult.ok) {
         Log.error(this.logger, 'Failed to fetch template configuration', {
           method: 'queueEnrichedSendFullMessage',
-          fullMessageId,
+          fullMessageCode,
           tenant,
           templateCode,
           error: templateResult.error.detail,
@@ -148,7 +148,7 @@ export class FullMessageQueueService {
       if (channelCode && channelResult && !channelResult.ok) {
         Log.error(this.logger, 'Failed to fetch channel configuration', {
           method: 'queueEnrichedSendFullMessage',
-          fullMessageId,
+          fullMessageCode,
           tenant,
           channelCode,
           error: channelResult.error.detail,
@@ -159,7 +159,7 @@ export class FullMessageQueueService {
       if (!appConfigResult.ok) {
         Log.error(this.logger, 'Failed to fetch app configuration', {
           method: 'queueEnrichedSendFullMessage',
-          fullMessageId,
+          fullMessageCode,
           tenant,
           workspaceCode,
           error: appConfigResult.error.detail,
@@ -189,14 +189,14 @@ export class FullMessageQueueService {
         const error = `Workspace not found: ${workspaceCode}`;
         Log.error(this.logger, error, {
           method: 'queueEnrichedSendFullMessage',
-          fullMessageId,
+          fullMessageCode,
           tenant,
           workspaceCode,
         });
         return err(
           fromError(ConfigErrors.VALIDATION_FAILED, error, {
             configKey: 'workspace',
-            fullMessageId,
+            fullMessageCode,
             tenant,
             workspaceCode,
           }),
@@ -212,7 +212,7 @@ export class FullMessageQueueService {
           appConfig?: DetailAppConfigResponse;
         };
       } = {
-        fullMessageId,
+        fullMessageCode,
         tenant,
         tenantConfig: {
           workspace,
@@ -237,7 +237,7 @@ export class FullMessageQueueService {
       Log.info(this.logger, 'Queued enriched send fullMessage request job', {
         method: 'queueEnrichedSendFullMessage',
         jobId: job.id,
-        fullMessageId,
+        fullMessageCode,
         tenant,
         configurationLoaded: {
           workspace: !!workspace,
@@ -257,7 +257,7 @@ export class FullMessageQueueService {
         'Error queuing enriched send fullMessage request',
         {
           method: 'queueEnrichedSendFullMessage',
-          fullMessageId,
+          fullMessageCode,
           tenant,
           error: e.message,
           stack: e.stack,
@@ -266,7 +266,7 @@ export class FullMessageQueueService {
       return err(
         fromError(ConfigErrors.VALIDATION_FAILED, e, {
           configKey: 'queue',
-          fullMessageId,
+          fullMessageCode,
           tenant,
         }),
       );
@@ -323,7 +323,7 @@ export class FullMessageQueueService {
    * Queue a message sending job
    */
   async queueSendFullMessage(
-    fullMessageId: string,
+    fullMessageCode: string,
     tenant: string,
     options?: {
       delay?: number;
@@ -331,7 +331,7 @@ export class FullMessageQueueService {
     },
   ): Promise<string> {
     const jobData: FullMessageJobs['send-full-message'] = {
-      fullMessageId,
+      fullMessageCode,
       tenant,
     };
 
@@ -350,7 +350,7 @@ export class FullMessageQueueService {
     Log.info(this.logger, 'Queued send fullMessage request job', {
       method: 'queueSendFullMessage',
       jobId: job.id,
-      fullMessageId,
+      fullMessageCode,
       tenant,
       delay: options?.delay || 0,
       priority: options?.priority || 0,
@@ -363,7 +363,7 @@ export class FullMessageQueueService {
    * Queue a retry job for failed fullMessage requests
    */
   async queueRetryFailedFullMessage(
-    fullMessageId: string,
+    fullMessageCode: string,
     tenant: string,
     retryReason: string,
     options?: {
@@ -372,7 +372,7 @@ export class FullMessageQueueService {
     },
   ): Promise<string> {
     const jobData: FullMessageJobs['retry-failed-full-message'] = {
-      fullMessageId,
+      fullMessageCode,
       tenant,
       retryReason,
     };
@@ -392,7 +392,7 @@ export class FullMessageQueueService {
     Log.info(this.logger, 'Queued retry failed fullMessage request job', {
       method: 'queueRetryFailedFullMessage',
       jobId: job.id,
-      fullMessageId,
+      fullMessageCode,
       tenant,
       retryReason,
       delay: options?.delay || 30000,
@@ -420,12 +420,12 @@ export class FullMessageQueueService {
     jobId?: string;
     error?: string;
   }> {
-    const { fullMessageId, tenant } = job;
+    const { fullMessageCode, tenant } = job;
 
     try {
       Log.debug(this.logger, 'Enqueuing simple SendFullMessageJob', {
         method: 'enqueueSimpleSendFullMessageJob',
-        fullMessageId,
+        fullMessageCode,
         tenant,
         threadTs: job.threadTs,
         options,
@@ -441,7 +441,7 @@ export class FullMessageQueueService {
 
       Log.info(this.logger, 'Successfully enqueued simple SendFullMessageJob', {
         method: 'enqueueSimpleSendFullMessageJob',
-        fullMessageId,
+        fullMessageCode,
         tenant,
         jobId: bullmqJob.id,
         priority: options?.priority || 0,
@@ -459,7 +459,7 @@ export class FullMessageQueueService {
 
       Log.error(this.logger, 'Failed to enqueue simple SendFullMessageJob', {
         method: 'enqueueSimpleSendFullMessageJob',
-        fullMessageId,
+        fullMessageCode,
         tenant,
         error: errorMessage,
       });

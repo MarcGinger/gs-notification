@@ -235,13 +235,13 @@
         "deletedEvent": "NotificationSlackRequestFullMessageDeleted.v1"
       },
       "cols": {
-        "id": {},
         "recipient": {},
         "data": {},
         "status": {},
         "workspace_code": {},
         "template_code": {},
-        "channel_code": {}
+        "channel_code": {},
+        "code": {}
       },
       "permissions": {
         "bulk": [

@@ -12,7 +12,7 @@ export interface IFullMessageAppPort {
    * Record successful message delivery
    */
   recordSent(input: {
-    id: string; // fullMessageId
+    code: string; // fullMessageId
     attempts: number;
     tenant?: string;
     correlationId?: string;
@@ -23,7 +23,7 @@ export interface IFullMessageAppPort {
    * Record failed message delivery
    */
   recordFailed(input: {
-    id: string;
+    code: string;
     reason: string; // normalized error code (e.g., 'invalid_auth')
     attempts: number;
     retryable?: boolean;

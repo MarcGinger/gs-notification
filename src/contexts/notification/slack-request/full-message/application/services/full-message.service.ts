@@ -107,14 +107,14 @@ export class FullMessageApplicationService implements IFullMessageAppPort {
   }
 
   /**
-   * Helper to validate required id input
+   * Helper to validate required code input
    */
-  private validateId(
-    id: string,
+  private validateCode(
+    code: string,
     operation: string,
     correlationId?: string,
   ): Result<string, DomainError> {
-    if (!id?.trim()) {
+    if (!code?.trim()) {
       return err(
         withContext(FullMessageErrors.INVALID_FULL_MESSAGE_DATA, {
           operation,
@@ -124,7 +124,7 @@ export class FullMessageApplicationService implements IFullMessageAppPort {
         }),
       );
     }
-    return ok(id.trim());
+    return ok(code.trim());
   }
 
   /**
@@ -133,7 +133,7 @@ export class FullMessageApplicationService implements IFullMessageAppPort {
   private async authorizeThenExecute<T>(args: {
     operation: 'create' | 'update' | 'read';
     user: IUserToken;
-    id?: string;
+    code?: string;
     correlationIdPrefix: string;
     doAuthorize: () => Promise<Result<boolean, DomainError>>;
     doExecute: () => Promise<Result<T, DomainError>>;
@@ -169,7 +169,7 @@ export class FullMessageApplicationService implements IFullMessageAppPort {
           correlationId: corrId,
           userId: args.user.sub,
           operation: args.operation,
-          id: args.id,
+          code: args.code,
           category: 'security',
         }),
       );
@@ -194,7 +194,7 @@ export class FullMessageApplicationService implements IFullMessageAppPort {
         category: 'application',
         context: {
           correlationId: corrId,
-          id: args.id,
+          code: args.code,
           operation: `${args.operation}_full_message`,
         },
       });
@@ -242,37 +242,37 @@ export class FullMessageApplicationService implements IFullMessageAppPort {
    */
   async getFullMessageById(
     user: IUserToken,
-    id: string,
+    code: string,
   ): Promise<Result<DetailFullMessageResponse, DomainError>> {
     // Early input validation
-    const idValidation = this.validateId(id, 'read');
-    if (!idValidation.ok) {
-      return err(idValidation.error);
+    const codeValidation = this.validateCode(code, 'read');
+    if (!codeValidation.ok) {
+      return err(codeValidation.error);
     }
 
-    const validatedid = idValidation.value;
+    const validatedcode = codeValidation.value;
     const authContext = this.createAuthContext(user, 'read');
 
     return this.authorizeThenExecute<DetailFullMessageResponse>({
       operation: 'read',
       user,
-      id: validatedid,
+      code: validatedcode,
       correlationIdPrefix: 'full-message-read',
       doAuthorize: () =>
         this.fullMessageAuthorizationService.canReadFullMessage(
           user.sub,
-          validatedid,
+          validatedcode,
           CorrelationUtil.generateForOperation('full-message-read'),
           authContext,
         ),
       doExecute: () =>
         this.getFullMessageUseCase.execute({
           user,
-          id: validatedid,
+          code: validatedcode,
           correlationId:
             CorrelationUtil.generateForOperation('full-message-read'),
         }),
-      logContext: { id: validatedid },
+      logContext: { code: validatedcode },
     });
   }
 
@@ -297,7 +297,7 @@ export class FullMessageApplicationService implements IFullMessageAppPort {
       doAuthorize: () =>
         this.fullMessageAuthorizationService.canReadFullMessage(
           user.sub,
-          'list', // Use 'list' as a special id for list operations
+          'list', // Use 'list' as a special code for list operations
           correlationId,
           authContext,
         ),
@@ -318,7 +318,7 @@ export class FullMessageApplicationService implements IFullMessageAppPort {
    * Record successful message delivery (System operation)
    */
   async FullMessageSent(input: {
-    id: string;
+    code: string;
     attempts: number;
     tenant?: string;
     correlationId?: string;
@@ -333,7 +333,7 @@ export class FullMessageApplicationService implements IFullMessageAppPort {
       correlationId,
       'system',
       {
-        fullMessageId: input.id,
+        fullMessageId: input.code,
         attempts: input.attempts,
       },
     );
@@ -346,7 +346,7 @@ export class FullMessageApplicationService implements IFullMessageAppPort {
       const result = await this.recordSentUseCase.execute({
         user: systemUserToken,
         props: {
-          id: input.id,
+          code: input.code,
           attempts: input.attempts,
           correlationId: input.correlationId,
           causationId: input.causationId,
@@ -358,7 +358,7 @@ export class FullMessageApplicationService implements IFullMessageAppPort {
       if (result.ok) {
         Log.info(this.logger, 'Successfully recorded message delivery', {
           ...ctx,
-          fullMessageId: result.value.id,
+          fullMessageId: result.value.code,
           phase: 'CleanArchitecture-UseCase',
         });
       }
@@ -377,7 +377,7 @@ export class FullMessageApplicationService implements IFullMessageAppPort {
         category: 'application',
         context: {
           correlationId,
-          fullMessageId: input.id,
+          fullMessageId: input.code,
           operation: 'record_full_message_sent',
         },
       });
@@ -388,7 +388,7 @@ export class FullMessageApplicationService implements IFullMessageAppPort {
    * Record failed message delivery (System operation)
    */
   async FullMessageFailed(input: {
-    id: string;
+    code: string;
     reason: string;
     attempts: number;
     retryable?: boolean;
@@ -406,7 +406,7 @@ export class FullMessageApplicationService implements IFullMessageAppPort {
       correlationId,
       'system',
       {
-        fullMessageId: input.id,
+        fullMessageId: input.code,
         reason: input.reason,
         attempts: input.attempts,
         retryable: input.retryable,
@@ -421,7 +421,7 @@ export class FullMessageApplicationService implements IFullMessageAppPort {
       const result = await this.recordFailedUseCase.execute({
         user: systemUserToken,
         props: {
-          id: input.id,
+          code: input.code,
           reason: input.reason,
           attempts: input.attempts,
           retryable: input.retryable,
@@ -436,7 +436,7 @@ export class FullMessageApplicationService implements IFullMessageAppPort {
       if (result.ok) {
         Log.info(this.logger, 'Successfully recorded message failure', {
           ...ctx,
-          fullMessageId: result.value.id,
+          fullMessageId: result.value.code,
           phase: 'CleanArchitecture-UseCase',
         });
       }
@@ -455,7 +455,7 @@ export class FullMessageApplicationService implements IFullMessageAppPort {
         category: 'application',
         context: {
           correlationId,
-          fullMessageId: input.id,
+          fullMessageId: input.code,
           operation: 'record_full_message_failed',
         },
       });
@@ -469,7 +469,7 @@ export class FullMessageApplicationService implements IFullMessageAppPort {
    * Throws on failure for infrastructure compatibility
    */
   async recordSent(input: {
-    id: string;
+    code: string;
     attempts: number;
     tenant?: string;
     correlationId?: string;
@@ -486,7 +486,7 @@ export class FullMessageApplicationService implements IFullMessageAppPort {
    * Throws on failure for infrastructure compatibility
    */
   async recordFailed(input: {
-    id: string;
+    code: string;
     reason: string;
     attempts: number;
     retryable?: boolean;

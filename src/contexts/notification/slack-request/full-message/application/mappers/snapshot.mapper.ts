@@ -16,7 +16,7 @@ export const mapFullMessageSnapshotToDto = (
   snapshot: FullMessageSnapshotProps,
 ): DetailFullMessageResponse => {
   return {
-    id: snapshot.id,
+    code: snapshot.code,
     recipient: snapshot.recipient,
     data: snapshot.data,
     status: snapshot.status,

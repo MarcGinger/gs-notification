@@ -35,7 +35,7 @@ export const FullMessageResource = (permission: FullMessagePermission) =>
   Resource({
     type: 'full-message',
     action: permission,
-    extractId: (req: Request) => req.params?.id || req.params?.id,
+    extractId: (req: Request) => req.params?.code || req.params?.id,
     extractAttributes: (req: Request) => {
       const body = req.body as Record<string, unknown> | undefined;
       const query = req.query as Record<string, unknown> | undefined;

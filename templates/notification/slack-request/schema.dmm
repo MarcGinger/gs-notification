@@ -989,7 +989,7 @@
 			"cols": [
 				{
 					"id": "e4827ca4-a4ca-4159-bcd2-f208ef2e8381",
-					"name": "id",
+					"name": "code",
 					"datatype": "UUID",
 					"param": "36",
 					"pk": true,
@@ -1397,7 +1397,7 @@
 		},
 		"type": "MARIADB",
 		"version": 1,
-		"lastSaved": 1762335176675,
+		"lastSaved": 1762335232051,
 		"beforeScript": "",
 		"afterScript": "",
 		"sqlSettings": {

@@ -2,7 +2,7 @@
 // REMOVE THIS COMMENT TO STOP AUTOMATIC UPDATES TO THIS BLOCK
 
 export interface SentFullMessageProps {
-  id: string;
+  code: string;
   attempts: number;
   correlationId?: string;
   causationId?: string;

@@ -17,7 +17,9 @@ interface PropOptions {
  *
  *
  */
-export function ApiFullMessageId(options: PropOptions = {}): PropertyDecorator {
+export function ApiFullMessageCode(
+  options: PropOptions = {},
+): PropertyDecorator {
   const { required = false } = options;
 
   return applyDecorators(

@@ -3,8 +3,8 @@
 
 import {
   FullMessageChannelCode,
+  FullMessageCode,
   FullMessageData,
-  FullMessageId,
   FullMessageRecipient,
   FullMessageStatus,
   FullMessageTemplateCode,
@@ -12,7 +12,7 @@ import {
 } from '../value-objects';
 
 export interface ValidatedFullMessageUpdateFields {
-  id?: FullMessageId;
+  code?: FullMessageCode;
   recipient?: FullMessageRecipient;
   data?: FullMessageData;
   status?: FullMessageStatus;

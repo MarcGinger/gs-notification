@@ -22,7 +22,7 @@ import {
 import { SlackRequestServiceConstants } from '../../../service-constants';
 import { FullMessageAggregate } from '../../domain/aggregates';
 import { FullMessageProjectionKeys } from '../../full-message-projection-keys';
-import { FullMessageId } from '../../domain/value-objects';
+import { FullMessageCode } from '../../domain/value-objects';
 import { FullMessageDeletedEvent } from '../../domain/events';
 import { IFullMessageWriter } from '../../application/ports';
 
@@ -279,13 +279,13 @@ export class FullMessageWriterRepository
   /**
    * Delete a FullMessage by its unique identifier using EventStoreDB-first approach
    * @param actor - The authenticated user context
-   * @param id - The unique identifier of the FullMessage to delete
+   * @param code - The unique identifier of the FullMessage to delete
    * @param opts - Optional parameters including expected version and metadata
    * @returns Result with SaveReceipt containing revision tracking or domain error
    */
   async delete(
     actor: ActorContext,
-    id: FullMessageId,
+    code: FullMessageCode,
     opts?: {
       expectedVersion?: number;
       meta?: {
@@ -307,7 +307,7 @@ export class FullMessageWriterRepository
       correlationId,
       actor,
       {
-        fullMessageId: id.value,
+        fullMessageCode: code.value,
         expectedVersion: opts?.expectedVersion,
         hasMetadata: !!opts?.meta,
       },
@@ -331,14 +331,14 @@ export class FullMessageWriterRepository
       {
         operationType: 'aggregate_delete',
         scope: 'full-message_deletion',
-        fullMessageId: id.value,
+        fullMessageCode: code.value,
       },
     );
 
     const stream = this.buildStreamName(
       actor.tenant,
       FullMessageProjectionKeys.getEventStoreStreamPrefix(),
-      id.value,
+      code.value,
     );
 
     // Create proper domain event metadata
@@ -361,7 +361,7 @@ export class FullMessageWriterRepository
     // Create proper FullMessageDeletedEvent
     const deletedEvent = FullMessageDeletedEvent.create(
       {
-        id: id.value,
+        code: code.value,
         deletedAt: this.clock.now(),
         version: opts?.expectedVersion ?? 1,
       },
@@ -373,7 +373,7 @@ export class FullMessageWriterRepository
       type: deletedEvent.eventType,
       version: 1, // Convert string version to number
       occurredAt: this.clock.now(),
-      aggregateId: id.value,
+      aggregateId: code.value,
       aggregateType: 'FullMessage',
       data: deletedEvent.payload,
       metadata: eventMetadata,
@@ -394,7 +394,7 @@ export class FullMessageWriterRepository
         {
           ...logContext,
           stream,
-          fullMessageId: id.value,
+          fullMessageCode: code.value,
           expectedRevision: expectedRevision.toString(),
           eventType: domainEvent.type,
         },
@@ -415,7 +415,7 @@ export class FullMessageWriterRepository
 
       const receipt: SaveReceipt = {
         stream,
-        aggregateId: id.value,
+        aggregateId: code.value,
         tenant: actor.tenant ?? 'default',
         eventCount: 1,
         // newVersion omitted - we don't know it with ANY expectedRevision
@@ -434,7 +434,7 @@ export class FullMessageWriterRepository
           dataQuality: 'good',
           sampleData: {
             stream,
-            fullMessageId: id.value,
+            fullMessageCode: code.value,
             streamRevision: appendResult?.nextExpectedRevision?.toString(),
             eventType: 'FullMessageDeletedEvent',
           },

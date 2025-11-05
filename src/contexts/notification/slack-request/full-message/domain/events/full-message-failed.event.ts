@@ -7,7 +7,7 @@ import type { FullMessageStatusValue } from '../value-objects';
  * Contains complete business context - full message request state at time of failure
  */
 export interface FullMessageFailedEventPayload {
-  id: string;
+  code: string;
   recipient?: string;
   data?: Record<string, unknown>;
   status?: FullMessageStatusValue;
@@ -37,8 +37,8 @@ export class FullMessageFailedEvent {
     return new FullMessageFailedEvent(data);
   }
 
-  get id(): string {
-    return this.payload.id;
+  get code(): string {
+    return this.payload.code;
   }
 
   get recipient(): string | undefined {

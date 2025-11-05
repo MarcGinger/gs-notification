@@ -78,7 +78,7 @@ interface FullMessageProjectionParams extends DetailFullMessageResponse {
  * Implements projection function pattern for event handling with Redis backend
  *
  * Redis Data Structure (managed by FullMessageProjectionKeys domain value object):
- * - FullMessage Hash: `full-message:projection:{tenant}:id` - stores all full-message fields
+ * - FullMessage Hash: `full-message:projection:{tenant}:code` - stores all full-message fields
  * - Tenant Index: `full-message:index:by_tenant:{tenant}` - sorted set by updated timestamp
  *
  * Key Features:
@@ -267,7 +267,7 @@ export class FullMessageProjector
         this.redis,
         tenant,
         'full-message',
-        params.id,
+        params.code,
         params.version,
         config.VERSION_KEY_PREFIX,
       );
@@ -275,7 +275,7 @@ export class FullMessageProjector
       if (alreadyProcessed) {
         this.logger.debug(
           'FullMessage already processed - using version hint optimization for ' +
-            params.id +
+            params.code +
             ' version ' +
             params.version,
         );
@@ -292,7 +292,7 @@ export class FullMessageProjector
       // ✅ Generate cluster-safe keys using centralized FullMessageProjectionKeys
       const entityKey = FullMessageProjectionKeys.getRedisFullMessageKey(
         tenant,
-        params.id,
+        params.code,
       );
       const indexKey =
         FullMessageProjectionKeys.getRedisFullMessageIndexKey(tenant);
@@ -310,7 +310,7 @@ export class FullMessageProjector
           pipeline,
           entityKey,
           indexKey,
-          params.id,
+          params.code,
           params.deletedAt,
         );
 
@@ -321,7 +321,7 @@ export class FullMessageProjector
           pipeline,
           entityKey,
           indexKey,
-          params.id,
+          params.code,
           params.version,
           params.updatedAt,
           fieldPairs,
@@ -347,7 +347,7 @@ export class FullMessageProjector
         this.redis,
         tenant,
         'full-message',
-        params.id,
+        params.code,
         params.version,
         undefined, // Use default TTL
         config.VERSION_KEY_PREFIX,
@@ -428,7 +428,7 @@ export class FullMessageProjector
     indexKey: string;
   } {
     // ✅ Hash-tags ensure both keys route to same Redis Cluster slot
-    const entityKey = 'full-message:{' + params.tenant + '}:' + params.id;
+    const entityKey = 'full-message:{' + params.tenant + '}:' + params.code;
     const indexKey = 'full-message:index:{' + params.tenant + '}';
 
     Log.debug(this.logger, 'Generated cluster-safe keys with hash-tags', {
@@ -436,7 +436,7 @@ export class FullMessageProjector
       entityKey,
       indexKey,
       tenant: params.tenant,
-      id: params.id,
+      code: params.code,
     });
 
     return { entityKey, indexKey };
@@ -508,11 +508,11 @@ export class FullMessageProjector
   ): Promise<void> {
     try {
       // Validate required parameters
-      const fullMessageId = params.id;
+      const fullMessageCode = params.code;
       const tenant = params.tenant;
       const status = params.status;
 
-      if (!fullMessageId) {
+      if (!fullMessageCode) {
         Log.warn(
           this.logger,
           'No message request ID found in projection params',
@@ -528,7 +528,7 @@ export class FullMessageProjector
         Log.warn(this.logger, 'No tenant found in projection params', {
           method: 'dispatchJobsForEvent',
           eventType: event.type,
-          fullMessageId,
+          fullMessageCode,
         });
         return;
       }
@@ -548,19 +548,22 @@ export class FullMessageProjector
           method: 'dispatchJobsForEvent',
           eventType: event.type,
           simpleEventType,
-          fullMessageId,
+          fullMessageCode,
           status,
         });
         return;
       }
 
       // Check dispatch-once guard before attempting to enqueue
-      const firstTime = await this.tryMarkDispatchedOnce(tenant, fullMessageId);
+      const firstTime = await this.tryMarkDispatchedOnce(
+        tenant,
+        fullMessageCode,
+      );
       if (!firstTime) {
         Log.debug(this.logger, 'Dispatch skipped (already marked once)', {
           method: 'dispatchJobsForEvent',
           eventType: event.type,
-          fullMessageId,
+          fullMessageCode,
           tenant,
         });
         return;
@@ -570,7 +573,7 @@ export class FullMessageProjector
       const jobDispatched = await this.handleJobDispatchingByEventType(
         event.type,
         {
-          fullMessageId,
+          fullMessageCode,
           tenant,
           status,
           workspaceCode: params.workspaceCode,
@@ -586,7 +589,7 @@ export class FullMessageProjector
           {
             method: 'dispatchJobsForEvent',
             eventType: event.type,
-            fullMessageId,
+            fullMessageCode,
             tenant,
           },
         );
@@ -597,7 +600,7 @@ export class FullMessageProjector
       Log.error(this.logger, 'Failed to dispatch jobs for event', {
         method: 'dispatchJobsForEvent',
         eventType: event.type,
-        fullMessageId: params.id,
+        fullMessageCode: params.code,
         tenant: params.tenant,
         error: e.message,
       });
@@ -623,7 +626,7 @@ export class FullMessageProjector
 
       Log.debug(this.logger, 'Dispatch-once check completed', {
         method: 'tryMarkDispatchedOnce',
-        fullMessageId: id,
+        fullMessageCode: id,
         tenant,
         dispatchKey,
         isFirstTime,
@@ -634,7 +637,7 @@ export class FullMessageProjector
       const e = error as Error;
       Log.error(this.logger, 'Failed to check dispatch-once marker', {
         method: 'tryMarkDispatchedOnce',
-        fullMessageId: id,
+        fullMessageCode: id,
         tenant,
         dispatchKey,
         error: e.message,
@@ -655,7 +658,7 @@ export class FullMessageProjector
   private async handleJobDispatchingByEventType(
     eventType: string,
     context: {
-      fullMessageId: string;
+      fullMessageCode: string;
       tenant: string;
       status?: string;
       workspaceCode: string;
@@ -664,7 +667,7 @@ export class FullMessageProjector
     },
   ): Promise<boolean> {
     const {
-      fullMessageId,
+      fullMessageCode,
       tenant,
       status,
       workspaceCode,
@@ -680,7 +683,7 @@ export class FullMessageProjector
     switch (simpleEventType) {
       case 'FullMessageCreated':
         return await this.dispatchSendMessageJob(
-          fullMessageId,
+          fullMessageCode,
           tenant,
           'created',
           { priority: 0, delay: 0 },
@@ -691,7 +694,7 @@ export class FullMessageProjector
         // Only queue jobs if status changed to 'queued' state
         if (status === 'queued') {
           return await this.dispatchSendMessageJob(
-            fullMessageId,
+            fullMessageCode,
             tenant,
             'queued transition',
             { priority: 0, delay: 0 },
@@ -702,7 +705,7 @@ export class FullMessageProjector
           method: 'handleJobDispatchingByEventType',
           eventType,
           simpleEventType,
-          fullMessageId,
+          fullMessageCode,
           status,
         });
         return false;
@@ -716,7 +719,7 @@ export class FullMessageProjector
           method: 'handleJobDispatchingByEventType',
           eventType,
           simpleEventType,
-          fullMessageId,
+          fullMessageCode,
         });
         return false;
     }
@@ -729,7 +732,7 @@ export class FullMessageProjector
    * Implements dispatch-once semantics using Redis SETNX to prevent duplicate jobs.
    */
   private async dispatchSendMessageJob(
-    fullMessageId: string,
+    fullMessageCode: string,
     tenant: string,
     trigger: string,
     options: { priority: number; delay: number },
@@ -743,7 +746,7 @@ export class FullMessageProjector
       // Step 1: Acquire dispatch-once lock using SETNX pattern
       const dispatchResult = await this.idempotencyService.acquireDispatchLock(
         tenant,
-        fullMessageId,
+        fullMessageCode,
       );
 
       if (!dispatchResult.success) {
@@ -753,7 +756,7 @@ export class FullMessageProjector
           {
             method: 'dispatchSendMessageJob',
             trigger,
-            fullMessageId,
+            fullMessageCode,
             tenant,
             error: dispatchResult.error,
           },
@@ -765,11 +768,11 @@ export class FullMessageProjector
       if (!dispatchResult.isFirst) {
         Log.debug(
           this.logger,
-          `FullMessage ${fullMessageId} already dispatched for ${trigger}, skipping`,
+          `FullMessage ${fullMessageCode} already dispatched for ${trigger}, skipping`,
           {
             method: 'dispatchSendMessageJob',
             trigger,
-            fullMessageId,
+            fullMessageCode,
             tenant,
           },
         );
@@ -778,7 +781,7 @@ export class FullMessageProjector
 
       // Step 3: First time - create minimal BullMQ job payload
       const job: SendFullMessageJob = {
-        fullMessageId,
+        fullMessageCode,
         tenant,
         // Include threadTs if available from config (for thread replies)
         threadTs: undefined, // Will be resolved by worker from FullMessage data
@@ -803,7 +806,7 @@ export class FullMessageProjector
           {
             method: 'dispatchSendMessageJob',
             trigger,
-            fullMessageId,
+            fullMessageCode,
             tenant,
             error: enqueuResult.error,
           },
@@ -817,7 +820,7 @@ export class FullMessageProjector
         {
           method: 'dispatchSendMessageJob',
           trigger,
-          fullMessageId,
+          fullMessageCode,
           tenant,
           jobId: enqueuResult.jobId,
           priority: options.priority,
@@ -837,7 +840,7 @@ export class FullMessageProjector
         {
           method: 'dispatchSendMessageJob',
           trigger,
-          fullMessageId,
+          fullMessageCode,
           tenant,
           error: error instanceof Error ? error.message : 'Unknown error',
         },

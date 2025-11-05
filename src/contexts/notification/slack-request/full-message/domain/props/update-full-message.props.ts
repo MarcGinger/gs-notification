@@ -2,7 +2,7 @@
 // REMOVE THIS COMMENT TO STOP AUTOMATIC UPDATES TO THIS BLOCK
 
 export interface UpdateFullMessageProps {
-  id: string;
+  code: string;
   recipient?: string;
   data?: Record<string, unknown>;
   workspaceCode?: string;

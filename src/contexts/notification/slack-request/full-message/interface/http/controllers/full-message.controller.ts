@@ -75,7 +75,7 @@ export class FullMessageController {
     return result;
   }
 
-  @Get(':id')
+  @Get(':code')
   @FullMessageReadResource()
   @ApiOperation({
     summary: 'Get Full message by ID',
@@ -83,7 +83,7 @@ export class FullMessageController {
       'Retrieves a single Full message by its unique identifier. Requires READ permission (LOW risk).',
   })
   @ApiParam({
-    name: 'id',
+    name: 'code',
     type: 'string',
     description: 'FullMessage unique identifier (UUID format)',
     format: 'uuid',
@@ -96,11 +96,11 @@ export class FullMessageController {
   @ApiCommonErrors()
   async get(
     @CurrentUser() user: IUserToken,
-    @Param('id') id: string,
+    @Param('code') code: string,
   ): Promise<Result<DetailFullMessageResponse, DomainError>> {
     const result = await this.fullMessageApplicationService.getFullMessageById(
       user,
-      id,
+      code,
     );
 
     return result;

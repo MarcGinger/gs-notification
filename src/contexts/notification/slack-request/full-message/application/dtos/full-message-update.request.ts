@@ -4,16 +4,16 @@
 import { UpdateFullMessageProps } from '../../domain/props';
 import {
   ApiFullMessageChannelCode,
+  ApiFullMessageCode,
   ApiFullMessageData,
-  ApiFullMessageId,
   ApiFullMessageRecipient,
   ApiFullMessageTemplateCode,
   ApiFullMessageWorkspaceCode,
 } from './decorators';
 
 export class UpdateFullMessageRequest implements UpdateFullMessageProps {
-  @ApiFullMessageId()
-  id: string;
+  @ApiFullMessageCode()
+  code: string;
 
   @ApiFullMessageRecipient({ required: false })
   recipient?: string;

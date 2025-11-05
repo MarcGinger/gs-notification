@@ -28,7 +28,7 @@ export class FullMessageDtoAssembler {
     const dto = new DetailFullMessageResponse();
 
     // Extract primitive values from VOs
-    dto.id = domainState.id.value;
+    dto.code = domainState.code.value;
     dto.recipient = domainState.recipient?.value;
     dto.data = domainState.data?.value;
     dto.status = domainState.status?.value;
@@ -51,7 +51,7 @@ export class FullMessageDtoAssembler {
     const dto = new ListFullMessageResponse();
 
     // Extract primitive values from VOs
-    dto.id = domainState.id.value;
+    dto.code = domainState.code.value;
     dto.recipient = domainState.recipient?.value;
     dto.data = domainState.data?.value;
     dto.status = domainState.status?.value;

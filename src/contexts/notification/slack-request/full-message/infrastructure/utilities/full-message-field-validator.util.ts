@@ -45,7 +45,7 @@ export class FullMessageFieldValidatorUtil {
       'data',
     );
     // Extract simple fields directly from event data
-    const id = aggregateData.id as string;
+    const code = aggregateData.code as string;
     const recipient = aggregateData.recipient as string;
     const status = aggregateData.status as FullMessageStatusValue;
     const workspaceCode = aggregateData.workspaceCode as string;
@@ -69,7 +69,7 @@ export class FullMessageFieldValidatorUtil {
     // safeParseJSON utilities provide error handling for invalid JSON,
     // direct field access provides type safety and truthful representation
     return {
-      id,
+      code,
       recipient,
       data,
       status,

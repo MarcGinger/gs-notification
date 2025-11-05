@@ -22,7 +22,7 @@ import { RepositoryErrorFactory } from 'src/shared/domain/errors/repository.erro
 import { SLACK_REQUEST_DI_TOKENS } from '../../../slack-request.constants';
 import { FullMessageProjectionKeys } from '../../full-message-projection-keys';
 import { FullMessageSnapshotProps } from '../../domain/props';
-import { FullMessageId } from '../../domain/value-objects';
+import { FullMessageCode } from '../../domain/value-objects';
 import { IFullMessageReader } from '../../application/ports';
 
 /**
@@ -111,7 +111,7 @@ export class FullMessageReaderRepository implements IFullMessageReader {
       const status = hashData.status as FullMessageSnapshotProps['status'];
 
       return {
-        id: hashData.id,
+        code: hashData.code,
         recipient: hashData.recipient || undefined,
         data,
         status,
@@ -129,7 +129,7 @@ export class FullMessageReaderRepository implements IFullMessageReader {
         {
           method: 'parseRedisHashToFullMessage',
           error: (error as Error).message,
-          id: hashData?.id,
+          code: hashData?.code,
         },
       );
       return null;
@@ -165,13 +165,13 @@ export class FullMessageReaderRepository implements IFullMessageReader {
   /**
    * Find a FullMessage by its unique identifier
    * @param actor - The authenticated user context
-   * @param id - The unique identifier of the FullMessage
+   * @param code - The unique identifier of the FullMessage
    * @param options - Optional repository options
    * @returns Result containing the FullMessage snapshot or null if not found
    */
   async findById(
     actor: ActorContext,
-    id: FullMessageId,
+    code: FullMessageCode,
     options?: RepositoryOptions,
   ): Promise<Result<Option<FullMessageSnapshotProps>, DomainError>> {
     const operation = 'findById';
@@ -182,7 +182,7 @@ export class FullMessageReaderRepository implements IFullMessageReader {
 
     const logContext = this.createLogContext(operation, correlationId, actor, {
       riskLevel,
-      targetId: id.value,
+      targetCode: code.value,
       customCorrelationId: !!options?.correlationId,
       source: options?.source,
       requestId: options?.requestId,
@@ -216,7 +216,7 @@ export class FullMessageReaderRepository implements IFullMessageReader {
 
     try {
       // Generate cluster-safe Redis key
-      const redisKey = this.generateFullMessageKey(actor.tenant, id.value);
+      const redisKey = this.generateFullMessageKey(actor.tenant, code.value);
 
       Log.debug(this.logger, 'Finding full-message by ID in Redis', {
         ...logContext,
@@ -269,7 +269,7 @@ export class FullMessageReaderRepository implements IFullMessageReader {
           resultCount: 1,
           dataQuality: 'good',
           sampleData: {
-            id: fullMessageSnapshot.id,
+            code: fullMessageSnapshot.code,
             version: fullMessageSnapshot.version,
           },
         },
@@ -294,13 +294,13 @@ export class FullMessageReaderRepository implements IFullMessageReader {
   /**
    * Check if a full-message exists by ID (for write-path validation)
    * @param actor - The authenticated user context
-   * @param id - The unique identifier of the FullMessage
+   * @param code - The unique identifier of the FullMessage
    * @param options - Optional repository options
    * @returns Result containing boolean indicating existence
    */
   async exists(
     actor: ActorContext,
-    id: FullMessageId,
+    code: FullMessageCode,
     options?: RepositoryOptions,
   ): Promise<Result<boolean, DomainError>> {
     const operation = 'exists';
@@ -311,7 +311,7 @@ export class FullMessageReaderRepository implements IFullMessageReader {
 
     const logContext = this.createLogContext(operation, correlationId, actor, {
       riskLevel,
-      targetId: id.value,
+      targetCode: code.value,
       customCorrelationId: !!options?.correlationId,
       source: options?.source,
       requestId: options?.requestId,
@@ -336,7 +336,7 @@ export class FullMessageReaderRepository implements IFullMessageReader {
 
     try {
       // Generate cluster-safe Redis key
-      const redisKey = this.generateFullMessageKey(actor.tenant, id.value);
+      const redisKey = this.generateFullMessageKey(actor.tenant, code.value);
 
       Log.debug(this.logger, 'Checking full-message existence in Redis', {
         ...logContext,
@@ -366,7 +366,7 @@ export class FullMessageReaderRepository implements IFullMessageReader {
         {
           resultCount: isActive ? 1 : 0,
           dataQuality: 'good',
-          sampleData: { exists: isActive, id: id.value },
+          sampleData: { exists: isActive, code: code.value },
         },
       );
 
@@ -389,13 +389,13 @@ export class FullMessageReaderRepository implements IFullMessageReader {
   /**
    * Get full-message version for optimistic concurrency control
    * @param actor - The authenticated user context
-   * @param id - The unique identifier of the FullMessage
+   * @param code - The unique identifier of the FullMessage
    * @param options - Optional repository options
    * @returns Result containing version number or null if not found
    */
   async getVersion(
     actor: ActorContext,
-    id: FullMessageId,
+    code: FullMessageCode,
     options?: RepositoryOptions,
   ): Promise<Result<Option<number>, DomainError>> {
     const operation = 'getVersion';
@@ -406,7 +406,7 @@ export class FullMessageReaderRepository implements IFullMessageReader {
 
     const logContext = this.createLogContext(operation, correlationId, actor, {
       riskLevel,
-      targetId: id.value,
+      targetCode: code.value,
       customCorrelationId: !!options?.correlationId,
       source: options?.source,
       requestId: options?.requestId,
@@ -431,7 +431,7 @@ export class FullMessageReaderRepository implements IFullMessageReader {
 
     try {
       // Generate cluster-safe Redis key
-      const redisKey = this.generateFullMessageKey(actor.tenant, id.value);
+      const redisKey = this.generateFullMessageKey(actor.tenant, code.value);
 
       Log.debug(this.logger, 'Getting full-message version from Redis', {
         ...logContext,
@@ -474,7 +474,7 @@ export class FullMessageReaderRepository implements IFullMessageReader {
         {
           resultCount: 1,
           dataQuality: 'good',
-          sampleData: { id: id.value, version },
+          sampleData: { code: code.value, version },
         },
       );
 
@@ -497,15 +497,15 @@ export class FullMessageReaderRepository implements IFullMessageReader {
   /**
    * Get minimal full-message data for write-path operations
    * @param actor - The authenticated user context
-   * @param id - The unique identifier of the FullMessage
+   * @param code - The unique identifier of the FullMessage
    * @param options - Optional repository options
    * @returns Result containing minimal full-message data or null if not found
    */
   async getMinimal(
     actor: ActorContext,
-    id: FullMessageId,
+    code: FullMessageCode,
     options?: RepositoryOptions,
-  ): Promise<Result<Option<{ id: string; version: number }>, DomainError>> {
+  ): Promise<Result<Option<{ code: string; version: number }>, DomainError>> {
     const operation = 'getMinimal';
     const riskLevel = this.assessOperationRisk(operation);
     const correlationId =
@@ -514,7 +514,7 @@ export class FullMessageReaderRepository implements IFullMessageReader {
 
     const logContext = this.createLogContext(operation, correlationId, actor, {
       riskLevel,
-      targetId: id.value,
+      targetCode: code.value,
       customCorrelationId: !!options?.correlationId,
       source: options?.source,
       requestId: options?.requestId,
@@ -539,7 +539,7 @@ export class FullMessageReaderRepository implements IFullMessageReader {
 
     try {
       // Generate cluster-safe Redis key
-      const redisKey = this.generateFullMessageKey(actor.tenant, id.value);
+      const redisKey = this.generateFullMessageKey(actor.tenant, code.value);
 
       Log.debug(this.logger, 'Getting minimal full-message data from Redis', {
         ...logContext,
@@ -547,20 +547,20 @@ export class FullMessageReaderRepository implements IFullMessageReader {
           scope: 'redis_hash',
           method: 'redis.hmget',
           key: redisKey,
-          fields: ['id', 'version', 'deletedAt'],
+          fields: ['code', 'version', 'deletedAt'],
           optimized: true,
         },
       });
 
       // Get minimal fields from Redis efficiently
-      const [idStr, versionStr, deletedAt] = await this.redis.hmget(
+      const [codeStr, versionStr, deletedAt] = await this.redis.hmget(
         redisKey,
-        'id',
+        'code',
         'version',
         'deletedAt',
       );
 
-      if (!idStr || !versionStr || deletedAt) {
+      if (!codeStr || !versionStr || deletedAt) {
         RepositoryLoggingUtil.logQueryMetrics(
           this.logger,
           operation,
@@ -574,7 +574,7 @@ export class FullMessageReaderRepository implements IFullMessageReader {
       }
 
       const minimal = {
-        id: idStr,
+        code: codeStr,
         version: parseInt(versionStr, 10),
       };
 

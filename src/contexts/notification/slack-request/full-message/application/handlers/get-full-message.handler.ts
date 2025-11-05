@@ -18,7 +18,7 @@ export class GetFullMessageHandler
   ): Promise<Result<DetailFullMessageResponse | null, DomainError>> {
     return this.getFullMessageUseCase.execute({
       user: query.user,
-      id: query.id,
+      code: query.code,
       correlationId: query.correlationId || 'query-handler',
     });
   }

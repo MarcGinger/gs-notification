@@ -46,7 +46,7 @@ const fullMessageRoutes: Routes = [
  *
  * Routes configured:
  * - /notification/slack-request/api/v1/full-messages (GET, POST)
- * - /notification/slack-request/api/v1/full-messages/:id (GET)
+ * - /notification/slack-request/api/v1/full-messages/:code (GET)
  * - /notification/slack-request/health/projectors/fullMessage (GET)
  * - /notification/slack-request/health/projectors/full-message/metrics (GET)
  */

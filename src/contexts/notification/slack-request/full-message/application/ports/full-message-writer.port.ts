@@ -5,7 +5,7 @@ import { Result, DomainError } from 'src/shared/errors';
 import { ActorContext } from 'src/shared/application/context';
 import { SaveReceipt } from 'src/shared/infrastructure/repositories';
 import { FullMessageAggregate } from '../../domain/aggregates';
-import { FullMessageId } from '../../domain/value-objects';
+import { FullMessageCode } from '../../domain/value-objects';
 
 /**
  * Token for injecting IFullMessageWriter port implementation
@@ -45,11 +45,11 @@ export interface IFullMessageWriter {
   /**
    * Delete a FullMessage by its unique identifier
    * @param user - The authenticated user context
-   * @param id - The unique identifier of the FullMessage to delete
+   * @param code - The unique identifier of the FullMessage to delete
    * @returns Result indicating success or domain error
    */
   delete(
     actor: ActorContext,
-    id: FullMessageId,
+    code: FullMessageCode,
   ): Promise<Result<SaveReceipt, DomainError>>;
 }

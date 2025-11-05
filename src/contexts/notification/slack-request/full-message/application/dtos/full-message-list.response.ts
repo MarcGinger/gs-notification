@@ -4,8 +4,8 @@
 import type { FullMessageStatusValue } from './';
 import {
   ApiFullMessageChannelCode,
+  ApiFullMessageCode,
   ApiFullMessageData,
-  ApiFullMessageId,
   ApiFullMessageRecipient,
   ApiFullMessageStatus,
   ApiFullMessageTemplateCode,
@@ -13,8 +13,8 @@ import {
 } from './decorators';
 
 export class ListFullMessageResponse {
-  @ApiFullMessageId()
-  id: string;
+  @ApiFullMessageCode()
+  code: string;
 
   @ApiFullMessageRecipient({ required: false })
   recipient?: string;

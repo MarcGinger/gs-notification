@@ -323,7 +323,7 @@ export class CreateFullMessageUseCase implements ICreateFullMessageUseCase {
         aggregateVersion: aggregate.version,
         eventCount: aggregate.uncommittedEvents?.length ?? 0,
         businessData: {
-          fullMessageCode: dto.id,
+          fullMessageCode: dto.code,
           complianceApplied: classification.containsPII,
         },
       },

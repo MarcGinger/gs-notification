@@ -83,7 +83,7 @@ export class FullMessageAuthorizationAdapter
       return err({
         ...FullMessageErrors.NOT_IMPLEMENTED,
         context: {
-          ids: resourceId,
+          codes: resourceId,
           userId,
           correlationId,
           operation,
@@ -108,22 +108,22 @@ export class FullMessageAuthorizationAdapter
    * Useful for list operations where you need to filter results.
    *
    * @param userId - User identifier
-   * @param ids - Array of fullMessage ids to authorize
+   * @param codes - Array of fullMessage codes to authorize
    * @param correlationId - Request correlation ID
    * @param operation - Operation type (read, update, delete)
    * @param context - FullMessage authorization context
-   * @returns Result containing authorized and denied fullMessage ids
+   * @returns Result containing authorized and denied fullMessage codes
    */
   async authorizeFullMessageList(
     userId: string,
-    ids: string[],
+    codes: string[],
     correlationId: string,
     operation: BatchOperation = 'read',
     context?: FullMessageAuthContext,
   ): Promise<Result<{ authorized: string[]; denied: string[] }, DomainError>> {
     return this.fullMessageAuthorizationService.authorizeFullMessageList(
       userId,
-      ids,
+      codes,
       correlationId,
       operation,
       context,

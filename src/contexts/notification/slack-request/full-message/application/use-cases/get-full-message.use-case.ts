@@ -88,7 +88,7 @@ export class GetFullMessageUseCase implements IGetFullMessageUseCase {
 
   async execute(params: {
     user: IUserToken;
-    id: string;
+    code: string;
     correlationId: string;
   }): Promise<Result<DetailFullMessageResponse, DomainError>> {
     const operation = 'get_full_message';
@@ -97,7 +97,7 @@ export class GetFullMessageUseCase implements IGetFullMessageUseCase {
 
     // Step 1: Extract raw properties for domain logic (no PII protection at domain level)
     const rawProps = {
-      id: params.id,
+      code: params.code,
     };
 
     // Step 2: Create safe logging context (no PII, deferred retention metadata)
@@ -107,7 +107,7 @@ export class GetFullMessageUseCase implements IGetFullMessageUseCase {
       operation,
       params as any, // Query doesn't extend BaseUseCaseCommand but has similar structure
       {
-        fullMessageId: rawProps.id,
+        fullMessageCode: rawProps.code,
         operationRisk: UseCaseLoggingUtil.assessOperationRisk(operation),
         readOperation: true,
         cacheEnabled: true,
@@ -127,7 +127,7 @@ export class GetFullMessageUseCase implements IGetFullMessageUseCase {
     // Step 1: Check authorization first
     const authResult = await this.authorizationService.canReadResource(
       params.user.sub,
-      params.id, // Using id as fullMessage identifier
+      params.code, // Using code as fullMessage identifier
       correlationId,
       {
         tenant: params.user.tenant,
@@ -154,7 +154,7 @@ export class GetFullMessageUseCase implements IGetFullMessageUseCase {
         category: 'security' as const,
         context: {
           userId: params.user.sub,
-          fullMessageId: params.id,
+          fullMessageCode: params.code,
           operation: 'read',
         },
       };
@@ -170,16 +170,16 @@ export class GetFullMessageUseCase implements IGetFullMessageUseCase {
 
     // Step 2: Simple validation for query-side operations (CQRS compliant)
     if (
-      !params.id ||
-      typeof params.id !== 'string' ||
-      params.id.trim().length === 0
+      !params.code ||
+      typeof params.code !== 'string' ||
+      params.code.trim().length === 0
     ) {
       const validationError = {
         code: 'FULL_MESSAGE.INVALID_THE_CODE' as const,
-        title: 'Invalid fullMessage id',
+        title: 'Invalid fullMessage code',
         category: 'validation' as const,
         context: {
-          id: params.id,
+          code: params.code,
           correlationId,
           userId: params.user.sub,
           operation: 'get_fullMessage',
@@ -212,7 +212,7 @@ export class GetFullMessageUseCase implements IGetFullMessageUseCase {
         correlationId,
         userId: params.user.sub,
         operation: 'get_full_message',
-        id: params.id,
+        code: params.code,
       });
       UseCaseLoggingUtil.logOperationError(
         this.logger,
@@ -227,7 +227,7 @@ export class GetFullMessageUseCase implements IGetFullMessageUseCase {
 
     const fullMessageResult = await this.query.findById(
       actor,
-      params.id,
+      params.code,
       repositoryOptions,
     );
 
@@ -236,7 +236,7 @@ export class GetFullMessageUseCase implements IGetFullMessageUseCase {
         correlationId,
         userId: params.user.sub,
         operation: 'get_full_message',
-        id: params.id,
+        code: params.code,
       });
       UseCaseLoggingUtil.logOperationError(
         this.logger,
@@ -258,10 +258,10 @@ export class GetFullMessageUseCase implements IGetFullMessageUseCase {
       const notFoundError = withContext(
         FullMessageErrors.FULL_MESSAGE_NOT_FOUND,
         {
-          id: params.id,
+          code: params.code,
           workspaceCode: '', // Default values for required fields
           templateCode: '', // Default values for required fields
-          fullMessageId: params.id,
+          fullMessageCode: params.code,
           correlationId,
           userId: params.user.sub,
           operation: 'get_full_message',
@@ -309,7 +309,7 @@ export class GetFullMessageUseCase implements IGetFullMessageUseCase {
       {
         executionTimeMs: executionTime,
         businessData: {
-          fullMessageId: params.id,
+          fullMessageCode: params.code,
           found: true,
           cacheEnabled: true,
           cacheTtl: repositoryOptions.cache?.ttl,

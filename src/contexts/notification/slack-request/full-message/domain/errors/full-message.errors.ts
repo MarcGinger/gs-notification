@@ -3,7 +3,7 @@
 import { DomainError } from 'src/shared/errors';
 
 export interface FullMessageContext extends Record<string, unknown> {
-  id: string;
+  code: string;
   recipient?: string;
   data?: Record<string, unknown>;
   status?: string;
@@ -127,10 +127,17 @@ export const FullMessageErrors = {
     'FULL_MESSAGE.INVALID_CHANNEL_CODE_DATA',
     FullMessageContext
   >,
+  INVALID_CODE: {
+    code: 'FULL_MESSAGE.INVALID_CODE',
+    title: 'Value Required',
+    detail: 'Code is required for Full message.',
+    category: 'validation',
+    retryable: false,
+  } as DomainError<'FULL_MESSAGE.INVALID_CODE', FullMessageContext>,
   INVALID_CODE_DATA: {
     code: 'FULL_MESSAGE.INVALID_CODE_DATA',
-    title: 'Invalid Version Data',
-    detail: 'The full_message version data is invalid.',
+    title: 'Value Required',
+    detail: 'Code is required for Full message.',
     category: 'validation',
     retryable: false,
   } as DomainError<'FULL_MESSAGE.INVALID_CODE_DATA', FullMessageContext>,
@@ -158,20 +165,6 @@ export const FullMessageErrors = {
     'FULL_MESSAGE.INVALID_FULL_MESSAGE_DATA',
     FullMessageContext
   >,
-  INVALID_ID: {
-    code: 'FULL_MESSAGE.INVALID_ID',
-    title: 'Value Required',
-    detail: 'Id is required for Full message.',
-    category: 'validation',
-    retryable: false,
-  } as DomainError<'FULL_MESSAGE.INVALID_ID', FullMessageContext>,
-  INVALID_ID_DATA: {
-    code: 'FULL_MESSAGE.INVALID_ID_DATA',
-    title: 'Value Required',
-    detail: 'Id is required for Full message.',
-    category: 'validation',
-    retryable: false,
-  } as DomainError<'FULL_MESSAGE.INVALID_ID_DATA', FullMessageContext>,
   INVALID_RECIPIENT: {
     code: 'FULL_MESSAGE.INVALID_RECIPIENT',
     title: 'Value Required',
@@ -251,13 +244,13 @@ export const FullMessageErrors = {
     category: 'validation',
     retryable: false,
   } as DomainError<'FULL_MESSAGE.NOT_IMPLEMENTED', FullMessageContext>,
-  NOT_UUID_ID: {
-    code: 'FULL_MESSAGE.NOT_UUID_ID',
+  NOT_UUID_CODE: {
+    code: 'FULL_MESSAGE.NOT_UUID_CODE',
     title: 'Invalid UUID',
-    detail: 'Id must be a valid RFC-4122 UUID.',
+    detail: 'Code must be a valid RFC-4122 UUID.',
     category: 'validation',
     retryable: false,
-  } as DomainError<'FULL_MESSAGE.NOT_UUID_ID', FullMessageContext>,
+  } as DomainError<'FULL_MESSAGE.NOT_UUID_CODE', FullMessageContext>,
   PERMISSION_DENIED: {
     code: 'FULL_MESSAGE.PERMISSION_DENIED',
     title: 'Permission Denied',
@@ -296,11 +289,14 @@ export const FullMessageErrors = {
     category: 'validation',
     retryable: false,
   } as DomainError<'FULL_MESSAGE.UPDATED_AT_REQUIRED', FullMessageContext>,
-  UUID_VERSION_MISMATCH_ID: {
-    code: 'FULL_MESSAGE.UUID_VERSION_MISMATCH_ID',
+  UUID_VERSION_MISMATCH_CODE: {
+    code: 'FULL_MESSAGE.UUID_VERSION_MISMATCH_CODE',
     title: 'UUID Version Mismatch',
-    detail: 'Id does not match the required UUID version.',
+    detail: 'Code does not match the required UUID version.',
     category: 'validation',
     retryable: false,
-  } as DomainError<'FULL_MESSAGE.UUID_VERSION_MISMATCH_ID', FullMessageContext>,
+  } as DomainError<
+    'FULL_MESSAGE.UUID_VERSION_MISMATCH_CODE',
+    FullMessageContext
+  >,
 } as const;

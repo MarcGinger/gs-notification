@@ -9,16 +9,16 @@
  */
 
 import {
-  FullMessageCreatedAt,
-  FullMessageUpdatedAt,
-  FullMessageVersion,
-  FullMessageId,
+  FullMessageCode,
   FullMessageRecipient,
   FullMessageData,
   createFullMessageStatus,
   FullMessageWorkspaceCode,
   FullMessageTemplateCode,
   FullMessageChannelCode,
+  FullMessageCreatedAt,
+  FullMessageUpdatedAt,
+  FullMessageVersion,
 } from '../../domain/value-objects';
 import { Result, ok, err, DomainError } from 'src/shared/errors';
 import { FullMessageDomainState } from '../../domain/state/full-message.state';
@@ -56,7 +56,7 @@ export class FullMessageStateMapper {
     };
 
     // Convert each primitive to its corresponding VO with error collection
-    const id = validateField('id', FullMessageId.from(snapshot.id));
+    const code = validateField('code', FullMessageCode.from(snapshot.code));
     const recipient = snapshot.recipient
       ? validateField(
           'recipient',
@@ -111,14 +111,14 @@ export class FullMessageStateMapper {
             errorCode: e.error.code,
             errorMessage: e.error.detail,
           })),
-          snapshotCode: snapshot.id,
+          snapshotCode: snapshot.code,
         },
       });
     }
 
     // All validations passed, construct the rich domain state
     const domainState: FullMessageDomainState = {
-      id: id!,
+      code: code!,
       recipient: recipient || undefined,
       data: data || undefined,
       status: status || undefined,
@@ -144,7 +144,7 @@ export class FullMessageStateMapper {
   ): FullMessageSnapshotProps {
     return {
       // Extract primitive values from VOs
-      id: domainState.id.value,
+      code: domainState.code.value,
       recipient: domainState.recipient?.value,
       data: domainState.data?.value,
       status: domainState.status?.value,

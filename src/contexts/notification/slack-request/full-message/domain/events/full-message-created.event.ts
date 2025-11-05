@@ -7,7 +7,7 @@ import type { FullMessageStatusValue } from '../value-objects';
  * Contains only business facts - no envelope metadata, timestamps, or versioning
  */
 export interface FullMessageCreatedEventPayload {
-  id: string;
+  code: string;
   recipient?: string;
   data?: Record<string, unknown>;
   status?: FullMessageStatusValue;
@@ -34,8 +34,8 @@ export class FullMessageCreatedEvent {
     return new FullMessageCreatedEvent(data);
   }
 
-  get id(): string {
-    return this.payload.id;
+  get code(): string {
+    return this.payload.code;
   }
 
   get recipient(): string | undefined {

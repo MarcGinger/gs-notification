@@ -36,13 +36,13 @@ export interface IFullMessageQuery {
   /**
    * Find a single FullMessage by its unique identifier (for CQRS query operations)
    * @param actor - The actor context containing authentication and request metadata
-   * @param id - The unique identifier of the FullMessage
+   * @param code - The unique identifier of the FullMessage
    * @param options - Optional repository options
    * @returns A promise resolving to a Result containing the FullMessage or null if not found
    */
   findById(
     actor: ActorContext,
-    id: string,
+    code: string,
     options?: RepositoryOptions,
   ): Promise<Result<Option<DetailFullMessageResponse>, DomainError>>;
 

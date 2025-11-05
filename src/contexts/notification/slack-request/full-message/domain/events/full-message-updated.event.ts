@@ -9,7 +9,7 @@ import type { FullMessageStatusValue } from '../value-objects';
  * Same shape as Created event for consistent replayability
  */
 export interface FullMessageUpdatedEventPayload {
-  id: string;
+  code: string;
   recipient?: string;
   data?: Record<string, unknown>;
   status?: FullMessageStatusValue;
@@ -35,8 +35,8 @@ export class FullMessageUpdatedEvent {
     return new FullMessageUpdatedEvent(data);
   }
 
-  get id(): string {
-    return this.payload.id;
+  get code(): string {
+    return this.payload.code;
   }
 
   get recipient(): string | undefined {

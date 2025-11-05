@@ -6,7 +6,7 @@ import { RepositoryOptions } from 'src/shared/infrastructure/repositories';
 import { ActorContext } from 'src/shared/application/context';
 import { Option } from 'src/shared/domain/types';
 import { FullMessageSnapshotProps } from '../../domain/props';
-import { FullMessageId } from '../../domain/value-objects';
+import { FullMessageCode } from '../../domain/value-objects';
 
 /**
  * Token for injecting IFullMessageReader port implementation
@@ -33,52 +33,52 @@ export interface IFullMessageReader {
   /**
    * Find a FullMessage by its unique identifier
    * @param actor - The authenticated user context
-   * @param id - The unique identifier of the FullMessage
+   * @param code - The unique identifier of the FullMessage
    * @param options - Optional repository options
    * @returns Result containing the FullMessage snapshot or null if not found
    */
   findById(
     actor: ActorContext,
-    id: FullMessageId,
+    code: FullMessageCode,
     options?: RepositoryOptions,
   ): Promise<Result<Option<FullMessageSnapshotProps>, DomainError>>;
 
   /**
    * Check if a fullMessage exists by ID (for write-path validation)
    * @param actor - The authenticated user context
-   * @param id - The unique identifier of the FullMessage
+   * @param code - The unique identifier of the FullMessage
    * @param options - Optional repository options
    * @returns Result containing boolean indicating existence
    */
   exists(
     actor: ActorContext,
-    id: FullMessageId,
+    code: FullMessageCode,
     options?: RepositoryOptions,
   ): Promise<Result<boolean, DomainError>>;
 
   /**
    * Get fullMessage version for optimistic concurrency control
    * @param actor - The authenticated user context
-   * @param id - The unique identifier of the FullMessage
+   * @param code - The unique identifier of the FullMessage
    * @param options - Optional repository options
    * @returns Result containing version number or null if not found
    */
   getVersion(
     actor: ActorContext,
-    id: FullMessageId,
+    code: FullMessageCode,
     options?: RepositoryOptions,
   ): Promise<Result<Option<number>, DomainError>>;
 
   /**
    * Get minimal fullMessage data for write-path operations
    * @param actor - The authenticated user context
-   * @param id - The unique identifier of the FullMessage
+   * @param code - The unique identifier of the FullMessage
    * @param options - Optional repository options
    * @returns Result containing minimal fullMessage data or null if not found
    */
   getMinimal(
     actor: ActorContext,
-    id: FullMessageId,
+    code: FullMessageCode,
     options?: RepositoryOptions,
-  ): Promise<Result<Option<{ id: string; version: number }>, DomainError>>;
+  ): Promise<Result<Option<{ code: string; version: number }>, DomainError>>;
 }
