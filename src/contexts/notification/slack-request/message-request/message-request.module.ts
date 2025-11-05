@@ -4,14 +4,20 @@
 import { Module } from '@nestjs/common';
 import { BullMQModule } from 'src/shared/infrastructure/queue/bullmq.module';
 import { AppConfigUtil } from 'src/shared/config/app-config.util';
-import { SlackRequestSharedModule } from '../slack-request-shared.module';
-import { SLACK_REQUEST_DI_TOKENS } from '../slack-request.constants';
 
 // Import slack-config modules for query interfaces
 import { WorkspaceModule } from 'src/contexts/notification/slack-config/workspace/workspace.module';
 import { TemplateModule } from 'src/contexts/notification/slack-config/template/template.module';
 import { ChannelModule } from 'src/contexts/notification/slack-config/channel/channel.module';
 import { AppConfigModule } from 'src/contexts/notification/slack-config/app-config/app-config.module';
+import {
+  RedisIdempotencyService,
+  IdempotencyConfig,
+} from 'src/shared/infrastructure';
+
+import { SLACK_REQUEST_DI_TOKENS } from '../slack-request.constants';
+import { MESSAGE_REQUEST_APP_PORT } from './application/ports/message-request-app.port';
+import { SlackRequestSharedModule } from '../slack-request-shared.module';
 import { MessageRequestController } from './interface/http/controllers';
 import {
   MessageRequestApplicationService,
@@ -19,8 +25,6 @@ import {
   MessageRequestAuthorizationAdapter,
   MessageRequestForeignKeyValidatorService,
 } from './application/services';
-
-import { MESSAGE_REQUEST_APP_PORT } from './application/ports/message-request-app.port';
 import {
   ICreateMessageRequestUseCase,
   CreateMessageRequestUseCase,
@@ -43,18 +47,14 @@ import {
   TemplateReaderRepository,
   ChannelReaderRepository,
 } from './infrastructure/repositories';
+
 import {
   MessageRequestQueueService,
   SendMessageRequestWorkerService,
 } from './infrastructure/services';
-import {
-  RedisIdempotencyService,
-  IdempotencyConfig,
-} from 'src/shared/infrastructure';
 import { MessageRequestProcessor } from './infrastructure/processors';
 import { MessageRequestTemplateAdapter } from './infrastructure/services/message-request-template.adapter';
 import { TemplateRendererService } from 'src/shared/infrastructure';
-
 // Tokens for injection - imported directly from port files
 import {
   MESSAGE_REQUEST_READER_TOKEN,
