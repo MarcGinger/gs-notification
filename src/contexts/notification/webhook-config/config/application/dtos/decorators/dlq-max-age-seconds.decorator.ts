@@ -21,7 +21,7 @@ export function ApiConfigDlqMaxAgeSeconds(options: PropOptions = {}) {
 
   return applyDecorators(
     ApiProperty({
-      description: `Dead letter queue max age in seconds`,
+      description: `Maximum time in seconds to retain failed messages in dead letter queue before automatic cleanup. Default is 7 days (604800 seconds).`,
       type: Number,
       required,
     }),

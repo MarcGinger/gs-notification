@@ -22,7 +22,7 @@ export function ApiConfigDlqEnabled(options: PropOptions = {}) {
 
   return applyDecorators(
     ApiProperty({
-      description: `Dead letter queue enabled`,
+      description: `Whether to store permanently failed webhook deliveries in a dead letter queue for manual inspection and reprocessing. Essential for reliability monitoring.`,
       type: Boolean,
       required,
     }),

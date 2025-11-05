@@ -21,7 +21,7 @@ export function ApiWebhookRateLimitPerMinute(options: PropOptions = {}) {
 
   return applyDecorators(
     ApiProperty({
-      description: `Optional per-webhook rate limit`,
+      description: `Optional rate limiting for this specific webhook endpoint. Maximum number of events to send per minute. Leave empty for no per-webhook limit.`,
       type: Number,
       required,
     }),

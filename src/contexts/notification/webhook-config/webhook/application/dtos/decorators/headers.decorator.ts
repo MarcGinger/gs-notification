@@ -22,7 +22,7 @@ export function ApiWebhookHeaders(options: PropOptions = {}) {
 
   return applyDecorators(
     ApiProperty({
-      description: `Webhook Headers`,
+      description: `Custom HTTP headers to include with webhook requests as key-value pairs. Useful for authentication tokens, content types, or custom metadata.`,
       example: '{ "key1": "value1", "key2": 123 }',
       type: 'object',
       additionalProperties: true,

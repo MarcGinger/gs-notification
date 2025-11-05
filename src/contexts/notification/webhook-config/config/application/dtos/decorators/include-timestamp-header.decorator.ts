@@ -22,7 +22,7 @@ export function ApiConfigIncludeTimestampHeader(options: PropOptions = {}) {
 
   return applyDecorators(
     ApiProperty({
-      description: `Include timestamp header for signatures`,
+      description: `Whether to include X-Webhook-Timestamp header with Unix timestamp when signing requests. Helps prevent replay attacks by allowing receivers to reject old requests.`,
       type: Boolean,
       required,
     }),

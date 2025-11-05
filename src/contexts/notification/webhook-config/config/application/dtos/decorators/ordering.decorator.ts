@@ -26,7 +26,7 @@ export function ApiConfigOrdering(options: PropOptions = {}) {
   const { required = false } = options;
   return applyDecorators(
     ApiProperty({
-      description: `Message ordering strategy Values include fifo, loose.`,
+      description: `Message delivery ordering strategy - fifo (strict first-in-first-out) or loose (best-effort ordering). FIFO may reduce throughput but ensures sequential delivery. Values include fifo, loose.`,
       type: String,
       enum: ConfigOrderingValues,
       required,

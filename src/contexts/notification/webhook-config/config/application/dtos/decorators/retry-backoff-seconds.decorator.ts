@@ -21,7 +21,7 @@ export function ApiConfigRetryBackoffSeconds(options: PropOptions = {}) {
 
   return applyDecorators(
     ApiProperty({
-      description: `Base backoff time in seconds`,
+      description: `Base backoff time in seconds before retrying failed deliveries. Used as starting point for exponential/linear backoff calculations.`,
       example: 5,
       type: Number,
       required,

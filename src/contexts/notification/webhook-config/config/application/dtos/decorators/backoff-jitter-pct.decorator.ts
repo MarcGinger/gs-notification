@@ -21,7 +21,7 @@ export function ApiConfigBackoffJitterPct(options: PropOptions = {}) {
 
   return applyDecorators(
     ApiProperty({
-      description: `Jitter percentage for backoff`,
+      description: `Randomization percentage (0-100) added to backoff delays to prevent thundering herd effects. Higher values spread retry attempts more randomly.`,
       type: Number,
       required,
     }),

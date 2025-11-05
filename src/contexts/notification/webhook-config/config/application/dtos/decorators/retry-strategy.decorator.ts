@@ -26,7 +26,7 @@ export function ApiConfigRetryStrategy(options: PropOptions = {}) {
   const { required = false } = options;
   return applyDecorators(
     ApiProperty({
-      description: `Retry backoff strategy Values include exponential, linear, fixed.`,
+      description: `Strategy for calculating retry delays - exponential (doubles delay), linear (constant increase), or fixed (same delay). Controls how aggressively to back off on failures. Values include exponential, linear, fixed.`,
       type: String,
       enum: ConfigRetryStrategyValues,
       required,

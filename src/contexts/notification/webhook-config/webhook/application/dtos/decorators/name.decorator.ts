@@ -22,7 +22,7 @@ export function ApiWebhookName(options: PropOptions = {}) {
 
   return applyDecorators(
     ApiProperty({
-      description: `Webhook Name`,
+      description: `Human-readable name for the webhook endpoint. Used for identification and management purposes in admin interfaces.`,
       type: String,
       required,
     }),

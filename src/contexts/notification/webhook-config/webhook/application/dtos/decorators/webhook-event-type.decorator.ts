@@ -22,7 +22,7 @@ export function ApiWebhookWebhookEventType(options: PropOptions = {}) {
 
   return applyDecorators(
     ApiProperty({
-      description: `Event type identifier, e.g. 'product.created.v1'`,
+      description: `Specific event type this webhook subscribes to, using dot notation format (e.g., 'order.created.v1', 'user.updated.v2'). Determines which events trigger this webhook.`,
       type: String,
       required,
     }),

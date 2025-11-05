@@ -22,7 +22,7 @@ export function ApiWebhookSigningSecretRef(options: PropOptions = {}) {
 
   return applyDecorators(
     ApiProperty({
-      description: `Reference to signing secret (not raw value)`,
+      description: `Reference or key name for the signing secret used to generate webhook signatures. Stores the secret identifier, not the actual secret value for security.`,
       type: String,
       required,
     }),

@@ -22,7 +22,7 @@ export function ApiConfigTenantId(options: PropOptions = {}) {
 
   return applyDecorators(
     ApiProperty({
-      description: `Tenant identifier for per-tenant configs`,
+      description: `Tenant identifier for multi-tenant support. Every configuration must belong to a tenant for proper isolation and access control.`,
       type: String,
       required,
     }),

@@ -26,7 +26,7 @@ export function ApiWebhookMethod(options: PropOptions = {}) {
   const { required = true } = options;
   return applyDecorators(
     ApiProperty({
-      description: `HTTP method for webhook delivery Values include GET, POST, PUT, PATCH.`,
+      description: `HTTP method used for webhook delivery. POST is most common for event notifications, but GET/PUT/PATCH/DELETE are supported for specialized integrations. Values include GET, POST, PUT, PATCH.`,
       type: String,
       enum: WebhookMethodValues,
       required,

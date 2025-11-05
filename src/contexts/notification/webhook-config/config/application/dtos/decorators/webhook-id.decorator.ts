@@ -22,7 +22,7 @@ export function ApiConfigWebhookId(options: PropOptions = {}) {
 
   return applyDecorators(
     ApiProperty({
-      description: `Optional webhook-specific override`,
+      description: `Optional reference to a specific webhook for per-webhook configuration overrides. Leave empty for tenant-level or global configurations.`,
       type: String,
       required,
     }),

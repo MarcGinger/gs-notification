@@ -23,40 +23,38 @@ export class WebhookConfigDocumentation {
 ## bounded context: notification
 [← Back to documentation](/api/docs/notification)
 
-# 🧩 Core Slack Config — General Overview
+# 🧩 Core Webhook Config — General Overview
 
-The **Core Slack Config** service is part of the broader **Notification Bounded Context**, responsible for managing all configuration aspects required to send Slack notifications within the platform. It provides the infrastructure and domain logic that connects a tenant’s Slack workspace to the notification ecosystem, ensuring secure, structured, and compliant communication between services and Slack.
+The **Core Webhook Config** service is part of the broader **Notification Bounded Context**, responsible for managing all configuration aspects required to send outbound webhooks within the platform. It provides the infrastructure and domain logic that connects a tenant’s webhook endpoints to the notification ecosystem, ensuring secure, structured, and compliant communication between services and external systems.
 
 ---
 
 ## 🎯 Purpose
 
-The primary purpose of **Core Slack Config** is to manage the lifecycle of Slack-related configuration for each tenant. It defines *how*, *where*, and *under what conditions* Slack messages are sent. By maintaining configurations in a domain-driven, event-sourced model, the service guarantees auditability, tenant isolation, and consistency across all Slack-related operations.
+The primary purpose of **Core Webhook Config** is to manage the lifecycle of webhook-related configuration for each tenant. It defines *where*, *how*, and *under what conditions* webhook payloads are sent. By maintaining configurations in a domain-driven, event-sourced model, the service guarantees auditability, tenant isolation, and consistency across all webhook-related operations.
 
 ---
 
 ## 🧱 Architectural Role
 
-**Core Slack Config** acts as the **configuration source of truth** for all Slack integrations in the system. It is not responsible for sending messages (that’s handled by the **Core Slack Execute** service), but instead manages the metadata, tokens, templates, and operational policies that determine how Slack notifications are constructed and authorized.
+**Core Webhook Config** acts as the **configuration source of truth** for all webhook integrations in the system. It is not responsible for executing HTTP requests (that’s handled by the **Core Webhook Execute** service), but instead manages the metadata, headers, secrets, retry strategies, and operational policies that determine how webhooks are delivered and authorized.
 
 ### Key Roles:
 
-* Acts as the *control plane* for Slack notification configuration.
-* Provides secure storage and rotation for OAuth tokens and signing secrets.
-* Defines approved channels and message templates per workspace.
-* Publishes events consumed by other services (e.g., executors, auditors, or workflow engines).
-* Ensures compliance with security and audit policies via event sourcing.
+* Acts as the *control plane* for webhook delivery configuration.
+* Provides secure storage and reference handling for signing secrets.
+* Defines approved target URLs and subscribed event types.
+* Publishes domain events consumed by other services (e.g., executors, auditors, or workflow engines).
+* Ensures compliance with audit and retry policies via event sourcing.
 
 ---
 
 ## ⚙️ Core Components
 
-| Aggregate          | Description                                                                                                           |
-| ------------------ | --------------------------------------------------------------------------------------------------------------------- |
-| **SlackWorkspace** | Represents a tenant’s Slack workspace connection, holding OAuth credentials, signing secrets, and workspace metadata. |
-| **SlackChannel**   | Defines the list of authorized channels and direct message endpoints available for message delivery.                  |
-| **SlackTemplate**  | Manages reusable message templates (text, block layouts, and variables) for structured notifications.                 |
-| **SlackAppConfig** | Contains global settings, retry/backoff parameters, logging preferences, and audit configurations.                    |
+| Aggregate   | Description                                                                                                     |
+| ----------- | --------------------------------------------------------------------------------------------------------------- |
+| **Webhook** | Represents an outbound webhook endpoint, including target URL, subscribed event types, HTTP method, and status. |
+| **Config**  | Defines retry/backoff strategies, timeout settings, and operational parameters controlling webhook execution.   |
 
 Each aggregate is event-sourced and projected into Redis for fast reads. The system follows a **CQRS pattern**, separating command writes (EventStoreDB) from queries (Redis projections).
 
@@ -69,7 +67,7 @@ Each aggregate is event-sourced and projected into Redis for fast reads. The sys
        ↓
 [Central Projection Service] → [Redis Snapshot] + [Redis Query Index]
        ↓
-[Query API] → [Consumer Services / UI]
+[Query API] → [Executor / UI / Workflow Consumers]
 &#x60;&#x60;&#x60;
 
 This architecture provides full event auditability in **EventStoreDB**, real-time read performance in **Redis**, and flexible event-driven synchronization via **BullMQ** projectors.
@@ -80,42 +78,42 @@ This architecture provides full event auditability in **EventStoreDB**, real-tim
 
 * **Authentication:** Managed via Keycloak (OAuth2 / OpenID Connect).
 * **Authorization:** Governed by Open Policy Agent (OPA) Rego policies.
-* **Secret Storage:** Slack tokens and signing secrets are stored securely using Doppler or another approved secret manager.
+* **Secret Management:** Signing secrets are stored securely using Doppler or another approved secret manager.
 * **Auditability:** Every configuration change emits domain events stored in EventStoreDB, ensuring immutable history and traceability.
 
 ---
 
 ## 🚀 Example Use Cases
 
-| Use Case                | Description                                                                                                                        |
-| ----------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
-| **Tenant Onboarding**   | When a new tenant connects their Slack workspace, &#x60;SlackWorkspaceConfigured.v1&#x60; and &#x60;SlackAppConfigUpdated.v1&#x60; events are emitted. |
-| **Channel Management**  | Admins can link or disable channels for specific event types (e.g., approvals, alerts).                                            |
-| **Template Management** | Teams can create reusable message templates with placeholders for workflow data.                                                   |
-| **Policy Updates**      | Changing retry or logging settings emits &#x60;SlackAppConfigUpdated.v1&#x60;, allowing other services to adjust behavior dynamically.       |
+| Use Case                 | Description                                                                                                         |
+| ------------------------ | ------------------------------------------------------------------------------------------------------------------- |
+| **Webhook Registration** | When a new webhook is added for a tenant, &#x60;WebhookRegistered.v1&#x60; and &#x60;ConfigUpdated.v1&#x60; events are emitted.         |
+| **Retry Policy Update**  | Admins can update retry and timeout parameters, triggering &#x60;ConfigUpdated.v1&#x60; for executor synchronization.         |
+| **Secret Rotation**      | When a signing secret is rotated, the service emits a new versioned event and updates downstream projections.       |
+| **Subscription Change**  | Tenants can modify the event types their webhook subscribes to, updating routing and executor behavior dynamically. |
 
 ---
 
 ## ✅ Benefits
 
 * **Event-Sourced Reliability:** Every change is versioned, replayable, and fully auditable.
-* **Tenant Isolation:** Each Slack workspace and channel configuration is scoped to a tenant.
+* **Tenant Isolation:** Each webhook configuration is scoped to a tenant.
 * **High Performance:** Read models are served from Redis with millisecond-level latency.
-* **Extensible Design:** Supports additional configuration layers (e.g., threads, attachments, Slack workflows) in future iterations.
-* **Integration Friendly:** Easily integrates with other notification channels (email, SMS, webhook) through consistent event naming and structure.
+* **Extensible Design:** Supports additional delivery settings (e.g., per-event policies, delivery headers) in future iterations.
+* **Integration Friendly:** Provides consistent event naming and structure compatible with other notification channels (Slack, Email, SMS).
 
 ---
 
 ## 🧩 Summary
 
-The **Core Slack Config** service provides the configuration backbone for all Slack-based notifications. It ensures that every message sent through Slack is:
+The **Core Webhook Config** service provides the configuration backbone for all webhook-based notifications. It ensures that every outbound webhook:
 
-* Securely authenticated.
-* Delivered through approved channels.
-* Formatted using consistent templates.
-* Managed under auditable, tenant-aware policies.
+* Is securely configured and authorized.
+* Uses approved and auditable endpoints.
+* Follows consistent retry and timeout policies.
+* Operates under event-sourced, tenant-aware control.
 
-This service is a critical component of the Notification Bounded Context, enabling robust, enterprise-grade Slack integration within a modern, event-driven architecture.
+This service is a critical component of the Notification Bounded Context, enabling scalable, reliable, and compliant webhook integration within a modern, event-driven architecture.
 
 
 ### application: webhook-config

@@ -21,7 +21,7 @@ export function ApiConfigMaxRetryAttempts(options: PropOptions = {}) {
 
   return applyDecorators(
     ApiProperty({
-      description: `Maximum retry attempts`,
+      description: `Maximum number of retry attempts for failed webhook deliveries. Default of 6 provides good balance between persistence and avoiding infinite loops.`,
       example: 6,
       type: Number,
       required,

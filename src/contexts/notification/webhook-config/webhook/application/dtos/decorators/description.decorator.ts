@@ -22,7 +22,7 @@ export function ApiWebhookDescription(options: PropOptions = {}) {
 
   return applyDecorators(
     ApiProperty({
-      description: `Webhook Description`,
+      description: `Optional detailed description of the webhook's purpose, functionality, and intended use case. Helpful for documentation and team collaboration.`,
       type: String,
       required,
     }),

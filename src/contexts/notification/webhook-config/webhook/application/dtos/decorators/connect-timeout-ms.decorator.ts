@@ -21,7 +21,7 @@ export function ApiWebhookConnectTimeoutMs(options: PropOptions = {}) {
 
   return applyDecorators(
     ApiProperty({
-      description: `Connection timeout in milliseconds`,
+      description: `Maximum time in milliseconds to wait for establishing a connection to the webhook endpoint. Default 3 seconds for quick failure detection.`,
       type: Number,
       required,
     }),

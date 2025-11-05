@@ -32,26 +32,141 @@ export class ConfigDocumentation {
 
 ### application: webhook-config
 [← Back to documentation](/api/docs/notification/webhook-config)
-## ⚙️ SlackAppConfig
+# 🧩 Core Webhook Config — General Overview
+
+The **Core Webhook Config** service is part of the broader **Notification Bounded Context**, responsible for managing all configuration aspects required to send outbound webhooks within the platform. It provides the infrastructure and domain logic that connects a tenant’s webhook endpoints to the notification ecosystem, ensuring secure, structured, and compliant communication between services and external systems.
+
+---
+
+## 🎯 Purpose
+
+The primary purpose of **Core Webhook Config** is to manage the lifecycle of webhook-related configuration for each tenant. It defines *where*, *how*, and *under what conditions* webhook payloads are sent. By maintaining configurations in a domain-driven, event-sourced model, the service guarantees auditability, tenant isolation, and consistency across all webhook-related operations.
+
+---
+
+## 🧱 Architectural Role
+
+**Core Webhook Config** acts as the **configuration source of truth** for all webhook integrations in the system. It is not responsible for executing HTTP requests (that’s handled by the **Core Webhook Execute** service), but instead manages the metadata, headers, secrets, retry strategies, and operational policies that determine how webhooks are delivered and authorized.
+
+### Key Roles:
+
+* Acts as the *control plane* for webhook delivery configuration.
+* Provides secure storage and reference handling for signing secrets.
+* Defines approved target URLs and subscribed event types.
+* Publishes domain events consumed by other services (e.g., executors, auditors, or workflow engines).
+* Ensures compliance with audit and retry policies via event sourcing.
+
+---
+
+## ⚙️ Core Components
+
+| Aggregate   | Description                                                                                                     |
+| ----------- | --------------------------------------------------------------------------------------------------------------- |
+| **Webhook** | Represents an outbound webhook endpoint, including target URL, subscribed event types, HTTP method, and status. |
+| **Config**  | Defines retry/backoff strategies, timeout settings, and operational parameters controlling webhook execution.   |
+
+Each aggregate is event-sourced and projected into Redis for fast reads. The system follows a **CQRS pattern**, separating command writes (EventStoreDB) from queries (Redis projections).
+
+---
+
+## 🧩 Data Flow Summary
+
+\`\`\`
+[API Command] → [Use Case] → [ESDB Writer Repository] → [EventStoreDB]
+       ↓
+[Central Projection Service] → [Redis Snapshot] + [Redis Query Index]
+       ↓
+[Query API] → [Executor / UI / Workflow Consumers]
+\`\`\`
+
+This architecture provides full event auditability in **EventStoreDB**, real-time read performance in **Redis**, and flexible event-driven synchronization via **BullMQ** projectors.
+
+---
+
+## 🛡️ Security and Compliance
+
+* **Authentication:** Managed via Keycloak (OAuth2 / OpenID Connect).
+* **Authorization:** Governed by Open Policy Agent (OPA) Rego policies.
+* **Secret Management:** Signing secrets are stored securely using Doppler or another approved secret manager.
+* **Auditability:** Every configuration change emits domain events stored in EventStoreDB, ensuring immutable history and traceability.
+
+---
+
+## 🚀 Example Use Cases
+
+| Use Case                 | Description                                                                                                         |
+| ------------------------ | ------------------------------------------------------------------------------------------------------------------- |
+| **Webhook Registration** | When a new webhook is added for a tenant, \`WebhookRegistered.v1\` and \`ConfigUpdated.v1\` events are emitted.         |
+| **Retry Policy Update**  | Admins can update retry and timeout parameters, triggering \`ConfigUpdated.v1\` for executor synchronization.         |
+| **Secret Rotation**      | When a signing secret is rotated, the service emits a new versioned event and updates downstream projections.       |
+| **Subscription Change**  | Tenants can modify the event types their webhook subscribes to, updating routing and executor behavior dynamically. |
+
+---
+
+## ✅ Benefits
+
+* **Event-Sourced Reliability:** Every change is versioned, replayable, and fully auditable.
+* **Tenant Isolation:** Each webhook configuration is scoped to a tenant.
+* **High Performance:** Read models are served from Redis with millisecond-level latency.
+* **Extensible Design:** Supports additional delivery settings (e.g., per-event policies, delivery headers) in future iterations.
+* **Integration Friendly:** Provides consistent event naming and structure compatible with other notification channels (Slack, Email, SMS).
+
+---
+
+## 🧩 Summary
+
+The **Core Webhook Config** service provides the configuration backbone for all webhook-based notifications. It ensures that every outbound webhook:
+
+* Is securely configured and authorized.
+* Uses approved and auditable endpoints.
+* Follows consistent retry and timeout policies.
+* Operates under event-sourced, tenant-aware control.
+
+This service is a critical component of the Notification Bounded Context, enabling scalable, reliable, and compliant webhook integration within a modern, event-driven architecture.
+
+---
+
+## 🔗 Webhook
 
 ### **Purpose**
 
-The \`SlackAppConfig\` aggregate manages system-wide operational parameters for the Slack integration within a tenant’s workspace. It defines how the app behaves under various runtime conditions, such as retries, logging, and audit behavior.
+The \`Webhook\` aggregate represents a webhook endpoint configuration for delivering events to external systems. It acts as the foundational configuration point that defines how, where, and under what conditions webhook notifications are sent.
 
-This configuration ensures that message delivery is resilient and aligned with organizational policies (e.g., how many times to retry sending, whether to log every event, which audit channel to use, etc.).
+This aggregate holds delivery configuration including target URLs, HTTP methods, headers, signing secrets, and operational settings. It ensures webhook deliveries are properly configured and can be managed independently.
 
 ### **Responsibilities**
 
-* Manage retry and backoff policies for message delivery.
-* Enable or disable message-level logging for auditing.
-* Define the audit channel ID for operational or compliance logs.
-* Maintain default locale, metadata, and other operational flags.
-* Emit configuration change events for runtime synchronization.
+* Define webhook endpoint details (URL, method, headers).
+* Manage webhook operational status (active, paused, disabled).
+* Store webhook-specific timeout and TLS verification settings.
+* Reference signing secrets for webhook authentication.
+* Emit events when webhook configuration changes occur.
 
 ### **Why It Matters**
 
-\`SlackAppConfig\` provides the **operational backbone** for Slack messaging. It ensures reliability, compliance, and observability — allowing organizations to manage how Slack notifications behave at scale and during failures.
+The \`Webhook\` aggregate provides the essential configuration for reliable event delivery to external systems. It ensures proper authentication, timeout handling, and operational control over webhook endpoints.
 
+---
+
+## ⚙️ Config
+
+### **Purpose**
+
+The \`Config\` aggregate manages system-wide operational parameters for webhook delivery within a tenant’s environment. It defines how webhook executions behave under various runtime conditions, such as retries, backoff, timeouts, and logging.
+
+This configuration ensures webhook delivery is resilient and aligned with organizational policies (e.g., retry intervals, maximum attempts, request timeouts, or whether to include audit metadata in headers).
+
+### **Responsibilities**
+
+* Manage retry and backoff policies for webhook execution.
+* Control request timeout and connection settings for external calls.
+* Define signature and security parameters for webhook authentication.
+* Maintain default locale, metadata, and operational strategies (e.g., per-tenant or global).
+* Emit configuration change events for synchronization across executor services.
+
+### **Why It Matters**
+
+\`Config\` provides the **operational backbone** for webhook execution. It ensures reliability, observability, and compliance — allowing organizations to define consistent behavior for webhook notifications at scale and under failure conditions.
 `,
       )
       .setVersion('1.0.0')

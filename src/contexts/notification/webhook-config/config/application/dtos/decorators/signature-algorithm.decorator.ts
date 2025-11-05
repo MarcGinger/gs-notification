@@ -26,7 +26,7 @@ export function ApiConfigSignatureAlgorithm(options: PropOptions = {}) {
   const { required = false } = options;
   return applyDecorators(
     ApiProperty({
-      description: `Signature algorithm for webhook signing Values include sha256, sha1.`,
+      description: `Cryptographic algorithm for signing webhook payloads - sha256 (recommended for security) or sha1 (legacy). Used with signingSecretRef to verify request authenticity. Values include sha256, sha1.`,
       type: String,
       enum: ConfigSignatureAlgorithmValues,
       required,

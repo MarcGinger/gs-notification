@@ -26,7 +26,7 @@ export function ApiWebhookStatus(options: PropOptions = {}) {
   const { required = true } = options;
   return applyDecorators(
     ApiProperty({
-      description: `Webhook operational status Values include active, paused, disabled.`,
+      description: `Current operational status of the webhook. &#x27;active&#x27; &#x3D; receiving events, &#x27;paused&#x27; &#x3D; temporarily disabled, &#x27;disabled&#x27; &#x3D; permanently inactive. Values include active, paused, disabled.`,
       type: String,
       enum: WebhookStatusValues,
       required,

@@ -21,7 +21,7 @@ export function ApiConfigMaxConcurrent(options: PropOptions = {}) {
 
   return applyDecorators(
     ApiProperty({
-      description: `Worker concurrency cap`,
+      description: `Maximum number of concurrent webhook delivery jobs for this configuration. NULL means unlimited. Helps control resource usage and downstream system load.`,
       type: Number,
       required,
     }),

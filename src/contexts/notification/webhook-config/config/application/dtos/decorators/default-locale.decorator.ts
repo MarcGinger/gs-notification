@@ -22,7 +22,7 @@ export function ApiConfigDefaultLocale(options: PropOptions = {}) {
 
   return applyDecorators(
     ApiProperty({
-      description: `Default locale, e.g. 'en-ZA'`,
+      description: `Default locale for webhook payloads and error messages in IETF BCP 47 format (e.g., 'en-US', 'en-ZA'). Used for internationalization of generated content.`,
       example: `en-US`,
       type: String,
       required,

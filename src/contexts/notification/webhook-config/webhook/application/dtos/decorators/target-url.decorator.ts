@@ -22,7 +22,7 @@ export function ApiWebhookTargetUrl(options: PropOptions = {}) {
 
   return applyDecorators(
     ApiProperty({
-      description: `Required webhook target URL`,
+      description: `The complete HTTPS/HTTP URL where webhook events will be delivered. Must be a valid, accessible endpoint that can receive POST requests.`,
       type: String,
       required,
     }),

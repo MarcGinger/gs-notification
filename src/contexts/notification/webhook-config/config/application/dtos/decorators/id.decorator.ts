@@ -22,7 +22,7 @@ export function ApiConfigId(options: PropOptions = {}) {
 
   return applyDecorators(
     ApiProperty({
-      description: `Configuration identity`,
+      description: `Unique identifier for this configuration set. Auto-generated UUID that serves as the primary key for webhook configuration management policies.`,
       type: String,
       required,
     }),

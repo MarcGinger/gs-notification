@@ -22,7 +22,7 @@ export function ApiWebhookVerifyTls(options: PropOptions = {}) {
 
   return applyDecorators(
     ApiProperty({
-      description: `Whether to verify TLS certificates`,
+      description: `Whether to verify SSL/TLS certificates when making webhook requests. Set to false only for development/testing environments with self-signed certificates.`,
       type: Boolean,
       required,
     }),

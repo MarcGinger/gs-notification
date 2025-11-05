@@ -21,7 +21,7 @@ export function ApiConfigRequestTimeoutMs(options: PropOptions = {}) {
 
   return applyDecorators(
     ApiProperty({
-      description: `Request timeout in milliseconds`,
+      description: `Maximum time in milliseconds to wait for webhook response before timing out and marking as failed. Overrides the webhook-level setting.`,
       type: Number,
       required,
     }),

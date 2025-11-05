@@ -28,7 +28,7 @@ export function ApiWebhookId(options: PropOptions = {}) {
 
   return applyDecorators(
     ApiProperty({
-      description: `Webhook Id`,
+      description: `Unique identifier for the webhook endpoint. Auto-generated UUID that serves as the primary key for webhook configuration management.`,
       type: String,
       required,
     }),

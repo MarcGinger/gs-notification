@@ -26,7 +26,7 @@ export function ApiConfigStrategy(options: PropOptions = {}) {
   const { required = true } = options;
   return applyDecorators(
     ApiProperty({
-      description: `Configuration strategy scope Values include per-webhook, per-tenant, global.`,
+      description: `Configuration scope strategy: &#x27;per-webhook&#x27; for specific webhook overrides, &#x27;per-tenant&#x27; for tenant-wide defaults, &#x27;global&#x27; for system-wide settings. Values include per-webhook, per-tenant, global.`,
       type: String,
       enum: ConfigStrategyValues,
       required,
