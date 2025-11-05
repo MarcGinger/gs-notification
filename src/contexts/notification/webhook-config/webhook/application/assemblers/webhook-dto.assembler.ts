@@ -31,12 +31,16 @@ export class WebhookDtoAssembler {
     dto.id = domainState.id.value;
     dto.name = domainState.name.value;
     dto.description = domainState.description?.value;
-    dto.targetUrl = domainState.targetUrl?.value;
-    dto.eventType = domainState.eventType?.value;
-    dto.method = domainState.method?.value;
+    dto.targetUrl = domainState.targetUrl.value;
+    dto.eventType = domainState.eventType.value;
+    dto.method = domainState.method.value;
     dto.headers = domainState.headers?.value;
-    dto.signingSecret = domainState.signingSecret?.value;
+    dto.signingSecretRef = domainState.signingSecretRef?.value;
     dto.status = domainState.status.value;
+    dto.verifyTls = domainState.verifyTls?.value;
+    dto.requestTimeoutMs = domainState.requestTimeoutMs?.value;
+    dto.connectTimeoutMs = domainState.connectTimeoutMs?.value;
+    dto.rateLimitPerMinute = domainState.rateLimitPerMinute?.value;
 
     return dto;
   }
@@ -54,12 +58,16 @@ export class WebhookDtoAssembler {
     dto.id = domainState.id.value;
     dto.name = domainState.name.value;
     dto.description = domainState.description?.value;
-    dto.targetUrl = domainState.targetUrl?.value;
-    dto.eventType = domainState.eventType?.value;
-    dto.method = domainState.method?.value;
+    dto.targetUrl = domainState.targetUrl.value;
+    dto.eventType = domainState.eventType.value;
+    dto.method = domainState.method.value;
     dto.headers = domainState.headers?.value;
-    dto.signingSecret = domainState.signingSecret?.value;
+    dto.signingSecretRef = domainState.signingSecretRef?.value;
     dto.status = domainState.status.value;
+    dto.verifyTls = domainState.verifyTls?.value;
+    dto.requestTimeoutMs = domainState.requestTimeoutMs?.value;
+    dto.connectTimeoutMs = domainState.connectTimeoutMs?.value;
+    dto.rateLimitPerMinute = domainState.rateLimitPerMinute?.value;
 
     return dto;
   }

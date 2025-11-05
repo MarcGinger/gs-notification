@@ -12,7 +12,7 @@
   "tables": [
     {
       "name": "webhook",
-      "description": "## 🧠 SlackWorkspace\n\n### **Purpose**\n\nThe \\`SlackWorkspace\\` aggregate represents the tenant’s connection to their Slack workspace. It acts as the foundational configuration point that defines the link between the system and the tenant’s Slack organization.\n\nThis aggregate holds sensitive integration credentials — including OAuth tokens, signing secrets, and app identifiers — and ensures they are securely managed and rotated when necessary. It also tracks which workspace belongs to which tenant and whether the connection is currently active.\n\n### **Responsibilities**\n\n* Maintain the tenant-to-Slack workspace mapping.\n* Securely store and reference OAuth credentials (e.g., \\`botToken\\`, \\`signingSecret\\`).\n* Enable or disable the Slack integration per tenant.\n* Manage the default posting channel for system notifications.\n* Emit events that notify other services when configuration changes occur.\n\n### **Why It Matters**\n\nWithout the \\`SlackWorkspace\\` aggregate, the platform wouldn’t know **where** to send Slack messages or which tokens to use for authentication. It ensures tenant isolation and provides a secure boundary for Slack API interactions.\n",
+      "description": "## 🔗 Webhook\n\n### **Purpose**\n\nThe \\`Webhook\\` aggregate represents a webhook endpoint configuration for delivering events to external systems. It acts as the foundational configuration point that defines how, where, and under what conditions webhook notifications are sent.\n\nThis aggregate holds delivery configuration including target URLs, HTTP methods, headers, signing secrets, and operational settings. It ensures webhook deliveries are properly configured and can be managed independently.\n\n### **Responsibilities**\n\n* Define webhook endpoint details (URL, method, headers).\n* Manage webhook operational status (active, paused, disabled).\n* Store webhook-specific timeout and TLS verification settings.\n* Reference signing secrets for webhook authentication.\n* Emit events when webhook configuration changes occur.\n\n### **Why It Matters**\n\nThe \\`Webhook\\` aggregate provides the essential configuration for reliable event delivery to external systems. It ensures proper authentication, timeout handling, and operational control over webhook endpoints.\n",
       "columns": [
         {
           "name": "id",
@@ -22,9 +22,9 @@
           "datatype": "VARCHAR",
           "primaryKey": true,
           "required": true,
-          "description": "Unique identifier for the Slack workspace/team, provided by Slack API during OAuth installation. This is the primary key linking all workspace-specific configurations.",
+          "description": "",
           "defaultvalue": "",
-          "example": "T01EXAMPLE123",
+          "example": "",
           "autoIncrement": false,
           "maxLength": "32",
           "minLength": "10",
@@ -35,7 +35,7 @@
           "get": true,
           "list": true,
           "parentRelationship": "",
-          "childRelationship": "workspace_app_config",
+          "childRelationship": "webhook_config",
           "meta": {
             "kind": "string",
             "minLength": 10,
@@ -50,9 +50,9 @@
           "datatype": "VARCHAR",
           "primaryKey": false,
           "required": true,
-          "description": "Human-readable display name of the Slack workspace as configured by workspace administrators. Used for identification and logging purposes.",
+          "description": "",
           "defaultvalue": "",
-          "example": "Acme Corp Engineering",
+          "example": "",
           "autoIncrement": false,
           "maxLength": "255",
           "array": false,
@@ -100,10 +100,10 @@
           "parentRelationshipType": "",
           "datatype": "TEXT",
           "primaryKey": false,
-          "required": false,
-          "description": "OAuth bot token with scope permissions for posting messages, reading channels, and accessing workspace information. Encrypted at rest using AES-256 encryption for security compliance.",
+          "required": true,
+          "description": "Required webhook target URL",
           "defaultvalue": "",
-          "example": "xoxb-EXAMPLE-EXAMPLE-EXAMPLETOKEN123456",
+          "example": "",
           "autoIncrement": false,
           "array": false,
           "isPII": "",
@@ -123,13 +123,14 @@
           "type": "string",
           "childRelationshipType": "",
           "parentRelationshipType": "",
-          "datatype": "TEXT",
+          "datatype": "VARCHAR",
           "primaryKey": false,
-          "required": false,
-          "description": "Slack application signing secret used to verify that incoming requests are genuinely from Slack. Required for webhook authentication and security validation. Encrypted using the same key as bot_token.",
+          "required": true,
+          "description": "Event type identifier, e.g. 'product.created.v1'",
           "defaultvalue": "",
-          "example": "example_signing_secret_not_real_123",
+          "example": "",
           "autoIncrement": false,
+          "maxLength": "128",
           "array": false,
           "isPII": "",
           "create": true,
@@ -140,7 +141,7 @@
           "childRelationship": "",
           "meta": {
             "kind": "string",
-            "maxLength": 65535
+            "maxLength": 128
           }
         },
         {
@@ -150,17 +151,26 @@
           "parentRelationshipType": "",
           "datatype": "ENUM",
           "primaryKey": false,
-          "required": false,
-          "description": "Unique identifier for the Slack application as registered in the Slack App Directory. Used for app-specific API calls and identifying the source of bot interactions.",
-          "defaultvalue": "",
+          "required": true,
+          "description": "HTTP method for webhook delivery",
+          "defaultvalue": "POST",
           "example": "",
           "autoIncrement": false,
           "enum": [
             {
-              "key": "post"
+              "key": "GET"
             },
             {
-              "key": "put"
+              "key": "POST"
+            },
+            {
+              "key": "PUT"
+            },
+            {
+              "key": "PATCH"
+            },
+            {
+              "key": "DELETE"
             }
           ],
           "maxLength": "64",
@@ -175,8 +185,11 @@
           "meta": {
             "kind": "enum",
             "enumValues": [
-              "post",
-              "put"
+              "GET",
+              "POST",
+              "PUT",
+              "PATCH",
+              "DELETE"
             ],
             "enumName": "method"
           }
@@ -189,7 +202,7 @@
           "datatype": "JSON",
           "primaryKey": false,
           "required": false,
-          "description": "Unique user identifier for the bot within the workspace. Used to identify bot messages and prevent the bot from responding to its own messages in conversations.",
+          "description": "",
           "defaultvalue": "",
           "example": "",
           "autoIncrement": false,
@@ -207,18 +220,18 @@
           }
         },
         {
-          "name": "signingSecret",
+          "name": "signingSecretRef",
           "type": "string",
           "childRelationshipType": "",
           "parentRelationshipType": "",
           "datatype": "VARCHAR",
           "primaryKey": false,
           "required": false,
-          "description": "Fallback channel ID for notifications when no specific channel is configured or available. Must be a channel where the bot has posting permissions.",
+          "description": "Reference to signing secret (not raw value)",
           "defaultvalue": "",
           "example": "",
           "autoIncrement": false,
-          "maxLength": "64",
+          "maxLength": "128",
           "array": false,
           "isPII": "",
           "create": true,
@@ -229,7 +242,7 @@
           "childRelationship": "",
           "meta": {
             "kind": "string",
-            "maxLength": 64
+            "maxLength": 128
           }
         },
         {
@@ -240,8 +253,8 @@
           "datatype": "ENUM",
           "primaryKey": false,
           "required": true,
-          "description": "Global toggle for Slack integration functionality. When false, all notifications to this workspace are disabled, useful for maintenance or temporary suspension.",
-          "defaultvalue": "",
+          "description": "Webhook operational status",
+          "defaultvalue": "active",
           "example": "",
           "autoIncrement": false,
           "enum": [
@@ -272,11 +285,110 @@
             ],
             "enumName": "status"
           }
+        },
+        {
+          "name": "verifyTls",
+          "type": "boolean",
+          "childRelationshipType": "",
+          "parentRelationshipType": "",
+          "datatype": "BOOLEAN",
+          "primaryKey": false,
+          "required": false,
+          "description": "Whether to verify TLS certificates",
+          "defaultvalue": "true",
+          "example": "",
+          "autoIncrement": false,
+          "array": false,
+          "isPII": "",
+          "create": true,
+          "update": true,
+          "get": true,
+          "list": true,
+          "parentRelationship": "",
+          "childRelationship": "",
+          "meta": {
+            "kind": "boolean"
+          }
+        },
+        {
+          "name": "requestTimeoutMs",
+          "type": "number",
+          "childRelationshipType": "",
+          "parentRelationshipType": "",
+          "datatype": "INT",
+          "primaryKey": false,
+          "required": false,
+          "description": "Request timeout in milliseconds",
+          "defaultvalue": "10000",
+          "example": "",
+          "autoIncrement": false,
+          "array": false,
+          "isPII": "",
+          "create": true,
+          "update": true,
+          "get": true,
+          "list": true,
+          "parentRelationship": "",
+          "childRelationship": "",
+          "meta": {
+            "kind": "number",
+            "autoIncrement": false
+          }
+        },
+        {
+          "name": "connectTimeoutMs",
+          "type": "number",
+          "childRelationshipType": "",
+          "parentRelationshipType": "",
+          "datatype": "INT",
+          "primaryKey": false,
+          "required": false,
+          "description": "Connection timeout in milliseconds",
+          "defaultvalue": "3000",
+          "example": "",
+          "autoIncrement": false,
+          "array": false,
+          "isPII": "",
+          "create": true,
+          "update": true,
+          "get": true,
+          "list": true,
+          "parentRelationship": "",
+          "childRelationship": "",
+          "meta": {
+            "kind": "number",
+            "autoIncrement": false
+          }
+        },
+        {
+          "name": "rateLimitPerMinute",
+          "type": "number",
+          "childRelationshipType": "",
+          "parentRelationshipType": "",
+          "datatype": "INT",
+          "primaryKey": false,
+          "required": false,
+          "description": "Optional per-webhook rate limit",
+          "defaultvalue": "",
+          "example": "",
+          "autoIncrement": false,
+          "array": false,
+          "isPII": "",
+          "create": true,
+          "update": true,
+          "get": true,
+          "list": true,
+          "parentRelationship": "",
+          "childRelationship": "",
+          "meta": {
+            "kind": "number",
+            "autoIncrement": false
+          }
         }
       ],
       "relationships": [
         {
-          "name": "workspace_app_config",
+          "name": "webhook_config",
           "parentTable": "webhook",
           "parentColumn": {
             "name": "id",
@@ -286,9 +398,9 @@
             "datatype": "VARCHAR",
             "primaryKey": true,
             "required": true,
-            "description": "Unique identifier for the Slack workspace/team, provided by Slack API during OAuth installation. This is the primary key linking all workspace-specific configurations.",
+            "description": "",
             "defaultvalue": "",
-            "example": "T01EXAMPLE123",
+            "example": "",
             "autoIncrement": false,
             "maxLength": "32",
             "minLength": "10",
@@ -299,7 +411,7 @@
             "get": true,
             "list": true,
             "parentRelationship": "",
-            "childRelationship": "workspace_app_config",
+            "childRelationship": "webhook_config",
             "meta": {
               "kind": "string",
               "minLength": 10,
@@ -308,16 +420,16 @@
           },
           "childTable": "config",
           "childColumn": {
-            "name": "webhook_id",
+            "name": "webhookId",
             "type": "string",
             "childRelationshipType": "",
             "parentRelationshipType": "Webhook",
             "datatype": "VARCHAR",
-            "primaryKey": true,
-            "required": true,
-            "description": "Foreign key reference to the workspace these operational settings apply to. Allows per-workspace customization of retry logic and behavior.",
+            "primaryKey": false,
+            "required": false,
+            "description": "Optional webhook-specific override",
             "defaultvalue": "",
-            "example": "T01EXAMPLE123",
+            "example": "",
             "autoIncrement": false,
             "maxLength": "32",
             "array": false,
@@ -327,7 +439,7 @@
             "get": true,
             "list": true,
             "relationship": "one",
-            "parentRelationship": "workspace_app_config",
+            "parentRelationship": "webhook_config",
             "childRelationship": "",
             "meta": {
               "kind": "string",
@@ -348,9 +460,9 @@
           "datatype": "VARCHAR",
           "primaryKey": true,
           "required": true,
-          "description": "Unique identifier for the Slack workspace/team, provided by Slack API during OAuth installation. This is the primary key linking all workspace-specific configurations.",
+          "description": "",
           "defaultvalue": "",
-          "example": "T01EXAMPLE123",
+          "example": "",
           "autoIncrement": false,
           "maxLength": "32",
           "minLength": "10",
@@ -361,7 +473,7 @@
           "get": true,
           "list": true,
           "parentRelationship": "",
-          "childRelationship": "workspace_app_config",
+          "childRelationship": "webhook_config",
           "meta": {
             "kind": "string",
             "minLength": 10,
@@ -378,9 +490,9 @@
           "datatype": "VARCHAR",
           "primaryKey": true,
           "required": true,
-          "description": "Unique identifier for the Slack workspace/team, provided by Slack API during OAuth installation. This is the primary key linking all workspace-specific configurations.",
+          "description": "",
           "defaultvalue": "",
-          "example": "T01EXAMPLE123",
+          "example": "",
           "autoIncrement": false,
           "maxLength": "32",
           "minLength": "10",
@@ -391,7 +503,7 @@
           "get": true,
           "list": true,
           "parentRelationship": "",
-          "childRelationship": "workspace_app_config",
+          "childRelationship": "webhook_config",
           "meta": {
             "kind": "string",
             "minLength": 10,
@@ -406,9 +518,9 @@
           "datatype": "VARCHAR",
           "primaryKey": false,
           "required": true,
-          "description": "Human-readable display name of the Slack workspace as configured by workspace administrators. Used for identification and logging purposes.",
+          "description": "",
           "defaultvalue": "",
-          "example": "Acme Corp Engineering",
+          "example": "",
           "autoIncrement": false,
           "maxLength": "255",
           "array": false,
@@ -496,16 +608,42 @@
       "description": "## ⚙️ SlackAppConfig\n\n### **Purpose**\n\nThe \\`SlackAppConfig\\` aggregate manages system-wide operational parameters for the Slack integration within a tenant’s workspace. It defines how the app behaves under various runtime conditions, such as retries, logging, and audit behavior.\n\nThis configuration ensures that message delivery is resilient and aligned with organizational policies (e.g., how many times to retry sending, whether to log every event, which audit channel to use, etc.).\n\n### **Responsibilities**\n\n* Manage retry and backoff policies for message delivery.\n* Enable or disable message-level logging for auditing.\n* Define the audit channel ID for operational or compliance logs.\n* Maintain default locale, metadata, and other operational flags.\n* Emit configuration change events for runtime synchronization.\n\n### **Why It Matters**\n\n\\`SlackAppConfig\\` provides the **operational backbone** for Slack messaging. It ensures reliability, compliance, and observability — allowing organizations to manage how Slack notifications behave at scale and during failures.\n\n",
       "columns": [
         {
-          "name": "webhook_id",
+          "name": "id",
+          "type": "string",
+          "childRelationshipType": "",
+          "parentRelationshipType": "",
+          "datatype": "VARCHAR",
+          "primaryKey": true,
+          "required": true,
+          "description": "Configuration identity",
+          "defaultvalue": "",
+          "example": "",
+          "autoIncrement": false,
+          "maxLength": "32",
+          "array": false,
+          "isPII": "",
+          "create": true,
+          "update": true,
+          "get": true,
+          "list": true,
+          "parentRelationship": "",
+          "childRelationship": "",
+          "meta": {
+            "kind": "string",
+            "maxLength": 32
+          }
+        },
+        {
+          "name": "webhookId",
           "type": "string",
           "childRelationshipType": "",
           "parentRelationshipType": "Webhook",
           "datatype": "VARCHAR",
-          "primaryKey": true,
-          "required": true,
-          "description": "Foreign key reference to the workspace these operational settings apply to. Allows per-workspace customization of retry logic and behavior.",
+          "primaryKey": false,
+          "required": false,
+          "description": "Optional webhook-specific override",
           "defaultvalue": "",
-          "example": "T01EXAMPLE123",
+          "example": "",
           "autoIncrement": false,
           "maxLength": "32",
           "array": false,
@@ -515,7 +653,7 @@
           "get": true,
           "list": true,
           "relationship": "one",
-          "parentRelationship": "workspace_app_config",
+          "parentRelationship": "webhook_config",
           "childRelationship": "",
           "meta": {
             "kind": "string",
@@ -523,16 +661,83 @@
           }
         },
         {
-          "name": "max_retry_attempts",
+          "name": "tenantId",
+          "type": "string",
+          "childRelationshipType": "",
+          "parentRelationshipType": "",
+          "datatype": "VARCHAR",
+          "primaryKey": false,
+          "required": true,
+          "description": "Tenant identifier for per-tenant configs",
+          "defaultvalue": "",
+          "example": "",
+          "autoIncrement": false,
+          "maxLength": "32",
+          "array": false,
+          "isPII": "",
+          "create": true,
+          "update": true,
+          "get": true,
+          "list": true,
+          "parentRelationship": "",
+          "childRelationship": "",
+          "meta": {
+            "kind": "string",
+            "maxLength": 32
+          }
+        },
+        {
+          "name": "strategy",
+          "type": "ConfigStrategyEnum",
+          "childRelationshipType": "",
+          "parentRelationshipType": "",
+          "datatype": "ENUM",
+          "primaryKey": false,
+          "required": true,
+          "description": "Configuration strategy scope",
+          "defaultvalue": "per-tenant",
+          "example": "",
+          "autoIncrement": false,
+          "enum": [
+            {
+              "key": "per-webhook"
+            },
+            {
+              "key": "per-tenant"
+            },
+            {
+              "key": "global"
+            }
+          ],
+          "array": false,
+          "isPII": "",
+          "create": true,
+          "update": true,
+          "get": true,
+          "list": true,
+          "parentRelationship": "",
+          "childRelationship": "",
+          "meta": {
+            "kind": "enum",
+            "enumValues": [
+              "per-webhook",
+              "per-tenant",
+              "global"
+            ],
+            "enumName": "strategy"
+          }
+        },
+        {
+          "name": "maxRetryAttempts",
           "type": "number",
           "childRelationshipType": "",
           "parentRelationshipType": "",
           "datatype": "INT",
           "primaryKey": false,
           "required": true,
-          "description": "Maximum number of retry attempts for failed message deliveries before marking as permanently failed. Higher values increase reliability but consume more resources.",
-          "defaultvalue": "3",
-          "example": "3",
+          "description": "Maximum retry attempts",
+          "defaultvalue": "6",
+          "example": "6",
           "autoIncrement": false,
           "array": false,
           "isPII": "",
@@ -548,14 +753,14 @@
           }
         },
         {
-          "name": "retry_backoff_seconds",
+          "name": "retryBackoffSeconds",
           "type": "number",
           "childRelationshipType": "",
           "parentRelationshipType": "",
           "datatype": "INT",
           "primaryKey": false,
           "required": true,
-          "description": "Initial delay in seconds between retry attempts. Actual delay may use exponential backoff strategy to avoid overwhelming Slack API rate limits.",
+          "description": "Base backoff time in seconds",
           "defaultvalue": "5",
           "example": "5",
           "autoIncrement": false,
@@ -573,40 +778,14 @@
           }
         },
         {
-          "name": "default_locale",
-          "type": "string",
-          "childRelationshipType": "",
-          "parentRelationshipType": "",
-          "datatype": "VARCHAR",
-          "primaryKey": false,
-          "required": true,
-          "description": "Default language/locale for message content when user-specific locale is not available. Follows ISO 639-1 language codes combined with ISO 3166-1 country codes.",
-          "defaultvalue": "en_US",
-          "example": "en_US",
-          "autoIncrement": false,
-          "maxLength": "16",
-          "array": false,
-          "isPII": "",
-          "create": true,
-          "update": true,
-          "get": true,
-          "list": true,
-          "parentRelationship": "",
-          "childRelationship": "",
-          "meta": {
-            "kind": "string",
-            "maxLength": 16
-          }
-        },
-        {
-          "name": "strategy",
-          "type": "ConfigStrategyEnum",
+          "name": "retryStrategy",
+          "type": "ConfigRetryStrategyEnum",
           "childRelationshipType": "",
           "parentRelationshipType": "",
           "datatype": "ENUM",
           "primaryKey": false,
-          "required": true,
-          "description": "",
+          "required": false,
+          "description": "Retry backoff strategy",
           "defaultvalue": "exponential",
           "example": "",
           "autoIncrement": false,
@@ -616,6 +795,9 @@
             },
             {
               "key": "linear"
+            },
+            {
+              "key": "fixed"
             }
           ],
           "array": false,
@@ -630,9 +812,283 @@
             "kind": "enum",
             "enumValues": [
               "exponential",
-              "linear"
+              "linear",
+              "fixed"
             ],
-            "enumName": "strategy"
+            "enumName": "retryStrategy"
+          }
+        },
+        {
+          "name": "backoffJitterPct",
+          "type": "number",
+          "childRelationshipType": "",
+          "parentRelationshipType": "",
+          "datatype": "INT",
+          "primaryKey": false,
+          "required": false,
+          "description": "Jitter percentage for backoff",
+          "defaultvalue": "20",
+          "example": "",
+          "autoIncrement": false,
+          "array": false,
+          "isPII": "",
+          "create": true,
+          "update": true,
+          "get": true,
+          "list": true,
+          "parentRelationship": "",
+          "childRelationship": "",
+          "meta": {
+            "kind": "number",
+            "autoIncrement": false
+          }
+        },
+        {
+          "name": "requestTimeoutMs",
+          "type": "number",
+          "childRelationshipType": "",
+          "parentRelationshipType": "",
+          "datatype": "INT",
+          "primaryKey": false,
+          "required": false,
+          "description": "Request timeout in milliseconds",
+          "defaultvalue": "10000",
+          "example": "",
+          "autoIncrement": false,
+          "array": false,
+          "isPII": "",
+          "create": true,
+          "update": true,
+          "get": true,
+          "list": true,
+          "parentRelationship": "",
+          "childRelationship": "",
+          "meta": {
+            "kind": "number",
+            "autoIncrement": false
+          }
+        },
+        {
+          "name": "connectTimeoutMs",
+          "type": "number",
+          "childRelationshipType": "",
+          "parentRelationshipType": "",
+          "datatype": "INT",
+          "primaryKey": false,
+          "required": false,
+          "description": "Connection timeout in milliseconds",
+          "defaultvalue": "3000",
+          "example": "",
+          "autoIncrement": false,
+          "array": false,
+          "isPII": "",
+          "create": true,
+          "update": true,
+          "get": true,
+          "list": true,
+          "parentRelationship": "",
+          "childRelationship": "",
+          "meta": {
+            "kind": "number",
+            "autoIncrement": false
+          }
+        },
+        {
+          "name": "signatureAlgorithm",
+          "type": "ConfigSignatureAlgorithmEnum",
+          "childRelationshipType": "",
+          "parentRelationshipType": "",
+          "datatype": "ENUM",
+          "primaryKey": false,
+          "required": false,
+          "description": "Signature algorithm for webhook signing",
+          "defaultvalue": "sha256",
+          "example": "",
+          "autoIncrement": false,
+          "enum": [
+            {
+              "key": "sha256"
+            },
+            {
+              "key": "sha1"
+            }
+          ],
+          "array": false,
+          "isPII": "",
+          "create": true,
+          "update": true,
+          "get": true,
+          "list": true,
+          "parentRelationship": "",
+          "childRelationship": "",
+          "meta": {
+            "kind": "enum",
+            "enumValues": [
+              "sha256",
+              "sha1"
+            ],
+            "enumName": "signatureAlgorithm"
+          }
+        },
+        {
+          "name": "includeTimestampHeader",
+          "type": "boolean",
+          "childRelationshipType": "",
+          "parentRelationshipType": "",
+          "datatype": "BOOLEAN",
+          "primaryKey": false,
+          "required": false,
+          "description": "Include timestamp header for signatures",
+          "defaultvalue": "true",
+          "example": "",
+          "autoIncrement": false,
+          "array": false,
+          "isPII": "",
+          "create": true,
+          "update": true,
+          "get": true,
+          "list": true,
+          "parentRelationship": "",
+          "childRelationship": "",
+          "meta": {
+            "kind": "boolean"
+          }
+        },
+        {
+          "name": "maxConcurrent",
+          "type": "number",
+          "childRelationshipType": "",
+          "parentRelationshipType": "",
+          "datatype": "INT",
+          "primaryKey": false,
+          "required": false,
+          "description": "Worker concurrency cap",
+          "defaultvalue": "",
+          "example": "",
+          "autoIncrement": false,
+          "array": false,
+          "isPII": "",
+          "create": true,
+          "update": true,
+          "get": true,
+          "list": true,
+          "parentRelationship": "",
+          "childRelationship": "",
+          "meta": {
+            "kind": "number",
+            "autoIncrement": false
+          }
+        },
+        {
+          "name": "dlqEnabled",
+          "type": "boolean",
+          "childRelationshipType": "",
+          "parentRelationshipType": "",
+          "datatype": "BOOLEAN",
+          "primaryKey": false,
+          "required": false,
+          "description": "Dead letter queue enabled",
+          "defaultvalue": "true",
+          "example": "",
+          "autoIncrement": false,
+          "array": false,
+          "isPII": "",
+          "create": true,
+          "update": true,
+          "get": true,
+          "list": true,
+          "parentRelationship": "",
+          "childRelationship": "",
+          "meta": {
+            "kind": "boolean"
+          }
+        },
+        {
+          "name": "dlqMaxAgeSeconds",
+          "type": "number",
+          "childRelationshipType": "",
+          "parentRelationshipType": "",
+          "datatype": "INT",
+          "primaryKey": false,
+          "required": false,
+          "description": "Dead letter queue max age in seconds",
+          "defaultvalue": "604800",
+          "example": "",
+          "autoIncrement": false,
+          "array": false,
+          "isPII": "",
+          "create": true,
+          "update": true,
+          "get": true,
+          "list": true,
+          "parentRelationship": "",
+          "childRelationship": "",
+          "meta": {
+            "kind": "number",
+            "autoIncrement": false
+          }
+        },
+        {
+          "name": "ordering",
+          "type": "ConfigOrderingEnum",
+          "childRelationshipType": "",
+          "parentRelationshipType": "",
+          "datatype": "ENUM",
+          "primaryKey": false,
+          "required": false,
+          "description": "Message ordering strategy",
+          "defaultvalue": "fifo",
+          "example": "",
+          "autoIncrement": false,
+          "enum": [
+            {
+              "key": "fifo"
+            },
+            {
+              "key": "loose"
+            }
+          ],
+          "array": false,
+          "isPII": "",
+          "create": true,
+          "update": true,
+          "get": true,
+          "list": true,
+          "parentRelationship": "",
+          "childRelationship": "",
+          "meta": {
+            "kind": "enum",
+            "enumValues": [
+              "fifo",
+              "loose"
+            ],
+            "enumName": "ordering"
+          }
+        },
+        {
+          "name": "defaultLocale",
+          "type": "string",
+          "childRelationshipType": "",
+          "parentRelationshipType": "",
+          "datatype": "VARCHAR",
+          "primaryKey": false,
+          "required": true,
+          "description": "Default locale, e.g. 'en-ZA'",
+          "defaultvalue": "en-US",
+          "example": "en-US",
+          "autoIncrement": false,
+          "maxLength": "16",
+          "array": false,
+          "isPII": "",
+          "create": true,
+          "update": true,
+          "get": true,
+          "list": true,
+          "parentRelationship": "",
+          "childRelationship": "",
+          "meta": {
+            "kind": "string",
+            "maxLength": 16
           }
         },
         {
@@ -663,7 +1119,7 @@
       ],
       "relationships": [
         {
-          "name": "workspace_app_config",
+          "name": "webhook_config",
           "parentTable": "webhook",
           "parentColumn": {
             "name": "id",
@@ -673,9 +1129,9 @@
             "datatype": "VARCHAR",
             "primaryKey": true,
             "required": true,
-            "description": "Unique identifier for the Slack workspace/team, provided by Slack API during OAuth installation. This is the primary key linking all workspace-specific configurations.",
+            "description": "",
             "defaultvalue": "",
-            "example": "T01EXAMPLE123",
+            "example": "",
             "autoIncrement": false,
             "maxLength": "32",
             "minLength": "10",
@@ -686,7 +1142,7 @@
             "get": true,
             "list": true,
             "parentRelationship": "",
-            "childRelationship": "workspace_app_config",
+            "childRelationship": "webhook_config",
             "meta": {
               "kind": "string",
               "minLength": 10,
@@ -695,16 +1151,16 @@
           },
           "childTable": "config",
           "childColumn": {
-            "name": "webhook_id",
+            "name": "webhookId",
             "type": "string",
             "childRelationshipType": "",
             "parentRelationshipType": "Webhook",
             "datatype": "VARCHAR",
-            "primaryKey": true,
-            "required": true,
-            "description": "Foreign key reference to the workspace these operational settings apply to. Allows per-workspace customization of retry logic and behavior.",
+            "primaryKey": false,
+            "required": false,
+            "description": "Optional webhook-specific override",
             "defaultvalue": "",
-            "example": "T01EXAMPLE123",
+            "example": "",
             "autoIncrement": false,
             "maxLength": "32",
             "array": false,
@@ -714,7 +1170,7 @@
             "get": true,
             "list": true,
             "relationship": "one",
-            "parentRelationship": "workspace_app_config",
+            "parentRelationship": "webhook_config",
             "childRelationship": "",
             "meta": {
               "kind": "string",
@@ -728,16 +1184,16 @@
       "lines": [],
       "keys": [
         {
-          "name": "webhook_id",
+          "name": "id",
           "type": "string",
           "childRelationshipType": "",
-          "parentRelationshipType": "Webhook",
+          "parentRelationshipType": "",
           "datatype": "VARCHAR",
           "primaryKey": true,
           "required": true,
-          "description": "Foreign key reference to the workspace these operational settings apply to. Allows per-workspace customization of retry logic and behavior.",
+          "description": "Configuration identity",
           "defaultvalue": "",
-          "example": "T01EXAMPLE123",
+          "example": "",
           "autoIncrement": false,
           "maxLength": "32",
           "array": false,
@@ -746,8 +1202,7 @@
           "update": true,
           "get": true,
           "list": true,
-          "relationship": "one",
-          "parentRelationship": "workspace_app_config",
+          "parentRelationship": "",
           "childRelationship": "",
           "meta": {
             "kind": "string",
@@ -795,7 +1250,7 @@
       "redis": {
         "prefix": "",
         "version": "1.0",
-        "category": "notification:slack-config.config.v1",
+        "category": "notification:webhook-config.config.v1",
         "ttl": 3600,
         "hash": true,
         "aggregate": "config"
@@ -804,10 +1259,10 @@
         "boundedContext": "notification",
         "aggregate": "config",
         "version": "v1",
-        "stream": "notification.slackConfig.config",
-        "createdEvent": "NotificationSlackConfigConfigCreated.v1",
-        "updatedEvent": "NotificationSlackConfigConfigUpdated.v1",
-        "deletedEvent": "NotificationSlackConfigConfigDeleted.v1"
+        "stream": "notification.webhookConfig.config",
+        "createdEvent": "NotificationWebhookConfigConfigCreated.v1",
+        "updatedEvent": "NotificationWebhookConfigConfigUpdated.v1",
+        "deletedEvent": "NotificationWebhookConfigConfigDeleted.v1"
       },
       "permissions": {
         "bulk": [
@@ -825,7 +1280,7 @@
   ],
   "relationships": [
     {
-      "name": "workspace_app_config",
+      "name": "webhook_config",
       "parentTable": "webhook",
       "parentColumn": {
         "name": "id",
@@ -835,9 +1290,9 @@
         "datatype": "VARCHAR",
         "primaryKey": true,
         "required": true,
-        "description": "Unique identifier for the Slack workspace/team, provided by Slack API during OAuth installation. This is the primary key linking all workspace-specific configurations.",
+        "description": "",
         "defaultvalue": "",
-        "example": "T01EXAMPLE123",
+        "example": "",
         "autoIncrement": false,
         "maxLength": "32",
         "minLength": "10",
@@ -848,7 +1303,7 @@
         "get": true,
         "list": true,
         "parentRelationship": "",
-        "childRelationship": "workspace_app_config",
+        "childRelationship": "webhook_config",
         "meta": {
           "kind": "string",
           "minLength": 10,
@@ -857,16 +1312,16 @@
       },
       "childTable": "config",
       "childColumn": {
-        "name": "webhook_id",
+        "name": "webhookId",
         "type": "string",
         "childRelationshipType": "",
         "parentRelationshipType": "Webhook",
         "datatype": "VARCHAR",
-        "primaryKey": true,
-        "required": true,
-        "description": "Foreign key reference to the workspace these operational settings apply to. Allows per-workspace customization of retry logic and behavior.",
+        "primaryKey": false,
+        "required": false,
+        "description": "Optional webhook-specific override",
         "defaultvalue": "",
-        "example": "T01EXAMPLE123",
+        "example": "",
         "autoIncrement": false,
         "maxLength": "32",
         "array": false,
@@ -876,7 +1331,7 @@
         "get": true,
         "list": true,
         "relationship": "one",
-        "parentRelationship": "workspace_app_config",
+        "parentRelationship": "webhook_config",
         "childRelationship": "",
         "meta": {
           "kind": "string",
@@ -888,7 +1343,7 @@
     }
   ],
   "documentation": {
-    "name": "Core Slack Configuration",
+    "name": "Core Webhook Configuration",
     "description": "# 🧩 Core Slack Config — General Overview\n\nThe **Core Slack Config** service is part of the broader **Notification Bounded Context**, responsible for managing all configuration aspects required to send Slack notifications within the platform. It provides the infrastructure and domain logic that connects a tenant’s Slack workspace to the notification ecosystem, ensuring secure, structured, and compliant communication between services and Slack.\n\n---\n\n## 🎯 Purpose\n\nThe primary purpose of **Core Slack Config** is to manage the lifecycle of Slack-related configuration for each tenant. It defines *how*, *where*, and *under what conditions* Slack messages are sent. By maintaining configurations in a domain-driven, event-sourced model, the service guarantees auditability, tenant isolation, and consistency across all Slack-related operations.\n\n---\n\n## 🧱 Architectural Role\n\n**Core Slack Config** acts as the **configuration source of truth** for all Slack integrations in the system. It is not responsible for sending messages (that’s handled by the **Core Slack Execute** service), but instead manages the metadata, tokens, templates, and operational policies that determine how Slack notifications are constructed and authorized.\n\n### Key Roles:\n\n* Acts as the *control plane* for Slack notification configuration.\n* Provides secure storage and rotation for OAuth tokens and signing secrets.\n* Defines approved channels and message templates per workspace.\n* Publishes events consumed by other services (e.g., executors, auditors, or workflow engines).\n* Ensures compliance with security and audit policies via event sourcing.\n\n---\n\n## ⚙️ Core Components\n\n| Aggregate          | Description                                                                                                           |\n| ------------------ | --------------------------------------------------------------------------------------------------------------------- |\n| **SlackWorkspace** | Represents a tenant’s Slack workspace connection, holding OAuth credentials, signing secrets, and workspace metadata. |\n| **SlackChannel**   | Defines the list of authorized channels and direct message endpoints available for message delivery.                  |\n| **SlackTemplate**  | Manages reusable message templates (text, block layouts, and variables) for structured notifications.                 |\n| **SlackAppConfig** | Contains global settings, retry/backoff parameters, logging preferences, and audit configurations.                    |\n\nEach aggregate is event-sourced and projected into Redis for fast reads. The system follows a **CQRS pattern**, separating command writes (EventStoreDB) from queries (Redis projections).\n\n---\n\n## 🧩 Data Flow Summary\n\n```\n[API Command] → [Use Case] → [ESDB Writer Repository] → [EventStoreDB]\n       ↓\n[Central Projection Service] → [Redis Snapshot] + [Redis Query Index]\n       ↓\n[Query API] → [Consumer Services / UI]\n```\n\nThis architecture provides full event auditability in **EventStoreDB**, real-time read performance in **Redis**, and flexible event-driven synchronization via **BullMQ** projectors.\n\n---\n\n## 🛡️ Security and Compliance\n\n* **Authentication:** Managed via Keycloak (OAuth2 / OpenID Connect).\n* **Authorization:** Governed by Open Policy Agent (OPA) Rego policies.\n* **Secret Storage:** Slack tokens and signing secrets are stored securely using Doppler or another approved secret manager.\n* **Auditability:** Every configuration change emits domain events stored in EventStoreDB, ensuring immutable history and traceability.\n\n---\n\n## 🚀 Example Use Cases\n\n| Use Case                | Description                                                                                                                        |\n| ----------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |\n| **Tenant Onboarding**   | When a new tenant connects their Slack workspace, `SlackWorkspaceConfigured.v1` and `SlackAppConfigUpdated.v1` events are emitted. |\n| **Channel Management**  | Admins can link or disable channels for specific event types (e.g., approvals, alerts).                                            |\n| **Template Management** | Teams can create reusable message templates with placeholders for workflow data.                                                   |\n| **Policy Updates**      | Changing retry or logging settings emits `SlackAppConfigUpdated.v1`, allowing other services to adjust behavior dynamically.       |\n\n---\n\n## ✅ Benefits\n\n* **Event-Sourced Reliability:** Every change is versioned, replayable, and fully auditable.\n* **Tenant Isolation:** Each Slack workspace and channel configuration is scoped to a tenant.\n* **High Performance:** Read models are served from Redis with millisecond-level latency.\n* **Extensible Design:** Supports additional configuration layers (e.g., threads, attachments, Slack workflows) in future iterations.\n* **Integration Friendly:** Easily integrates with other notification channels (email, SMS, webhook) through consistent event naming and structure.\n\n---\n\n## 🧩 Summary\n\nThe **Core Slack Config** service provides the configuration backbone for all Slack-based notifications. It ensures that every message sent through Slack is:\n\n* Securely authenticated.\n* Delivered through approved channels.\n* Formatted using consistent templates.\n* Managed under auditable, tenant-aware policies.\n\nThis service is a critical component of the Notification Bounded Context, enabling robust, enterprise-grade Slack integration within a modern, event-driven architecture.\n"
   }
 }

@@ -12,11 +12,23 @@ import {
   ConfigCreatedAt,
   ConfigUpdatedAt,
   ConfigVersion,
+  ConfigId,
   ConfigWebhookId,
+  ConfigTenantId,
+  createConfigStrategy,
   ConfigMaxRetryAttempts,
   ConfigRetryBackoffSeconds,
+  createConfigRetryStrategy,
+  ConfigBackoffJitterPct,
+  ConfigRequestTimeoutMs,
+  ConfigConnectTimeoutMs,
+  createConfigSignatureAlgorithm,
+  ConfigIncludeTimestampHeader,
+  ConfigMaxConcurrent,
+  ConfigDlqEnabled,
+  ConfigDlqMaxAgeSeconds,
+  createConfigOrdering,
   ConfigDefaultLocale,
-  createConfigStrategy,
   ConfigMetadata,
 } from '../../domain/value-objects';
 import { Result, ok, err, DomainError } from 'src/shared/errors';
@@ -55,9 +67,17 @@ export class ConfigStateMapper {
     };
 
     // Convert each primitive to its corresponding VO with error collection
-    const webhookId = validateField(
-      'webhookId',
-      ConfigWebhookId.from(snapshot.webhookId),
+    const id = validateField('id', ConfigId.from(snapshot.id));
+    const webhookId = snapshot.webhookId
+      ? validateField('webhookId', ConfigWebhookId.from(snapshot.webhookId))
+      : undefined;
+    const tenantId = validateField(
+      'tenantId',
+      ConfigTenantId.from(snapshot.tenantId),
+    );
+    const strategy = validateField(
+      'strategy',
+      createConfigStrategy(snapshot.strategy),
     );
     const maxRetryAttempts = validateField(
       'maxRetryAttempts',
@@ -67,13 +87,60 @@ export class ConfigStateMapper {
       'retryBackoffSeconds',
       ConfigRetryBackoffSeconds.from(snapshot.retryBackoffSeconds),
     );
+    const retryStrategy = validateField(
+      'retryStrategy',
+      createConfigRetryStrategy(snapshot.retryStrategy),
+    );
+    const backoffJitterPct = snapshot.backoffJitterPct
+      ? validateField(
+          'backoffJitterPct',
+          ConfigBackoffJitterPct.from(snapshot.backoffJitterPct),
+        )
+      : undefined;
+    const requestTimeoutMs = snapshot.requestTimeoutMs
+      ? validateField(
+          'requestTimeoutMs',
+          ConfigRequestTimeoutMs.from(snapshot.requestTimeoutMs),
+        )
+      : undefined;
+    const connectTimeoutMs = snapshot.connectTimeoutMs
+      ? validateField(
+          'connectTimeoutMs',
+          ConfigConnectTimeoutMs.from(snapshot.connectTimeoutMs),
+        )
+      : undefined;
+    const signatureAlgorithm = validateField(
+      'signatureAlgorithm',
+      createConfigSignatureAlgorithm(snapshot.signatureAlgorithm),
+    );
+    const includeTimestampHeader = snapshot.includeTimestampHeader
+      ? validateField(
+          'includeTimestampHeader',
+          ConfigIncludeTimestampHeader.from(snapshot.includeTimestampHeader),
+        )
+      : undefined;
+    const maxConcurrent = snapshot.maxConcurrent
+      ? validateField(
+          'maxConcurrent',
+          ConfigMaxConcurrent.from(snapshot.maxConcurrent),
+        )
+      : undefined;
+    const dlqEnabled = snapshot.dlqEnabled
+      ? validateField('dlqEnabled', ConfigDlqEnabled.from(snapshot.dlqEnabled))
+      : undefined;
+    const dlqMaxAgeSeconds = snapshot.dlqMaxAgeSeconds
+      ? validateField(
+          'dlqMaxAgeSeconds',
+          ConfigDlqMaxAgeSeconds.from(snapshot.dlqMaxAgeSeconds),
+        )
+      : undefined;
+    const ordering = validateField(
+      'ordering',
+      createConfigOrdering(snapshot.ordering),
+    );
     const defaultLocale = validateField(
       'defaultLocale',
       ConfigDefaultLocale.from(snapshot.defaultLocale),
-    );
-    const strategy = validateField(
-      'strategy',
-      createConfigStrategy(snapshot.strategy),
     );
     const metadata = snapshot.metadata
       ? validateField('metadata', ConfigMetadata.from(snapshot.metadata))
@@ -105,18 +172,30 @@ export class ConfigStateMapper {
             errorCode: e.error.code,
             errorMessage: e.error.detail,
           })),
-          snapshotCode: snapshot.webhookId,
+          snapshotCode: snapshot.id,
         },
       });
     }
 
     // All validations passed, construct the rich domain state
     const domainState: ConfigDomainState = {
-      webhookId: webhookId!,
+      id: id!,
+      webhookId: webhookId || undefined,
+      tenantId: tenantId!,
+      strategy: strategy!,
       maxRetryAttempts: maxRetryAttempts!,
       retryBackoffSeconds: retryBackoffSeconds!,
+      retryStrategy: retryStrategy || undefined,
+      backoffJitterPct: backoffJitterPct || undefined,
+      requestTimeoutMs: requestTimeoutMs || undefined,
+      connectTimeoutMs: connectTimeoutMs || undefined,
+      signatureAlgorithm: signatureAlgorithm || undefined,
+      includeTimestampHeader: includeTimestampHeader || undefined,
+      maxConcurrent: maxConcurrent || undefined,
+      dlqEnabled: dlqEnabled || undefined,
+      dlqMaxAgeSeconds: dlqMaxAgeSeconds || undefined,
+      ordering: ordering || undefined,
       defaultLocale: defaultLocale!,
-      strategy: strategy!,
       metadata: metadata || undefined,
       version: version!,
       createdAt: createdAt!,
@@ -135,11 +214,23 @@ export class ConfigStateMapper {
   static toSnapshot(domainState: ConfigDomainState): ConfigSnapshotProps {
     return {
       // Extract primitive values from VOs
-      webhookId: domainState.webhookId.value,
+      id: domainState.id.value,
+      webhookId: domainState.webhookId?.value,
+      tenantId: domainState.tenantId.value,
+      strategy: domainState.strategy.value,
       maxRetryAttempts: domainState.maxRetryAttempts.value,
       retryBackoffSeconds: domainState.retryBackoffSeconds.value,
+      retryStrategy: domainState.retryStrategy?.value,
+      backoffJitterPct: domainState.backoffJitterPct?.value,
+      requestTimeoutMs: domainState.requestTimeoutMs?.value,
+      connectTimeoutMs: domainState.connectTimeoutMs?.value,
+      signatureAlgorithm: domainState.signatureAlgorithm?.value,
+      includeTimestampHeader: domainState.includeTimestampHeader?.value,
+      maxConcurrent: domainState.maxConcurrent?.value,
+      dlqEnabled: domainState.dlqEnabled?.value,
+      dlqMaxAgeSeconds: domainState.dlqMaxAgeSeconds?.value,
+      ordering: domainState.ordering?.value,
       defaultLocale: domainState.defaultLocale.value,
-      strategy: domainState.strategy.value,
       metadata: domainState.metadata?.value,
       version: domainState.version.value,
       createdAt: domainState.createdAt.value,

@@ -11,11 +11,23 @@ import {
   ConfigCreatedAt,
   ConfigUpdatedAt,
   ConfigVersion,
+  ConfigId,
   ConfigWebhookId,
+  ConfigTenantId,
+  createConfigStrategy,
   ConfigMaxRetryAttempts,
   ConfigRetryBackoffSeconds,
+  createConfigRetryStrategy,
+  ConfigBackoffJitterPct,
+  ConfigRequestTimeoutMs,
+  ConfigConnectTimeoutMs,
+  createConfigSignatureAlgorithm,
+  ConfigIncludeTimestampHeader,
+  ConfigMaxConcurrent,
+  ConfigDlqEnabled,
+  ConfigDlqMaxAgeSeconds,
+  createConfigOrdering,
   ConfigDefaultLocale,
-  createConfigStrategy,
   ConfigMetadata,
 } from '../value-objects';
 
@@ -32,6 +44,19 @@ export function createConfigAggregateFromProps(
   // },
 ): Result<ConfigAggregate, DomainError> {
   // Validate each property by creating value objects
+  const idResult = ConfigId.from(props.id);
+  if (!idResult.ok) {
+    return err(
+      withContext(idResult.error, {
+        ...idResult.error.context,
+        correlationId: metadata.correlationId,
+        userId: metadata.userId,
+        operation: 'create_config',
+        id: props.id,
+      }),
+    );
+  }
+
   const webhookIdResult = ConfigWebhookId.from(props.webhookId);
   if (!webhookIdResult.ok) {
     return err(
@@ -41,6 +66,32 @@ export function createConfigAggregateFromProps(
         userId: metadata.userId,
         operation: 'create_config',
         webhookId: props.webhookId,
+      }),
+    );
+  }
+
+  const tenantIdResult = ConfigTenantId.from(props.tenantId);
+  if (!tenantIdResult.ok) {
+    return err(
+      withContext(tenantIdResult.error, {
+        ...tenantIdResult.error.context,
+        correlationId: metadata.correlationId,
+        userId: metadata.userId,
+        operation: 'create_config',
+        tenantId: props.tenantId,
+      }),
+    );
+  }
+
+  const strategyResult = createConfigStrategy(props.strategy);
+  if (!strategyResult.ok) {
+    return err(
+      withContext(strategyResult.error, {
+        ...strategyResult.error.context,
+        correlationId: metadata.correlationId,
+        userId: metadata.userId,
+        operation: 'create_config',
+        strategy: props.strategy,
       }),
     );
   }
@@ -75,6 +126,148 @@ export function createConfigAggregateFromProps(
     );
   }
 
+  const retryStrategyResult = createConfigRetryStrategy(props.retryStrategy);
+  if (!retryStrategyResult.ok) {
+    return err(
+      withContext(retryStrategyResult.error, {
+        ...retryStrategyResult.error.context,
+        correlationId: metadata.correlationId,
+        userId: metadata.userId,
+        operation: 'create_config',
+        retryStrategy: props.retryStrategy,
+      }),
+    );
+  }
+
+  const backoffJitterPctResult = ConfigBackoffJitterPct.from(
+    props.backoffJitterPct,
+  );
+  if (!backoffJitterPctResult.ok) {
+    return err(
+      withContext(backoffJitterPctResult.error, {
+        ...backoffJitterPctResult.error.context,
+        correlationId: metadata.correlationId,
+        userId: metadata.userId,
+        operation: 'create_config',
+        backoffJitterPct: props.backoffJitterPct,
+      }),
+    );
+  }
+
+  const requestTimeoutMsResult = ConfigRequestTimeoutMs.from(
+    props.requestTimeoutMs,
+  );
+  if (!requestTimeoutMsResult.ok) {
+    return err(
+      withContext(requestTimeoutMsResult.error, {
+        ...requestTimeoutMsResult.error.context,
+        correlationId: metadata.correlationId,
+        userId: metadata.userId,
+        operation: 'create_config',
+        requestTimeoutMs: props.requestTimeoutMs,
+      }),
+    );
+  }
+
+  const connectTimeoutMsResult = ConfigConnectTimeoutMs.from(
+    props.connectTimeoutMs,
+  );
+  if (!connectTimeoutMsResult.ok) {
+    return err(
+      withContext(connectTimeoutMsResult.error, {
+        ...connectTimeoutMsResult.error.context,
+        correlationId: metadata.correlationId,
+        userId: metadata.userId,
+        operation: 'create_config',
+        connectTimeoutMs: props.connectTimeoutMs,
+      }),
+    );
+  }
+
+  const signatureAlgorithmResult = createConfigSignatureAlgorithm(
+    props.signatureAlgorithm,
+  );
+  if (!signatureAlgorithmResult.ok) {
+    return err(
+      withContext(signatureAlgorithmResult.error, {
+        ...signatureAlgorithmResult.error.context,
+        correlationId: metadata.correlationId,
+        userId: metadata.userId,
+        operation: 'create_config',
+        signatureAlgorithm: props.signatureAlgorithm,
+      }),
+    );
+  }
+
+  const includeTimestampHeaderResult = ConfigIncludeTimestampHeader.from(
+    props.includeTimestampHeader,
+  );
+  if (!includeTimestampHeaderResult.ok) {
+    return err(
+      withContext(includeTimestampHeaderResult.error, {
+        ...includeTimestampHeaderResult.error.context,
+        correlationId: metadata.correlationId,
+        userId: metadata.userId,
+        operation: 'create_config',
+        includeTimestampHeader: props.includeTimestampHeader,
+      }),
+    );
+  }
+
+  const maxConcurrentResult = ConfigMaxConcurrent.from(props.maxConcurrent);
+  if (!maxConcurrentResult.ok) {
+    return err(
+      withContext(maxConcurrentResult.error, {
+        ...maxConcurrentResult.error.context,
+        correlationId: metadata.correlationId,
+        userId: metadata.userId,
+        operation: 'create_config',
+        maxConcurrent: props.maxConcurrent,
+      }),
+    );
+  }
+
+  const dlqEnabledResult = ConfigDlqEnabled.from(props.dlqEnabled);
+  if (!dlqEnabledResult.ok) {
+    return err(
+      withContext(dlqEnabledResult.error, {
+        ...dlqEnabledResult.error.context,
+        correlationId: metadata.correlationId,
+        userId: metadata.userId,
+        operation: 'create_config',
+        dlqEnabled: props.dlqEnabled,
+      }),
+    );
+  }
+
+  const dlqMaxAgeSecondsResult = ConfigDlqMaxAgeSeconds.from(
+    props.dlqMaxAgeSeconds,
+  );
+  if (!dlqMaxAgeSecondsResult.ok) {
+    return err(
+      withContext(dlqMaxAgeSecondsResult.error, {
+        ...dlqMaxAgeSecondsResult.error.context,
+        correlationId: metadata.correlationId,
+        userId: metadata.userId,
+        operation: 'create_config',
+        dlqMaxAgeSeconds: props.dlqMaxAgeSeconds,
+      }),
+    );
+  }
+
+  const orderingResult = createConfigOrdering(props.ordering);
+  if (!orderingResult.ok) {
+    return err(
+      withContext(orderingResult.error, {
+        ...orderingResult.error.context,
+        correlationId: metadata.correlationId,
+        userId: metadata.userId,
+        operation: 'create_config',
+        ordering: props.ordering,
+      }),
+    );
+  }
+
   const defaultLocaleResult = ConfigDefaultLocale.from(props.defaultLocale);
   if (!defaultLocaleResult.ok) {
     return err(
@@ -84,19 +277,6 @@ export function createConfigAggregateFromProps(
         userId: metadata.userId,
         operation: 'create_config',
         defaultLocale: props.defaultLocale,
-      }),
-    );
-  }
-
-  const strategyResult = createConfigStrategy(props.strategy);
-  if (!strategyResult.ok) {
-    return err(
-      withContext(strategyResult.error, {
-        ...strategyResult.error.context,
-        correlationId: metadata.correlationId,
-        userId: metadata.userId,
-        operation: 'create_config',
-        strategy: props.strategy,
       }),
     );
   }
@@ -131,11 +311,23 @@ export function createConfigAggregateFromProps(
 
   // Create the entity properties with validated value objects
   const entityProps: ConfigDomainState = {
+    id: idResult.value,
     webhookId: webhookIdResult.value,
+    tenantId: tenantIdResult.value,
+    strategy: strategyResult.value,
     maxRetryAttempts: maxRetryAttemptsResult.value,
     retryBackoffSeconds: retryBackoffSecondsResult.value,
+    retryStrategy: retryStrategyResult.value,
+    backoffJitterPct: backoffJitterPctResult.value,
+    requestTimeoutMs: requestTimeoutMsResult.value,
+    connectTimeoutMs: connectTimeoutMsResult.value,
+    signatureAlgorithm: signatureAlgorithmResult.value,
+    includeTimestampHeader: includeTimestampHeaderResult.value,
+    maxConcurrent: maxConcurrentResult.value,
+    dlqEnabled: dlqEnabledResult.value,
+    dlqMaxAgeSeconds: dlqMaxAgeSecondsResult.value,
+    ordering: orderingResult.value,
     defaultLocale: defaultLocaleResult.value,
-    strategy: strategyResult.value,
     metadata: metadataResult.value,
     createdAt: createdAtResult.value,
     updatedAt: updatedAtResult.value,

@@ -16,7 +16,7 @@ export const ConfigWebhookId = createStringVO({
   name: 'WebhookId',
   trim: true,
   caseTransform: 'none',
-  allowEmpty: false,
+  allowEmpty: true,
 
   maxLength: 32,
 

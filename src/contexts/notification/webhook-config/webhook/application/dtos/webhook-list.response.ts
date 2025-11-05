@@ -3,15 +3,19 @@
 
 import type { WebhookMethodValue, WebhookStatusValue } from './';
 import {
+  ApiWebhookConnectTimeoutMs,
   ApiWebhookDescription,
   ApiWebhookEventType,
   ApiWebhookHeaders,
   ApiWebhookId,
   ApiWebhookMethod,
   ApiWebhookName,
-  ApiWebhookSigningSecret,
+  ApiWebhookRateLimitPerMinute,
+  ApiWebhookRequestTimeoutMs,
+  ApiWebhookSigningSecretRef,
   ApiWebhookStatus,
   ApiWebhookTargetUrl,
+  ApiWebhookVerifyTls,
 } from './decorators';
 
 export class ListWebhookResponse {
@@ -24,21 +28,33 @@ export class ListWebhookResponse {
   @ApiWebhookDescription({ required: false })
   description?: string;
 
-  @ApiWebhookTargetUrl({ required: false })
-  targetUrl?: string;
+  @ApiWebhookTargetUrl()
+  targetUrl: string;
 
-  @ApiWebhookEventType({ required: false })
-  eventType?: string;
+  @ApiWebhookEventType()
+  eventType: string;
 
-  @ApiWebhookMethod({ required: false })
-  method?: WebhookMethodValue;
+  @ApiWebhookMethod()
+  method: WebhookMethodValue;
 
   @ApiWebhookHeaders({ required: false })
   headers?: Record<string, unknown>;
 
-  @ApiWebhookSigningSecret({ required: false })
-  signingSecret?: string;
+  @ApiWebhookSigningSecretRef({ required: false })
+  signingSecretRef?: string;
 
   @ApiWebhookStatus()
   status: WebhookStatusValue;
+
+  @ApiWebhookVerifyTls({ required: false })
+  verifyTls?: boolean;
+
+  @ApiWebhookRequestTimeoutMs({ required: false })
+  requestTimeoutMs?: number;
+
+  @ApiWebhookConnectTimeoutMs({ required: false })
+  connectTimeoutMs?: number;
+
+  @ApiWebhookRateLimitPerMinute({ required: false })
+  rateLimitPerMinute?: number;
 }

@@ -88,7 +88,7 @@ export class GetConfigUseCase implements IGetConfigUseCase {
 
   async execute(params: {
     user: IUserToken;
-    webhookId: string;
+    id: string;
     correlationId: string;
   }): Promise<Result<DetailConfigResponse, DomainError>> {
     const operation = 'get_config';
@@ -97,7 +97,7 @@ export class GetConfigUseCase implements IGetConfigUseCase {
 
     // Step 1: Extract raw properties for domain logic (no PII protection at domain level)
     const rawProps = {
-      webhookId: params.webhookId,
+      id: params.id,
     };
 
     // Step 2: Create safe logging context (no PII, deferred retention metadata)
@@ -107,7 +107,7 @@ export class GetConfigUseCase implements IGetConfigUseCase {
       operation,
       params as any, // Query doesn't extend BaseUseCaseCommand but has similar structure
       {
-        configWebhookId: rawProps.webhookId,
+        configId: rawProps.id,
         operationRisk: UseCaseLoggingUtil.assessOperationRisk(operation),
         readOperation: true,
         cacheEnabled: true,
@@ -127,7 +127,7 @@ export class GetConfigUseCase implements IGetConfigUseCase {
     // Step 1: Check authorization first
     const authResult = await this.authorizationService.canReadResource(
       params.user.sub,
-      params.webhookId, // Using webhookId as config identifier
+      params.id, // Using id as config identifier
       correlationId,
       {
         tenant: params.user.tenant,
@@ -154,7 +154,7 @@ export class GetConfigUseCase implements IGetConfigUseCase {
         category: 'security' as const,
         context: {
           userId: params.user.sub,
-          configWebhookId: params.webhookId,
+          configId: params.id,
           operation: 'read',
         },
       };
@@ -170,16 +170,16 @@ export class GetConfigUseCase implements IGetConfigUseCase {
 
     // Step 2: Simple validation for query-side operations (CQRS compliant)
     if (
-      !params.webhookId ||
-      typeof params.webhookId !== 'string' ||
-      params.webhookId.trim().length === 0
+      !params.id ||
+      typeof params.id !== 'string' ||
+      params.id.trim().length === 0
     ) {
       const validationError = {
         code: 'CONFIG.INVALID_THE_CODE' as const,
-        title: 'Invalid config webhookId',
+        title: 'Invalid config id',
         category: 'validation' as const,
         context: {
-          webhookId: params.webhookId,
+          id: params.id,
           correlationId,
           userId: params.user.sub,
           operation: 'get_config',
@@ -212,7 +212,7 @@ export class GetConfigUseCase implements IGetConfigUseCase {
         correlationId,
         userId: params.user.sub,
         operation: 'get_config',
-        webhookId: params.webhookId,
+        id: params.id,
       });
       UseCaseLoggingUtil.logOperationError(
         this.logger,
@@ -227,7 +227,7 @@ export class GetConfigUseCase implements IGetConfigUseCase {
 
     const configResult = await this.query.findById(
       actor,
-      params.webhookId,
+      params.id,
       repositoryOptions,
     );
 
@@ -236,7 +236,7 @@ export class GetConfigUseCase implements IGetConfigUseCase {
         correlationId,
         userId: params.user.sub,
         operation: 'get_config',
-        webhookId: params.webhookId,
+        id: params.id,
       });
       UseCaseLoggingUtil.logOperationError(
         this.logger,
@@ -256,12 +256,13 @@ export class GetConfigUseCase implements IGetConfigUseCase {
     // Step 5.1: Return 404 error if config not found
     if (!configDto) {
       const notFoundError = withContext(ConfigErrors.CONFIG_NOT_FOUND, {
-        webhookId: params.webhookId,
+        id: params.id,
+        tenantId: '', // Default values for required fields
+        strategy: 0, // Default values for required fields
         maxRetryAttempts: 0, // Default values for required fields
         retryBackoffSeconds: 0, // Default values for required fields
         defaultLocale: '', // Default values for required fields
-        strategy: 0, // Default values for required fields
-        configWebhookId: params.webhookId,
+        configId: params.id,
         correlationId,
         userId: params.user.sub,
         operation: 'get_config',
@@ -308,7 +309,7 @@ export class GetConfigUseCase implements IGetConfigUseCase {
       {
         executionTimeMs: executionTime,
         businessData: {
-          configWebhookId: params.webhookId,
+          configId: params.id,
           found: true,
           cacheEnabled: true,
           cacheTtl: repositoryOptions.cache?.ttl,

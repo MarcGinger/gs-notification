@@ -7,16 +7,34 @@ import { ConfigSnapshotProps } from '../props';
 import { ConfigDomainState } from '../state';
 import { ConfigErrors } from '../errors/config.errors';
 import {
+  ConfigBackoffJitterPct,
+  ConfigConnectTimeoutMs,
   ConfigCreatedAt,
   ConfigUpdatedAt,
   ConfigVersion,
   ConfigDefaultLocale,
+  ConfigDlqEnabled,
+  ConfigDlqMaxAgeSeconds,
+  ConfigId,
+  ConfigIncludeTimestampHeader,
+  ConfigMaxConcurrent,
   ConfigMaxRetryAttempts,
   ConfigMetadata,
+  ConfigOrdering,
+  ConfigOrderingLogic,
+  ConfigRequestTimeoutMs,
   ConfigRetryBackoffSeconds,
+  ConfigRetryStrategy,
+  ConfigRetryStrategyLogic,
+  ConfigSignatureAlgorithm,
+  ConfigSignatureAlgorithmLogic,
   ConfigStrategy,
   ConfigStrategyLogic,
+  ConfigTenantId,
   ConfigWebhookId,
+  createConfigOrdering,
+  createConfigRetryStrategy,
+  createConfigSignatureAlgorithm,
   createConfigStrategy,
 } from '../value-objects';
 
@@ -27,7 +45,7 @@ import {
  * Encapsulates config data, identity, and basic entity behavior.
  *
  * This entity follows DDD principles:
- * - Identity: WebhookId as unique identifier
+ * - Identity: Id as unique identifier
  * - Immutability: Changes create new instances
  * - Encapsulation: Private state with controlled access
  * - Business validation: Domain rules enforced
@@ -42,10 +60,7 @@ import {
  * Core domain entity representing a config in the notification.
  * Handles config identity, validation, and state management.
  */
-export class ConfigEntity extends EntityIdBase<
-  ConfigDomainState,
-  ConfigWebhookId
-> {
+export class ConfigEntity extends EntityIdBase<ConfigDomainState, ConfigId> {
   private static clock: { now: () => Date } = { now: () => new Date() };
 
   public static setClock(c: { now: () => Date }) {
@@ -113,7 +128,7 @@ export class ConfigEntity extends EntityIdBase<
   }
 
   private constructor(props: ConfigDomainState) {
-    super(props, props.webhookId);
+    super(props, props.id);
   }
 
   /**
@@ -153,9 +168,21 @@ export class ConfigEntity extends EntityIdBase<
   public static fromSnapshot(
     snapshot: ConfigSnapshotProps,
   ): Result<ConfigEntity, DomainError> {
+    const idResult = ConfigId.from(snapshot.id);
+    if (!idResult.ok) {
+      return err(idResult.error);
+    }
     const webhookIdResult = ConfigWebhookId.from(snapshot.webhookId);
     if (!webhookIdResult.ok) {
       return err(webhookIdResult.error);
+    }
+    const tenantIdResult = ConfigTenantId.from(snapshot.tenantId);
+    if (!tenantIdResult.ok) {
+      return err(tenantIdResult.error);
+    }
+    const strategyResult = createConfigStrategy(snapshot.strategy);
+    if (!strategyResult.ok) {
+      return err(strategyResult.error);
     }
     const maxRetryAttemptsResult = ConfigMaxRetryAttempts.from(
       snapshot.maxRetryAttempts,
@@ -169,15 +196,67 @@ export class ConfigEntity extends EntityIdBase<
     if (!retryBackoffSecondsResult.ok) {
       return err(retryBackoffSecondsResult.error);
     }
+    const retryStrategyResult = createConfigRetryStrategy(
+      snapshot.retryStrategy,
+    );
+    if (!retryStrategyResult.ok) {
+      return err(retryStrategyResult.error);
+    }
+    const backoffJitterPctResult = ConfigBackoffJitterPct.from(
+      snapshot.backoffJitterPct,
+    );
+    if (!backoffJitterPctResult.ok) {
+      return err(backoffJitterPctResult.error);
+    }
+    const requestTimeoutMsResult = ConfigRequestTimeoutMs.from(
+      snapshot.requestTimeoutMs,
+    );
+    if (!requestTimeoutMsResult.ok) {
+      return err(requestTimeoutMsResult.error);
+    }
+    const connectTimeoutMsResult = ConfigConnectTimeoutMs.from(
+      snapshot.connectTimeoutMs,
+    );
+    if (!connectTimeoutMsResult.ok) {
+      return err(connectTimeoutMsResult.error);
+    }
+    const signatureAlgorithmResult = createConfigSignatureAlgorithm(
+      snapshot.signatureAlgorithm,
+    );
+    if (!signatureAlgorithmResult.ok) {
+      return err(signatureAlgorithmResult.error);
+    }
+    const includeTimestampHeaderResult = ConfigIncludeTimestampHeader.from(
+      snapshot.includeTimestampHeader,
+    );
+    if (!includeTimestampHeaderResult.ok) {
+      return err(includeTimestampHeaderResult.error);
+    }
+    const maxConcurrentResult = ConfigMaxConcurrent.from(
+      snapshot.maxConcurrent,
+    );
+    if (!maxConcurrentResult.ok) {
+      return err(maxConcurrentResult.error);
+    }
+    const dlqEnabledResult = ConfigDlqEnabled.from(snapshot.dlqEnabled);
+    if (!dlqEnabledResult.ok) {
+      return err(dlqEnabledResult.error);
+    }
+    const dlqMaxAgeSecondsResult = ConfigDlqMaxAgeSeconds.from(
+      snapshot.dlqMaxAgeSeconds,
+    );
+    if (!dlqMaxAgeSecondsResult.ok) {
+      return err(dlqMaxAgeSecondsResult.error);
+    }
+    const orderingResult = createConfigOrdering(snapshot.ordering);
+    if (!orderingResult.ok) {
+      return err(orderingResult.error);
+    }
     const defaultLocaleResult = ConfigDefaultLocale.from(
       snapshot.defaultLocale,
     );
     if (!defaultLocaleResult.ok) {
       return err(defaultLocaleResult.error);
-    }
-    const strategyResult = createConfigStrategy(snapshot.strategy);
-    if (!strategyResult.ok) {
-      return err(strategyResult.error);
     }
     const metadataResult = ConfigMetadata.from(snapshot.metadata);
     if (!metadataResult.ok) {
@@ -199,11 +278,23 @@ export class ConfigEntity extends EntityIdBase<
     }
 
     const props: ConfigDomainState = {
+      id: idResult.value,
       webhookId: webhookIdResult.value,
+      tenantId: tenantIdResult.value,
+      strategy: strategyResult.value,
       maxRetryAttempts: maxRetryAttemptsResult.value,
       retryBackoffSeconds: retryBackoffSecondsResult.value,
+      retryStrategy: retryStrategyResult.value,
+      backoffJitterPct: backoffJitterPctResult.value,
+      requestTimeoutMs: requestTimeoutMsResult.value,
+      connectTimeoutMs: connectTimeoutMsResult.value,
+      signatureAlgorithm: signatureAlgorithmResult.value,
+      includeTimestampHeader: includeTimestampHeaderResult.value,
+      maxConcurrent: maxConcurrentResult.value,
+      dlqEnabled: dlqEnabledResult.value,
+      dlqMaxAgeSeconds: dlqMaxAgeSecondsResult.value,
+      ordering: orderingResult.value,
       defaultLocale: defaultLocaleResult.value,
-      strategy: strategyResult.value,
       metadata: metadataResult.value,
       createdAt: createdAtResult.value,
       updatedAt: updatedAtResult.value,
@@ -221,8 +312,14 @@ export class ConfigEntity extends EntityIdBase<
    */
   private static validate(props: ConfigDomainState): Result<void, DomainError> {
     // Basic validation
-    if (!props.webhookId) {
-      return err(ConfigErrors.INVALID_WEBHOOK_ID_DATA);
+    if (!props.id) {
+      return err(ConfigErrors.INVALID_ID_DATA);
+    }
+    if (!props.tenantId) {
+      return err(ConfigErrors.INVALID_TENANT_ID_DATA);
+    }
+    if (!props.strategy) {
+      return err(ConfigErrors.INVALID_STRATEGY_DATA);
     }
     if (!props.maxRetryAttempts) {
       return err(ConfigErrors.INVALID_MAX_RETRY_ATTEMPTS_DATA);
@@ -233,9 +330,6 @@ export class ConfigEntity extends EntityIdBase<
     if (!props.defaultLocale) {
       return err(ConfigErrors.INVALID_DEFAULT_LOCALE_DATA);
     }
-    if (!props.strategy) {
-      return err(ConfigErrors.INVALID_STRATEGY_DATA);
-    }
 
     return ok(undefined);
   }
@@ -244,8 +338,20 @@ export class ConfigEntity extends EntityIdBase<
   // Getters (Public API)
   // ======================
 
-  public get webhookId(): ConfigWebhookId {
+  public get id(): ConfigId {
+    return this.props.id;
+  }
+
+  public get webhookId(): ConfigWebhookId | undefined {
     return this.props.webhookId;
+  }
+
+  public get tenantId(): ConfigTenantId {
+    return this.props.tenantId;
+  }
+
+  public get strategy(): ConfigStrategy {
+    return this.props.strategy;
   }
 
   public get maxRetryAttempts(): ConfigMaxRetryAttempts {
@@ -256,12 +362,50 @@ export class ConfigEntity extends EntityIdBase<
     return this.props.retryBackoffSeconds;
   }
 
-  public get defaultLocale(): ConfigDefaultLocale {
-    return this.props.defaultLocale;
+  public get retryStrategy(): ConfigRetryStrategy | undefined {
+    return this.props.retryStrategy;
   }
 
-  public get strategy(): ConfigStrategy {
-    return this.props.strategy;
+  public get backoffJitterPct(): ConfigBackoffJitterPct | undefined {
+    return this.props.backoffJitterPct;
+  }
+
+  public get requestTimeoutMs(): ConfigRequestTimeoutMs | undefined {
+    return this.props.requestTimeoutMs;
+  }
+
+  public get connectTimeoutMs(): ConfigConnectTimeoutMs | undefined {
+    return this.props.connectTimeoutMs;
+  }
+
+  public get signatureAlgorithm(): ConfigSignatureAlgorithm | undefined {
+    return this.props.signatureAlgorithm;
+  }
+
+  public get includeTimestampHeader():
+    | ConfigIncludeTimestampHeader
+    | undefined {
+    return this.props.includeTimestampHeader;
+  }
+
+  public get maxConcurrent(): ConfigMaxConcurrent | undefined {
+    return this.props.maxConcurrent;
+  }
+
+  public get dlqEnabled(): ConfigDlqEnabled | undefined {
+    return this.props.dlqEnabled;
+  }
+
+  public get dlqMaxAgeSeconds(): ConfigDlqMaxAgeSeconds | undefined {
+    return this.props.dlqMaxAgeSeconds;
+  }
+
+  public get ordering(): ConfigOrdering | undefined {
+    return this.props.ordering;
+  }
+
+  public get defaultLocale(): ConfigDefaultLocale {
+    return this.props.defaultLocale;
   }
 
   public get metadata(): ConfigMetadata | undefined {
@@ -285,52 +429,33 @@ export class ConfigEntity extends EntityIdBase<
   // ======================
 
   /**
-   * Creates a new entity with updated maxRetryAttempts (pure state transition)
+   * Creates a new entity with updated webhookId (pure state transition)
    *
-   * @param maxRetryAttempts - New max_retry_attempts value
+   * @param webhookId - New webhookId value
    * @param updatedAt - Optional timestamp (uses clock if not provided)
    * @returns Result<ConfigEntity, DomainError>
    */
-  public withMaxRetryAttempts(
-    maxRetryAttempts: ConfigMaxRetryAttempts,
+  public withWebhookId(
+    webhookId: ConfigWebhookId,
     updatedAt?: Date,
     version?: number,
   ): Result<ConfigEntity, DomainError> {
-    return this.createUpdatedEntity({ maxRetryAttempts }, updatedAt, version);
+    return this.createUpdatedEntity({ webhookId }, updatedAt, version);
   }
 
   /**
-   * Creates a new entity with updated retryBackoffSeconds (pure state transition)
+   * Creates a new entity with updated tenantId (pure state transition)
    *
-   * @param retryBackoffSeconds - New retry_backoff_seconds value
+   * @param tenantId - New tenantId value
    * @param updatedAt - Optional timestamp (uses clock if not provided)
    * @returns Result<ConfigEntity, DomainError>
    */
-  public withRetryBackoffSeconds(
-    retryBackoffSeconds: ConfigRetryBackoffSeconds,
+  public withTenantId(
+    tenantId: ConfigTenantId,
     updatedAt?: Date,
     version?: number,
   ): Result<ConfigEntity, DomainError> {
-    return this.createUpdatedEntity(
-      { retryBackoffSeconds },
-      updatedAt,
-      version,
-    );
-  }
-
-  /**
-   * Creates a new entity with updated defaultLocale (pure state transition)
-   *
-   * @param defaultLocale - New default_locale value
-   * @param updatedAt - Optional timestamp (uses clock if not provided)
-   * @returns Result<ConfigEntity, DomainError>
-   */
-  public withDefaultLocale(
-    defaultLocale: ConfigDefaultLocale,
-    updatedAt?: Date,
-    version?: number,
-  ): Result<ConfigEntity, DomainError> {
-    return this.createUpdatedEntity({ defaultLocale }, updatedAt, version);
+    return this.createUpdatedEntity({ tenantId }, updatedAt, version);
   }
 
   /**
@@ -365,6 +490,273 @@ export class ConfigEntity extends EntityIdBase<
   }
 
   /**
+   * Creates a new entity with updated maxRetryAttempts (pure state transition)
+   *
+   * @param maxRetryAttempts - New maxRetryAttempts value
+   * @param updatedAt - Optional timestamp (uses clock if not provided)
+   * @returns Result<ConfigEntity, DomainError>
+   */
+  public withMaxRetryAttempts(
+    maxRetryAttempts: ConfigMaxRetryAttempts,
+    updatedAt?: Date,
+    version?: number,
+  ): Result<ConfigEntity, DomainError> {
+    return this.createUpdatedEntity({ maxRetryAttempts }, updatedAt, version);
+  }
+
+  /**
+   * Creates a new entity with updated retryBackoffSeconds (pure state transition)
+   *
+   * @param retryBackoffSeconds - New retryBackoffSeconds value
+   * @param updatedAt - Optional timestamp (uses clock if not provided)
+   * @returns Result<ConfigEntity, DomainError>
+   */
+  public withRetryBackoffSeconds(
+    retryBackoffSeconds: ConfigRetryBackoffSeconds,
+    updatedAt?: Date,
+    version?: number,
+  ): Result<ConfigEntity, DomainError> {
+    return this.createUpdatedEntity(
+      { retryBackoffSeconds },
+      updatedAt,
+      version,
+    );
+  }
+
+  /**
+   * Creates a new entity with updated retryStrategy (with basic transition validation)
+   *
+   * @param retryStrategy - New retryStrategy value
+   * @param updatedAt - Optional timestamp (uses clock if not provided)
+   * @returns Result<ConfigEntity, DomainError>
+   */
+  public withRetryStrategy(
+    retryStrategy: ConfigRetryStrategy,
+    updatedAt?: Date,
+    version?: number,
+  ): Result<ConfigEntity, DomainError> {
+    // Basic validation - business rules handled by aggregate
+    if (this.props.retryStrategy) {
+      // If current status exists, validate transition
+      const currentStatus = this.props.retryStrategy.value;
+      const targetStatus = retryStrategy.value;
+
+      if (
+        !ConfigRetryStrategyLogic.canTransition(currentStatus, targetStatus)
+      ) {
+        return err({
+          ...ConfigErrors.INVALID_RETRY_STRATEGY_TRANSITION,
+          context: {
+            currentStatus,
+            targetStatus,
+            validTransitions:
+              ConfigRetryStrategyLogic.getValidTransitions(currentStatus),
+          },
+        });
+      }
+    }
+
+    return this.createUpdatedEntity({ retryStrategy }, updatedAt, version);
+  }
+
+  /**
+   * Creates a new entity with updated backoffJitterPct (pure state transition)
+   *
+   * @param backoffJitterPct - New backoffJitterPct value
+   * @param updatedAt - Optional timestamp (uses clock if not provided)
+   * @returns Result<ConfigEntity, DomainError>
+   */
+  public withBackoffJitterPct(
+    backoffJitterPct: ConfigBackoffJitterPct,
+    updatedAt?: Date,
+    version?: number,
+  ): Result<ConfigEntity, DomainError> {
+    return this.createUpdatedEntity({ backoffJitterPct }, updatedAt, version);
+  }
+
+  /**
+   * Creates a new entity with updated requestTimeoutMs (pure state transition)
+   *
+   * @param requestTimeoutMs - New requestTimeoutMs value
+   * @param updatedAt - Optional timestamp (uses clock if not provided)
+   * @returns Result<ConfigEntity, DomainError>
+   */
+  public withRequestTimeoutMs(
+    requestTimeoutMs: ConfigRequestTimeoutMs,
+    updatedAt?: Date,
+    version?: number,
+  ): Result<ConfigEntity, DomainError> {
+    return this.createUpdatedEntity({ requestTimeoutMs }, updatedAt, version);
+  }
+
+  /**
+   * Creates a new entity with updated connectTimeoutMs (pure state transition)
+   *
+   * @param connectTimeoutMs - New connectTimeoutMs value
+   * @param updatedAt - Optional timestamp (uses clock if not provided)
+   * @returns Result<ConfigEntity, DomainError>
+   */
+  public withConnectTimeoutMs(
+    connectTimeoutMs: ConfigConnectTimeoutMs,
+    updatedAt?: Date,
+    version?: number,
+  ): Result<ConfigEntity, DomainError> {
+    return this.createUpdatedEntity({ connectTimeoutMs }, updatedAt, version);
+  }
+
+  /**
+   * Creates a new entity with updated signatureAlgorithm (with basic transition validation)
+   *
+   * @param signatureAlgorithm - New signatureAlgorithm value
+   * @param updatedAt - Optional timestamp (uses clock if not provided)
+   * @returns Result<ConfigEntity, DomainError>
+   */
+  public withSignatureAlgorithm(
+    signatureAlgorithm: ConfigSignatureAlgorithm,
+    updatedAt?: Date,
+    version?: number,
+  ): Result<ConfigEntity, DomainError> {
+    // Basic validation - business rules handled by aggregate
+    if (this.props.signatureAlgorithm) {
+      // If current status exists, validate transition
+      const currentStatus = this.props.signatureAlgorithm.value;
+      const targetStatus = signatureAlgorithm.value;
+
+      if (
+        !ConfigSignatureAlgorithmLogic.canTransition(
+          currentStatus,
+          targetStatus,
+        )
+      ) {
+        return err({
+          ...ConfigErrors.INVALID_SIGNATURE_ALGORITHM_TRANSITION,
+          context: {
+            currentStatus,
+            targetStatus,
+            validTransitions:
+              ConfigSignatureAlgorithmLogic.getValidTransitions(currentStatus),
+          },
+        });
+      }
+    }
+
+    return this.createUpdatedEntity({ signatureAlgorithm }, updatedAt, version);
+  }
+
+  /**
+   * Creates a new entity with updated includeTimestampHeader (pure state transition)
+   *
+   * @param includeTimestampHeader - New includeTimestampHeader value
+   * @param updatedAt - Optional timestamp (uses clock if not provided)
+   * @returns Result<ConfigEntity, DomainError>
+   */
+  public withIncludeTimestampHeader(
+    includeTimestampHeader: ConfigIncludeTimestampHeader,
+    updatedAt?: Date,
+    version?: number,
+  ): Result<ConfigEntity, DomainError> {
+    return this.createUpdatedEntity(
+      { includeTimestampHeader },
+      updatedAt,
+      version,
+    );
+  }
+
+  /**
+   * Creates a new entity with updated maxConcurrent (pure state transition)
+   *
+   * @param maxConcurrent - New maxConcurrent value
+   * @param updatedAt - Optional timestamp (uses clock if not provided)
+   * @returns Result<ConfigEntity, DomainError>
+   */
+  public withMaxConcurrent(
+    maxConcurrent: ConfigMaxConcurrent,
+    updatedAt?: Date,
+    version?: number,
+  ): Result<ConfigEntity, DomainError> {
+    return this.createUpdatedEntity({ maxConcurrent }, updatedAt, version);
+  }
+
+  /**
+   * Creates a new entity with updated dlqEnabled (pure state transition)
+   *
+   * @param dlqEnabled - New dlqEnabled value
+   * @param updatedAt - Optional timestamp (uses clock if not provided)
+   * @returns Result<ConfigEntity, DomainError>
+   */
+  public withDlqEnabled(
+    dlqEnabled: ConfigDlqEnabled,
+    updatedAt?: Date,
+    version?: number,
+  ): Result<ConfigEntity, DomainError> {
+    return this.createUpdatedEntity({ dlqEnabled }, updatedAt, version);
+  }
+
+  /**
+   * Creates a new entity with updated dlqMaxAgeSeconds (pure state transition)
+   *
+   * @param dlqMaxAgeSeconds - New dlqMaxAgeSeconds value
+   * @param updatedAt - Optional timestamp (uses clock if not provided)
+   * @returns Result<ConfigEntity, DomainError>
+   */
+  public withDlqMaxAgeSeconds(
+    dlqMaxAgeSeconds: ConfigDlqMaxAgeSeconds,
+    updatedAt?: Date,
+    version?: number,
+  ): Result<ConfigEntity, DomainError> {
+    return this.createUpdatedEntity({ dlqMaxAgeSeconds }, updatedAt, version);
+  }
+
+  /**
+   * Creates a new entity with updated ordering (with basic transition validation)
+   *
+   * @param ordering - New ordering value
+   * @param updatedAt - Optional timestamp (uses clock if not provided)
+   * @returns Result<ConfigEntity, DomainError>
+   */
+  public withOrdering(
+    ordering: ConfigOrdering,
+    updatedAt?: Date,
+    version?: number,
+  ): Result<ConfigEntity, DomainError> {
+    // Basic validation - business rules handled by aggregate
+    if (this.props.ordering) {
+      // If current status exists, validate transition
+      const currentStatus = this.props.ordering.value;
+      const targetStatus = ordering.value;
+
+      if (!ConfigOrderingLogic.canTransition(currentStatus, targetStatus)) {
+        return err({
+          ...ConfigErrors.INVALID_ORDERING_TRANSITION,
+          context: {
+            currentStatus,
+            targetStatus,
+            validTransitions:
+              ConfigOrderingLogic.getValidTransitions(currentStatus),
+          },
+        });
+      }
+    }
+
+    return this.createUpdatedEntity({ ordering }, updatedAt, version);
+  }
+
+  /**
+   * Creates a new entity with updated defaultLocale (pure state transition)
+   *
+   * @param defaultLocale - New defaultLocale value
+   * @param updatedAt - Optional timestamp (uses clock if not provided)
+   * @returns Result<ConfigEntity, DomainError>
+   */
+  public withDefaultLocale(
+    defaultLocale: ConfigDefaultLocale,
+    updatedAt?: Date,
+    version?: number,
+  ): Result<ConfigEntity, DomainError> {
+    return this.createUpdatedEntity({ defaultLocale }, updatedAt, version);
+  }
+
+  /**
    * Creates a new entity with updated metadata (pure state transition)
    *
    * @param metadata - New metadata value
@@ -389,7 +781,7 @@ export class ConfigEntity extends EntityIdBase<
    * @param other - Other config to compare
    */
   public sameAs(other: ConfigEntity): boolean {
-    return this.props.webhookId.equals(other.props.webhookId);
+    return this.props.id.equals(other.props.id);
   }
 
   /**
@@ -397,11 +789,23 @@ export class ConfigEntity extends EntityIdBase<
    */
   public toSnapshot(): ConfigSnapshotProps {
     return {
-      webhookId: this.props.webhookId.value,
+      id: this.props.id.value,
+      webhookId: this.props.webhookId?.value,
+      tenantId: this.props.tenantId.value,
+      strategy: this.props.strategy.value,
       maxRetryAttempts: this.props.maxRetryAttempts.value,
       retryBackoffSeconds: this.props.retryBackoffSeconds.value,
+      retryStrategy: this.props.retryStrategy?.value,
+      backoffJitterPct: this.props.backoffJitterPct?.value,
+      requestTimeoutMs: this.props.requestTimeoutMs?.value,
+      connectTimeoutMs: this.props.connectTimeoutMs?.value,
+      signatureAlgorithm: this.props.signatureAlgorithm?.value,
+      includeTimestampHeader: this.props.includeTimestampHeader?.value,
+      maxConcurrent: this.props.maxConcurrent?.value,
+      dlqEnabled: this.props.dlqEnabled?.value,
+      dlqMaxAgeSeconds: this.props.dlqMaxAgeSeconds?.value,
+      ordering: this.props.ordering?.value,
       defaultLocale: this.props.defaultLocale.value,
-      strategy: this.props.strategy.value,
       metadata: this.props.metadata?.value,
       createdAt: this.props.createdAt.value,
       updatedAt: this.props.updatedAt.value,

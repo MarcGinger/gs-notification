@@ -51,7 +51,7 @@ export class ConfigController {
     private readonly configApplicationService: ConfigApplicationService,
   ) {}
 
-  @Get(':webhookId')
+  @Get(':id')
   @ConfigReadResource()
   @ApiOperation({
     summary: 'Get Config by ID',
@@ -59,10 +59,9 @@ export class ConfigController {
       'Retrieves a single Config by its unique identifier. Requires READ permission (LOW risk).',
   })
   @ApiParam({
-    name: 'webhookId',
+    name: 'id',
     type: 'string',
     description: 'Config unique identifier',
-    example: 'T01EXAMPLE123',
   })
   @ApiOkResponse({
     description: 'Config details retrieved successfully',
@@ -71,12 +70,9 @@ export class ConfigController {
   @ApiCommonErrors()
   async get(
     @CurrentUser() user: IUserToken,
-    @Param('webhookId') webhookId: string,
+    @Param('id') id: string,
   ): Promise<Result<DetailConfigResponse, DomainError>> {
-    const result = await this.configApplicationService.getConfigById(
-      user,
-      webhookId,
-    );
+    const result = await this.configApplicationService.getConfigById(user, id);
 
     return result;
   }
@@ -133,7 +129,7 @@ export class ConfigController {
     return result;
   }
 
-  @Put(':webhookId')
+  @Put(':id')
   @ConfigUpdateResource()
   @ApiOperation({
     summary: 'Update a Config',
@@ -141,10 +137,9 @@ export class ConfigController {
       'Updates an existing Config with new data. Supports partial updates. Requires UPDATE permission (MEDIUM risk).',
   })
   @ApiParam({
-    name: 'webhookId',
+    name: 'id',
     type: 'string',
     description: 'Config unique identifier',
-    example: 'T01EXAMPLE123',
   })
   @ApiResponse({
     status: HttpStatus.OK,
@@ -164,12 +159,12 @@ export class ConfigController {
   })
   async update(
     @CurrentUser() user: IUserToken,
-    @Param('webhookId') webhookId: string,
+    @Param('id') id: string,
     @Body() updateConfigRequest: UpdateConfigRequest,
   ): Promise<Result<DetailConfigResponse, DomainError>> {
     const result = await this.configApplicationService.updateConfig(
       user,
-      webhookId,
+      id,
       updateConfigRequest,
     );
 

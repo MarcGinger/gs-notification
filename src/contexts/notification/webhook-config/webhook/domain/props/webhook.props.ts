@@ -7,10 +7,14 @@ export interface WebhookProps {
   id: string;
   name: string;
   description?: string;
-  targetUrl?: string;
-  eventType?: string;
-  method?: WebhookMethodValue;
+  targetUrl: string;
+  eventType: string;
+  method: WebhookMethodValue;
   headers?: Record<string, unknown>;
-  signingSecret?: string;
+  signingSecretRef?: string;
   status: WebhookStatusValue;
+  verifyTls?: boolean;
+  requestTimeoutMs?: number;
+  connectTimeoutMs?: number;
+  rateLimitPerMinute?: number;
 }

@@ -32,25 +32,25 @@ export class WebhookDocumentation {
 
 ### application: webhook-config
 [← Back to documentation](/api/docs/notification/webhook-config)
-## 🧠 SlackWorkspace
+## 🔗 Webhook
 
 ### **Purpose**
 
-The \`SlackWorkspace\` aggregate represents the tenant’s connection to their Slack workspace. It acts as the foundational configuration point that defines the link between the system and the tenant’s Slack organization.
+The \`Webhook\` aggregate represents a webhook endpoint configuration for delivering events to external systems. It acts as the foundational configuration point that defines how, where, and under what conditions webhook notifications are sent.
 
-This aggregate holds sensitive integration credentials — including OAuth tokens, signing secrets, and app identifiers — and ensures they are securely managed and rotated when necessary. It also tracks which workspace belongs to which tenant and whether the connection is currently active.
+This aggregate holds delivery configuration including target URLs, HTTP methods, headers, signing secrets, and operational settings. It ensures webhook deliveries are properly configured and can be managed independently.
 
 ### **Responsibilities**
 
-* Maintain the tenant-to-Slack workspace mapping.
-* Securely store and reference OAuth credentials (e.g., \`botToken\`, \`signingSecret\`).
-* Enable or disable the Slack integration per tenant.
-* Manage the default posting channel for system notifications.
-* Emit events that notify other services when configuration changes occur.
+* Define webhook endpoint details (URL, method, headers).
+* Manage webhook operational status (active, paused, disabled).
+* Store webhook-specific timeout and TLS verification settings.
+* Reference signing secrets for webhook authentication.
+* Emit events when webhook configuration changes occur.
 
 ### **Why It Matters**
 
-Without the \`SlackWorkspace\` aggregate, the platform wouldn’t know **where** to send Slack messages or which tokens to use for authentication. It ensures tenant isolation and provides a secure boundary for Slack API interactions.
+The \`Webhook\` aggregate provides the essential configuration for reliable event delivery to external systems. It ensures proper authentication, timeout handling, and operational control over webhook endpoints.
 `,
       )
       .setVersion('1.0.0')

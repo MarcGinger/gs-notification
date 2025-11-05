@@ -6,12 +6,16 @@ export interface WebhookContext extends Record<string, unknown> {
   id: string;
   name: string;
   description?: string;
-  targetUrl?: string;
-  eventType?: string;
-  method?: string;
+  targetUrl: string;
+  eventType: string;
+  method: string;
   headers?: Record<string, unknown>;
-  signingSecret?: string;
+  signingSecretRef?: string;
   status: string;
+  verifyTls?: boolean;
+  requestTimeoutMs?: number;
+  connectTimeoutMs?: number;
+  rateLimitPerMinute?: number;
   userId?: string;
   correlationId?: string;
   operation?: string;
@@ -53,7 +57,7 @@ export const WebhookErrors = {
   ENUM_NOT_ALLOWED_METHOD: {
     code: 'WEBHOOK.ENUM_NOT_ALLOWED_METHOD',
     title: 'Invalid Option',
-    detail: 'Method must be one of: post, put.',
+    detail: 'Method must be one of: GET, POST, PUT, PATCH, DELETE.',
     category: 'validation',
     retryable: false,
   } as DomainError<'WEBHOOK.ENUM_NOT_ALLOWED_METHOD', WebhookContext>,
@@ -71,6 +75,20 @@ export const WebhookErrors = {
     category: 'validation',
     retryable: false,
   } as DomainError<'WEBHOOK.INVALID_CODE_DATA', WebhookContext>,
+  INVALID_CONNECT_TIMEOUT_MS: {
+    code: 'WEBHOOK.INVALID_CONNECT_TIMEOUT_MS',
+    title: 'Value Required',
+    detail: 'Connect timeout ms is required for Webhook.',
+    category: 'validation',
+    retryable: false,
+  } as DomainError<'WEBHOOK.INVALID_CONNECT_TIMEOUT_MS', WebhookContext>,
+  INVALID_CONNECT_TIMEOUT_MS_DATA: {
+    code: 'WEBHOOK.INVALID_CONNECT_TIMEOUT_MS_DATA',
+    title: 'Value Required',
+    detail: 'Connect timeout ms is required for Webhook.',
+    category: 'validation',
+    retryable: false,
+  } as DomainError<'WEBHOOK.INVALID_CONNECT_TIMEOUT_MS_DATA', WebhookContext>,
   INVALID_DESCRIPTION: {
     code: 'WEBHOOK.INVALID_DESCRIPTION',
     title: 'Value Required',
@@ -162,20 +180,51 @@ export const WebhookErrors = {
     category: 'validation',
     retryable: false,
   } as DomainError<'WEBHOOK.INVALID_NAME_DATA', WebhookContext>,
-  INVALID_SIGNING_SECRET: {
-    code: 'WEBHOOK.INVALID_SIGNING_SECRET',
+  INVALID_RATE_LIMIT_PER_MINUTE: {
+    code: 'WEBHOOK.INVALID_RATE_LIMIT_PER_MINUTE',
     title: 'Value Required',
-    detail: 'Signing secret is required for Webhook.',
+    detail: 'Rate limit per minute is required for Webhook.',
     category: 'validation',
     retryable: false,
-  } as DomainError<'WEBHOOK.INVALID_SIGNING_SECRET', WebhookContext>,
-  INVALID_SIGNING_SECRET_DATA: {
-    code: 'WEBHOOK.INVALID_SIGNING_SECRET_DATA',
+  } as DomainError<'WEBHOOK.INVALID_RATE_LIMIT_PER_MINUTE', WebhookContext>,
+  INVALID_RATE_LIMIT_PER_MINUTE_DATA: {
+    code: 'WEBHOOK.INVALID_RATE_LIMIT_PER_MINUTE_DATA',
     title: 'Value Required',
-    detail: 'Signing secret is required for Webhook.',
+    detail: 'Rate limit per minute is required for Webhook.',
     category: 'validation',
     retryable: false,
-  } as DomainError<'WEBHOOK.INVALID_SIGNING_SECRET_DATA', WebhookContext>,
+  } as DomainError<
+    'WEBHOOK.INVALID_RATE_LIMIT_PER_MINUTE_DATA',
+    WebhookContext
+  >,
+  INVALID_REQUEST_TIMEOUT_MS: {
+    code: 'WEBHOOK.INVALID_REQUEST_TIMEOUT_MS',
+    title: 'Value Required',
+    detail: 'Request timeout ms is required for Webhook.',
+    category: 'validation',
+    retryable: false,
+  } as DomainError<'WEBHOOK.INVALID_REQUEST_TIMEOUT_MS', WebhookContext>,
+  INVALID_REQUEST_TIMEOUT_MS_DATA: {
+    code: 'WEBHOOK.INVALID_REQUEST_TIMEOUT_MS_DATA',
+    title: 'Value Required',
+    detail: 'Request timeout ms is required for Webhook.',
+    category: 'validation',
+    retryable: false,
+  } as DomainError<'WEBHOOK.INVALID_REQUEST_TIMEOUT_MS_DATA', WebhookContext>,
+  INVALID_SIGNING_SECRET_REF: {
+    code: 'WEBHOOK.INVALID_SIGNING_SECRET_REF',
+    title: 'Value Required',
+    detail: 'Signing secret ref is required for Webhook.',
+    category: 'validation',
+    retryable: false,
+  } as DomainError<'WEBHOOK.INVALID_SIGNING_SECRET_REF', WebhookContext>,
+  INVALID_SIGNING_SECRET_REF_DATA: {
+    code: 'WEBHOOK.INVALID_SIGNING_SECRET_REF_DATA',
+    title: 'Value Required',
+    detail: 'Signing secret ref is required for Webhook.',
+    category: 'validation',
+    retryable: false,
+  } as DomainError<'WEBHOOK.INVALID_SIGNING_SECRET_REF_DATA', WebhookContext>,
   INVALID_STATUS: {
     code: 'WEBHOOK.INVALID_STATUS',
     title: 'Value Required',
@@ -211,6 +260,20 @@ export const WebhookErrors = {
     category: 'validation',
     retryable: false,
   } as DomainError<'WEBHOOK.INVALID_TARGET_URL_DATA', WebhookContext>,
+  INVALID_VERIFY_TLS: {
+    code: 'WEBHOOK.INVALID_VERIFY_TLS',
+    title: 'Value Required',
+    detail: 'Verify tls is required for Webhook.',
+    category: 'validation',
+    retryable: false,
+  } as DomainError<'WEBHOOK.INVALID_VERIFY_TLS', WebhookContext>,
+  INVALID_VERIFY_TLS_DATA: {
+    code: 'WEBHOOK.INVALID_VERIFY_TLS_DATA',
+    title: 'Value Required',
+    detail: 'Verify tls is required for Webhook.',
+    category: 'validation',
+    retryable: false,
+  } as DomainError<'WEBHOOK.INVALID_VERIFY_TLS_DATA', WebhookContext>,
   INVALID_WEBHOOK_DATA: {
     code: 'WEBHOOK.INVALID_WEBHOOK_DATA',
     title: 'Invalid Data',
@@ -218,6 +281,13 @@ export const WebhookErrors = {
     category: 'validation',
     retryable: false,
   } as DomainError<'WEBHOOK.INVALID_WEBHOOK_DATA', WebhookContext>,
+  NOT_BOOLEAN_VERIFY_TLS: {
+    code: 'WEBHOOK.NOT_BOOLEAN_VERIFY_TLS',
+    title: 'Not a Boolean',
+    detail: 'Verify tls must be true or false.',
+    category: 'validation',
+    retryable: false,
+  } as DomainError<'WEBHOOK.NOT_BOOLEAN_VERIFY_TLS', WebhookContext>,
   NOT_IMPLEMENTED: {
     code: 'WEBHOOK.NOT_IMPLEMENTED',
     title: 'Not Implemented',
@@ -225,6 +295,51 @@ export const WebhookErrors = {
     category: 'validation',
     retryable: false,
   } as DomainError<'WEBHOOK.NOT_IMPLEMENTED', WebhookContext>,
+  NOT_INTEGER_CONNECT_TIMEOUT_MS: {
+    code: 'WEBHOOK.NOT_INTEGER_CONNECT_TIMEOUT_MS',
+    title: 'Not an Integer',
+    detail: 'Connect timeout ms must be a whole number.',
+    category: 'validation',
+    retryable: false,
+  } as DomainError<'WEBHOOK.NOT_INTEGER_CONNECT_TIMEOUT_MS', WebhookContext>,
+  NOT_INTEGER_RATE_LIMIT_PER_MINUTE: {
+    code: 'WEBHOOK.NOT_INTEGER_RATE_LIMIT_PER_MINUTE',
+    title: 'Not an Integer',
+    detail: 'Rate limit per minute must be a whole number.',
+    category: 'validation',
+    retryable: false,
+  } as DomainError<'WEBHOOK.NOT_INTEGER_RATE_LIMIT_PER_MINUTE', WebhookContext>,
+  NOT_INTEGER_REQUEST_TIMEOUT_MS: {
+    code: 'WEBHOOK.NOT_INTEGER_REQUEST_TIMEOUT_MS',
+    title: 'Not an Integer',
+    detail: 'Request timeout ms must be a whole number.',
+    category: 'validation',
+    retryable: false,
+  } as DomainError<'WEBHOOK.NOT_INTEGER_REQUEST_TIMEOUT_MS', WebhookContext>,
+  OUT_OF_RANGE_CONNECT_TIMEOUT_MS: {
+    code: 'WEBHOOK.OUT_OF_RANGE_CONNECT_TIMEOUT_MS',
+    title: 'Value Out of Range',
+    detail: 'Connect timeout ms is outside the allowed range for Webhook.',
+    category: 'validation',
+    retryable: false,
+  } as DomainError<'WEBHOOK.OUT_OF_RANGE_CONNECT_TIMEOUT_MS', WebhookContext>,
+  OUT_OF_RANGE_RATE_LIMIT_PER_MINUTE: {
+    code: 'WEBHOOK.OUT_OF_RANGE_RATE_LIMIT_PER_MINUTE',
+    title: 'Value Out of Range',
+    detail: 'Rate limit per minute is outside the allowed range for Webhook.',
+    category: 'validation',
+    retryable: false,
+  } as DomainError<
+    'WEBHOOK.OUT_OF_RANGE_RATE_LIMIT_PER_MINUTE',
+    WebhookContext
+  >,
+  OUT_OF_RANGE_REQUEST_TIMEOUT_MS: {
+    code: 'WEBHOOK.OUT_OF_RANGE_REQUEST_TIMEOUT_MS',
+    title: 'Value Out of Range',
+    detail: 'Request timeout ms is outside the allowed range for Webhook.',
+    category: 'validation',
+    retryable: false,
+  } as DomainError<'WEBHOOK.OUT_OF_RANGE_REQUEST_TIMEOUT_MS', WebhookContext>,
   PERMISSION_DENIED: {
     code: 'WEBHOOK.PERMISSION_DENIED',
     title: 'Permission Denied',

@@ -28,8 +28,7 @@ export function ApiWebhookId(options: PropOptions = {}) {
 
   return applyDecorators(
     ApiProperty({
-      description: `Unique identifier for the Slack workspace/team, provided by Slack API during OAuth installation. This is the primary key linking all workspace-specific configurations.`,
-      example: `T01EXAMPLE123`,
+      description: `Webhook Id`,
       type: String,
       required,
     }),

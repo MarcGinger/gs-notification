@@ -2,15 +2,19 @@
 // REMOVE THIS COMMENT TO STOP AUTOMATIC UPDATES TO THIS BLOCK
 
 import {
+  WebhookConnectTimeoutMs,
   WebhookDescription,
   WebhookEventType,
   WebhookHeaders,
   WebhookId,
   WebhookMethod,
   WebhookName,
-  WebhookSigningSecret,
+  WebhookRateLimitPerMinute,
+  WebhookRequestTimeoutMs,
+  WebhookSigningSecretRef,
   WebhookStatus,
   WebhookTargetUrl,
+  WebhookVerifyTls,
 } from '../value-objects';
 
 export interface ValidatedWebhookUpdateFields {
@@ -21,6 +25,10 @@ export interface ValidatedWebhookUpdateFields {
   eventType?: WebhookEventType;
   method?: WebhookMethod;
   headers?: WebhookHeaders;
-  signingSecret?: WebhookSigningSecret;
+  signingSecretRef?: WebhookSigningSecretRef;
   status?: WebhookStatus;
+  verifyTls?: WebhookVerifyTls;
+  requestTimeoutMs?: WebhookRequestTimeoutMs;
+  connectTimeoutMs?: WebhookConnectTimeoutMs;
+  rateLimitPerMinute?: WebhookRateLimitPerMinute;
 }

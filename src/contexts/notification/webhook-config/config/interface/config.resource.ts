@@ -35,24 +35,54 @@ export const ConfigResource = (permission: ConfigPermission) =>
   Resource({
     type: 'config',
     action: permission,
-    extractId: (req: Request) => req.params?.webhookId || req.params?.id,
+    extractId: (req: Request) => req.params?.id || req.params?.id,
     extractAttributes: (req: Request) => {
       const body = req.body as Record<string, unknown> | undefined;
       const query = req.query as Record<string, unknown> | undefined;
 
       // Business data extraction
+      const webhookId = body?.webhookId || query?.webhookId;
+      const tenantId = body?.tenantId || query?.tenantId;
+      const strategy = body?.strategy || query?.strategy;
       const maxRetryAttempts =
         body?.maxRetryAttempts || query?.maxRetryAttempts;
       const retryBackoffSeconds =
         body?.retryBackoffSeconds || query?.retryBackoffSeconds;
+      const retryStrategy = body?.retryStrategy || query?.retryStrategy;
+      const backoffJitterPct =
+        body?.backoffJitterPct || query?.backoffJitterPct;
+      const requestTimeoutMs =
+        body?.requestTimeoutMs || query?.requestTimeoutMs;
+      const connectTimeoutMs =
+        body?.connectTimeoutMs || query?.connectTimeoutMs;
+      const signatureAlgorithm =
+        body?.signatureAlgorithm || query?.signatureAlgorithm;
+      const includeTimestampHeader =
+        body?.includeTimestampHeader || query?.includeTimestampHeader;
+      const maxConcurrent = body?.maxConcurrent || query?.maxConcurrent;
+      const dlqEnabled = body?.dlqEnabled || query?.dlqEnabled;
+      const dlqMaxAgeSeconds =
+        body?.dlqMaxAgeSeconds || query?.dlqMaxAgeSeconds;
+      const ordering = body?.ordering || query?.ordering;
       const defaultLocale = body?.defaultLocale || query?.defaultLocale;
-      const strategy = body?.strategy || query?.strategy;
 
       const baseAttributes = {
+        webhookId,
+        tenantId,
+        strategy,
         maxRetryAttempts,
         retryBackoffSeconds,
+        retryStrategy,
+        backoffJitterPct,
+        requestTimeoutMs,
+        connectTimeoutMs,
+        signatureAlgorithm,
+        includeTimestampHeader,
+        maxConcurrent,
+        dlqEnabled,
+        dlqMaxAgeSeconds,
+        ordering,
         defaultLocale,
-        strategy,
       };
 
       // Domain-driven permission context (no hardcoded business rules!)

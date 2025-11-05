@@ -8,7 +8,7 @@ import { EventMetadata } from 'src/shared/domain/events';
  * Contains identifying information about the deleted config
  */
 export interface ConfigDeletedEventPayload {
-  webhookId: string;
+  id: string;
   deletedAt: Date;
   version: number;
   metadata: EventMetadata;
@@ -21,7 +21,7 @@ export interface ConfigDeletedEventPayload {
  * Contains identifying information and deletion metadata.
  */
 export class ConfigDeletedEvent {
-  public readonly eventType = 'NotificationSlackConfigConfigDeleted.v1';
+  public readonly eventType = 'NotificationWebhookConfigConfigDeleted.v1';
   public readonly eventVersion = 'v1';
 
   constructor(public readonly payload: ConfigDeletedEventPayload) {}
@@ -43,8 +43,8 @@ export class ConfigDeletedEvent {
     });
   }
 
-  get webhookId(): string {
-    return this.payload.webhookId;
+  get id(): string {
+    return this.payload.id;
   }
 
   get deletedAt(): Date {

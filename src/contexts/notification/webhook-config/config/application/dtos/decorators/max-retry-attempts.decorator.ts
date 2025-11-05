@@ -21,8 +21,8 @@ export function ApiConfigMaxRetryAttempts(options: PropOptions = {}) {
 
   return applyDecorators(
     ApiProperty({
-      description: `Maximum number of retry attempts for failed message deliveries before marking as permanently failed. Higher values increase reliability but consume more resources.`,
-      example: 3,
+      description: `Maximum retry attempts`,
+      example: 6,
       type: Number,
       required,
     }),

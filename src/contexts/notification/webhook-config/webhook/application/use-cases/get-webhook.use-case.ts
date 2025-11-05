@@ -258,6 +258,9 @@ export class GetWebhookUseCase implements IGetWebhookUseCase {
       const notFoundError = withContext(WebhookErrors.WEBHOOK_NOT_FOUND, {
         id: params.id,
         name: '', // Default values for required fields
+        targetUrl: '', // Default values for required fields
+        eventType: '', // Default values for required fields
+        method: 0, // Default values for required fields
         status: 0, // Default values for required fields
         webhookId: params.id,
         correlationId,

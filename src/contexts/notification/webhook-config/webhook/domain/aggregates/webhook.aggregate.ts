@@ -142,12 +142,16 @@ export class WebhookAggregate extends AggregateRootBase {
       id: entityProps.id.value,
       name: entityProps.name.value,
       description: entityProps.description?.value,
-      targetUrl: entityProps.targetUrl?.value,
-      eventType: entityProps.eventType?.value,
-      method: entityProps.method?.value,
+      targetUrl: entityProps.targetUrl.value,
+      eventType: entityProps.eventType.value,
+      method: entityProps.method.value,
       headers: entityProps.headers?.value,
-      signingSecret: entityProps.signingSecret?.value,
+      signingSecretRef: entityProps.signingSecretRef?.value,
       status: entityProps.status.value,
+      verifyTls: entityProps.verifyTls?.value,
+      requestTimeoutMs: entityProps.requestTimeoutMs?.value,
+      connectTimeoutMs: entityProps.connectTimeoutMs?.value,
+      rateLimitPerMinute: entityProps.rateLimitPerMinute?.value,
     });
 
     // Apply as domain event with clean business data
@@ -197,12 +201,16 @@ export class WebhookAggregate extends AggregateRootBase {
           id: string;
           name: string;
           description?: string;
-          targetUrl?: string;
-          eventType?: string;
-          method?: WebhookMethodValue;
+          targetUrl: string;
+          eventType: string;
+          method: WebhookMethodValue;
           headers?: Record<string, unknown>;
-          signingSecret?: string;
+          signingSecretRef?: string;
           status: WebhookStatusValue;
+          verifyTls?: boolean;
+          requestTimeoutMs?: number;
+          connectTimeoutMs?: number;
+          rateLimitPerMinute?: number;
         };
 
         // For event replay, we need to reconstruct the full snapshot
@@ -217,8 +225,12 @@ export class WebhookAggregate extends AggregateRootBase {
           eventType: d.eventType,
           method: d.method,
           headers: d.headers,
-          signingSecret: d.signingSecret,
+          signingSecretRef: d.signingSecretRef,
           status: d.status,
+          verifyTls: d.verifyTls,
+          requestTimeoutMs: d.requestTimeoutMs,
+          connectTimeoutMs: d.connectTimeoutMs,
+          rateLimitPerMinute: d.rateLimitPerMinute,
           createdAt: currentSnapshot.createdAt || event.occurredAt,
           updatedAt: event.occurredAt, // Always update the timestamp
           version: currentSnapshot.version + 1 || 1,
@@ -352,11 +364,11 @@ export class WebhookAggregate extends AggregateRootBase {
         return true;
       }
     }
-    if (validatedFields.signingSecret !== undefined) {
+    if (validatedFields.signingSecretRef !== undefined) {
       if (
         hasValueChanged(
-          this._entity.signingSecret,
-          validatedFields.signingSecret,
+          this._entity.signingSecretRef,
+          validatedFields.signingSecretRef,
         )
       ) {
         return true;
@@ -364,6 +376,41 @@ export class WebhookAggregate extends AggregateRootBase {
     }
     if (validatedFields.status !== undefined) {
       if (hasValueChanged(this._entity.status, validatedFields.status)) {
+        return true;
+      }
+    }
+    if (validatedFields.verifyTls !== undefined) {
+      if (hasValueChanged(this._entity.verifyTls, validatedFields.verifyTls)) {
+        return true;
+      }
+    }
+    if (validatedFields.requestTimeoutMs !== undefined) {
+      if (
+        hasValueChanged(
+          this._entity.requestTimeoutMs,
+          validatedFields.requestTimeoutMs,
+        )
+      ) {
+        return true;
+      }
+    }
+    if (validatedFields.connectTimeoutMs !== undefined) {
+      if (
+        hasValueChanged(
+          this._entity.connectTimeoutMs,
+          validatedFields.connectTimeoutMs,
+        )
+      ) {
+        return true;
+      }
+    }
+    if (validatedFields.rateLimitPerMinute !== undefined) {
+      if (
+        hasValueChanged(
+          this._entity.rateLimitPerMinute,
+          validatedFields.rateLimitPerMinute,
+        )
+      ) {
         return true;
       }
     }
@@ -502,9 +549,9 @@ export class WebhookAggregate extends AggregateRootBase {
       currentEntity = entityResult.value;
     }
 
-    if (validatedFields.signingSecret !== undefined) {
-      const entityResult = currentEntity.withSigningSecret(
-        validatedFields.signingSecret,
+    if (validatedFields.signingSecretRef !== undefined) {
+      const entityResult = currentEntity.withSigningSecretRef(
+        validatedFields.signingSecretRef,
         updatedAt,
         nextVersion,
       );
@@ -522,6 +569,46 @@ export class WebhookAggregate extends AggregateRootBase {
       currentEntity = entityResult.value;
     }
 
+    if (validatedFields.verifyTls !== undefined) {
+      const entityResult = currentEntity.withVerifyTls(
+        validatedFields.verifyTls,
+        updatedAt,
+        nextVersion,
+      );
+      if (!entityResult.ok) return err(entityResult.error);
+      currentEntity = entityResult.value;
+    }
+
+    if (validatedFields.requestTimeoutMs !== undefined) {
+      const entityResult = currentEntity.withRequestTimeoutMs(
+        validatedFields.requestTimeoutMs,
+        updatedAt,
+        nextVersion,
+      );
+      if (!entityResult.ok) return err(entityResult.error);
+      currentEntity = entityResult.value;
+    }
+
+    if (validatedFields.connectTimeoutMs !== undefined) {
+      const entityResult = currentEntity.withConnectTimeoutMs(
+        validatedFields.connectTimeoutMs,
+        updatedAt,
+        nextVersion,
+      );
+      if (!entityResult.ok) return err(entityResult.error);
+      currentEntity = entityResult.value;
+    }
+
+    if (validatedFields.rateLimitPerMinute !== undefined) {
+      const entityResult = currentEntity.withRateLimitPerMinute(
+        validatedFields.rateLimitPerMinute,
+        updatedAt,
+        nextVersion,
+      );
+      if (!entityResult.ok) return err(entityResult.error);
+      currentEntity = entityResult.value;
+    }
+
     // Commit the batched changes
     this._entity = currentEntity;
 
@@ -530,12 +617,16 @@ export class WebhookAggregate extends AggregateRootBase {
       id: this._entity.id.value,
       name: this._entity.name.value,
       description: this._entity.description?.value,
-      targetUrl: this._entity.targetUrl?.value,
-      eventType: this._entity.eventType?.value,
-      method: this._entity.method?.value,
+      targetUrl: this._entity.targetUrl.value,
+      eventType: this._entity.eventType.value,
+      method: this._entity.method.value,
       headers: this._entity.headers?.value,
-      signingSecret: this._entity.signingSecret?.value,
+      signingSecretRef: this._entity.signingSecretRef?.value,
       status: this._entity.status.value,
+      verifyTls: this._entity.verifyTls?.value,
+      requestTimeoutMs: this._entity.requestTimeoutMs?.value,
+      connectTimeoutMs: this._entity.connectTimeoutMs?.value,
+      rateLimitPerMinute: this._entity.rateLimitPerMinute?.value,
     });
 
     // Apply as domain event with clean business data
@@ -555,19 +646,46 @@ export class WebhookAggregate extends AggregateRootBase {
   }
 
   /**
-   * Set entity to post
+   * Set entity to GET
    */
-  public post(): Result<void, DomainError> {
-    const methodResult = createWebhookMethod('post');
+  public get(): Result<void, DomainError> {
+    const methodResult = createWebhookMethod('GET');
     if (!methodResult.ok) return err(methodResult.error);
     return this.updateBatch({ method: methodResult.value });
   }
 
   /**
-   * Set entity to put
+   * Set entity to POST
+   */
+  public post(): Result<void, DomainError> {
+    const methodResult = createWebhookMethod('POST');
+    if (!methodResult.ok) return err(methodResult.error);
+    return this.updateBatch({ method: methodResult.value });
+  }
+
+  /**
+   * Set entity to PUT
    */
   public put(): Result<void, DomainError> {
-    const methodResult = createWebhookMethod('put');
+    const methodResult = createWebhookMethod('PUT');
+    if (!methodResult.ok) return err(methodResult.error);
+    return this.updateBatch({ method: methodResult.value });
+  }
+
+  /**
+   * Set entity to PATCH
+   */
+  public patch(): Result<void, DomainError> {
+    const methodResult = createWebhookMethod('PATCH');
+    if (!methodResult.ok) return err(methodResult.error);
+    return this.updateBatch({ method: methodResult.value });
+  }
+
+  /**
+   * Set entity to DELETE
+   */
+  public delete(): Result<void, DomainError> {
+    const methodResult = createWebhookMethod('DELETE');
     if (!methodResult.ok) return err(methodResult.error);
     return this.updateBatch({ method: methodResult.value });
   }

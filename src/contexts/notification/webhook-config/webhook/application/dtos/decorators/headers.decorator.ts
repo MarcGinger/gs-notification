@@ -22,7 +22,7 @@ export function ApiWebhookHeaders(options: PropOptions = {}) {
 
   return applyDecorators(
     ApiProperty({
-      description: `Unique user identifier for the bot within the workspace. Used to identify bot messages and prevent the bot from responding to its own messages in conversations.`,
+      description: `Webhook Headers`,
       example: '{ "key1": "value1", "key2": 123 }',
       type: 'object',
       additionalProperties: true,

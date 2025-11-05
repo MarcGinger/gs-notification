@@ -202,8 +202,12 @@ export class WebhookQueryRepository implements IWebhookQuery {
         eventType: webhook.eventType,
         method: webhook.method,
         headers: webhook.headers,
-        signingSecret: webhook.signingSecret,
+        signingSecretRef: webhook.signingSecretRef,
         status: webhook.status,
+        verifyTls: webhook.verifyTls,
+        requestTimeoutMs: webhook.requestTimeoutMs,
+        connectTimeoutMs: webhook.connectTimeoutMs,
+        rateLimitPerMinute: webhook.rateLimitPerMinute,
       };
 
       Log.debug(this.logger, 'Webhook found successfully in Redis', {
@@ -283,12 +287,16 @@ export class WebhookQueryRepository implements IWebhookQuery {
         id: hashData.id,
         name: hashData.name,
         description: hashData.description || undefined,
-        targetUrl: hashData.targetUrl || undefined,
-        eventType: hashData.eventType || undefined,
+        targetUrl: hashData.targetUrl,
+        eventType: hashData.eventType,
         method,
         headers,
-        signingSecret: hashData.signingSecret || undefined,
+        signingSecretRef: hashData.signingSecretRef || undefined,
         status,
+        verifyTls: hashData.verifyTls === 'true',
+        requestTimeoutMs: parseInt(hashData.requestTimeoutMs || '0', 10),
+        connectTimeoutMs: parseInt(hashData.connectTimeoutMs || '0', 10),
+        rateLimitPerMinute: parseInt(hashData.rateLimitPerMinute || '0', 10),
         version: parseInt(hashData.version, 10),
         createdAt: new Date(hashData.createdAt),
         updatedAt: new Date(hashData.updatedAt),
@@ -319,8 +327,12 @@ export class WebhookQueryRepository implements IWebhookQuery {
       eventType: webhook.eventType,
       method: webhook.method,
       headers: webhook.headers,
-      signingSecret: webhook.signingSecret,
+      signingSecretRef: webhook.signingSecretRef,
       status: webhook.status,
+      verifyTls: webhook.verifyTls,
+      requestTimeoutMs: webhook.requestTimeoutMs,
+      connectTimeoutMs: webhook.connectTimeoutMs,
+      rateLimitPerMinute: webhook.rateLimitPerMinute,
     } as ListWebhookResponse;
   }
 

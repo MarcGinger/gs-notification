@@ -3,7 +3,7 @@
 
 import { applyDecorators } from '@nestjs/common';
 import { ApiProperty } from '@nestjs/swagger';
-import { IsOptional, IsNotEmpty, IsString } from 'class-validator';
+import { IsOptional, IsNotEmpty, IsString, MaxLength } from 'class-validator';
 
 /**
  * Options for property decorators
@@ -18,16 +18,16 @@ interface PropOptions {
  * @returns {PropertyDecorator}
  */
 export function ApiWebhookEventType(options: PropOptions = {}) {
-  const { required = false } = options;
+  const { required = true } = options;
 
   return applyDecorators(
     ApiProperty({
-      description: `Slack application signing secret used to verify that incoming requests are genuinely from Slack. Required for webhook authentication and security validation. Encrypted using the same key as bot_token.`,
-      example: `example_signing_secret_not_real_123`,
+      description: `Event type identifier, e.g. 'product.created.v1'`,
       type: String,
       required,
     }),
     IsString(),
+    MaxLength(128),
     required ? IsNotEmpty() : IsOptional(),
   );
 }

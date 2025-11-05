@@ -26,7 +26,7 @@ export function ApiConfigStrategy(options: PropOptions = {}) {
   const { required = true } = options;
   return applyDecorators(
     ApiProperty({
-      description: `Config Strategy Values include exponential, linear.`,
+      description: `Configuration strategy scope Values include per-webhook, per-tenant, global.`,
       type: String,
       enum: ConfigStrategyValues,
       required,

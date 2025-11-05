@@ -46,8 +46,16 @@ export const WebhookResource = (permission: WebhookPermission) =>
       const targetUrl = body?.targetUrl || query?.targetUrl;
       const eventType = body?.eventType || query?.eventType;
       const method = body?.method || query?.method;
-      const signingSecret = body?.signingSecret || query?.signingSecret;
+      const signingSecretRef =
+        body?.signingSecretRef || query?.signingSecretRef;
       const status = body?.status || query?.status;
+      const verifyTls = body?.verifyTls || query?.verifyTls;
+      const requestTimeoutMs =
+        body?.requestTimeoutMs || query?.requestTimeoutMs;
+      const connectTimeoutMs =
+        body?.connectTimeoutMs || query?.connectTimeoutMs;
+      const rateLimitPerMinute =
+        body?.rateLimitPerMinute || query?.rateLimitPerMinute;
 
       const baseAttributes = {
         name,
@@ -55,8 +63,12 @@ export const WebhookResource = (permission: WebhookPermission) =>
         targetUrl,
         eventType,
         method,
-        signingSecret,
+        signingSecretRef,
         status,
+        verifyTls,
+        requestTimeoutMs,
+        connectTimeoutMs,
+        rateLimitPerMinute,
       };
 
       // Domain-driven permission context (no hardcoded business rules!)

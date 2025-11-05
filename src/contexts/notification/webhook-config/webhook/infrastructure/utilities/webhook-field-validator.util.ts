@@ -52,8 +52,22 @@ export class WebhookFieldValidatorUtil {
     const targetUrl = aggregateData.targetUrl as string;
     const eventType = aggregateData.eventType as string;
     const method = aggregateData.method as WebhookMethodValue;
-    const signingSecret = aggregateData.signingSecret as string;
+    const signingSecretRef = aggregateData.signingSecretRef as string;
     const status = aggregateData.status as WebhookStatusValue;
+    const verifyTls =
+      aggregateData.verifyTls === 'true' || aggregateData.verifyTls === true;
+    const requestTimeoutMs =
+      typeof aggregateData.requestTimeoutMs === 'string'
+        ? parseInt(aggregateData.requestTimeoutMs, 10)
+        : (aggregateData.requestTimeoutMs as number);
+    const connectTimeoutMs =
+      typeof aggregateData.connectTimeoutMs === 'string'
+        ? parseInt(aggregateData.connectTimeoutMs, 10)
+        : (aggregateData.connectTimeoutMs as number);
+    const rateLimitPerMinute =
+      typeof aggregateData.rateLimitPerMinute === 'string'
+        ? parseInt(aggregateData.rateLimitPerMinute, 10)
+        : (aggregateData.rateLimitPerMinute as number);
 
     // Extract version and timestamps with proper type conversion
     const version =
@@ -79,8 +93,12 @@ export class WebhookFieldValidatorUtil {
       eventType,
       method,
       headers,
-      signingSecret,
+      signingSecretRef,
       status,
+      verifyTls,
+      requestTimeoutMs,
+      connectTimeoutMs,
+      rateLimitPerMinute,
       version,
       createdAt,
       updatedAt,

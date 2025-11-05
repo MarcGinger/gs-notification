@@ -5,11 +5,23 @@ import {
   ConfigCreatedAt,
   ConfigUpdatedAt,
   ConfigVersion,
+  ConfigBackoffJitterPct,
+  ConfigConnectTimeoutMs,
   ConfigDefaultLocale,
+  ConfigDlqEnabled,
+  ConfigDlqMaxAgeSeconds,
+  ConfigId,
+  ConfigIncludeTimestampHeader,
+  ConfigMaxConcurrent,
   ConfigMaxRetryAttempts,
   ConfigMetadata,
+  ConfigOrdering,
+  ConfigRequestTimeoutMs,
   ConfigRetryBackoffSeconds,
+  ConfigRetryStrategy,
+  ConfigSignatureAlgorithm,
   ConfigStrategy,
+  ConfigTenantId,
   ConfigWebhookId,
 } from '../value-objects';
 
@@ -27,11 +39,23 @@ import {
  */
 
 export interface ConfigDomainState {
-  webhookId: ConfigWebhookId;
+  id: ConfigId;
+  webhookId?: ConfigWebhookId;
+  tenantId: ConfigTenantId;
+  strategy: ConfigStrategy;
   maxRetryAttempts: ConfigMaxRetryAttempts;
   retryBackoffSeconds: ConfigRetryBackoffSeconds;
+  retryStrategy?: ConfigRetryStrategy;
+  backoffJitterPct?: ConfigBackoffJitterPct;
+  requestTimeoutMs?: ConfigRequestTimeoutMs;
+  connectTimeoutMs?: ConfigConnectTimeoutMs;
+  signatureAlgorithm?: ConfigSignatureAlgorithm;
+  includeTimestampHeader?: ConfigIncludeTimestampHeader;
+  maxConcurrent?: ConfigMaxConcurrent;
+  dlqEnabled?: ConfigDlqEnabled;
+  dlqMaxAgeSeconds?: ConfigDlqMaxAgeSeconds;
+  ordering?: ConfigOrdering;
   defaultLocale: ConfigDefaultLocale;
-  strategy: ConfigStrategy;
   metadata?: ConfigMetadata;
   version: ConfigVersion;
   createdAt: ConfigCreatedAt;

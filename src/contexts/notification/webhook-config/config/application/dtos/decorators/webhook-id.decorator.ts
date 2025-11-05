@@ -18,12 +18,11 @@ interface PropOptions {
  * @returns {PropertyDecorator}
  */
 export function ApiConfigWebhookId(options: PropOptions = {}) {
-  const { required = true } = options;
+  const { required = false } = options;
 
   return applyDecorators(
     ApiProperty({
-      description: `Foreign key reference to the workspace these operational settings apply to. Allows per-workspace customization of retry logic and behavior.`,
-      example: `T01EXAMPLE123`,
+      description: `Optional webhook-specific override`,
       type: String,
       required,
     }),

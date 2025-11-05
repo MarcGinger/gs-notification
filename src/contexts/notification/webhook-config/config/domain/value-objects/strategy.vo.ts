@@ -20,7 +20,11 @@ import { ConfigErrors } from '../errors/config.errors';
  * ConfigStrategy allowed values
  * Canonical definition used across all layers (API, Domain, DB)
  */
-export const ConfigStrategyValues = ['exponential', 'linear'] as const;
+export const ConfigStrategyValues = [
+  'perWebhook',
+  'perTenant',
+  'global',
+] as const;
 export type ConfigStrategyValue = (typeof ConfigStrategyValues)[number];
 
 // ============================================================================
@@ -35,9 +39,9 @@ export type ConfigStrategyValue = (typeof ConfigStrategyValues)[number];
  *
  * @example
  * ```typescript
- * const strategy = ConfigStrategy.create('exponential');
+ * const strategy = ConfigStrategy.create('per-webhook');
  * if (strategy.ok) {
- *   console.log(strategy.value.canTransitionTo('linear'));
+ *   console.log(strategy.value.canTransitionTo('per-tenant'));
  * }
  * ```
  */
@@ -67,16 +71,18 @@ export const configStrategyFrom = (value: unknown) =>
  * Valid state transitions for config strategy
  */
 const CONFIG_STRATEGY_TRANSITIONS = {
-  exponential: ['linear'] as const,
-  linear: ['exponential'] as const,
+  perWebhook: ['perTenant', 'global'] as const,
+  perTenant: ['perWebhook', 'global'] as const,
+  global: ['perWebhook', 'perTenant'] as const,
 } as const;
 
 /**
  * Display names for config strategy values
  */
 const CONFIG_STRATEGY_DISPLAY_NAMES = {
-  exponential: 'Exponential',
-  linear: 'Linear',
+  perWebhook: 'Per Webhook',
+  perTenant: 'Per Tenant',
+  global: 'Global',
 } as const;
 
 /**

@@ -17,7 +17,7 @@ export class WebhookConfigDocumentation {
         { type: 'http', scheme: 'bearer', bearerFormat: 'JWT' },
         'bearer',
       )
-      .setTitle(`Core Slack Configuration`)
+      .setTitle(`Core Webhook Configuration`)
       .setDescription(
         `
 ## bounded context: notification

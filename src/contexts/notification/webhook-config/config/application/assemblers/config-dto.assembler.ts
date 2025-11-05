@@ -28,11 +28,23 @@ export class ConfigDtoAssembler {
     const dto = new DetailConfigResponse();
 
     // Extract primitive values from VOs
-    dto.webhookId = domainState.webhookId.value;
+    dto.id = domainState.id.value;
+    dto.webhookId = domainState.webhookId?.value;
+    dto.tenantId = domainState.tenantId.value;
+    dto.strategy = domainState.strategy.value;
     dto.maxRetryAttempts = domainState.maxRetryAttempts.value;
     dto.retryBackoffSeconds = domainState.retryBackoffSeconds.value;
+    dto.retryStrategy = domainState.retryStrategy?.value;
+    dto.backoffJitterPct = domainState.backoffJitterPct?.value;
+    dto.requestTimeoutMs = domainState.requestTimeoutMs?.value;
+    dto.connectTimeoutMs = domainState.connectTimeoutMs?.value;
+    dto.signatureAlgorithm = domainState.signatureAlgorithm?.value;
+    dto.includeTimestampHeader = domainState.includeTimestampHeader?.value;
+    dto.maxConcurrent = domainState.maxConcurrent?.value;
+    dto.dlqEnabled = domainState.dlqEnabled?.value;
+    dto.dlqMaxAgeSeconds = domainState.dlqMaxAgeSeconds?.value;
+    dto.ordering = domainState.ordering?.value;
     dto.defaultLocale = domainState.defaultLocale.value;
-    dto.strategy = domainState.strategy.value;
     dto.metadata = domainState.metadata?.value;
 
     return dto;

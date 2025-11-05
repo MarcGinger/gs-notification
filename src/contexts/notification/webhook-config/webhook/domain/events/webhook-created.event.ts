@@ -10,12 +10,16 @@ export interface WebhookCreatedEventPayload {
   id: string;
   name: string;
   description?: string;
-  targetUrl?: string;
-  eventType?: string;
-  method?: WebhookMethodValue;
+  targetUrl: string;
+  eventType: string;
+  method: WebhookMethodValue;
   headers?: Record<string, unknown>;
-  signingSecret?: string;
+  signingSecretRef?: string;
   status: WebhookStatusValue;
+  verifyTls?: boolean;
+  requestTimeoutMs?: number;
+  connectTimeoutMs?: number;
+  rateLimitPerMinute?: number;
 }
 
 /**
@@ -48,15 +52,15 @@ export class WebhookCreatedEvent {
     return this.payload.description;
   }
 
-  get targetUrl(): string | undefined {
+  get targetUrl(): string {
     return this.payload.targetUrl;
   }
 
-  get eventType(): string | undefined {
+  get webhookEventType(): string {
     return this.payload.eventType;
   }
 
-  get method(): WebhookMethodValue | undefined {
+  get method(): WebhookMethodValue {
     return this.payload.method;
   }
 
@@ -64,11 +68,27 @@ export class WebhookCreatedEvent {
     return this.payload.headers;
   }
 
-  get signingSecret(): string | undefined {
-    return this.payload.signingSecret;
+  get signingSecretRef(): string | undefined {
+    return this.payload.signingSecretRef;
   }
 
   get status(): WebhookStatusValue {
     return this.payload.status;
+  }
+
+  get verifyTls(): boolean | undefined {
+    return this.payload.verifyTls;
+  }
+
+  get requestTimeoutMs(): number | undefined {
+    return this.payload.requestTimeoutMs;
+  }
+
+  get connectTimeoutMs(): number | undefined {
+    return this.payload.connectTimeoutMs;
+  }
+
+  get rateLimitPerMinute(): number | undefined {
+    return this.payload.rateLimitPerMinute;
   }
 }

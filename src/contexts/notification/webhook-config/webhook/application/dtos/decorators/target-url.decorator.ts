@@ -18,12 +18,11 @@ interface PropOptions {
  * @returns {PropertyDecorator}
  */
 export function ApiWebhookTargetUrl(options: PropOptions = {}) {
-  const { required = false } = options;
+  const { required = true } = options;
 
   return applyDecorators(
     ApiProperty({
-      description: `OAuth bot token with scope permissions for posting messages, reading channels, and accessing workspace information. Encrypted at rest using AES-256 encryption for security compliance.`,
-      example: `xoxb-EXAMPLE-EXAMPLE-EXAMPLETOKEN123456`,
+      description: `Required webhook target URL`,
       type: String,
       required,
     }),

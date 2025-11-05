@@ -22,7 +22,7 @@ import { RepositoryErrorFactory } from 'src/shared/domain/errors/repository.erro
 import { WEBHOOK_CONFIG_DI_TOKENS } from '../../../webhook-config.constants';
 import { ConfigProjectionKeys } from '../../config-projection-keys';
 import { ConfigSnapshotProps } from '../../domain/props';
-import { ConfigWebhookId } from '../../domain/value-objects';
+import { ConfigId } from '../../domain/value-objects';
 import { IConfigReader } from '../../application/ports';
 
 /**
@@ -110,12 +110,35 @@ export class ConfigReaderRepository implements IConfigReader {
       // Type assertion for strategy - cached data should already be validated
       const strategy = hashData.strategy as ConfigSnapshotProps['strategy'];
 
+      // Type assertion for retryStrategy - cached data should already be validated
+      const retryStrategy =
+        hashData.retryStrategy as ConfigSnapshotProps['retryStrategy'];
+
+      // Type assertion for signatureAlgorithm - cached data should already be validated
+      const signatureAlgorithm =
+        hashData.signatureAlgorithm as ConfigSnapshotProps['signatureAlgorithm'];
+
+      // Type assertion for ordering - cached data should already be validated
+      const ordering = hashData.ordering as ConfigSnapshotProps['ordering'];
+
       return {
-        webhookId: hashData.webhookId,
+        id: hashData.id,
+        webhookId: hashData.webhookId || undefined,
+        tenantId: hashData.tenantId,
+        strategy,
         maxRetryAttempts: parseInt(hashData.maxRetryAttempts, 10),
         retryBackoffSeconds: parseInt(hashData.retryBackoffSeconds, 10),
+        retryStrategy,
+        backoffJitterPct: parseInt(hashData.backoffJitterPct, 10),
+        requestTimeoutMs: parseInt(hashData.requestTimeoutMs, 10),
+        connectTimeoutMs: parseInt(hashData.connectTimeoutMs, 10),
+        signatureAlgorithm,
+        includeTimestampHeader: hashData.includeTimestampHeader === 'true',
+        maxConcurrent: parseInt(hashData.maxConcurrent, 10),
+        dlqEnabled: hashData.dlqEnabled === 'true',
+        dlqMaxAgeSeconds: parseInt(hashData.dlqMaxAgeSeconds, 10),
+        ordering,
         defaultLocale: hashData.defaultLocale,
-        strategy,
         metadata,
         version: parseInt(hashData.version, 10),
         createdAt: new Date(hashData.createdAt),
@@ -128,7 +151,7 @@ export class ConfigReaderRepository implements IConfigReader {
         {
           method: 'parseRedisHashToConfig',
           error: (error as Error).message,
-          webhookId: hashData?.webhookId,
+          id: hashData?.id,
         },
       );
       return null;
@@ -164,13 +187,13 @@ export class ConfigReaderRepository implements IConfigReader {
   /**
    * Find a Config by its unique identifier
    * @param actor - The authenticated user context
-   * @param webhookId - The unique identifier of the Config
+   * @param id - The unique identifier of the Config
    * @param options - Optional repository options
    * @returns Result containing the Config snapshot or null if not found
    */
   async findById(
     actor: ActorContext,
-    webhookId: ConfigWebhookId,
+    id: ConfigId,
     options?: RepositoryOptions,
   ): Promise<Result<Option<ConfigSnapshotProps>, DomainError>> {
     const operation = 'findById';
@@ -181,7 +204,7 @@ export class ConfigReaderRepository implements IConfigReader {
 
     const logContext = this.createLogContext(operation, correlationId, actor, {
       riskLevel,
-      targetWebhookId: webhookId.value,
+      targetId: id.value,
       customCorrelationId: !!options?.correlationId,
       source: options?.source,
       requestId: options?.requestId,
@@ -215,7 +238,7 @@ export class ConfigReaderRepository implements IConfigReader {
 
     try {
       // Generate cluster-safe Redis key
-      const redisKey = this.generateConfigKey(actor.tenant, webhookId.value);
+      const redisKey = this.generateConfigKey(actor.tenant, id.value);
 
       Log.debug(this.logger, 'Finding config by ID in Redis', {
         ...logContext,
@@ -268,7 +291,7 @@ export class ConfigReaderRepository implements IConfigReader {
           resultCount: 1,
           dataQuality: 'good',
           sampleData: {
-            webhookId: configSnapshot.webhookId,
+            id: configSnapshot.id,
             version: configSnapshot.version,
           },
         },
@@ -293,13 +316,13 @@ export class ConfigReaderRepository implements IConfigReader {
   /**
    * Check if a config exists by ID (for write-path validation)
    * @param actor - The authenticated user context
-   * @param webhookId - The unique identifier of the Config
+   * @param id - The unique identifier of the Config
    * @param options - Optional repository options
    * @returns Result containing boolean indicating existence
    */
   async exists(
     actor: ActorContext,
-    webhookId: ConfigWebhookId,
+    id: ConfigId,
     options?: RepositoryOptions,
   ): Promise<Result<boolean, DomainError>> {
     const operation = 'exists';
@@ -310,7 +333,7 @@ export class ConfigReaderRepository implements IConfigReader {
 
     const logContext = this.createLogContext(operation, correlationId, actor, {
       riskLevel,
-      targetWebhookId: webhookId.value,
+      targetId: id.value,
       customCorrelationId: !!options?.correlationId,
       source: options?.source,
       requestId: options?.requestId,
@@ -335,7 +358,7 @@ export class ConfigReaderRepository implements IConfigReader {
 
     try {
       // Generate cluster-safe Redis key
-      const redisKey = this.generateConfigKey(actor.tenant, webhookId.value);
+      const redisKey = this.generateConfigKey(actor.tenant, id.value);
 
       Log.debug(this.logger, 'Checking config existence in Redis', {
         ...logContext,
@@ -365,7 +388,7 @@ export class ConfigReaderRepository implements IConfigReader {
         {
           resultCount: isActive ? 1 : 0,
           dataQuality: 'good',
-          sampleData: { exists: isActive, webhookId: webhookId.value },
+          sampleData: { exists: isActive, id: id.value },
         },
       );
 
@@ -388,13 +411,13 @@ export class ConfigReaderRepository implements IConfigReader {
   /**
    * Get config version for optimistic concurrency control
    * @param actor - The authenticated user context
-   * @param webhookId - The unique identifier of the Config
+   * @param id - The unique identifier of the Config
    * @param options - Optional repository options
    * @returns Result containing version number or null if not found
    */
   async getVersion(
     actor: ActorContext,
-    webhookId: ConfigWebhookId,
+    id: ConfigId,
     options?: RepositoryOptions,
   ): Promise<Result<Option<number>, DomainError>> {
     const operation = 'getVersion';
@@ -405,7 +428,7 @@ export class ConfigReaderRepository implements IConfigReader {
 
     const logContext = this.createLogContext(operation, correlationId, actor, {
       riskLevel,
-      targetWebhookId: webhookId.value,
+      targetId: id.value,
       customCorrelationId: !!options?.correlationId,
       source: options?.source,
       requestId: options?.requestId,
@@ -430,7 +453,7 @@ export class ConfigReaderRepository implements IConfigReader {
 
     try {
       // Generate cluster-safe Redis key
-      const redisKey = this.generateConfigKey(actor.tenant, webhookId.value);
+      const redisKey = this.generateConfigKey(actor.tenant, id.value);
 
       Log.debug(this.logger, 'Getting config version from Redis', {
         ...logContext,
@@ -473,7 +496,7 @@ export class ConfigReaderRepository implements IConfigReader {
         {
           resultCount: 1,
           dataQuality: 'good',
-          sampleData: { webhookId: webhookId.value, version },
+          sampleData: { id: id.value, version },
         },
       );
 
@@ -496,17 +519,15 @@ export class ConfigReaderRepository implements IConfigReader {
   /**
    * Get minimal config data for write-path operations
    * @param actor - The authenticated user context
-   * @param webhookId - The unique identifier of the Config
+   * @param id - The unique identifier of the Config
    * @param options - Optional repository options
    * @returns Result containing minimal config data or null if not found
    */
   async getMinimal(
     actor: ActorContext,
-    webhookId: ConfigWebhookId,
+    id: ConfigId,
     options?: RepositoryOptions,
-  ): Promise<
-    Result<Option<{ webhookId: string; version: number }>, DomainError>
-  > {
+  ): Promise<Result<Option<{ id: string; version: number }>, DomainError>> {
     const operation = 'getMinimal';
     const riskLevel = this.assessOperationRisk(operation);
     const correlationId =
@@ -515,7 +536,7 @@ export class ConfigReaderRepository implements IConfigReader {
 
     const logContext = this.createLogContext(operation, correlationId, actor, {
       riskLevel,
-      targetWebhookId: webhookId.value,
+      targetId: id.value,
       customCorrelationId: !!options?.correlationId,
       source: options?.source,
       requestId: options?.requestId,
@@ -540,7 +561,7 @@ export class ConfigReaderRepository implements IConfigReader {
 
     try {
       // Generate cluster-safe Redis key
-      const redisKey = this.generateConfigKey(actor.tenant, webhookId.value);
+      const redisKey = this.generateConfigKey(actor.tenant, id.value);
 
       Log.debug(this.logger, 'Getting minimal config data from Redis', {
         ...logContext,
@@ -548,20 +569,20 @@ export class ConfigReaderRepository implements IConfigReader {
           scope: 'redis_hash',
           method: 'redis.hmget',
           key: redisKey,
-          fields: ['webhookId', 'version', 'deletedAt'],
+          fields: ['id', 'version', 'deletedAt'],
           optimized: true,
         },
       });
 
       // Get minimal fields from Redis efficiently
-      const [webhookIdStr, versionStr, deletedAt] = await this.redis.hmget(
+      const [idStr, versionStr, deletedAt] = await this.redis.hmget(
         redisKey,
-        'webhookId',
+        'id',
         'version',
         'deletedAt',
       );
 
-      if (!webhookIdStr || !versionStr || deletedAt) {
+      if (!idStr || !versionStr || deletedAt) {
         RepositoryLoggingUtil.logQueryMetrics(
           this.logger,
           operation,
@@ -575,7 +596,7 @@ export class ConfigReaderRepository implements IConfigReader {
       }
 
       const minimal = {
-        webhookId: webhookIdStr,
+        id: idStr,
         version: parseInt(versionStr, 10),
       };
 

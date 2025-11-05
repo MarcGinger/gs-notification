@@ -9,10 +9,22 @@ import { ConfigEntity } from '../entities';
 import { ConfigSnapshotProps, UpdateConfigProps } from '../props';
 import { ValidatedConfigUpdateFields } from '../types';
 import {
+  ConfigWebhookId,
+  ConfigTenantId,
+  createConfigStrategy,
   ConfigMaxRetryAttempts,
   ConfigRetryBackoffSeconds,
+  createConfigRetryStrategy,
+  ConfigBackoffJitterPct,
+  ConfigRequestTimeoutMs,
+  ConfigConnectTimeoutMs,
+  createConfigSignatureAlgorithm,
+  ConfigIncludeTimestampHeader,
+  ConfigMaxConcurrent,
+  ConfigDlqEnabled,
+  ConfigDlqMaxAgeSeconds,
+  createConfigOrdering,
   ConfigDefaultLocale,
-  createConfigStrategy,
   ConfigMetadata,
 } from '../value-objects';
 
@@ -58,6 +70,54 @@ export function updateConfigAggregateFromSnapshot(
   // 2. Validate and apply updates for each provided field
   const validatedFields: ValidatedConfigUpdateFields = {};
 
+  // Validate webhookId if provided
+  if (updateProps.webhookId !== undefined) {
+    const webhookIdResult = ConfigWebhookId.from(updateProps.webhookId);
+    if (!webhookIdResult.ok) {
+      return err(
+        withContext(webhookIdResult.error, {
+          operation: 'update_config_webhook_id_validation',
+          correlationId: metadata.correlationId,
+          userId: metadata.actor?.userId,
+          providedWebhookId: updateProps.webhookId,
+        }),
+      );
+    }
+    validatedFields.webhookId = webhookIdResult.value;
+  }
+
+  // Validate tenantId if provided
+  if (updateProps.tenantId !== undefined) {
+    const tenantIdResult = ConfigTenantId.from(updateProps.tenantId);
+    if (!tenantIdResult.ok) {
+      return err(
+        withContext(tenantIdResult.error, {
+          operation: 'update_config_tenant_id_validation',
+          correlationId: metadata.correlationId,
+          userId: metadata.actor?.userId,
+          providedTenantId: updateProps.tenantId,
+        }),
+      );
+    }
+    validatedFields.tenantId = tenantIdResult.value;
+  }
+
+  // Validate strategy if provided
+  if (updateProps.strategy !== undefined) {
+    const strategyResult = createConfigStrategy(updateProps.strategy);
+    if (!strategyResult.ok) {
+      return err(
+        withContext(strategyResult.error, {
+          operation: 'update_config_strategy_validation',
+          correlationId: metadata.correlationId,
+          userId: metadata.actor?.userId,
+          providedStrategy: updateProps.strategy,
+        }),
+      );
+    }
+    validatedFields.strategy = strategyResult.value;
+  }
+
   // Validate maxRetryAttempts if provided
   if (updateProps.maxRetryAttempts !== undefined) {
     const maxRetryAttemptsResult = ConfigMaxRetryAttempts.from(
@@ -94,6 +154,182 @@ export function updateConfigAggregateFromSnapshot(
     validatedFields.retryBackoffSeconds = retryBackoffSecondsResult.value;
   }
 
+  // Validate retryStrategy if provided
+  if (updateProps.retryStrategy !== undefined) {
+    const retryStrategyResult = createConfigRetryStrategy(
+      updateProps.retryStrategy,
+    );
+    if (!retryStrategyResult.ok) {
+      return err(
+        withContext(retryStrategyResult.error, {
+          operation: 'update_config_retry_strategy_validation',
+          correlationId: metadata.correlationId,
+          userId: metadata.actor?.userId,
+          providedRetryStrategy: updateProps.retryStrategy,
+        }),
+      );
+    }
+    validatedFields.retryStrategy = retryStrategyResult.value;
+  }
+
+  // Validate backoffJitterPct if provided
+  if (updateProps.backoffJitterPct !== undefined) {
+    const backoffJitterPctResult = ConfigBackoffJitterPct.from(
+      updateProps.backoffJitterPct,
+    );
+    if (!backoffJitterPctResult.ok) {
+      return err(
+        withContext(backoffJitterPctResult.error, {
+          operation: 'update_config_backoff_jitter_pct_validation',
+          correlationId: metadata.correlationId,
+          userId: metadata.actor?.userId,
+          providedBackoffJitterPct: updateProps.backoffJitterPct,
+        }),
+      );
+    }
+    validatedFields.backoffJitterPct = backoffJitterPctResult.value;
+  }
+
+  // Validate requestTimeoutMs if provided
+  if (updateProps.requestTimeoutMs !== undefined) {
+    const requestTimeoutMsResult = ConfigRequestTimeoutMs.from(
+      updateProps.requestTimeoutMs,
+    );
+    if (!requestTimeoutMsResult.ok) {
+      return err(
+        withContext(requestTimeoutMsResult.error, {
+          operation: 'update_config_request_timeout_ms_validation',
+          correlationId: metadata.correlationId,
+          userId: metadata.actor?.userId,
+          providedRequestTimeoutMs: updateProps.requestTimeoutMs,
+        }),
+      );
+    }
+    validatedFields.requestTimeoutMs = requestTimeoutMsResult.value;
+  }
+
+  // Validate connectTimeoutMs if provided
+  if (updateProps.connectTimeoutMs !== undefined) {
+    const connectTimeoutMsResult = ConfigConnectTimeoutMs.from(
+      updateProps.connectTimeoutMs,
+    );
+    if (!connectTimeoutMsResult.ok) {
+      return err(
+        withContext(connectTimeoutMsResult.error, {
+          operation: 'update_config_connect_timeout_ms_validation',
+          correlationId: metadata.correlationId,
+          userId: metadata.actor?.userId,
+          providedConnectTimeoutMs: updateProps.connectTimeoutMs,
+        }),
+      );
+    }
+    validatedFields.connectTimeoutMs = connectTimeoutMsResult.value;
+  }
+
+  // Validate signatureAlgorithm if provided
+  if (updateProps.signatureAlgorithm !== undefined) {
+    const signatureAlgorithmResult = createConfigSignatureAlgorithm(
+      updateProps.signatureAlgorithm,
+    );
+    if (!signatureAlgorithmResult.ok) {
+      return err(
+        withContext(signatureAlgorithmResult.error, {
+          operation: 'update_config_signature_algorithm_validation',
+          correlationId: metadata.correlationId,
+          userId: metadata.actor?.userId,
+          providedSignatureAlgorithm: updateProps.signatureAlgorithm,
+        }),
+      );
+    }
+    validatedFields.signatureAlgorithm = signatureAlgorithmResult.value;
+  }
+
+  // Validate includeTimestampHeader if provided
+  if (updateProps.includeTimestampHeader !== undefined) {
+    const includeTimestampHeaderResult = ConfigIncludeTimestampHeader.from(
+      updateProps.includeTimestampHeader,
+    );
+    if (!includeTimestampHeaderResult.ok) {
+      return err(
+        withContext(includeTimestampHeaderResult.error, {
+          operation: 'update_config_include_timestamp_header_validation',
+          correlationId: metadata.correlationId,
+          userId: metadata.actor?.userId,
+          providedIncludeTimestampHeader: updateProps.includeTimestampHeader,
+        }),
+      );
+    }
+    validatedFields.includeTimestampHeader = includeTimestampHeaderResult.value;
+  }
+
+  // Validate maxConcurrent if provided
+  if (updateProps.maxConcurrent !== undefined) {
+    const maxConcurrentResult = ConfigMaxConcurrent.from(
+      updateProps.maxConcurrent,
+    );
+    if (!maxConcurrentResult.ok) {
+      return err(
+        withContext(maxConcurrentResult.error, {
+          operation: 'update_config_max_concurrent_validation',
+          correlationId: metadata.correlationId,
+          userId: metadata.actor?.userId,
+          providedMaxConcurrent: updateProps.maxConcurrent,
+        }),
+      );
+    }
+    validatedFields.maxConcurrent = maxConcurrentResult.value;
+  }
+
+  // Validate dlqEnabled if provided
+  if (updateProps.dlqEnabled !== undefined) {
+    const dlqEnabledResult = ConfigDlqEnabled.from(updateProps.dlqEnabled);
+    if (!dlqEnabledResult.ok) {
+      return err(
+        withContext(dlqEnabledResult.error, {
+          operation: 'update_config_dlq_enabled_validation',
+          correlationId: metadata.correlationId,
+          userId: metadata.actor?.userId,
+          providedDlqEnabled: updateProps.dlqEnabled,
+        }),
+      );
+    }
+    validatedFields.dlqEnabled = dlqEnabledResult.value;
+  }
+
+  // Validate dlqMaxAgeSeconds if provided
+  if (updateProps.dlqMaxAgeSeconds !== undefined) {
+    const dlqMaxAgeSecondsResult = ConfigDlqMaxAgeSeconds.from(
+      updateProps.dlqMaxAgeSeconds,
+    );
+    if (!dlqMaxAgeSecondsResult.ok) {
+      return err(
+        withContext(dlqMaxAgeSecondsResult.error, {
+          operation: 'update_config_dlq_max_age_seconds_validation',
+          correlationId: metadata.correlationId,
+          userId: metadata.actor?.userId,
+          providedDlqMaxAgeSeconds: updateProps.dlqMaxAgeSeconds,
+        }),
+      );
+    }
+    validatedFields.dlqMaxAgeSeconds = dlqMaxAgeSecondsResult.value;
+  }
+
+  // Validate ordering if provided
+  if (updateProps.ordering !== undefined) {
+    const orderingResult = createConfigOrdering(updateProps.ordering);
+    if (!orderingResult.ok) {
+      return err(
+        withContext(orderingResult.error, {
+          operation: 'update_config_ordering_validation',
+          correlationId: metadata.correlationId,
+          userId: metadata.actor?.userId,
+          providedOrdering: updateProps.ordering,
+        }),
+      );
+    }
+    validatedFields.ordering = orderingResult.value;
+  }
+
   // Validate defaultLocale if provided
   if (updateProps.defaultLocale !== undefined) {
     const defaultLocaleResult = ConfigDefaultLocale.from(
@@ -110,22 +346,6 @@ export function updateConfigAggregateFromSnapshot(
       );
     }
     validatedFields.defaultLocale = defaultLocaleResult.value;
-  }
-
-  // Validate strategy if provided
-  if (updateProps.strategy !== undefined) {
-    const strategyResult = createConfigStrategy(updateProps.strategy);
-    if (!strategyResult.ok) {
-      return err(
-        withContext(strategyResult.error, {
-          operation: 'update_config_strategy_validation',
-          correlationId: metadata.correlationId,
-          userId: metadata.actor?.userId,
-          providedStrategy: updateProps.strategy,
-        }),
-      );
-    }
-    validatedFields.strategy = strategyResult.value;
   }
 
   // Validate metadata if provided

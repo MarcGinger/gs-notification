@@ -3,10 +3,22 @@
 import { DomainError } from 'src/shared/errors';
 
 export interface ConfigContext extends Record<string, unknown> {
+  id: string;
+  tenantId: string;
+  strategy: string;
   maxRetryAttempts: number;
   retryBackoffSeconds: number;
+  retryStrategy?: string;
+  backoffJitterPct?: number;
+  requestTimeoutMs?: number;
+  connectTimeoutMs?: number;
+  signatureAlgorithm?: string;
+  includeTimestampHeader?: boolean;
+  maxConcurrent?: number;
+  dlqEnabled?: boolean;
+  dlqMaxAgeSeconds?: number;
+  ordering?: string;
   defaultLocale: string;
-  strategy: string;
   metadata?: Record<string, unknown>;
   userId?: string;
   correlationId?: string;
@@ -88,13 +100,51 @@ export const ConfigErrors = {
     category: 'validation',
     retryable: false,
   } as DomainError<'CONFIG.CREATED_AT_REQUIRED', ConfigContext>,
+  ENUM_NOT_ALLOWED_ORDERING: {
+    code: 'CONFIG.ENUM_NOT_ALLOWED_ORDERING',
+    title: 'Invalid Option',
+    detail: 'Ordering must be one of: fifo, loose.',
+    category: 'validation',
+    retryable: false,
+  } as DomainError<'CONFIG.ENUM_NOT_ALLOWED_ORDERING', ConfigContext>,
+  ENUM_NOT_ALLOWED_RETRY_STRATEGY: {
+    code: 'CONFIG.ENUM_NOT_ALLOWED_RETRY_STRATEGY',
+    title: 'Invalid Option',
+    detail: 'Retry strategy must be one of: exponential, linear, fixed.',
+    category: 'validation',
+    retryable: false,
+  } as DomainError<'CONFIG.ENUM_NOT_ALLOWED_RETRY_STRATEGY', ConfigContext>,
+  ENUM_NOT_ALLOWED_SIGNATURE_ALGORITHM: {
+    code: 'CONFIG.ENUM_NOT_ALLOWED_SIGNATURE_ALGORITHM',
+    title: 'Invalid Option',
+    detail: 'Signature algorithm must be one of: sha256, sha1.',
+    category: 'validation',
+    retryable: false,
+  } as DomainError<
+    'CONFIG.ENUM_NOT_ALLOWED_SIGNATURE_ALGORITHM',
+    ConfigContext
+  >,
   ENUM_NOT_ALLOWED_STRATEGY: {
     code: 'CONFIG.ENUM_NOT_ALLOWED_STRATEGY',
     title: 'Invalid Option',
-    detail: 'Strategy must be one of: exponential, linear.',
+    detail: 'Strategy must be one of: per-webhook, per-tenant, global.',
     category: 'validation',
     retryable: false,
   } as DomainError<'CONFIG.ENUM_NOT_ALLOWED_STRATEGY', ConfigContext>,
+  INVALID_BACKOFF_JITTER_PCT: {
+    code: 'CONFIG.INVALID_BACKOFF_JITTER_PCT',
+    title: 'Value Required',
+    detail: 'Backoff jitter pct is required for Config.',
+    category: 'validation',
+    retryable: false,
+  } as DomainError<'CONFIG.INVALID_BACKOFF_JITTER_PCT', ConfigContext>,
+  INVALID_BACKOFF_JITTER_PCT_DATA: {
+    code: 'CONFIG.INVALID_BACKOFF_JITTER_PCT_DATA',
+    title: 'Value Required',
+    detail: 'Backoff jitter pct is required for Config.',
+    category: 'validation',
+    retryable: false,
+  } as DomainError<'CONFIG.INVALID_BACKOFF_JITTER_PCT_DATA', ConfigContext>,
   INVALID_CODE_DATA: {
     code: 'CONFIG.INVALID_CODE_DATA',
     title: 'Invalid Version Data',
@@ -109,6 +159,20 @@ export const ConfigErrors = {
     category: 'validation',
     retryable: false,
   } as DomainError<'CONFIG.INVALID_CONFIG_DATA', ConfigContext>,
+  INVALID_CONNECT_TIMEOUT_MS: {
+    code: 'CONFIG.INVALID_CONNECT_TIMEOUT_MS',
+    title: 'Value Required',
+    detail: 'Connect timeout ms is required for Config.',
+    category: 'validation',
+    retryable: false,
+  } as DomainError<'CONFIG.INVALID_CONNECT_TIMEOUT_MS', ConfigContext>,
+  INVALID_CONNECT_TIMEOUT_MS_DATA: {
+    code: 'CONFIG.INVALID_CONNECT_TIMEOUT_MS_DATA',
+    title: 'Value Required',
+    detail: 'Connect timeout ms is required for Config.',
+    category: 'validation',
+    retryable: false,
+  } as DomainError<'CONFIG.INVALID_CONNECT_TIMEOUT_MS_DATA', ConfigContext>,
   INVALID_DEFAULT_LOCALE: {
     code: 'CONFIG.INVALID_DEFAULT_LOCALE',
     title: 'Value Required',
@@ -123,6 +187,79 @@ export const ConfigErrors = {
     category: 'validation',
     retryable: false,
   } as DomainError<'CONFIG.INVALID_DEFAULT_LOCALE_DATA', ConfigContext>,
+  INVALID_DLQ_ENABLED: {
+    code: 'CONFIG.INVALID_DLQ_ENABLED',
+    title: 'Value Required',
+    detail: 'Dlq enabled is required for Config.',
+    category: 'validation',
+    retryable: false,
+  } as DomainError<'CONFIG.INVALID_DLQ_ENABLED', ConfigContext>,
+  INVALID_DLQ_ENABLED_DATA: {
+    code: 'CONFIG.INVALID_DLQ_ENABLED_DATA',
+    title: 'Value Required',
+    detail: 'Dlq enabled is required for Config.',
+    category: 'validation',
+    retryable: false,
+  } as DomainError<'CONFIG.INVALID_DLQ_ENABLED_DATA', ConfigContext>,
+  INVALID_DLQ_MAX_AGE_SECONDS: {
+    code: 'CONFIG.INVALID_DLQ_MAX_AGE_SECONDS',
+    title: 'Value Required',
+    detail: 'Dlq max age seconds is required for Config.',
+    category: 'validation',
+    retryable: false,
+  } as DomainError<'CONFIG.INVALID_DLQ_MAX_AGE_SECONDS', ConfigContext>,
+  INVALID_DLQ_MAX_AGE_SECONDS_DATA: {
+    code: 'CONFIG.INVALID_DLQ_MAX_AGE_SECONDS_DATA',
+    title: 'Value Required',
+    detail: 'Dlq max age seconds is required for Config.',
+    category: 'validation',
+    retryable: false,
+  } as DomainError<'CONFIG.INVALID_DLQ_MAX_AGE_SECONDS_DATA', ConfigContext>,
+  INVALID_ID: {
+    code: 'CONFIG.INVALID_ID',
+    title: 'Value Required',
+    detail: 'Id is required for Config.',
+    category: 'validation',
+    retryable: false,
+  } as DomainError<'CONFIG.INVALID_ID', ConfigContext>,
+  INVALID_ID_DATA: {
+    code: 'CONFIG.INVALID_ID_DATA',
+    title: 'Value Required',
+    detail: 'Id is required for Config.',
+    category: 'validation',
+    retryable: false,
+  } as DomainError<'CONFIG.INVALID_ID_DATA', ConfigContext>,
+  INVALID_INCLUDE_TIMESTAMP_HEADER: {
+    code: 'CONFIG.INVALID_INCLUDE_TIMESTAMP_HEADER',
+    title: 'Value Required',
+    detail: 'Include timestamp header is required for Config.',
+    category: 'validation',
+    retryable: false,
+  } as DomainError<'CONFIG.INVALID_INCLUDE_TIMESTAMP_HEADER', ConfigContext>,
+  INVALID_INCLUDE_TIMESTAMP_HEADER_DATA: {
+    code: 'CONFIG.INVALID_INCLUDE_TIMESTAMP_HEADER_DATA',
+    title: 'Value Required',
+    detail: 'Include timestamp header is required for Config.',
+    category: 'validation',
+    retryable: false,
+  } as DomainError<
+    'CONFIG.INVALID_INCLUDE_TIMESTAMP_HEADER_DATA',
+    ConfigContext
+  >,
+  INVALID_MAX_CONCURRENT: {
+    code: 'CONFIG.INVALID_MAX_CONCURRENT',
+    title: 'Value Required',
+    detail: 'Max concurrent is required for Config.',
+    category: 'validation',
+    retryable: false,
+  } as DomainError<'CONFIG.INVALID_MAX_CONCURRENT', ConfigContext>,
+  INVALID_MAX_CONCURRENT_DATA: {
+    code: 'CONFIG.INVALID_MAX_CONCURRENT_DATA',
+    title: 'Value Required',
+    detail: 'Max concurrent is required for Config.',
+    category: 'validation',
+    retryable: false,
+  } as DomainError<'CONFIG.INVALID_MAX_CONCURRENT_DATA', ConfigContext>,
   INVALID_MAX_RETRY_ATTEMPTS: {
     code: 'CONFIG.INVALID_MAX_RETRY_ATTEMPTS',
     title: 'Value Required',
@@ -151,6 +288,41 @@ export const ConfigErrors = {
     category: 'validation',
     retryable: false,
   } as DomainError<'CONFIG.INVALID_METADATA_DATA', ConfigContext>,
+  INVALID_ORDERING: {
+    code: 'CONFIG.INVALID_ORDERING',
+    title: 'Value Required',
+    detail: 'Ordering is required for Config.',
+    category: 'validation',
+    retryable: false,
+  } as DomainError<'CONFIG.INVALID_ORDERING', ConfigContext>,
+  INVALID_ORDERING_DATA: {
+    code: 'CONFIG.INVALID_ORDERING_DATA',
+    title: 'Value Required',
+    detail: 'Ordering is required for Config.',
+    category: 'validation',
+    retryable: false,
+  } as DomainError<'CONFIG.INVALID_ORDERING_DATA', ConfigContext>,
+  INVALID_ORDERING_TRANSITION: {
+    code: 'CONFIG.INVALID_ORDERING_TRANSITION',
+    title: 'Invalid State Transition',
+    detail: 'Ordering cannot transition to the requested state.',
+    category: 'validation',
+    retryable: false,
+  } as DomainError<'CONFIG.INVALID_ORDERING_TRANSITION', ConfigContext>,
+  INVALID_REQUEST_TIMEOUT_MS: {
+    code: 'CONFIG.INVALID_REQUEST_TIMEOUT_MS',
+    title: 'Value Required',
+    detail: 'Request timeout ms is required for Config.',
+    category: 'validation',
+    retryable: false,
+  } as DomainError<'CONFIG.INVALID_REQUEST_TIMEOUT_MS', ConfigContext>,
+  INVALID_REQUEST_TIMEOUT_MS_DATA: {
+    code: 'CONFIG.INVALID_REQUEST_TIMEOUT_MS_DATA',
+    title: 'Value Required',
+    detail: 'Request timeout ms is required for Config.',
+    category: 'validation',
+    retryable: false,
+  } as DomainError<'CONFIG.INVALID_REQUEST_TIMEOUT_MS_DATA', ConfigContext>,
   INVALID_RETRY_BACKOFF_SECONDS: {
     code: 'CONFIG.INVALID_RETRY_BACKOFF_SECONDS',
     title: 'Value Required',
@@ -165,6 +337,51 @@ export const ConfigErrors = {
     category: 'validation',
     retryable: false,
   } as DomainError<'CONFIG.INVALID_RETRY_BACKOFF_SECONDS_DATA', ConfigContext>,
+  INVALID_RETRY_STRATEGY: {
+    code: 'CONFIG.INVALID_RETRY_STRATEGY',
+    title: 'Value Required',
+    detail: 'Retry strategy is required for Config.',
+    category: 'validation',
+    retryable: false,
+  } as DomainError<'CONFIG.INVALID_RETRY_STRATEGY', ConfigContext>,
+  INVALID_RETRY_STRATEGY_DATA: {
+    code: 'CONFIG.INVALID_RETRY_STRATEGY_DATA',
+    title: 'Value Required',
+    detail: 'Retry strategy is required for Config.',
+    category: 'validation',
+    retryable: false,
+  } as DomainError<'CONFIG.INVALID_RETRY_STRATEGY_DATA', ConfigContext>,
+  INVALID_RETRY_STRATEGY_TRANSITION: {
+    code: 'CONFIG.INVALID_RETRY_STRATEGY_TRANSITION',
+    title: 'Invalid State Transition',
+    detail: 'Retry strategy cannot transition to the requested state.',
+    category: 'validation',
+    retryable: false,
+  } as DomainError<'CONFIG.INVALID_RETRY_STRATEGY_TRANSITION', ConfigContext>,
+  INVALID_SIGNATURE_ALGORITHM: {
+    code: 'CONFIG.INVALID_SIGNATURE_ALGORITHM',
+    title: 'Value Required',
+    detail: 'Signature algorithm is required for Config.',
+    category: 'validation',
+    retryable: false,
+  } as DomainError<'CONFIG.INVALID_SIGNATURE_ALGORITHM', ConfigContext>,
+  INVALID_SIGNATURE_ALGORITHM_DATA: {
+    code: 'CONFIG.INVALID_SIGNATURE_ALGORITHM_DATA',
+    title: 'Value Required',
+    detail: 'Signature algorithm is required for Config.',
+    category: 'validation',
+    retryable: false,
+  } as DomainError<'CONFIG.INVALID_SIGNATURE_ALGORITHM_DATA', ConfigContext>,
+  INVALID_SIGNATURE_ALGORITHM_TRANSITION: {
+    code: 'CONFIG.INVALID_SIGNATURE_ALGORITHM_TRANSITION',
+    title: 'Invalid State Transition',
+    detail: 'Signature algorithm cannot transition to the requested state.',
+    category: 'validation',
+    retryable: false,
+  } as DomainError<
+    'CONFIG.INVALID_SIGNATURE_ALGORITHM_TRANSITION',
+    ConfigContext
+  >,
   INVALID_STRATEGY: {
     code: 'CONFIG.INVALID_STRATEGY',
     title: 'Value Required',
@@ -186,6 +403,20 @@ export const ConfigErrors = {
     category: 'validation',
     retryable: false,
   } as DomainError<'CONFIG.INVALID_STRATEGY_TRANSITION', ConfigContext>,
+  INVALID_TENANT_ID: {
+    code: 'CONFIG.INVALID_TENANT_ID',
+    title: 'Value Required',
+    detail: 'Tenant id is required for Config.',
+    category: 'validation',
+    retryable: false,
+  } as DomainError<'CONFIG.INVALID_TENANT_ID', ConfigContext>,
+  INVALID_TENANT_ID_DATA: {
+    code: 'CONFIG.INVALID_TENANT_ID_DATA',
+    title: 'Value Required',
+    detail: 'Tenant id is required for Config.',
+    category: 'validation',
+    retryable: false,
+  } as DomainError<'CONFIG.INVALID_TENANT_ID_DATA', ConfigContext>,
   INVALID_WEBHOOK_ID: {
     code: 'CONFIG.INVALID_WEBHOOK_ID',
     title: 'Value Required',
@@ -200,6 +431,23 @@ export const ConfigErrors = {
     category: 'validation',
     retryable: false,
   } as DomainError<'CONFIG.INVALID_WEBHOOK_ID_DATA', ConfigContext>,
+  NOT_BOOLEAN_DLQ_ENABLED: {
+    code: 'CONFIG.NOT_BOOLEAN_DLQ_ENABLED',
+    title: 'Not a Boolean',
+    detail: 'Dlq enabled must be true or false.',
+    category: 'validation',
+    retryable: false,
+  } as DomainError<'CONFIG.NOT_BOOLEAN_DLQ_ENABLED', ConfigContext>,
+  NOT_BOOLEAN_INCLUDE_TIMESTAMP_HEADER: {
+    code: 'CONFIG.NOT_BOOLEAN_INCLUDE_TIMESTAMP_HEADER',
+    title: 'Not a Boolean',
+    detail: 'Include timestamp header must be true or false.',
+    category: 'validation',
+    retryable: false,
+  } as DomainError<
+    'CONFIG.NOT_BOOLEAN_INCLUDE_TIMESTAMP_HEADER',
+    ConfigContext
+  >,
   NOT_IMPLEMENTED: {
     code: 'CONFIG.NOT_IMPLEMENTED',
     title: 'Not Implemented',
@@ -207,6 +455,34 @@ export const ConfigErrors = {
     category: 'validation',
     retryable: false,
   } as DomainError<'CONFIG.NOT_IMPLEMENTED', ConfigContext>,
+  NOT_INTEGER_BACKOFF_JITTER_PCT: {
+    code: 'CONFIG.NOT_INTEGER_BACKOFF_JITTER_PCT',
+    title: 'Not an Integer',
+    detail: 'Backoff jitter pct must be a whole number.',
+    category: 'validation',
+    retryable: false,
+  } as DomainError<'CONFIG.NOT_INTEGER_BACKOFF_JITTER_PCT', ConfigContext>,
+  NOT_INTEGER_CONNECT_TIMEOUT_MS: {
+    code: 'CONFIG.NOT_INTEGER_CONNECT_TIMEOUT_MS',
+    title: 'Not an Integer',
+    detail: 'Connect timeout ms must be a whole number.',
+    category: 'validation',
+    retryable: false,
+  } as DomainError<'CONFIG.NOT_INTEGER_CONNECT_TIMEOUT_MS', ConfigContext>,
+  NOT_INTEGER_DLQ_MAX_AGE_SECONDS: {
+    code: 'CONFIG.NOT_INTEGER_DLQ_MAX_AGE_SECONDS',
+    title: 'Not an Integer',
+    detail: 'Dlq max age seconds must be a whole number.',
+    category: 'validation',
+    retryable: false,
+  } as DomainError<'CONFIG.NOT_INTEGER_DLQ_MAX_AGE_SECONDS', ConfigContext>,
+  NOT_INTEGER_MAX_CONCURRENT: {
+    code: 'CONFIG.NOT_INTEGER_MAX_CONCURRENT',
+    title: 'Not an Integer',
+    detail: 'Max concurrent must be a whole number.',
+    category: 'validation',
+    retryable: false,
+  } as DomainError<'CONFIG.NOT_INTEGER_MAX_CONCURRENT', ConfigContext>,
   NOT_INTEGER_MAX_RETRY_ATTEMPTS: {
     code: 'CONFIG.NOT_INTEGER_MAX_RETRY_ATTEMPTS',
     title: 'Not an Integer',
@@ -214,6 +490,13 @@ export const ConfigErrors = {
     category: 'validation',
     retryable: false,
   } as DomainError<'CONFIG.NOT_INTEGER_MAX_RETRY_ATTEMPTS', ConfigContext>,
+  NOT_INTEGER_REQUEST_TIMEOUT_MS: {
+    code: 'CONFIG.NOT_INTEGER_REQUEST_TIMEOUT_MS',
+    title: 'Not an Integer',
+    detail: 'Request timeout ms must be a whole number.',
+    category: 'validation',
+    retryable: false,
+  } as DomainError<'CONFIG.NOT_INTEGER_REQUEST_TIMEOUT_MS', ConfigContext>,
   NOT_INTEGER_RETRY_BACKOFF_SECONDS: {
     code: 'CONFIG.NOT_INTEGER_RETRY_BACKOFF_SECONDS',
     title: 'Not an Integer',
@@ -221,6 +504,34 @@ export const ConfigErrors = {
     category: 'validation',
     retryable: false,
   } as DomainError<'CONFIG.NOT_INTEGER_RETRY_BACKOFF_SECONDS', ConfigContext>,
+  OUT_OF_RANGE_BACKOFF_JITTER_PCT: {
+    code: 'CONFIG.OUT_OF_RANGE_BACKOFF_JITTER_PCT',
+    title: 'Value Out of Range',
+    detail: 'Backoff jitter pct is outside the allowed range for Config.',
+    category: 'validation',
+    retryable: false,
+  } as DomainError<'CONFIG.OUT_OF_RANGE_BACKOFF_JITTER_PCT', ConfigContext>,
+  OUT_OF_RANGE_CONNECT_TIMEOUT_MS: {
+    code: 'CONFIG.OUT_OF_RANGE_CONNECT_TIMEOUT_MS',
+    title: 'Value Out of Range',
+    detail: 'Connect timeout ms is outside the allowed range for Config.',
+    category: 'validation',
+    retryable: false,
+  } as DomainError<'CONFIG.OUT_OF_RANGE_CONNECT_TIMEOUT_MS', ConfigContext>,
+  OUT_OF_RANGE_DLQ_MAX_AGE_SECONDS: {
+    code: 'CONFIG.OUT_OF_RANGE_DLQ_MAX_AGE_SECONDS',
+    title: 'Value Out of Range',
+    detail: 'Dlq max age seconds is outside the allowed range for Config.',
+    category: 'validation',
+    retryable: false,
+  } as DomainError<'CONFIG.OUT_OF_RANGE_DLQ_MAX_AGE_SECONDS', ConfigContext>,
+  OUT_OF_RANGE_MAX_CONCURRENT: {
+    code: 'CONFIG.OUT_OF_RANGE_MAX_CONCURRENT',
+    title: 'Value Out of Range',
+    detail: 'Max concurrent is outside the allowed range for Config.',
+    category: 'validation',
+    retryable: false,
+  } as DomainError<'CONFIG.OUT_OF_RANGE_MAX_CONCURRENT', ConfigContext>,
   OUT_OF_RANGE_MAX_RETRY_ATTEMPTS: {
     code: 'CONFIG.OUT_OF_RANGE_MAX_RETRY_ATTEMPTS',
     title: 'Value Out of Range',
@@ -228,6 +539,13 @@ export const ConfigErrors = {
     category: 'validation',
     retryable: false,
   } as DomainError<'CONFIG.OUT_OF_RANGE_MAX_RETRY_ATTEMPTS', ConfigContext>,
+  OUT_OF_RANGE_REQUEST_TIMEOUT_MS: {
+    code: 'CONFIG.OUT_OF_RANGE_REQUEST_TIMEOUT_MS',
+    title: 'Value Out of Range',
+    detail: 'Request timeout ms is outside the allowed range for Config.',
+    category: 'validation',
+    retryable: false,
+  } as DomainError<'CONFIG.OUT_OF_RANGE_REQUEST_TIMEOUT_MS', ConfigContext>,
   OUT_OF_RANGE_RETRY_BACKOFF_SECONDS: {
     code: 'CONFIG.OUT_OF_RANGE_RETRY_BACKOFF_SECONDS',
     title: 'Value Out of Range',

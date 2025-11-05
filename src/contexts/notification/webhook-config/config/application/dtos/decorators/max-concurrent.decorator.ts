@@ -3,8 +3,7 @@
 
 import { applyDecorators } from '@nestjs/common';
 import { ApiProperty } from '@nestjs/swagger';
-import { IsOptional, IsNotEmpty, IsString, MaxLength } from 'class-validator';
-
+import { IsInt, IsOptional, IsNotEmpty } from 'class-validator';
 /**
  * Options for property decorators
  */
@@ -13,21 +12,20 @@ interface PropOptions {
 }
 
 /**
- * Property decorator for Webhook SigningSecret
+ * Property decorator for Config MaxConcurrent
  * @param {Object} options - Options for the decorator
  * @returns {PropertyDecorator}
  */
-export function ApiWebhookSigningSecret(options: PropOptions = {}) {
+export function ApiConfigMaxConcurrent(options: PropOptions = {}) {
   const { required = false } = options;
 
   return applyDecorators(
     ApiProperty({
-      description: `Fallback channel ID for notifications when no specific channel is configured or available. Must be a channel where the bot has posting permissions.`,
-      type: String,
+      description: `Worker concurrency cap`,
+      type: Number,
       required,
     }),
-    IsString(),
-    MaxLength(64),
+    IsInt(),
     required ? IsNotEmpty() : IsOptional(),
   );
 }

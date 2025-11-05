@@ -13,7 +13,7 @@ import { UpsertConfigProps } from '../../domain/props';
 export class UpsertConfigCommand extends BaseCommand {
   constructor(
     user: IUserToken,
-    public readonly webhookId: string,
+    public readonly id: string,
     public readonly props: UpsertConfigProps,
     correlationId: string,
     securityContext: SecurityMetadata,
@@ -26,7 +26,7 @@ export class UpsertConfigCommand extends BaseCommand {
    */
   static create(
     user: IUserToken,
-    webhookId: string,
+    id: string,
     props: UpsertConfigProps,
     correlationId: string = CorrelationUtil.generate(),
     additionalSecurityContext?: Partial<SecurityMetadata>,
@@ -38,7 +38,7 @@ export class UpsertConfigCommand extends BaseCommand {
 
     return new UpsertConfigCommand(
       user,
-      webhookId,
+      id,
       props,
       correlationId,
       securityContext,

@@ -90,7 +90,6 @@ export class WebhookController {
     name: 'id',
     type: 'string',
     description: 'Webhook unique identifier',
-    example: 'T01EXAMPLE123',
   })
   @ApiOkResponse({
     description: 'Webhook details retrieved successfully',
@@ -172,7 +171,6 @@ export class WebhookController {
     name: 'id',
     type: 'string',
     description: 'Webhook unique identifier',
-    example: 'T01EXAMPLE123',
   })
   @ApiResponse({
     status: HttpStatus.OK,

@@ -6,6 +6,9 @@ import {
   safeParseJSONArray,
 } from 'src/shared/infrastructure/repositories';
 import {
+  ConfigOrderingValue,
+  ConfigRetryStrategyValue,
+  ConfigSignatureAlgorithmValue,
   ConfigStrategyValue,
   DetailConfigResponse,
 } from '../../application/dtos';
@@ -45,7 +48,10 @@ export class ConfigFieldValidatorUtil {
       'metadata',
     );
     // Extract simple fields directly from event data
+    const id = aggregateData.id as string;
     const webhookId = aggregateData.webhookId as string;
+    const tenantId = aggregateData.tenantId as string;
+    const strategy = aggregateData.strategy as ConfigStrategyValue;
     const maxRetryAttempts =
       typeof aggregateData.maxRetryAttempts === 'string'
         ? parseInt(aggregateData.maxRetryAttempts, 10)
@@ -54,8 +60,37 @@ export class ConfigFieldValidatorUtil {
       typeof aggregateData.retryBackoffSeconds === 'string'
         ? parseInt(aggregateData.retryBackoffSeconds, 10)
         : (aggregateData.retryBackoffSeconds as number);
+    const retryStrategy =
+      aggregateData.retryStrategy as ConfigRetryStrategyValue;
+    const backoffJitterPct =
+      typeof aggregateData.backoffJitterPct === 'string'
+        ? parseInt(aggregateData.backoffJitterPct, 10)
+        : (aggregateData.backoffJitterPct as number);
+    const requestTimeoutMs =
+      typeof aggregateData.requestTimeoutMs === 'string'
+        ? parseInt(aggregateData.requestTimeoutMs, 10)
+        : (aggregateData.requestTimeoutMs as number);
+    const connectTimeoutMs =
+      typeof aggregateData.connectTimeoutMs === 'string'
+        ? parseInt(aggregateData.connectTimeoutMs, 10)
+        : (aggregateData.connectTimeoutMs as number);
+    const signatureAlgorithm =
+      aggregateData.signatureAlgorithm as ConfigSignatureAlgorithmValue;
+    const includeTimestampHeader =
+      aggregateData.includeTimestampHeader === 'true' ||
+      aggregateData.includeTimestampHeader === true;
+    const maxConcurrent =
+      typeof aggregateData.maxConcurrent === 'string'
+        ? parseInt(aggregateData.maxConcurrent, 10)
+        : (aggregateData.maxConcurrent as number);
+    const dlqEnabled =
+      aggregateData.dlqEnabled === 'true' || aggregateData.dlqEnabled === true;
+    const dlqMaxAgeSeconds =
+      typeof aggregateData.dlqMaxAgeSeconds === 'string'
+        ? parseInt(aggregateData.dlqMaxAgeSeconds, 10)
+        : (aggregateData.dlqMaxAgeSeconds as number);
+    const ordering = aggregateData.ordering as ConfigOrderingValue;
     const defaultLocale = aggregateData.defaultLocale as string;
-    const strategy = aggregateData.strategy as ConfigStrategyValue;
 
     // Extract version and timestamps with proper type conversion
     const version =
@@ -74,11 +109,23 @@ export class ConfigFieldValidatorUtil {
     // safeParseJSON utilities provide error handling for invalid JSON,
     // direct field access provides type safety and truthful representation
     return {
+      id,
       webhookId,
+      tenantId,
+      strategy,
       maxRetryAttempts,
       retryBackoffSeconds,
+      retryStrategy,
+      backoffJitterPct,
+      requestTimeoutMs,
+      connectTimeoutMs,
+      signatureAlgorithm,
+      includeTimestampHeader,
+      maxConcurrent,
+      dlqEnabled,
+      dlqMaxAgeSeconds,
+      ordering,
       defaultLocale,
-      strategy,
       metadata,
       version,
       createdAt,

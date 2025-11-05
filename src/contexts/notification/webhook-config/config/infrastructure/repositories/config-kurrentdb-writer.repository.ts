@@ -22,7 +22,7 @@ import {
 import { WebhookConfigServiceConstants } from '../../../service-constants';
 import { ConfigAggregate } from '../../domain/aggregates';
 import { ConfigProjectionKeys } from '../../config-projection-keys';
-import { ConfigWebhookId } from '../../domain/value-objects';
+import { ConfigId } from '../../domain/value-objects';
 import { ConfigDeletedEvent } from '../../domain/events';
 import { IConfigWriter } from '../../application/ports';
 
@@ -276,13 +276,13 @@ export class ConfigWriterRepository
   /**
    * Delete a Config by its unique identifier using EventStoreDB-first approach
    * @param actor - The authenticated user context
-   * @param webhookId - The unique identifier of the Config to delete
+   * @param id - The unique identifier of the Config to delete
    * @param opts - Optional parameters including expected version and metadata
    * @returns Result with SaveReceipt containing revision tracking or domain error
    */
   async delete(
     actor: ActorContext,
-    webhookId: ConfigWebhookId,
+    id: ConfigId,
     opts?: {
       expectedVersion?: number;
       meta?: {
@@ -304,7 +304,7 @@ export class ConfigWriterRepository
       correlationId,
       actor,
       {
-        configWebhookId: webhookId.value,
+        configId: id.value,
         expectedVersion: opts?.expectedVersion,
         hasMetadata: !!opts?.meta,
       },
@@ -328,14 +328,14 @@ export class ConfigWriterRepository
       {
         operationType: 'aggregate_delete',
         scope: 'config_deletion',
-        configWebhookId: webhookId.value,
+        configId: id.value,
       },
     );
 
     const stream = this.buildStreamName(
       actor.tenant,
       ConfigProjectionKeys.getEventStoreStreamPrefix(),
-      webhookId.value,
+      id.value,
     );
 
     // Create proper domain event metadata
@@ -358,7 +358,7 @@ export class ConfigWriterRepository
     // Create proper ConfigDeletedEvent
     const deletedEvent = ConfigDeletedEvent.create(
       {
-        webhookId: webhookId.value,
+        id: id.value,
         deletedAt: this.clock.now(),
         version: opts?.expectedVersion ?? 1,
       },
@@ -370,7 +370,7 @@ export class ConfigWriterRepository
       type: deletedEvent.eventType,
       version: 1, // Convert string version to number
       occurredAt: this.clock.now(),
-      aggregateId: webhookId.value,
+      aggregateId: id.value,
       aggregateType: 'Config',
       data: deletedEvent.payload,
       metadata: eventMetadata,
@@ -391,7 +391,7 @@ export class ConfigWriterRepository
         {
           ...logContext,
           stream,
-          configWebhookId: webhookId.value,
+          configId: id.value,
           expectedRevision: expectedRevision.toString(),
           eventType: domainEvent.type,
         },
@@ -412,7 +412,7 @@ export class ConfigWriterRepository
 
       const receipt: SaveReceipt = {
         stream,
-        aggregateId: webhookId.value,
+        aggregateId: id.value,
         tenant: actor.tenant ?? 'default',
         eventCount: 1,
         // newVersion omitted - we don't know it with ANY expectedRevision
@@ -431,7 +431,7 @@ export class ConfigWriterRepository
           dataQuality: 'good',
           sampleData: {
             stream,
-            configWebhookId: webhookId.value,
+            configId: id.value,
             streamRevision: appendResult?.nextExpectedRevision?.toString(),
             eventType: 'ConfigDeletedEvent',
           },

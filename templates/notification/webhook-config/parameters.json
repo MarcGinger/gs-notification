@@ -5,54 +5,6 @@
     "moduleName": "slack"
   },
   "tables": {
-    "config": {
-      "docs": {
-        "name": "Config",
-        "summary": "Configuration for config table",
-        "version": "1.0.0"
-      },
-      "apis": {},
-      "store": {
-        "read": "sql,eventstream,redis",
-        "write": "sql,eventstream,redis",
-        "query": "sql,eventstream,redis"
-      },
-      "redis": {
-        "prefix": "",
-        "version": "1.0",
-        "category": "notification:slack-config.config.v1",
-        "ttl": 3600,
-        "hash": true,
-        "aggregate": "config"
-      },
-      "eventstream": {
-        "boundedContext": "notification",
-        "aggregate": "config",
-        "version": "v1",
-        "stream": "notification.slackConfig.config",
-        "createdEvent": "NotificationSlackConfigConfigCreated.v1",
-        "updatedEvent": "NotificationSlackConfigConfigUpdated.v1",
-        "deletedEvent": "NotificationSlackConfigConfigDeleted.v1"
-      },
-      "cols": {
-        "max_retry_attempts": {},
-        "retry_backoff_seconds": {},
-        "default_locale": {},
-        "metadata": {},
-        "webhook_id": {},
-        "strategy": {}
-      },
-      "permissions": {
-        "bulk": [
-          "update",
-          "delete",
-          "import"
-        ],
-        "adminOverride": true,
-        "auditView": true,
-        "custom": []
-      }
-    },
     "webhook": {
       "docs": {
         "name": "Webhook",
@@ -90,8 +42,72 @@
         "eventType": {},
         "method": {},
         "headers": {},
-        "signingSecret": {},
-        "status": {}
+        "signingSecretRef": {},
+        "status": {},
+        "verifyTls": {},
+        "requestTimeoutMs": {},
+        "connectTimeoutMs": {},
+        "rateLimitPerMinute": {}
+      },
+      "permissions": {
+        "bulk": [
+          "update",
+          "delete",
+          "import"
+        ],
+        "adminOverride": true,
+        "auditView": true,
+        "custom": []
+      }
+    },
+    "config": {
+      "docs": {
+        "name": "Config",
+        "summary": "Configuration for config table",
+        "version": "1.0.0"
+      },
+      "apis": {},
+      "store": {
+        "read": "sql,eventstream,redis",
+        "write": "sql,eventstream,redis",
+        "query": "sql,eventstream,redis"
+      },
+      "redis": {
+        "prefix": "",
+        "version": "1.0",
+        "category": "notification:webhook-config.config.v1",
+        "ttl": 3600,
+        "hash": true,
+        "aggregate": "config"
+      },
+      "eventstream": {
+        "boundedContext": "notification",
+        "aggregate": "config",
+        "version": "v1",
+        "stream": "notification.webhookConfig.config",
+        "createdEvent": "NotificationWebhookConfigConfigCreated.v1",
+        "updatedEvent": "NotificationWebhookConfigConfigUpdated.v1",
+        "deletedEvent": "NotificationWebhookConfigConfigDeleted.v1"
+      },
+      "cols": {
+        "id": {},
+        "webhookId": {},
+        "tenantId": {},
+        "strategy": {},
+        "maxRetryAttempts": {},
+        "retryBackoffSeconds": {},
+        "retryStrategy": {},
+        "backoffJitterPct": {},
+        "requestTimeoutMs": {},
+        "connectTimeoutMs": {},
+        "signatureAlgorithm": {},
+        "includeTimestampHeader": {},
+        "maxConcurrent": {},
+        "dlqEnabled": {},
+        "dlqMaxAgeSeconds": {},
+        "ordering": {},
+        "defaultLocale": {},
+        "metadata": {}
       },
       "permissions": {
         "bulk": [

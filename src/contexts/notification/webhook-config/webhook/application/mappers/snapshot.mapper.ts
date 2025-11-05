@@ -23,7 +23,11 @@ export const mapWebhookSnapshotToDto = (
     eventType: snapshot.eventType,
     method: snapshot.method,
     headers: snapshot.headers,
-    signingSecret: snapshot.signingSecret,
+    signingSecretRef: snapshot.signingSecretRef,
     status: snapshot.status,
+    verifyTls: snapshot.verifyTls,
+    requestTimeoutMs: snapshot.requestTimeoutMs,
+    connectTimeoutMs: snapshot.connectTimeoutMs,
+    rateLimitPerMinute: snapshot.rateLimitPerMinute,
   };
 };

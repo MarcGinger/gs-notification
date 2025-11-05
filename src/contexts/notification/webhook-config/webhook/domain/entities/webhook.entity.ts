@@ -7,6 +7,7 @@ import { WebhookSnapshotProps } from '../props';
 import { WebhookDomainState } from '../state';
 import { WebhookErrors } from '../errors/webhook.errors';
 import {
+  WebhookConnectTimeoutMs,
   WebhookCreatedAt,
   WebhookUpdatedAt,
   WebhookVersion,
@@ -17,11 +18,14 @@ import {
   WebhookMethod,
   WebhookMethodLogic,
   WebhookName,
-  WebhookSigningSecret,
+  WebhookRateLimitPerMinute,
+  WebhookRequestTimeoutMs,
+  WebhookSigningSecretRef,
   WebhookStatus,
   WebhookStatusLogic,
   WebhookStatusValue,
   WebhookTargetUrl,
+  WebhookVerifyTls,
   createWebhookMethod,
   createWebhookStatus,
 } from '../value-objects';
@@ -184,15 +188,37 @@ export class WebhookEntity extends EntityIdBase<WebhookDomainState, WebhookId> {
     if (!headersResult.ok) {
       return err(headersResult.error);
     }
-    const signingSecretResult = WebhookSigningSecret.from(
-      snapshot.signingSecret,
+    const signingSecretRefResult = WebhookSigningSecretRef.from(
+      snapshot.signingSecretRef,
     );
-    if (!signingSecretResult.ok) {
-      return err(signingSecretResult.error);
+    if (!signingSecretRefResult.ok) {
+      return err(signingSecretRefResult.error);
     }
     const statusResult = createWebhookStatus(snapshot.status);
     if (!statusResult.ok) {
       return err(statusResult.error);
+    }
+    const verifyTlsResult = WebhookVerifyTls.from(snapshot.verifyTls);
+    if (!verifyTlsResult.ok) {
+      return err(verifyTlsResult.error);
+    }
+    const requestTimeoutMsResult = WebhookRequestTimeoutMs.from(
+      snapshot.requestTimeoutMs,
+    );
+    if (!requestTimeoutMsResult.ok) {
+      return err(requestTimeoutMsResult.error);
+    }
+    const connectTimeoutMsResult = WebhookConnectTimeoutMs.from(
+      snapshot.connectTimeoutMs,
+    );
+    if (!connectTimeoutMsResult.ok) {
+      return err(connectTimeoutMsResult.error);
+    }
+    const rateLimitPerMinuteResult = WebhookRateLimitPerMinute.from(
+      snapshot.rateLimitPerMinute,
+    );
+    if (!rateLimitPerMinuteResult.ok) {
+      return err(rateLimitPerMinuteResult.error);
     }
     const createdAtResult = WebhookCreatedAt.from(snapshot.createdAt);
     if (!createdAtResult.ok) {
@@ -217,8 +243,12 @@ export class WebhookEntity extends EntityIdBase<WebhookDomainState, WebhookId> {
       eventType: eventTypeResult.value,
       method: methodResult.value,
       headers: headersResult.value,
-      signingSecret: signingSecretResult.value,
+      signingSecretRef: signingSecretRefResult.value,
       status: statusResult.value,
+      verifyTls: verifyTlsResult.value,
+      requestTimeoutMs: requestTimeoutMsResult.value,
+      connectTimeoutMs: connectTimeoutMsResult.value,
+      rateLimitPerMinute: rateLimitPerMinuteResult.value,
       createdAt: createdAtResult.value,
       updatedAt: updatedAtResult.value,
       version: versionResult.value,
@@ -243,6 +273,15 @@ export class WebhookEntity extends EntityIdBase<WebhookDomainState, WebhookId> {
     if (!props.name) {
       return err(WebhookErrors.INVALID_NAME_DATA);
     }
+    if (!props.targetUrl) {
+      return err(WebhookErrors.INVALID_TARGET_URL_DATA);
+    }
+    if (!props.eventType) {
+      return err(WebhookErrors.INVALID_EVENT_TYPE_DATA);
+    }
+    if (!props.method) {
+      return err(WebhookErrors.INVALID_METHOD_DATA);
+    }
     if (!props.status) {
       return err(WebhookErrors.INVALID_STATUS_DATA);
     }
@@ -266,15 +305,15 @@ export class WebhookEntity extends EntityIdBase<WebhookDomainState, WebhookId> {
     return this.props.description;
   }
 
-  public get targetUrl(): WebhookTargetUrl | undefined {
+  public get targetUrl(): WebhookTargetUrl {
     return this.props.targetUrl;
   }
 
-  public get eventType(): WebhookEventType | undefined {
+  public get eventType(): WebhookEventType {
     return this.props.eventType;
   }
 
-  public get method(): WebhookMethod | undefined {
+  public get method(): WebhookMethod {
     return this.props.method;
   }
 
@@ -282,12 +321,28 @@ export class WebhookEntity extends EntityIdBase<WebhookDomainState, WebhookId> {
     return this.props.headers;
   }
 
-  public get signingSecret(): WebhookSigningSecret | undefined {
-    return this.props.signingSecret;
+  public get signingSecretRef(): WebhookSigningSecretRef | undefined {
+    return this.props.signingSecretRef;
   }
 
   public get status(): WebhookStatus {
     return this.props.status;
+  }
+
+  public get verifyTls(): WebhookVerifyTls | undefined {
+    return this.props.verifyTls;
+  }
+
+  public get requestTimeoutMs(): WebhookRequestTimeoutMs | undefined {
+    return this.props.requestTimeoutMs;
+  }
+
+  public get connectTimeoutMs(): WebhookConnectTimeoutMs | undefined {
+    return this.props.connectTimeoutMs;
+  }
+
+  public get rateLimitPerMinute(): WebhookRateLimitPerMinute | undefined {
+    return this.props.rateLimitPerMinute;
   }
 
   public get createdAt(): WebhookCreatedAt {
@@ -379,22 +434,19 @@ export class WebhookEntity extends EntityIdBase<WebhookDomainState, WebhookId> {
     version?: number,
   ): Result<WebhookEntity, DomainError> {
     // Basic validation - business rules handled by aggregate
-    if (this.props.method) {
-      // If current status exists, validate transition
-      const currentStatus = this.props.method.value;
-      const targetStatus = method.value;
+    const currentStatus = this.props.method.value;
+    const targetStatus = method.value;
 
-      if (!WebhookMethodLogic.canTransition(currentStatus, targetStatus)) {
-        return err({
-          ...WebhookErrors.INVALID_METHOD_TRANSITION,
-          context: {
-            currentStatus,
-            targetStatus,
-            validTransitions:
-              WebhookMethodLogic.getValidTransitions(currentStatus),
-          },
-        });
-      }
+    if (!WebhookMethodLogic.canTransition(currentStatus, targetStatus)) {
+      return err({
+        ...WebhookErrors.INVALID_METHOD_TRANSITION,
+        context: {
+          currentStatus,
+          targetStatus,
+          validTransitions:
+            WebhookMethodLogic.getValidTransitions(currentStatus),
+        },
+      });
     }
 
     return this.createUpdatedEntity({ method }, updatedAt, version);
@@ -416,18 +468,18 @@ export class WebhookEntity extends EntityIdBase<WebhookDomainState, WebhookId> {
   }
 
   /**
-   * Creates a new entity with updated signingSecret (pure state transition)
+   * Creates a new entity with updated signingSecretRef (pure state transition)
    *
-   * @param signingSecret - New signingSecret value
+   * @param signingSecretRef - New signingSecretRef value
    * @param updatedAt - Optional timestamp (uses clock if not provided)
    * @returns Result<WebhookEntity, DomainError>
    */
-  public withSigningSecret(
-    signingSecret: WebhookSigningSecret,
+  public withSigningSecretRef(
+    signingSecretRef: WebhookSigningSecretRef,
     updatedAt?: Date,
     version?: number,
   ): Result<WebhookEntity, DomainError> {
-    return this.createUpdatedEntity({ signingSecret }, updatedAt, version);
+    return this.createUpdatedEntity({ signingSecretRef }, updatedAt, version);
   }
 
   /**
@@ -462,6 +514,66 @@ export class WebhookEntity extends EntityIdBase<WebhookDomainState, WebhookId> {
   }
 
   /**
+   * Creates a new entity with updated verifyTls (pure state transition)
+   *
+   * @param verifyTls - New verifyTls value
+   * @param updatedAt - Optional timestamp (uses clock if not provided)
+   * @returns Result<WebhookEntity, DomainError>
+   */
+  public withVerifyTls(
+    verifyTls: WebhookVerifyTls,
+    updatedAt?: Date,
+    version?: number,
+  ): Result<WebhookEntity, DomainError> {
+    return this.createUpdatedEntity({ verifyTls }, updatedAt, version);
+  }
+
+  /**
+   * Creates a new entity with updated requestTimeoutMs (pure state transition)
+   *
+   * @param requestTimeoutMs - New requestTimeoutMs value
+   * @param updatedAt - Optional timestamp (uses clock if not provided)
+   * @returns Result<WebhookEntity, DomainError>
+   */
+  public withRequestTimeoutMs(
+    requestTimeoutMs: WebhookRequestTimeoutMs,
+    updatedAt?: Date,
+    version?: number,
+  ): Result<WebhookEntity, DomainError> {
+    return this.createUpdatedEntity({ requestTimeoutMs }, updatedAt, version);
+  }
+
+  /**
+   * Creates a new entity with updated connectTimeoutMs (pure state transition)
+   *
+   * @param connectTimeoutMs - New connectTimeoutMs value
+   * @param updatedAt - Optional timestamp (uses clock if not provided)
+   * @returns Result<WebhookEntity, DomainError>
+   */
+  public withConnectTimeoutMs(
+    connectTimeoutMs: WebhookConnectTimeoutMs,
+    updatedAt?: Date,
+    version?: number,
+  ): Result<WebhookEntity, DomainError> {
+    return this.createUpdatedEntity({ connectTimeoutMs }, updatedAt, version);
+  }
+
+  /**
+   * Creates a new entity with updated rateLimitPerMinute (pure state transition)
+   *
+   * @param rateLimitPerMinute - New rateLimitPerMinute value
+   * @param updatedAt - Optional timestamp (uses clock if not provided)
+   * @returns Result<WebhookEntity, DomainError>
+   */
+  public withRateLimitPerMinute(
+    rateLimitPerMinute: WebhookRateLimitPerMinute,
+    updatedAt?: Date,
+    version?: number,
+  ): Result<WebhookEntity, DomainError> {
+    return this.createUpdatedEntity({ rateLimitPerMinute }, updatedAt, version);
+  }
+
+  /**
    * Get valid next statuses from current state
    * @returns readonly WebhookStatusValue[]
    */
@@ -491,12 +603,16 @@ export class WebhookEntity extends EntityIdBase<WebhookDomainState, WebhookId> {
       id: this.props.id.value,
       name: this.props.name.value,
       description: this.props.description?.value,
-      targetUrl: this.props.targetUrl?.value,
-      eventType: this.props.eventType?.value,
-      method: this.props.method?.value,
+      targetUrl: this.props.targetUrl.value,
+      eventType: this.props.eventType.value,
+      method: this.props.method.value,
       headers: this.props.headers?.value,
-      signingSecret: this.props.signingSecret?.value,
+      signingSecretRef: this.props.signingSecretRef?.value,
       status: this.props.status.value,
+      verifyTls: this.props.verifyTls?.value,
+      requestTimeoutMs: this.props.requestTimeoutMs?.value,
+      connectTimeoutMs: this.props.connectTimeoutMs?.value,
+      rateLimitPerMinute: this.props.rateLimitPerMinute?.value,
       createdAt: this.props.createdAt.value,
       updatedAt: this.props.updatedAt.value,
       version: this.props.version.value,

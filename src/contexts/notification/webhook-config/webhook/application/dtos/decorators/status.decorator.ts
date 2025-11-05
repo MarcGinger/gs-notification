@@ -26,7 +26,7 @@ export function ApiWebhookStatus(options: PropOptions = {}) {
   const { required = true } = options;
   return applyDecorators(
     ApiProperty({
-      description: `Global toggle for Slack integration functionality. When false, all notifications to this workspace are disabled, useful for maintenance or temporary suspension. Values include active, paused, disabled.`,
+      description: `Webhook operational status Values include active, paused, disabled.`,
       type: String,
       enum: WebhookStatusValues,
       required,

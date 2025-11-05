@@ -2,19 +2,43 @@
 // REMOVE THIS COMMENT TO STOP AUTOMATIC UPDATES TO THIS BLOCK
 
 import {
+  ConfigBackoffJitterPct,
+  ConfigConnectTimeoutMs,
   ConfigDefaultLocale,
+  ConfigDlqEnabled,
+  ConfigDlqMaxAgeSeconds,
+  ConfigId,
+  ConfigIncludeTimestampHeader,
+  ConfigMaxConcurrent,
   ConfigMaxRetryAttempts,
   ConfigMetadata,
+  ConfigOrdering,
+  ConfigRequestTimeoutMs,
   ConfigRetryBackoffSeconds,
+  ConfigRetryStrategy,
+  ConfigSignatureAlgorithm,
   ConfigStrategy,
+  ConfigTenantId,
   ConfigWebhookId,
 } from '../value-objects';
 
 export interface ValidatedConfigUpdateFields {
+  id?: ConfigId;
   webhookId?: ConfigWebhookId;
+  tenantId?: ConfigTenantId;
+  strategy?: ConfigStrategy;
   maxRetryAttempts?: ConfigMaxRetryAttempts;
   retryBackoffSeconds?: ConfigRetryBackoffSeconds;
+  retryStrategy?: ConfigRetryStrategy;
+  backoffJitterPct?: ConfigBackoffJitterPct;
+  requestTimeoutMs?: ConfigRequestTimeoutMs;
+  connectTimeoutMs?: ConfigConnectTimeoutMs;
+  signatureAlgorithm?: ConfigSignatureAlgorithm;
+  includeTimestampHeader?: ConfigIncludeTimestampHeader;
+  maxConcurrent?: ConfigMaxConcurrent;
+  dlqEnabled?: ConfigDlqEnabled;
+  dlqMaxAgeSeconds?: ConfigDlqMaxAgeSeconds;
+  ordering?: ConfigOrdering;
   defaultLocale?: ConfigDefaultLocale;
-  strategy?: ConfigStrategy;
   metadata?: ConfigMetadata;
 }

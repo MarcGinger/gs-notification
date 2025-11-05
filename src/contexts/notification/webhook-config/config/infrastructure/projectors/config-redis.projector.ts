@@ -76,7 +76,7 @@ interface ConfigProjectionParams extends DetailConfigResponse {
  * Implements projection function pattern for event handling with Redis backend
  *
  * Redis Data Structure (managed by ConfigProjectionKeys domain value object):
- * - Config Hash: `config:projection:{tenant}:webhookId` - stores all config fields
+ * - Config Hash: `config:projection:{tenant}:id` - stores all config fields
  * - Tenant Index: `config:index:by_tenant:{tenant}` - sorted set by updated timestamp
  *
  * Key Features:
@@ -262,7 +262,7 @@ export class ConfigProjector
         this.redis,
         tenant,
         'config',
-        params.webhookId,
+        params.id,
         params.version,
         config.VERSION_KEY_PREFIX,
       );
@@ -270,7 +270,7 @@ export class ConfigProjector
       if (alreadyProcessed) {
         this.logger.debug(
           'Config already processed - using version hint optimization for ' +
-            params.webhookId +
+            params.id +
             ' version ' +
             params.version,
         );
@@ -287,7 +287,7 @@ export class ConfigProjector
       // ✅ Generate cluster-safe keys using centralized ConfigProjectionKeys
       const entityKey = ConfigProjectionKeys.getRedisConfigKey(
         tenant,
-        params.webhookId,
+        params.id,
       );
       const indexKey = ConfigProjectionKeys.getRedisConfigIndexKey(tenant);
 
@@ -304,7 +304,7 @@ export class ConfigProjector
           pipeline,
           entityKey,
           indexKey,
-          params.webhookId,
+          params.id,
           params.deletedAt,
         );
 
@@ -315,7 +315,7 @@ export class ConfigProjector
           pipeline,
           entityKey,
           indexKey,
-          params.webhookId,
+          params.id,
           params.version,
           params.updatedAt,
           fieldPairs,
@@ -338,7 +338,7 @@ export class ConfigProjector
         this.redis,
         tenant,
         'config',
-        params.webhookId,
+        params.id,
         params.version,
         undefined, // Use default TTL
         config.VERSION_KEY_PREFIX,
@@ -419,7 +419,7 @@ export class ConfigProjector
     indexKey: string;
   } {
     // ✅ Hash-tags ensure both keys route to same Redis Cluster slot
-    const entityKey = 'config:{' + params.tenant + '}:' + params.webhookId;
+    const entityKey = 'config:{' + params.tenant + '}:' + params.id;
     const indexKey = 'config:index:{' + params.tenant + '}';
 
     Log.debug(this.logger, 'Generated cluster-safe keys with hash-tags', {
@@ -427,7 +427,7 @@ export class ConfigProjector
       entityKey,
       indexKey,
       tenant: params.tenant,
-      webhookId: params.webhookId,
+      id: params.id,
     });
 
     return { entityKey, indexKey };

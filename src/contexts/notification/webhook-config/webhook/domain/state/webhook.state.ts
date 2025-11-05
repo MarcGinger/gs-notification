@@ -5,15 +5,19 @@ import {
   WebhookCreatedAt,
   WebhookUpdatedAt,
   WebhookVersion,
+  WebhookConnectTimeoutMs,
   WebhookDescription,
   WebhookEventType,
   WebhookHeaders,
   WebhookId,
   WebhookMethod,
   WebhookName,
-  WebhookSigningSecret,
+  WebhookRateLimitPerMinute,
+  WebhookRequestTimeoutMs,
+  WebhookSigningSecretRef,
   WebhookStatus,
   WebhookTargetUrl,
+  WebhookVerifyTls,
 } from '../value-objects';
 
 /**
@@ -33,12 +37,16 @@ export interface WebhookDomainState {
   id: WebhookId;
   name: WebhookName;
   description?: WebhookDescription;
-  targetUrl?: WebhookTargetUrl;
-  eventType?: WebhookEventType;
-  method?: WebhookMethod;
+  targetUrl: WebhookTargetUrl;
+  eventType: WebhookEventType;
+  method: WebhookMethod;
   headers?: WebhookHeaders;
-  signingSecret?: WebhookSigningSecret;
+  signingSecretRef?: WebhookSigningSecretRef;
   status: WebhookStatus;
+  verifyTls?: WebhookVerifyTls;
+  requestTimeoutMs?: WebhookRequestTimeoutMs;
+  connectTimeoutMs?: WebhookConnectTimeoutMs;
+  rateLimitPerMinute?: WebhookRateLimitPerMinute;
   version: WebhookVersion;
   createdAt: WebhookCreatedAt;
   updatedAt: WebhookUpdatedAt;

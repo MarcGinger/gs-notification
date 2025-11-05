@@ -91,14 +91,14 @@ export class ConfigApplicationService {
   }
 
   /**
-   * Helper to validate required webhookId input
+   * Helper to validate required id input
    */
-  private validateWebhookId(
-    webhookId: string,
+  private validateId(
+    id: string,
     operation: string,
     correlationId?: string,
   ): Result<string, DomainError> {
-    if (!webhookId?.trim()) {
+    if (!id?.trim()) {
       return err(
         withContext(ConfigErrors.INVALID_CONFIG_DATA, {
           operation,
@@ -108,7 +108,7 @@ export class ConfigApplicationService {
         }),
       );
     }
-    return ok(webhookId.trim());
+    return ok(id.trim());
   }
 
   /**
@@ -117,7 +117,7 @@ export class ConfigApplicationService {
   private async authorizeThenExecute<T>(args: {
     operation: 'create' | 'update' | 'read';
     user: IUserToken;
-    webhookId?: string;
+    id?: string;
     correlationIdPrefix: string;
     doAuthorize: () => Promise<Result<boolean, DomainError>>;
     doExecute: () => Promise<Result<T, DomainError>>;
@@ -153,7 +153,7 @@ export class ConfigApplicationService {
           correlationId: corrId,
           userId: args.user.sub,
           operation: args.operation,
-          webhookId: args.webhookId,
+          id: args.id,
           category: 'security',
         }),
       );
@@ -178,7 +178,7 @@ export class ConfigApplicationService {
         category: 'application',
         context: {
           correlationId: corrId,
-          webhookId: args.webhookId,
+          id: args.id,
           operation: `${args.operation}_config`,
         },
       });
@@ -211,7 +211,7 @@ export class ConfigApplicationService {
       doExecute: () =>
         this.upsertConfigUseCase.execute({
           user,
-          webhookId: props.webhookId,
+          id: props.id,
           props,
           correlationId,
           authorizationReason: 'create_config',
@@ -227,17 +227,17 @@ export class ConfigApplicationService {
    */
   async updateConfig(
     user: IUserToken,
-    webhookId: string,
+    id: string,
     props: UpdateConfigProps,
     options?: { idempotencyKey?: string; correlationId?: string },
   ): Promise<Result<DetailConfigResponse, DomainError>> {
     // Early input validation
-    const webhookIdValidation = this.validateWebhookId(webhookId, 'update');
-    if (!webhookIdValidation.ok) {
-      return err(webhookIdValidation.error);
+    const idValidation = this.validateId(id, 'update');
+    if (!idValidation.ok) {
+      return err(idValidation.error);
     }
 
-    const validatedwebhookId = webhookIdValidation.value;
+    const validatedid = idValidation.value;
     const authContext = this.createAuthContext(user, 'update');
     const correlationId =
       options?.correlationId ||
@@ -251,7 +251,7 @@ export class ConfigApplicationService {
       user.sub, 
       'update', 
       CorrelationUtil.generateForOperation('config-update'), 
-      validatedwebhookId, 
+      validatedid, 
       fields, 
       authContext
     );
@@ -259,7 +259,7 @@ export class ConfigApplicationService {
     if (!opAuth.value.authorized) {
       return err(withContext(ConfigErrors.PERMISSION_DENIED, { 
         operation: 'update', 
-        webhookId: validatedwebhookId, 
+        id: validatedid, 
         userId: user.sub,
         category: 'security'
       }));
@@ -269,19 +269,19 @@ export class ConfigApplicationService {
     return this.authorizeThenExecute<DetailConfigResponse>({
       operation: 'update',
       user,
-      webhookId: validatedwebhookId,
+      id: validatedid,
       correlationIdPrefix: 'config-update',
       doAuthorize: () =>
         this.configAuthorizationService.canUpdateConfig(
           user.sub,
-          validatedwebhookId,
+          validatedid,
           correlationId,
           authContext,
         ),
       doExecute: () =>
         this.upsertConfigUseCase.execute({
           user,
-          webhookId: validatedwebhookId,
+          id: validatedid,
           props,
           correlationId,
           authorizationReason: 'update_config',
@@ -289,7 +289,7 @@ export class ConfigApplicationService {
             idempotencyKey: options.idempotencyKey,
           }),
         }),
-      logContext: { webhookId: validatedwebhookId },
+      logContext: { id: validatedid },
     });
   }
 
@@ -298,36 +298,36 @@ export class ConfigApplicationService {
    */
   async getConfigById(
     user: IUserToken,
-    webhookId: string,
+    id: string,
   ): Promise<Result<DetailConfigResponse, DomainError>> {
     // Early input validation
-    const webhookIdValidation = this.validateWebhookId(webhookId, 'read');
-    if (!webhookIdValidation.ok) {
-      return err(webhookIdValidation.error);
+    const idValidation = this.validateId(id, 'read');
+    if (!idValidation.ok) {
+      return err(idValidation.error);
     }
 
-    const validatedwebhookId = webhookIdValidation.value;
+    const validatedid = idValidation.value;
     const authContext = this.createAuthContext(user, 'read');
 
     return this.authorizeThenExecute<DetailConfigResponse>({
       operation: 'read',
       user,
-      webhookId: validatedwebhookId,
+      id: validatedid,
       correlationIdPrefix: 'config-read',
       doAuthorize: () =>
         this.configAuthorizationService.canReadConfig(
           user.sub,
-          validatedwebhookId,
+          validatedid,
           CorrelationUtil.generateForOperation('config-read'),
           authContext,
         ),
       doExecute: () =>
         this.getConfigUseCase.execute({
           user,
-          webhookId: validatedwebhookId,
+          id: validatedid,
           correlationId: CorrelationUtil.generateForOperation('config-read'),
         }),
-      logContext: { webhookId: validatedwebhookId },
+      logContext: { id: validatedid },
     });
   }
 }

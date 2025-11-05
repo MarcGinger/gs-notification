@@ -20,7 +20,13 @@ import { WebhookErrors } from '../errors/webhook.errors';
  * WebhookMethod allowed values
  * Canonical definition used across all layers (API, Domain, DB)
  */
-export const WebhookMethodValues = ['post', 'put'] as const;
+export const WebhookMethodValues = [
+  'GET',
+  'POST',
+  'PUT',
+  'PATCH',
+  'DELETE',
+] as const;
 export type WebhookMethodValue = (typeof WebhookMethodValues)[number];
 
 // ============================================================================
@@ -35,16 +41,16 @@ export type WebhookMethodValue = (typeof WebhookMethodValues)[number];
  *
  * @example
  * ```typescript
- * const method = WebhookMethod.create('post');
+ * const method = WebhookMethod.create('GET');
  * if (method.ok) {
- *   console.log(method.value.canTransitionTo('put'));
+ *   console.log(method.value.canTransitionTo('POST'));
  * }
  * ```
  */
 export const WebhookMethod = createEnumVO({
   name: 'WebhookMethod',
   values: WebhookMethodValues,
-
+  required: true,
   errors: createEnumVOErrors(WebhookErrors.INVALID_METHOD, 'WebhookMethod'),
 });
 
@@ -67,16 +73,22 @@ export const webhookMethodFrom = (value: unknown) =>
  * Valid state transitions for webhook method
  */
 const WEBHOOK_METHOD_TRANSITIONS = {
-  post: ['put'] as const,
-  put: ['post'] as const,
+  GET: ['POST', 'PUT', 'PATCH', 'DELETE'] as const,
+  POST: ['GET', 'PUT', 'PATCH', 'DELETE'] as const,
+  PUT: ['GET', 'POST', 'PATCH', 'DELETE'] as const,
+  PATCH: ['GET', 'POST', 'PUT', 'DELETE'] as const,
+  DELETE: ['GET', 'POST', 'PUT', 'PATCH'] as const,
 } as const;
 
 /**
  * Display names for webhook method values
  */
 const WEBHOOK_METHOD_DISPLAY_NAMES = {
-  post: 'Post',
-  put: 'Put',
+  GET: 'Get',
+  POST: 'Post',
+  PUT: 'Put',
+  PATCH: 'Patch',
+  DELETE: 'Delete',
 } as const;
 
 /**

@@ -18,8 +18,12 @@ import {
   WebhookEventType,
   createWebhookMethod,
   WebhookHeaders,
-  WebhookSigningSecret,
+  WebhookSigningSecretRef,
   createWebhookStatus,
+  WebhookVerifyTls,
+  WebhookRequestTimeoutMs,
+  WebhookConnectTimeoutMs,
+  WebhookRateLimitPerMinute,
 } from '../value-objects';
 
 /**
@@ -126,15 +130,17 @@ export function createWebhookAggregateFromProps(
     );
   }
 
-  const signingSecretResult = WebhookSigningSecret.from(props.signingSecret);
-  if (!signingSecretResult.ok) {
+  const signingSecretRefResult = WebhookSigningSecretRef.from(
+    props.signingSecretRef,
+  );
+  if (!signingSecretRefResult.ok) {
     return err(
-      withContext(signingSecretResult.error, {
-        ...signingSecretResult.error.context,
+      withContext(signingSecretRefResult.error, {
+        ...signingSecretRefResult.error.context,
         correlationId: metadata.correlationId,
         userId: metadata.userId,
         operation: 'create_webhook',
-        signingSecret: props.signingSecret,
+        signingSecretRef: props.signingSecretRef,
       }),
     );
   }
@@ -148,6 +154,64 @@ export function createWebhookAggregateFromProps(
         userId: metadata.userId,
         operation: 'create_webhook',
         status: props.status,
+      }),
+    );
+  }
+
+  const verifyTlsResult = WebhookVerifyTls.from(props.verifyTls);
+  if (!verifyTlsResult.ok) {
+    return err(
+      withContext(verifyTlsResult.error, {
+        ...verifyTlsResult.error.context,
+        correlationId: metadata.correlationId,
+        userId: metadata.userId,
+        operation: 'create_webhook',
+        verifyTls: props.verifyTls,
+      }),
+    );
+  }
+
+  const requestTimeoutMsResult = WebhookRequestTimeoutMs.from(
+    props.requestTimeoutMs,
+  );
+  if (!requestTimeoutMsResult.ok) {
+    return err(
+      withContext(requestTimeoutMsResult.error, {
+        ...requestTimeoutMsResult.error.context,
+        correlationId: metadata.correlationId,
+        userId: metadata.userId,
+        operation: 'create_webhook',
+        requestTimeoutMs: props.requestTimeoutMs,
+      }),
+    );
+  }
+
+  const connectTimeoutMsResult = WebhookConnectTimeoutMs.from(
+    props.connectTimeoutMs,
+  );
+  if (!connectTimeoutMsResult.ok) {
+    return err(
+      withContext(connectTimeoutMsResult.error, {
+        ...connectTimeoutMsResult.error.context,
+        correlationId: metadata.correlationId,
+        userId: metadata.userId,
+        operation: 'create_webhook',
+        connectTimeoutMs: props.connectTimeoutMs,
+      }),
+    );
+  }
+
+  const rateLimitPerMinuteResult = WebhookRateLimitPerMinute.from(
+    props.rateLimitPerMinute,
+  );
+  if (!rateLimitPerMinuteResult.ok) {
+    return err(
+      withContext(rateLimitPerMinuteResult.error, {
+        ...rateLimitPerMinuteResult.error.context,
+        correlationId: metadata.correlationId,
+        userId: metadata.userId,
+        operation: 'create_webhook',
+        rateLimitPerMinute: props.rateLimitPerMinute,
       }),
     );
   }
@@ -176,8 +240,12 @@ export function createWebhookAggregateFromProps(
     eventType: eventTypeResult.value,
     method: methodResult.value,
     headers: headersResult.value,
-    signingSecret: signingSecretResult.value,
+    signingSecretRef: signingSecretRefResult.value,
     status: statusResult.value,
+    verifyTls: verifyTlsResult.value,
+    requestTimeoutMs: requestTimeoutMsResult.value,
+    connectTimeoutMs: connectTimeoutMsResult.value,
+    rateLimitPerMinute: rateLimitPerMinuteResult.value,
     createdAt: createdAtResult.value,
     updatedAt: updatedAtResult.value,
     version: versionResult.value,

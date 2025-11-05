@@ -19,8 +19,12 @@ import {
   WebhookEventType,
   createWebhookMethod,
   WebhookHeaders,
-  WebhookSigningSecret,
+  WebhookSigningSecretRef,
   createWebhookStatus,
+  WebhookVerifyTls,
+  WebhookRequestTimeoutMs,
+  WebhookConnectTimeoutMs,
+  WebhookRateLimitPerMinute,
 } from '../../domain/value-objects';
 import { Result, ok, err, DomainError } from 'src/shared/errors';
 import { WebhookDomainState } from '../../domain/state/webhook.state';
@@ -66,12 +70,14 @@ export class WebhookStateMapper {
           WebhookDescription.from(snapshot.description),
         )
       : undefined;
-    const targetUrl = snapshot.targetUrl
-      ? validateField('targetUrl', WebhookTargetUrl.from(snapshot.targetUrl))
-      : undefined;
-    const eventType = snapshot.eventType
-      ? validateField('eventType', WebhookEventType.from(snapshot.eventType))
-      : undefined;
+    const targetUrl = validateField(
+      'targetUrl',
+      WebhookTargetUrl.from(snapshot.targetUrl),
+    );
+    const eventType = validateField(
+      'eventType',
+      WebhookEventType.from(snapshot.eventType),
+    );
     const method = validateField(
       'method',
       createWebhookMethod(snapshot.method),
@@ -79,16 +85,37 @@ export class WebhookStateMapper {
     const headers = snapshot.headers
       ? validateField('headers', WebhookHeaders.from(snapshot.headers))
       : undefined;
-    const signingSecret = snapshot.signingSecret
+    const signingSecretRef = snapshot.signingSecretRef
       ? validateField(
-          'signingSecret',
-          WebhookSigningSecret.from(snapshot.signingSecret),
+          'signingSecretRef',
+          WebhookSigningSecretRef.from(snapshot.signingSecretRef),
         )
       : undefined;
     const status = validateField(
       'status',
       createWebhookStatus(snapshot.status),
     );
+    const verifyTls = snapshot.verifyTls
+      ? validateField('verifyTls', WebhookVerifyTls.from(snapshot.verifyTls))
+      : undefined;
+    const requestTimeoutMs = snapshot.requestTimeoutMs
+      ? validateField(
+          'requestTimeoutMs',
+          WebhookRequestTimeoutMs.from(snapshot.requestTimeoutMs),
+        )
+      : undefined;
+    const connectTimeoutMs = snapshot.connectTimeoutMs
+      ? validateField(
+          'connectTimeoutMs',
+          WebhookConnectTimeoutMs.from(snapshot.connectTimeoutMs),
+        )
+      : undefined;
+    const rateLimitPerMinute = snapshot.rateLimitPerMinute
+      ? validateField(
+          'rateLimitPerMinute',
+          WebhookRateLimitPerMinute.from(snapshot.rateLimitPerMinute),
+        )
+      : undefined;
     const version = validateField(
       'version',
       WebhookVersion.from(snapshot.version),
@@ -126,12 +153,16 @@ export class WebhookStateMapper {
       id: id!,
       name: name!,
       description: description || undefined,
-      targetUrl: targetUrl || undefined,
-      eventType: eventType || undefined,
-      method: method || undefined,
+      targetUrl: targetUrl!,
+      eventType: eventType!,
+      method: method!,
       headers: headers || undefined,
-      signingSecret: signingSecret || undefined,
+      signingSecretRef: signingSecretRef || undefined,
       status: status!,
+      verifyTls: verifyTls || undefined,
+      requestTimeoutMs: requestTimeoutMs || undefined,
+      connectTimeoutMs: connectTimeoutMs || undefined,
+      rateLimitPerMinute: rateLimitPerMinute || undefined,
       version: version!,
       createdAt: createdAt!,
       updatedAt: updatedAt!,
@@ -152,12 +183,16 @@ export class WebhookStateMapper {
       id: domainState.id.value,
       name: domainState.name.value,
       description: domainState.description?.value,
-      targetUrl: domainState.targetUrl?.value,
-      eventType: domainState.eventType?.value,
-      method: domainState.method?.value,
+      targetUrl: domainState.targetUrl.value,
+      eventType: domainState.eventType.value,
+      method: domainState.method.value,
       headers: domainState.headers?.value,
-      signingSecret: domainState.signingSecret?.value,
+      signingSecretRef: domainState.signingSecretRef?.value,
       status: domainState.status.value,
+      verifyTls: domainState.verifyTls?.value,
+      requestTimeoutMs: domainState.requestTimeoutMs?.value,
+      connectTimeoutMs: domainState.connectTimeoutMs?.value,
+      rateLimitPerMinute: domainState.rateLimitPerMinute?.value,
       version: domainState.version.value,
       createdAt: domainState.createdAt.value,
       updatedAt: domainState.updatedAt.value,

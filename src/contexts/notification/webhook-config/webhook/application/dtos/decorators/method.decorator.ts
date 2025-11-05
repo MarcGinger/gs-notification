@@ -23,10 +23,10 @@ interface PropOptions {
  * @returns {PropertyDecorator}
  */
 export function ApiWebhookMethod(options: PropOptions = {}) {
-  const { required = false } = options;
+  const { required = true } = options;
   return applyDecorators(
     ApiProperty({
-      description: `Unique identifier for the Slack application as registered in the Slack App Directory. Used for app-specific API calls and identifying the source of bot interactions. Values include post, put.`,
+      description: `HTTP method for webhook delivery Values include GET, POST, PUT, PATCH, DELETE.`,
       type: String,
       enum: WebhookMethodValues,
       required,

@@ -22,8 +22,7 @@ export function ApiWebhookName(options: PropOptions = {}) {
 
   return applyDecorators(
     ApiProperty({
-      description: `Human-readable display name of the Slack workspace as configured by workspace administrators. Used for identification and logging purposes.`,
-      example: `Acme Corp Engineering`,
+      description: `Webhook Name`,
       type: String,
       required,
     }),

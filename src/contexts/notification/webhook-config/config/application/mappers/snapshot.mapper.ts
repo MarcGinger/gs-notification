@@ -16,11 +16,23 @@ export const mapConfigSnapshotToDto = (
   snapshot: ConfigSnapshotProps,
 ): DetailConfigResponse => {
   return {
+    id: snapshot.id,
     webhookId: snapshot.webhookId,
+    tenantId: snapshot.tenantId,
+    strategy: snapshot.strategy,
     maxRetryAttempts: snapshot.maxRetryAttempts,
     retryBackoffSeconds: snapshot.retryBackoffSeconds,
+    retryStrategy: snapshot.retryStrategy,
+    backoffJitterPct: snapshot.backoffJitterPct,
+    requestTimeoutMs: snapshot.requestTimeoutMs,
+    connectTimeoutMs: snapshot.connectTimeoutMs,
+    signatureAlgorithm: snapshot.signatureAlgorithm,
+    includeTimestampHeader: snapshot.includeTimestampHeader,
+    maxConcurrent: snapshot.maxConcurrent,
+    dlqEnabled: snapshot.dlqEnabled,
+    dlqMaxAgeSeconds: snapshot.dlqMaxAgeSeconds,
+    ordering: snapshot.ordering,
     defaultLocale: snapshot.defaultLocale,
-    strategy: snapshot.strategy,
     metadata: snapshot.metadata,
   };
 };

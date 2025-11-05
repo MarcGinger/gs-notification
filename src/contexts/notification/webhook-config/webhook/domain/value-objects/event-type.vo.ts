@@ -16,7 +16,9 @@ export const WebhookEventType = createStringVO({
   name: 'EventType',
   trim: true,
   caseTransform: 'none',
-  allowEmpty: true,
+  allowEmpty: false,
+
+  maxLength: 128,
 
   // Optional: declarative refinements for advanced validation
   // refinements: [

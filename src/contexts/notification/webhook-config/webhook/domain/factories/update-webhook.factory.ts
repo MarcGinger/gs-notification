@@ -15,8 +15,12 @@ import {
   WebhookEventType,
   createWebhookMethod,
   WebhookHeaders,
-  WebhookSigningSecret,
+  WebhookSigningSecretRef,
   createWebhookStatus,
+  WebhookVerifyTls,
+  WebhookRequestTimeoutMs,
+  WebhookConnectTimeoutMs,
+  WebhookRateLimitPerMinute,
 } from '../value-objects';
 
 /**
@@ -157,22 +161,22 @@ export function updateWebhookAggregateFromSnapshot(
     validatedFields.headers = headersResult.value;
   }
 
-  // Validate signingSecret if provided
-  if (updateProps.signingSecret !== undefined) {
-    const signingSecretResult = WebhookSigningSecret.from(
-      updateProps.signingSecret,
+  // Validate signingSecretRef if provided
+  if (updateProps.signingSecretRef !== undefined) {
+    const signingSecretRefResult = WebhookSigningSecretRef.from(
+      updateProps.signingSecretRef,
     );
-    if (!signingSecretResult.ok) {
+    if (!signingSecretRefResult.ok) {
       return err(
-        withContext(signingSecretResult.error, {
-          operation: 'update_webhook_signing_secret_validation',
+        withContext(signingSecretRefResult.error, {
+          operation: 'update_webhook_signing_secret_ref_validation',
           correlationId: metadata.correlationId,
           userId: metadata.actor?.userId,
-          providedSigningSecret: updateProps.signingSecret,
+          providedSigningSecretRef: updateProps.signingSecretRef,
         }),
       );
     }
-    validatedFields.signingSecret = signingSecretResult.value;
+    validatedFields.signingSecretRef = signingSecretRefResult.value;
   }
 
   // Validate status if provided
@@ -189,6 +193,76 @@ export function updateWebhookAggregateFromSnapshot(
       );
     }
     validatedFields.status = statusResult.value;
+  }
+
+  // Validate verifyTls if provided
+  if (updateProps.verifyTls !== undefined) {
+    const verifyTlsResult = WebhookVerifyTls.from(updateProps.verifyTls);
+    if (!verifyTlsResult.ok) {
+      return err(
+        withContext(verifyTlsResult.error, {
+          operation: 'update_webhook_verify_tls_validation',
+          correlationId: metadata.correlationId,
+          userId: metadata.actor?.userId,
+          providedVerifyTls: updateProps.verifyTls,
+        }),
+      );
+    }
+    validatedFields.verifyTls = verifyTlsResult.value;
+  }
+
+  // Validate requestTimeoutMs if provided
+  if (updateProps.requestTimeoutMs !== undefined) {
+    const requestTimeoutMsResult = WebhookRequestTimeoutMs.from(
+      updateProps.requestTimeoutMs,
+    );
+    if (!requestTimeoutMsResult.ok) {
+      return err(
+        withContext(requestTimeoutMsResult.error, {
+          operation: 'update_webhook_request_timeout_ms_validation',
+          correlationId: metadata.correlationId,
+          userId: metadata.actor?.userId,
+          providedRequestTimeoutMs: updateProps.requestTimeoutMs,
+        }),
+      );
+    }
+    validatedFields.requestTimeoutMs = requestTimeoutMsResult.value;
+  }
+
+  // Validate connectTimeoutMs if provided
+  if (updateProps.connectTimeoutMs !== undefined) {
+    const connectTimeoutMsResult = WebhookConnectTimeoutMs.from(
+      updateProps.connectTimeoutMs,
+    );
+    if (!connectTimeoutMsResult.ok) {
+      return err(
+        withContext(connectTimeoutMsResult.error, {
+          operation: 'update_webhook_connect_timeout_ms_validation',
+          correlationId: metadata.correlationId,
+          userId: metadata.actor?.userId,
+          providedConnectTimeoutMs: updateProps.connectTimeoutMs,
+        }),
+      );
+    }
+    validatedFields.connectTimeoutMs = connectTimeoutMsResult.value;
+  }
+
+  // Validate rateLimitPerMinute if provided
+  if (updateProps.rateLimitPerMinute !== undefined) {
+    const rateLimitPerMinuteResult = WebhookRateLimitPerMinute.from(
+      updateProps.rateLimitPerMinute,
+    );
+    if (!rateLimitPerMinuteResult.ok) {
+      return err(
+        withContext(rateLimitPerMinuteResult.error, {
+          operation: 'update_webhook_rate_limit_per_minute_validation',
+          correlationId: metadata.correlationId,
+          userId: metadata.actor?.userId,
+          providedRateLimitPerMinute: updateProps.rateLimitPerMinute,
+        }),
+      );
+    }
+    validatedFields.rateLimitPerMinute = rateLimitPerMinuteResult.value;
   }
 
   // 3. Apply all validated changes in single atomic operation

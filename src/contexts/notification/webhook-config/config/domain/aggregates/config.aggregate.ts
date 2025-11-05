@@ -10,9 +10,15 @@ import { ConfigEntity } from '../entities';
 import { ConfigSnapshotProps } from '../props';
 import { ValidatedConfigUpdateFields } from '../types';
 import {
-  ConfigWebhookId,
+  ConfigId,
   ConfigStrategyValue,
   createConfigStrategy,
+  ConfigRetryStrategyValue,
+  createConfigRetryStrategy,
+  ConfigSignatureAlgorithmValue,
+  createConfigSignatureAlgorithm,
+  ConfigOrderingValue,
+  createConfigOrdering,
   createConfigCreatedAt,
   createConfigUpdatedAt,
   createdAtNow,
@@ -137,11 +143,23 @@ export class ConfigAggregate extends AggregateRootBase {
 
     // Create typed ConfigCreatedEvent with only business data
     const createdEvent = ConfigCreatedEvent.create({
-      webhookId: entityProps.webhookId.value,
+      id: entityProps.id.value,
+      webhookId: entityProps.webhookId?.value,
+      tenantId: entityProps.tenantId.value,
+      strategy: entityProps.strategy.value,
       maxRetryAttempts: entityProps.maxRetryAttempts.value,
       retryBackoffSeconds: entityProps.retryBackoffSeconds.value,
+      retryStrategy: entityProps.retryStrategy?.value,
+      backoffJitterPct: entityProps.backoffJitterPct?.value,
+      requestTimeoutMs: entityProps.requestTimeoutMs?.value,
+      connectTimeoutMs: entityProps.connectTimeoutMs?.value,
+      signatureAlgorithm: entityProps.signatureAlgorithm?.value,
+      includeTimestampHeader: entityProps.includeTimestampHeader?.value,
+      maxConcurrent: entityProps.maxConcurrent?.value,
+      dlqEnabled: entityProps.dlqEnabled?.value,
+      dlqMaxAgeSeconds: entityProps.dlqMaxAgeSeconds?.value,
+      ordering: entityProps.ordering?.value,
       defaultLocale: entityProps.defaultLocale.value,
-      strategy: entityProps.strategy.value,
       metadata: entityProps.metadata?.value,
     });
 
@@ -150,7 +168,7 @@ export class ConfigAggregate extends AggregateRootBase {
       type: createdEvent.eventType,
       version: Number(createdEvent.eventVersion),
       occurredAt: clock.now(),
-      aggregateId: entityProps.webhookId.value,
+      aggregateId: entityProps.id.value,
       aggregateType: 'Config',
       data: createdEvent.payload,
       metadata: eventMetadata,
@@ -185,15 +203,27 @@ export class ConfigAggregate extends AggregateRootBase {
    */
   protected when(event: DomainEvent): void {
     switch (event.type) {
-      case 'NotificationSlackConfigConfigCreated.v1':
-      case 'NotificationSlackConfigConfigUpdated.v1': {
+      case 'NotificationWebhookConfigConfigCreated.v1':
+      case 'NotificationWebhookConfigConfigUpdated.v1': {
         // Both events now have the same domain shape - simple merge
         const d = event.data as {
-          webhookId: string;
+          id: string;
+          webhookId?: string;
+          tenantId: string;
+          strategy: ConfigStrategyValue;
           maxRetryAttempts: number;
           retryBackoffSeconds: number;
+          retryStrategy?: ConfigRetryStrategyValue;
+          backoffJitterPct?: number;
+          requestTimeoutMs?: number;
+          connectTimeoutMs?: number;
+          signatureAlgorithm?: ConfigSignatureAlgorithmValue;
+          includeTimestampHeader?: boolean;
+          maxConcurrent?: number;
+          dlqEnabled?: boolean;
+          dlqMaxAgeSeconds?: number;
+          ordering?: ConfigOrderingValue;
           defaultLocale: string;
-          strategy: ConfigStrategyValue;
           metadata?: Record<string, unknown>;
         };
 
@@ -202,11 +232,23 @@ export class ConfigAggregate extends AggregateRootBase {
         const currentSnapshot = this._entity?.toSnapshot() || {};
 
         const entityResult = ConfigEntity.fromSnapshot({
+          id: d.id,
           webhookId: d.webhookId,
+          tenantId: d.tenantId,
+          strategy: d.strategy,
           maxRetryAttempts: d.maxRetryAttempts,
           retryBackoffSeconds: d.retryBackoffSeconds,
+          retryStrategy: d.retryStrategy,
+          backoffJitterPct: d.backoffJitterPct,
+          requestTimeoutMs: d.requestTimeoutMs,
+          connectTimeoutMs: d.connectTimeoutMs,
+          signatureAlgorithm: d.signatureAlgorithm,
+          includeTimestampHeader: d.includeTimestampHeader,
+          maxConcurrent: d.maxConcurrent,
+          dlqEnabled: d.dlqEnabled,
+          dlqMaxAgeSeconds: d.dlqMaxAgeSeconds,
+          ordering: d.ordering,
           defaultLocale: d.defaultLocale,
-          strategy: d.strategy,
           metadata: d.metadata,
           createdAt: currentSnapshot.createdAt || event.occurredAt,
           updatedAt: event.occurredAt, // Always update the timestamp
@@ -247,7 +289,7 @@ export class ConfigAggregate extends AggregateRootBase {
         retryable: false,
         context: {
           originalError: entityResult.error,
-          snapshotCode: snapshot.webhookId,
+          snapshotCode: snapshot.id,
         },
       });
     }
@@ -284,8 +326,8 @@ export class ConfigAggregate extends AggregateRootBase {
   /**
    * Get the aggregate ID (required for aggregate identity)
    */
-  public get id(): ConfigWebhookId {
-    return this._entity.webhookId;
+  public get id(): ConfigId {
+    return this._entity.id;
   }
 
   /**
@@ -307,6 +349,21 @@ export class ConfigAggregate extends AggregateRootBase {
    */
   private detectChanges(validatedFields: ValidatedConfigUpdateFields): boolean {
     // Check each field for actual value changes using value object equality
+    if (validatedFields.webhookId !== undefined) {
+      if (hasValueChanged(this._entity.webhookId, validatedFields.webhookId)) {
+        return true;
+      }
+    }
+    if (validatedFields.tenantId !== undefined) {
+      if (hasValueChanged(this._entity.tenantId, validatedFields.tenantId)) {
+        return true;
+      }
+    }
+    if (validatedFields.strategy !== undefined) {
+      if (hasValueChanged(this._entity.strategy, validatedFields.strategy)) {
+        return true;
+      }
+    }
     if (validatedFields.maxRetryAttempts !== undefined) {
       if (
         hasValueChanged(
@@ -327,6 +384,98 @@ export class ConfigAggregate extends AggregateRootBase {
         return true;
       }
     }
+    if (validatedFields.retryStrategy !== undefined) {
+      if (
+        hasValueChanged(
+          this._entity.retryStrategy,
+          validatedFields.retryStrategy,
+        )
+      ) {
+        return true;
+      }
+    }
+    if (validatedFields.backoffJitterPct !== undefined) {
+      if (
+        hasValueChanged(
+          this._entity.backoffJitterPct,
+          validatedFields.backoffJitterPct,
+        )
+      ) {
+        return true;
+      }
+    }
+    if (validatedFields.requestTimeoutMs !== undefined) {
+      if (
+        hasValueChanged(
+          this._entity.requestTimeoutMs,
+          validatedFields.requestTimeoutMs,
+        )
+      ) {
+        return true;
+      }
+    }
+    if (validatedFields.connectTimeoutMs !== undefined) {
+      if (
+        hasValueChanged(
+          this._entity.connectTimeoutMs,
+          validatedFields.connectTimeoutMs,
+        )
+      ) {
+        return true;
+      }
+    }
+    if (validatedFields.signatureAlgorithm !== undefined) {
+      if (
+        hasValueChanged(
+          this._entity.signatureAlgorithm,
+          validatedFields.signatureAlgorithm,
+        )
+      ) {
+        return true;
+      }
+    }
+    if (validatedFields.includeTimestampHeader !== undefined) {
+      if (
+        hasValueChanged(
+          this._entity.includeTimestampHeader,
+          validatedFields.includeTimestampHeader,
+        )
+      ) {
+        return true;
+      }
+    }
+    if (validatedFields.maxConcurrent !== undefined) {
+      if (
+        hasValueChanged(
+          this._entity.maxConcurrent,
+          validatedFields.maxConcurrent,
+        )
+      ) {
+        return true;
+      }
+    }
+    if (validatedFields.dlqEnabled !== undefined) {
+      if (
+        hasValueChanged(this._entity.dlqEnabled, validatedFields.dlqEnabled)
+      ) {
+        return true;
+      }
+    }
+    if (validatedFields.dlqMaxAgeSeconds !== undefined) {
+      if (
+        hasValueChanged(
+          this._entity.dlqMaxAgeSeconds,
+          validatedFields.dlqMaxAgeSeconds,
+        )
+      ) {
+        return true;
+      }
+    }
+    if (validatedFields.ordering !== undefined) {
+      if (hasValueChanged(this._entity.ordering, validatedFields.ordering)) {
+        return true;
+      }
+    }
     if (validatedFields.defaultLocale !== undefined) {
       if (
         hasValueChanged(
@@ -334,11 +483,6 @@ export class ConfigAggregate extends AggregateRootBase {
           validatedFields.defaultLocale,
         )
       ) {
-        return true;
-      }
-    }
-    if (validatedFields.strategy !== undefined) {
-      if (hasValueChanged(this._entity.strategy, validatedFields.strategy)) {
         return true;
       }
     }
@@ -382,7 +526,7 @@ export class ConfigAggregate extends AggregateRootBase {
         context: {
           expected: expectedVersion,
           actual: this._entity.version.value,
-          aggregateId: this._entity.webhookId.value,
+          aggregateId: this._entity.id.value,
         },
       });
     }
@@ -422,6 +566,36 @@ export class ConfigAggregate extends AggregateRootBase {
     let currentEntity = this._entity;
 
     // Apply each validated field change with type safety
+    if (validatedFields.webhookId !== undefined) {
+      const entityResult = currentEntity.withWebhookId(
+        validatedFields.webhookId,
+        updatedAt,
+        nextVersion,
+      );
+      if (!entityResult.ok) return err(entityResult.error);
+      currentEntity = entityResult.value;
+    }
+
+    if (validatedFields.tenantId !== undefined) {
+      const entityResult = currentEntity.withTenantId(
+        validatedFields.tenantId,
+        updatedAt,
+        nextVersion,
+      );
+      if (!entityResult.ok) return err(entityResult.error);
+      currentEntity = entityResult.value;
+    }
+
+    if (validatedFields.strategy !== undefined) {
+      const entityResult = currentEntity.withStrategy(
+        validatedFields.strategy,
+        updatedAt,
+        nextVersion,
+      );
+      if (!entityResult.ok) return err(entityResult.error);
+      currentEntity = entityResult.value;
+    }
+
     if (validatedFields.maxRetryAttempts !== undefined) {
       const entityResult = currentEntity.withMaxRetryAttempts(
         validatedFields.maxRetryAttempts,
@@ -442,9 +616,9 @@ export class ConfigAggregate extends AggregateRootBase {
       currentEntity = entityResult.value;
     }
 
-    if (validatedFields.defaultLocale !== undefined) {
-      const entityResult = currentEntity.withDefaultLocale(
-        validatedFields.defaultLocale,
+    if (validatedFields.retryStrategy !== undefined) {
+      const entityResult = currentEntity.withRetryStrategy(
+        validatedFields.retryStrategy,
         updatedAt,
         nextVersion,
       );
@@ -452,9 +626,99 @@ export class ConfigAggregate extends AggregateRootBase {
       currentEntity = entityResult.value;
     }
 
-    if (validatedFields.strategy !== undefined) {
-      const entityResult = currentEntity.withStrategy(
-        validatedFields.strategy,
+    if (validatedFields.backoffJitterPct !== undefined) {
+      const entityResult = currentEntity.withBackoffJitterPct(
+        validatedFields.backoffJitterPct,
+        updatedAt,
+        nextVersion,
+      );
+      if (!entityResult.ok) return err(entityResult.error);
+      currentEntity = entityResult.value;
+    }
+
+    if (validatedFields.requestTimeoutMs !== undefined) {
+      const entityResult = currentEntity.withRequestTimeoutMs(
+        validatedFields.requestTimeoutMs,
+        updatedAt,
+        nextVersion,
+      );
+      if (!entityResult.ok) return err(entityResult.error);
+      currentEntity = entityResult.value;
+    }
+
+    if (validatedFields.connectTimeoutMs !== undefined) {
+      const entityResult = currentEntity.withConnectTimeoutMs(
+        validatedFields.connectTimeoutMs,
+        updatedAt,
+        nextVersion,
+      );
+      if (!entityResult.ok) return err(entityResult.error);
+      currentEntity = entityResult.value;
+    }
+
+    if (validatedFields.signatureAlgorithm !== undefined) {
+      const entityResult = currentEntity.withSignatureAlgorithm(
+        validatedFields.signatureAlgorithm,
+        updatedAt,
+        nextVersion,
+      );
+      if (!entityResult.ok) return err(entityResult.error);
+      currentEntity = entityResult.value;
+    }
+
+    if (validatedFields.includeTimestampHeader !== undefined) {
+      const entityResult = currentEntity.withIncludeTimestampHeader(
+        validatedFields.includeTimestampHeader,
+        updatedAt,
+        nextVersion,
+      );
+      if (!entityResult.ok) return err(entityResult.error);
+      currentEntity = entityResult.value;
+    }
+
+    if (validatedFields.maxConcurrent !== undefined) {
+      const entityResult = currentEntity.withMaxConcurrent(
+        validatedFields.maxConcurrent,
+        updatedAt,
+        nextVersion,
+      );
+      if (!entityResult.ok) return err(entityResult.error);
+      currentEntity = entityResult.value;
+    }
+
+    if (validatedFields.dlqEnabled !== undefined) {
+      const entityResult = currentEntity.withDlqEnabled(
+        validatedFields.dlqEnabled,
+        updatedAt,
+        nextVersion,
+      );
+      if (!entityResult.ok) return err(entityResult.error);
+      currentEntity = entityResult.value;
+    }
+
+    if (validatedFields.dlqMaxAgeSeconds !== undefined) {
+      const entityResult = currentEntity.withDlqMaxAgeSeconds(
+        validatedFields.dlqMaxAgeSeconds,
+        updatedAt,
+        nextVersion,
+      );
+      if (!entityResult.ok) return err(entityResult.error);
+      currentEntity = entityResult.value;
+    }
+
+    if (validatedFields.ordering !== undefined) {
+      const entityResult = currentEntity.withOrdering(
+        validatedFields.ordering,
+        updatedAt,
+        nextVersion,
+      );
+      if (!entityResult.ok) return err(entityResult.error);
+      currentEntity = entityResult.value;
+    }
+
+    if (validatedFields.defaultLocale !== undefined) {
+      const entityResult = currentEntity.withDefaultLocale(
+        validatedFields.defaultLocale,
         updatedAt,
         nextVersion,
       );
@@ -477,11 +741,23 @@ export class ConfigAggregate extends AggregateRootBase {
 
     // Create domain-shaped update event (same structure as created event)
     const updatedEvent = ConfigUpdatedEvent.create({
-      webhookId: this._entity.webhookId.value,
+      id: this._entity.id.value,
+      webhookId: this._entity.webhookId?.value,
+      tenantId: this._entity.tenantId.value,
+      strategy: this._entity.strategy.value,
       maxRetryAttempts: this._entity.maxRetryAttempts.value,
       retryBackoffSeconds: this._entity.retryBackoffSeconds.value,
+      retryStrategy: this._entity.retryStrategy?.value,
+      backoffJitterPct: this._entity.backoffJitterPct?.value,
+      requestTimeoutMs: this._entity.requestTimeoutMs?.value,
+      connectTimeoutMs: this._entity.connectTimeoutMs?.value,
+      signatureAlgorithm: this._entity.signatureAlgorithm?.value,
+      includeTimestampHeader: this._entity.includeTimestampHeader?.value,
+      maxConcurrent: this._entity.maxConcurrent?.value,
+      dlqEnabled: this._entity.dlqEnabled?.value,
+      dlqMaxAgeSeconds: this._entity.dlqMaxAgeSeconds?.value,
+      ordering: this._entity.ordering?.value,
       defaultLocale: this._entity.defaultLocale.value,
-      strategy: this._entity.strategy.value,
       metadata: this._entity.metadata?.value,
     });
 
@@ -490,7 +766,7 @@ export class ConfigAggregate extends AggregateRootBase {
       type: updatedEvent.eventType,
       version: Number(updatedEvent.eventVersion),
       occurredAt: updatedAt,
-      aggregateId: this._entity.webhookId.value,
+      aggregateId: this._entity.id.value,
       aggregateType: 'Config',
       data: updatedEvent.payload,
       metadata: this.eventMetadata,
@@ -502,21 +778,99 @@ export class ConfigAggregate extends AggregateRootBase {
   }
 
   /**
+   * Set entity to per-webhook
+   */
+  public perWebhook(): Result<void, DomainError> {
+    const strategyResult = createConfigStrategy('per-webhook');
+    if (!strategyResult.ok) return err(strategyResult.error);
+    return this.updateBatch({ strategy: strategyResult.value });
+  }
+
+  /**
+   * Set entity to per-tenant
+   */
+  public perTenant(): Result<void, DomainError> {
+    const strategyResult = createConfigStrategy('per-tenant');
+    if (!strategyResult.ok) return err(strategyResult.error);
+    return this.updateBatch({ strategy: strategyResult.value });
+  }
+
+  /**
+   * Set entity to global
+   */
+  public global(): Result<void, DomainError> {
+    const strategyResult = createConfigStrategy('global');
+    if (!strategyResult.ok) return err(strategyResult.error);
+    return this.updateBatch({ strategy: strategyResult.value });
+  }
+
+  /**
    * Set entity to exponential
    */
   public exponential(): Result<void, DomainError> {
-    const strategyResult = createConfigStrategy('exponential');
-    if (!strategyResult.ok) return err(strategyResult.error);
-    return this.updateBatch({ strategy: strategyResult.value });
+    const retryStrategyResult = createConfigRetryStrategy('exponential');
+    if (!retryStrategyResult.ok) return err(retryStrategyResult.error);
+    return this.updateBatch({ retryStrategy: retryStrategyResult.value });
   }
 
   /**
    * Set entity to linear
    */
   public linear(): Result<void, DomainError> {
-    const strategyResult = createConfigStrategy('linear');
-    if (!strategyResult.ok) return err(strategyResult.error);
-    return this.updateBatch({ strategy: strategyResult.value });
+    const retryStrategyResult = createConfigRetryStrategy('linear');
+    if (!retryStrategyResult.ok) return err(retryStrategyResult.error);
+    return this.updateBatch({ retryStrategy: retryStrategyResult.value });
+  }
+
+  /**
+   * Set entity to fixed
+   */
+  public fixed(): Result<void, DomainError> {
+    const retryStrategyResult = createConfigRetryStrategy('fixed');
+    if (!retryStrategyResult.ok) return err(retryStrategyResult.error);
+    return this.updateBatch({ retryStrategy: retryStrategyResult.value });
+  }
+
+  /**
+   * Set entity to sha256
+   */
+  public sha256(): Result<void, DomainError> {
+    const signatureAlgorithmResult = createConfigSignatureAlgorithm('sha256');
+    if (!signatureAlgorithmResult.ok)
+      return err(signatureAlgorithmResult.error);
+    return this.updateBatch({
+      signatureAlgorithm: signatureAlgorithmResult.value,
+    });
+  }
+
+  /**
+   * Set entity to sha1
+   */
+  public sha1(): Result<void, DomainError> {
+    const signatureAlgorithmResult = createConfigSignatureAlgorithm('sha1');
+    if (!signatureAlgorithmResult.ok)
+      return err(signatureAlgorithmResult.error);
+    return this.updateBatch({
+      signatureAlgorithm: signatureAlgorithmResult.value,
+    });
+  }
+
+  /**
+   * Set entity to fifo
+   */
+  public fifo(): Result<void, DomainError> {
+    const orderingResult = createConfigOrdering('fifo');
+    if (!orderingResult.ok) return err(orderingResult.error);
+    return this.updateBatch({ ordering: orderingResult.value });
+  }
+
+  /**
+   * Set entity to loose
+   */
+  public loose(): Result<void, DomainError> {
+    const orderingResult = createConfigOrdering('loose');
+    if (!orderingResult.ok) return err(orderingResult.error);
+    return this.updateBatch({ ordering: orderingResult.value });
   }
 
   /**
@@ -536,7 +890,7 @@ export class ConfigAggregate extends AggregateRootBase {
       type: 'ConfigDeleted',
       version: 1,
       occurredAt: deletedAtResult.value.value, // Extract Date from VO
-      aggregateId: this._entity.webhookId.value,
+      aggregateId: this._entity.id.value,
       aggregateType: 'Config',
     };
 

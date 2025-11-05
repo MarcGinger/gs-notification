@@ -109,12 +109,16 @@ export class WebhookReaderRepository implements IWebhookReader {
         id: hashData.id,
         name: hashData.name,
         description: hashData.description || undefined,
-        targetUrl: hashData.targetUrl || undefined,
-        eventType: hashData.eventType || undefined,
+        targetUrl: hashData.targetUrl,
+        eventType: hashData.eventType,
         method: hashData.method as WebhookMethodValue,
         headers,
-        signingSecret: hashData.signingSecret || undefined,
+        signingSecretRef: hashData.signingSecretRef || undefined,
         status: hashData.status as WebhookStatusValue,
+        verifyTls: hashData.verifyTls === 'true',
+        requestTimeoutMs: parseInt(hashData.requestTimeoutMs, 10),
+        connectTimeoutMs: parseInt(hashData.connectTimeoutMs, 10),
+        rateLimitPerMinute: parseInt(hashData.rateLimitPerMinute, 10),
       };
     } catch (error) {
       Log.error(

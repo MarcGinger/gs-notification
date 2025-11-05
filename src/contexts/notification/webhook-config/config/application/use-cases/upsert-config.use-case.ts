@@ -24,7 +24,7 @@ import { WebhookConfigServiceConstants } from '../../../service-constants';
 // Domain types and errors
 import { ConfigAggregate } from '../../domain/aggregates';
 import { CreateConfigProps, UpsertConfigProps } from '../../domain/props';
-import { ConfigWebhookId } from '../../domain/value-objects';
+import { ConfigId } from '../../domain/value-objects';
 import {
   createConfigAggregateFromProps,
   updateConfigAggregateFromSnapshot,
@@ -85,7 +85,7 @@ export class UpsertConfigUseCase implements IUpsertConfigUseCase {
   }
   async execute(params: {
     user: IUserToken;
-    webhookId: string;
+    id: string;
     props: UpsertConfigProps;
     correlationId: string;
     authorizationReason: string;
@@ -96,7 +96,7 @@ export class UpsertConfigUseCase implements IUpsertConfigUseCase {
     // Create a command-like object for internal use
     const command = {
       user: params.user,
-      webhookId: params.webhookId,
+      id: params.id,
       props: params.props,
       correlationId: params.correlationId,
       authorizationReason: params.authorizationReason,
@@ -140,7 +140,7 @@ export class UpsertConfigUseCase implements IUpsertConfigUseCase {
         timestamp: command.timestamp,
       },
       {
-        configWebhookId: command.webhookId,
+        configId: command.id,
         operationRisk: UseCaseLoggingUtil.assessOperationRisk(operation),
       },
     );
@@ -198,7 +198,7 @@ export class UpsertConfigUseCase implements IUpsertConfigUseCase {
     // We first try to load; if not found, we'll "create" instead of erroring.
 
     // Discover existence ahead of time to configure auth intent correctly
-    const codeR = ConfigWebhookId.create(command.webhookId);
+    const codeR = ConfigId.create(command.id);
     if (!codeR.ok) return err(codeR.error);
 
     // Create actor context using the standard utility
@@ -256,7 +256,7 @@ export class UpsertConfigUseCase implements IUpsertConfigUseCase {
         : {
             type: 'update' as const,
             operation: 'update' as const,
-            resourceId: command.webhookId,
+            resourceId: command.id,
             fields: fieldsToUpdate.map(String),
           },
       authContext: {
@@ -311,7 +311,7 @@ export class UpsertConfigUseCase implements IUpsertConfigUseCase {
         // CREATE path - Validate and transform, no default creation
         const upsertProps = {
           ...(rawProps || {}),
-          webhookId: command.webhookId,
+          id: command.id,
         };
 
         const createProps = upsertProps as CreateConfigProps;

@@ -16,7 +16,7 @@ export const WebhookTargetUrl = createStringVO({
   name: 'TargetUrl',
   trim: true,
   caseTransform: 'none',
-  allowEmpty: true,
+  allowEmpty: false,
 
   // Optional: declarative refinements for advanced validation
   // refinements: [
