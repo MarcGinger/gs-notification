@@ -26,7 +26,7 @@ export function ApiWebhookMethod(options: PropOptions = {}) {
   const { required = true } = options;
   return applyDecorators(
     ApiProperty({
-      description: `HTTP method for webhook delivery Values include GET, POST, PUT, PATCH, DELETE.`,
+      description: `HTTP method for webhook delivery Values include GET, POST, PUT, PATCH.`,
       type: String,
       enum: WebhookMethodValues,
       required,

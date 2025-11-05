@@ -16,7 +16,7 @@ import {
   WebhookName,
   WebhookDescription,
   WebhookTargetUrl,
-  WebhookEventType,
+  WebhookWebhookEventType,
   createWebhookMethod,
   WebhookHeaders,
   WebhookSigningSecretRef,
@@ -74,9 +74,9 @@ export class WebhookStateMapper {
       'targetUrl',
       WebhookTargetUrl.from(snapshot.targetUrl),
     );
-    const eventType = validateField(
-      'eventType',
-      WebhookEventType.from(snapshot.eventType),
+    const webhookEventType = validateField(
+      'webhookEventType',
+      WebhookWebhookEventType.from(snapshot.webhookEventType),
     );
     const method = validateField(
       'method',
@@ -154,7 +154,7 @@ export class WebhookStateMapper {
       name: name!,
       description: description || undefined,
       targetUrl: targetUrl!,
-      eventType: eventType!,
+      webhookEventType: webhookEventType!,
       method: method!,
       headers: headers || undefined,
       signingSecretRef: signingSecretRef || undefined,
@@ -184,7 +184,7 @@ export class WebhookStateMapper {
       name: domainState.name.value,
       description: domainState.description?.value,
       targetUrl: domainState.targetUrl.value,
-      eventType: domainState.eventType.value,
+      webhookEventType: domainState.webhookEventType.value,
       method: domainState.method.value,
       headers: domainState.headers?.value,
       signingSecretRef: domainState.signingSecretRef?.value,

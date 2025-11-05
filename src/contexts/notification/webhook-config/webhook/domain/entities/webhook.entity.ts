@@ -12,7 +12,6 @@ import {
   WebhookUpdatedAt,
   WebhookVersion,
   WebhookDescription,
-  WebhookEventType,
   WebhookHeaders,
   WebhookId,
   WebhookMethod,
@@ -26,6 +25,7 @@ import {
   WebhookStatusValue,
   WebhookTargetUrl,
   WebhookVerifyTls,
+  WebhookWebhookEventType,
   createWebhookMethod,
   createWebhookStatus,
 } from '../value-objects';
@@ -176,9 +176,11 @@ export class WebhookEntity extends EntityIdBase<WebhookDomainState, WebhookId> {
     if (!targetUrlResult.ok) {
       return err(targetUrlResult.error);
     }
-    const eventTypeResult = WebhookEventType.from(snapshot.eventType);
-    if (!eventTypeResult.ok) {
-      return err(eventTypeResult.error);
+    const webhookEventTypeResult = WebhookWebhookEventType.from(
+      snapshot.webhookEventType,
+    );
+    if (!webhookEventTypeResult.ok) {
+      return err(webhookEventTypeResult.error);
     }
     const methodResult = createWebhookMethod(snapshot.method);
     if (!methodResult.ok) {
@@ -240,7 +242,7 @@ export class WebhookEntity extends EntityIdBase<WebhookDomainState, WebhookId> {
       name: nameResult.value,
       description: descriptionResult.value,
       targetUrl: targetUrlResult.value,
-      eventType: eventTypeResult.value,
+      webhookEventType: webhookEventTypeResult.value,
       method: methodResult.value,
       headers: headersResult.value,
       signingSecretRef: signingSecretRefResult.value,
@@ -276,8 +278,8 @@ export class WebhookEntity extends EntityIdBase<WebhookDomainState, WebhookId> {
     if (!props.targetUrl) {
       return err(WebhookErrors.INVALID_TARGET_URL_DATA);
     }
-    if (!props.eventType) {
-      return err(WebhookErrors.INVALID_EVENT_TYPE_DATA);
+    if (!props.webhookEventType) {
+      return err(WebhookErrors.INVALID_WEBHOOK_EVENT_TYPE_DATA);
     }
     if (!props.method) {
       return err(WebhookErrors.INVALID_METHOD_DATA);
@@ -309,8 +311,8 @@ export class WebhookEntity extends EntityIdBase<WebhookDomainState, WebhookId> {
     return this.props.targetUrl;
   }
 
-  public get eventType(): WebhookEventType {
-    return this.props.eventType;
+  public get webhookEventType(): WebhookWebhookEventType {
+    return this.props.webhookEventType;
   }
 
   public get method(): WebhookMethod {
@@ -407,18 +409,18 @@ export class WebhookEntity extends EntityIdBase<WebhookDomainState, WebhookId> {
   }
 
   /**
-   * Creates a new entity with updated eventType (pure state transition)
+   * Creates a new entity with updated webhookEventType (pure state transition)
    *
-   * @param eventType - New eventType value
+   * @param webhookEventType - New webhookEventType value
    * @param updatedAt - Optional timestamp (uses clock if not provided)
    * @returns Result<WebhookEntity, DomainError>
    */
-  public withEventType(
-    eventType: WebhookEventType,
+  public withWebhookEventType(
+    webhookEventType: WebhookWebhookEventType,
     updatedAt?: Date,
     version?: number,
   ): Result<WebhookEntity, DomainError> {
-    return this.createUpdatedEntity({ eventType }, updatedAt, version);
+    return this.createUpdatedEntity({ webhookEventType }, updatedAt, version);
   }
 
   /**
@@ -604,7 +606,7 @@ export class WebhookEntity extends EntityIdBase<WebhookDomainState, WebhookId> {
       name: this.props.name.value,
       description: this.props.description?.value,
       targetUrl: this.props.targetUrl.value,
-      eventType: this.props.eventType.value,
+      webhookEventType: this.props.webhookEventType.value,
       method: this.props.method.value,
       headers: this.props.headers?.value,
       signingSecretRef: this.props.signingSecretRef?.value,

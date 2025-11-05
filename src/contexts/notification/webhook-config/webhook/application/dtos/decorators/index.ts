@@ -1,6 +1,5 @@
 export * from './connect-timeout-ms.decorator';
 export * from './description.decorator';
-export * from './event-type.decorator';
 export * from './headers.decorator';
 export * from './id.decorator';
 export * from './method.decorator';
@@ -11,4 +10,5 @@ export * from './signing-secret-ref.decorator';
 export * from './status.decorator';
 export * from './target-url.decorator';
 export * from './verify-tls.decorator';
+export * from './webhook-event-type.decorator';
 export * from './webhook-list-pagination.decorator';

@@ -7,7 +7,6 @@ import {
   WebhookVersion,
   WebhookConnectTimeoutMs,
   WebhookDescription,
-  WebhookEventType,
   WebhookHeaders,
   WebhookId,
   WebhookMethod,
@@ -18,6 +17,7 @@ import {
   WebhookStatus,
   WebhookTargetUrl,
   WebhookVerifyTls,
+  WebhookWebhookEventType,
 } from '../value-objects';
 
 /**
@@ -38,7 +38,7 @@ export interface WebhookDomainState {
   name: WebhookName;
   description?: WebhookDescription;
   targetUrl: WebhookTargetUrl;
-  eventType: WebhookEventType;
+  webhookEventType: WebhookWebhookEventType;
   method: WebhookMethod;
   headers?: WebhookHeaders;
   signingSecretRef?: WebhookSigningSecretRef;

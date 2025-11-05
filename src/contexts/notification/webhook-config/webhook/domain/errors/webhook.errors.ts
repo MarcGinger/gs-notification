@@ -7,7 +7,7 @@ export interface WebhookContext extends Record<string, unknown> {
   name: string;
   description?: string;
   targetUrl: string;
-  eventType: string;
+  webhookEventType: string;
   method: string;
   headers?: Record<string, unknown>;
   signingSecretRef?: string;
@@ -57,7 +57,7 @@ export const WebhookErrors = {
   ENUM_NOT_ALLOWED_METHOD: {
     code: 'WEBHOOK.ENUM_NOT_ALLOWED_METHOD',
     title: 'Invalid Option',
-    detail: 'Method must be one of: GET, POST, PUT, PATCH, DELETE.',
+    detail: 'Method must be one of: GET, POST, PUT, PATCH.',
     category: 'validation',
     retryable: false,
   } as DomainError<'WEBHOOK.ENUM_NOT_ALLOWED_METHOD', WebhookContext>,
@@ -103,20 +103,6 @@ export const WebhookErrors = {
     category: 'validation',
     retryable: false,
   } as DomainError<'WEBHOOK.INVALID_DESCRIPTION_DATA', WebhookContext>,
-  INVALID_EVENT_TYPE: {
-    code: 'WEBHOOK.INVALID_EVENT_TYPE',
-    title: 'Value Required',
-    detail: 'Event type is required for Webhook.',
-    category: 'validation',
-    retryable: false,
-  } as DomainError<'WEBHOOK.INVALID_EVENT_TYPE', WebhookContext>,
-  INVALID_EVENT_TYPE_DATA: {
-    code: 'WEBHOOK.INVALID_EVENT_TYPE_DATA',
-    title: 'Value Required',
-    detail: 'Event type is required for Webhook.',
-    category: 'validation',
-    retryable: false,
-  } as DomainError<'WEBHOOK.INVALID_EVENT_TYPE_DATA', WebhookContext>,
   INVALID_HEADERS: {
     code: 'WEBHOOK.INVALID_HEADERS',
     title: 'Value Required',
@@ -281,6 +267,20 @@ export const WebhookErrors = {
     category: 'validation',
     retryable: false,
   } as DomainError<'WEBHOOK.INVALID_WEBHOOK_DATA', WebhookContext>,
+  INVALID_WEBHOOK_EVENT_TYPE: {
+    code: 'WEBHOOK.INVALID_WEBHOOK_EVENT_TYPE',
+    title: 'Value Required',
+    detail: 'Webhook event type is required for Webhook.',
+    category: 'validation',
+    retryable: false,
+  } as DomainError<'WEBHOOK.INVALID_WEBHOOK_EVENT_TYPE', WebhookContext>,
+  INVALID_WEBHOOK_EVENT_TYPE_DATA: {
+    code: 'WEBHOOK.INVALID_WEBHOOK_EVENT_TYPE_DATA',
+    title: 'Value Required',
+    detail: 'Webhook event type is required for Webhook.',
+    category: 'validation',
+    retryable: false,
+  } as DomainError<'WEBHOOK.INVALID_WEBHOOK_EVENT_TYPE_DATA', WebhookContext>,
   NOT_BOOLEAN_VERIFY_TLS: {
     code: 'WEBHOOK.NOT_BOOLEAN_VERIFY_TLS',
     title: 'Not a Boolean',

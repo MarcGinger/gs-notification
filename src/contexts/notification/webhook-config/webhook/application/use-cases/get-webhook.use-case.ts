@@ -259,7 +259,7 @@ export class GetWebhookUseCase implements IGetWebhookUseCase {
         id: params.id,
         name: '', // Default values for required fields
         targetUrl: '', // Default values for required fields
-        eventType: '', // Default values for required fields
+        webhookEventType: '', // Default values for required fields
         method: 0, // Default values for required fields
         status: 0, // Default values for required fields
         webhookId: params.id,

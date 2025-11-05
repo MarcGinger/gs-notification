@@ -12,7 +12,7 @@ import {
   WebhookName,
   WebhookDescription,
   WebhookTargetUrl,
-  WebhookEventType,
+  WebhookWebhookEventType,
   createWebhookMethod,
   WebhookHeaders,
   WebhookSigningSecretRef,
@@ -113,20 +113,22 @@ export function updateWebhookAggregateFromSnapshot(
     validatedFields.targetUrl = targetUrlResult.value;
   }
 
-  // Validate eventType if provided
-  if (updateProps.eventType !== undefined) {
-    const eventTypeResult = WebhookEventType.from(updateProps.eventType);
-    if (!eventTypeResult.ok) {
+  // Validate webhookEventType if provided
+  if (updateProps.webhookEventType !== undefined) {
+    const webhookEventTypeResult = WebhookWebhookEventType.from(
+      updateProps.webhookEventType,
+    );
+    if (!webhookEventTypeResult.ok) {
       return err(
-        withContext(eventTypeResult.error, {
-          operation: 'update_webhook_event_type_validation',
+        withContext(webhookEventTypeResult.error, {
+          operation: 'update_webhook_webhook_event_type_validation',
           correlationId: metadata.correlationId,
           userId: metadata.actor?.userId,
-          providedEventType: updateProps.eventType,
+          providedWebhookEventType: updateProps.webhookEventType,
         }),
       );
     }
-    validatedFields.eventType = eventTypeResult.value;
+    validatedFields.webhookEventType = webhookEventTypeResult.value;
   }
 
   // Validate method if provided

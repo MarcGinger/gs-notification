@@ -20,13 +20,7 @@ import { WebhookErrors } from '../errors/webhook.errors';
  * WebhookMethod allowed values
  * Canonical definition used across all layers (API, Domain, DB)
  */
-export const WebhookMethodValues = [
-  'GET',
-  'POST',
-  'PUT',
-  'PATCH',
-  'DELETE',
-] as const;
+export const WebhookMethodValues = ['get', 'post', 'put', 'patch'] as const;
 export type WebhookMethodValue = (typeof WebhookMethodValues)[number];
 
 // ============================================================================
@@ -41,9 +35,9 @@ export type WebhookMethodValue = (typeof WebhookMethodValues)[number];
  *
  * @example
  * ```typescript
- * const method = WebhookMethod.create('GET');
+ * const method = WebhookMethod.create('get');
  * if (method.ok) {
- *   console.log(method.value.canTransitionTo('POST'));
+ *   console.log(method.value.canTransitionTo('post'));
  * }
  * ```
  */
@@ -73,22 +67,20 @@ export const webhookMethodFrom = (value: unknown) =>
  * Valid state transitions for webhook method
  */
 const WEBHOOK_METHOD_TRANSITIONS = {
-  GET: ['POST', 'PUT', 'PATCH', 'DELETE'] as const,
-  POST: ['GET', 'PUT', 'PATCH', 'DELETE'] as const,
-  PUT: ['GET', 'POST', 'PATCH', 'DELETE'] as const,
-  PATCH: ['GET', 'POST', 'PUT', 'DELETE'] as const,
-  DELETE: ['GET', 'POST', 'PUT', 'PATCH'] as const,
+  get: ['post', 'put', 'patch'] as const,
+  post: ['get', 'put', 'patch'] as const,
+  put: ['get', 'post', 'patch'] as const,
+  patch: ['get', 'post', 'put'] as const,
 } as const;
 
 /**
  * Display names for webhook method values
  */
 const WEBHOOK_METHOD_DISPLAY_NAMES = {
-  GET: 'Get',
-  POST: 'Post',
-  PUT: 'Put',
-  PATCH: 'Patch',
-  DELETE: 'Delete',
+  get: 'Get',
+  post: 'Post',
+  put: 'Put',
+  patch: 'Patch',
 } as const;
 
 /**

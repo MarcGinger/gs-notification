@@ -1,6 +1,5 @@
 export * from './connect-timeout-ms.vo';
 export * from './description.vo';
-export * from './event-type.vo';
 export * from './headers.vo';
 export * from './id.vo';
 export * from './method.vo';
@@ -11,4 +10,5 @@ export * from './signing-secret-ref.vo';
 export * from './status.vo';
 export * from './target-url.vo';
 export * from './verify-tls.vo';
+export * from './webhook-event-type.vo';
 export * from './webhook-instance.vo';

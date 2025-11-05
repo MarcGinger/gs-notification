@@ -5,7 +5,6 @@ import type { WebhookMethodValue, WebhookStatusValue } from './';
 import {
   ApiWebhookConnectTimeoutMs,
   ApiWebhookDescription,
-  ApiWebhookEventType,
   ApiWebhookHeaders,
   ApiWebhookId,
   ApiWebhookMethod,
@@ -16,6 +15,7 @@ import {
   ApiWebhookStatus,
   ApiWebhookTargetUrl,
   ApiWebhookVerifyTls,
+  ApiWebhookWebhookEventType,
 } from './decorators';
 
 export class ListWebhookResponse {
@@ -31,8 +31,8 @@ export class ListWebhookResponse {
   @ApiWebhookTargetUrl()
   targetUrl: string;
 
-  @ApiWebhookEventType()
-  eventType: string;
+  @ApiWebhookWebhookEventType()
+  webhookEventType: string;
 
   @ApiWebhookMethod()
   method: WebhookMethodValue;

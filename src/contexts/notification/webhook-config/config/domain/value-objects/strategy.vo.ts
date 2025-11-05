@@ -39,9 +39,9 @@ export type ConfigStrategyValue = (typeof ConfigStrategyValues)[number];
  *
  * @example
  * ```typescript
- * const strategy = ConfigStrategy.create('per-webhook');
+ * const strategy = ConfigStrategy.create('perWebhook');
  * if (strategy.ok) {
- *   console.log(strategy.value.canTransitionTo('per-tenant'));
+ *   console.log(strategy.value.canTransitionTo('perTenant'));
  * }
  * ```
  */

@@ -118,7 +118,7 @@ export class WebhookReaderRepository implements IWebhookReader {
         name: hashData.name,
         description: hashData.description || undefined,
         targetUrl: hashData.targetUrl,
-        eventType: hashData.eventType,
+        webhookEventType: hashData.webhookEventType,
         method,
         headers,
         signingSecretRef: hashData.signingSecretRef || undefined,

@@ -44,7 +44,8 @@ export const WebhookResource = (permission: WebhookPermission) =>
       const name = body?.name || query?.name;
       const description = body?.description || query?.description;
       const targetUrl = body?.targetUrl || query?.targetUrl;
-      const eventType = body?.eventType || query?.eventType;
+      const webhookEventType =
+        body?.webhookEventType || query?.webhookEventType;
       const method = body?.method || query?.method;
       const signingSecretRef =
         body?.signingSecretRef || query?.signingSecretRef;
@@ -61,7 +62,7 @@ export const WebhookResource = (permission: WebhookPermission) =>
         name,
         description,
         targetUrl,
-        eventType,
+        webhookEventType,
         method,
         signingSecretRef,
         status,

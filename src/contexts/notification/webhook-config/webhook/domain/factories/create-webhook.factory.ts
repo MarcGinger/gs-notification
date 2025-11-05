@@ -15,7 +15,7 @@ import {
   WebhookName,
   WebhookDescription,
   WebhookTargetUrl,
-  WebhookEventType,
+  WebhookWebhookEventType,
   createWebhookMethod,
   WebhookHeaders,
   WebhookSigningSecretRef,
@@ -91,15 +91,17 @@ export function createWebhookAggregateFromProps(
     );
   }
 
-  const eventTypeResult = WebhookEventType.from(props.eventType);
-  if (!eventTypeResult.ok) {
+  const webhookEventTypeResult = WebhookWebhookEventType.from(
+    props.webhookEventType,
+  );
+  if (!webhookEventTypeResult.ok) {
     return err(
-      withContext(eventTypeResult.error, {
-        ...eventTypeResult.error.context,
+      withContext(webhookEventTypeResult.error, {
+        ...webhookEventTypeResult.error.context,
         correlationId: metadata.correlationId,
         userId: metadata.userId,
         operation: 'create_webhook',
-        eventType: props.eventType,
+        webhookEventType: props.webhookEventType,
       }),
     );
   }
@@ -237,7 +239,7 @@ export function createWebhookAggregateFromProps(
     name: nameResult.value,
     description: descriptionResult.value,
     targetUrl: targetUrlResult.value,
-    eventType: eventTypeResult.value,
+    webhookEventType: webhookEventTypeResult.value,
     method: methodResult.value,
     headers: headersResult.value,
     signingSecretRef: signingSecretRefResult.value,

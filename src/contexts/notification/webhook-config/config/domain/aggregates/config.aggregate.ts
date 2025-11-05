@@ -778,19 +778,19 @@ export class ConfigAggregate extends AggregateRootBase {
   }
 
   /**
-   * Set entity to per-webhook
+   * Set entity to perWebhook
    */
   public perWebhook(): Result<void, DomainError> {
-    const strategyResult = createConfigStrategy('per-webhook');
+    const strategyResult = createConfigStrategy('perWebhook');
     if (!strategyResult.ok) return err(strategyResult.error);
     return this.updateBatch({ strategy: strategyResult.value });
   }
 
   /**
-   * Set entity to per-tenant
+   * Set entity to perTenant
    */
   public perTenant(): Result<void, DomainError> {
-    const strategyResult = createConfigStrategy('per-tenant');
+    const strategyResult = createConfigStrategy('perTenant');
     if (!strategyResult.ok) return err(strategyResult.error);
     return this.updateBatch({ strategy: strategyResult.value });
   }

@@ -143,7 +143,7 @@ export class WebhookAggregate extends AggregateRootBase {
       name: entityProps.name.value,
       description: entityProps.description?.value,
       targetUrl: entityProps.targetUrl.value,
-      eventType: entityProps.eventType.value,
+      webhookEventType: entityProps.webhookEventType.value,
       method: entityProps.method.value,
       headers: entityProps.headers?.value,
       signingSecretRef: entityProps.signingSecretRef?.value,
@@ -202,7 +202,7 @@ export class WebhookAggregate extends AggregateRootBase {
           name: string;
           description?: string;
           targetUrl: string;
-          eventType: string;
+          webhookEventType: string;
           method: WebhookMethodValue;
           headers?: Record<string, unknown>;
           signingSecretRef?: string;
@@ -222,7 +222,7 @@ export class WebhookAggregate extends AggregateRootBase {
           name: d.name,
           description: d.description,
           targetUrl: d.targetUrl,
-          eventType: d.eventType,
+          webhookEventType: d.webhookEventType,
           method: d.method,
           headers: d.headers,
           signingSecretRef: d.signingSecretRef,
@@ -349,8 +349,13 @@ export class WebhookAggregate extends AggregateRootBase {
         return true;
       }
     }
-    if (validatedFields.eventType !== undefined) {
-      if (hasValueChanged(this._entity.eventType, validatedFields.eventType)) {
+    if (validatedFields.webhookEventType !== undefined) {
+      if (
+        hasValueChanged(
+          this._entity.webhookEventType,
+          validatedFields.webhookEventType,
+        )
+      ) {
         return true;
       }
     }
@@ -519,9 +524,9 @@ export class WebhookAggregate extends AggregateRootBase {
       currentEntity = entityResult.value;
     }
 
-    if (validatedFields.eventType !== undefined) {
-      const entityResult = currentEntity.withEventType(
-        validatedFields.eventType,
+    if (validatedFields.webhookEventType !== undefined) {
+      const entityResult = currentEntity.withWebhookEventType(
+        validatedFields.webhookEventType,
         updatedAt,
         nextVersion,
       );
@@ -618,7 +623,7 @@ export class WebhookAggregate extends AggregateRootBase {
       name: this._entity.name.value,
       description: this._entity.description?.value,
       targetUrl: this._entity.targetUrl.value,
-      eventType: this._entity.eventType.value,
+      webhookEventType: this._entity.webhookEventType.value,
       method: this._entity.method.value,
       headers: this._entity.headers?.value,
       signingSecretRef: this._entity.signingSecretRef?.value,
@@ -646,46 +651,37 @@ export class WebhookAggregate extends AggregateRootBase {
   }
 
   /**
-   * Set entity to GET
+   * Set entity to get
    */
   public get(): Result<void, DomainError> {
-    const methodResult = createWebhookMethod('GET');
+    const methodResult = createWebhookMethod('get');
     if (!methodResult.ok) return err(methodResult.error);
     return this.updateBatch({ method: methodResult.value });
   }
 
   /**
-   * Set entity to POST
+   * Set entity to post
    */
   public post(): Result<void, DomainError> {
-    const methodResult = createWebhookMethod('POST');
+    const methodResult = createWebhookMethod('post');
     if (!methodResult.ok) return err(methodResult.error);
     return this.updateBatch({ method: methodResult.value });
   }
 
   /**
-   * Set entity to PUT
+   * Set entity to put
    */
   public put(): Result<void, DomainError> {
-    const methodResult = createWebhookMethod('PUT');
+    const methodResult = createWebhookMethod('put');
     if (!methodResult.ok) return err(methodResult.error);
     return this.updateBatch({ method: methodResult.value });
   }
 
   /**
-   * Set entity to PATCH
+   * Set entity to patch
    */
   public patch(): Result<void, DomainError> {
-    const methodResult = createWebhookMethod('PATCH');
-    if (!methodResult.ok) return err(methodResult.error);
-    return this.updateBatch({ method: methodResult.value });
-  }
-
-  /**
-   * Set entity to DELETE
-   */
-  public delete(): Result<void, DomainError> {
-    const methodResult = createWebhookMethod('DELETE');
+    const methodResult = createWebhookMethod('patch');
     if (!methodResult.ok) return err(methodResult.error);
     return this.updateBatch({ method: methodResult.value });
   }

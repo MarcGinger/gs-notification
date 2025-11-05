@@ -13,7 +13,7 @@ export interface WebhookUpdatedEventPayload {
   name: string;
   description?: string;
   targetUrl: string;
-  eventType: string;
+  webhookEventType: string;
   method: WebhookMethodValue;
   headers?: Record<string, unknown>;
   signingSecretRef?: string;
@@ -58,7 +58,7 @@ export class WebhookUpdatedEvent {
   }
 
   get webhookEventType(): string {
-    return this.payload.eventType;
+    return this.payload.webhookEventType;
   }
 
   get method(): WebhookMethodValue {

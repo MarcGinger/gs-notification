@@ -50,7 +50,7 @@ export class WebhookFieldValidatorUtil {
     const name = aggregateData.name as string;
     const description = aggregateData.description as string;
     const targetUrl = aggregateData.targetUrl as string;
-    const eventType = aggregateData.eventType as string;
+    const webhookEventType = aggregateData.webhookEventType as string;
     const method = aggregateData.method as WebhookMethodValue;
     const signingSecretRef = aggregateData.signingSecretRef as string;
     const status = aggregateData.status as WebhookStatusValue;
@@ -90,7 +90,7 @@ export class WebhookFieldValidatorUtil {
       name,
       description,
       targetUrl,
-      eventType,
+      webhookEventType,
       method,
       headers,
       signingSecretRef,

@@ -32,7 +32,7 @@ export class WebhookDtoAssembler {
     dto.name = domainState.name.value;
     dto.description = domainState.description?.value;
     dto.targetUrl = domainState.targetUrl.value;
-    dto.eventType = domainState.eventType.value;
+    dto.webhookEventType = domainState.webhookEventType.value;
     dto.method = domainState.method.value;
     dto.headers = domainState.headers?.value;
     dto.signingSecretRef = domainState.signingSecretRef?.value;
@@ -59,7 +59,7 @@ export class WebhookDtoAssembler {
     dto.name = domainState.name.value;
     dto.description = domainState.description?.value;
     dto.targetUrl = domainState.targetUrl.value;
-    dto.eventType = domainState.eventType.value;
+    dto.webhookEventType = domainState.webhookEventType.value;
     dto.method = domainState.method.value;
     dto.headers = domainState.headers?.value;
     dto.signingSecretRef = domainState.signingSecretRef?.value;

@@ -39,7 +39,6 @@
         "name": {},
         "description": {},
         "targetUrl": {},
-        "eventType": {},
         "method": {},
         "headers": {},
         "signingSecretRef": {},
@@ -47,7 +46,8 @@
         "verifyTls": {},
         "requestTimeoutMs": {},
         "connectTimeoutMs": {},
-        "rateLimitPerMinute": {}
+        "rateLimitPerMinute": {},
+        "webhookEventType": {}
       },
       "permissions": {
         "bulk": [

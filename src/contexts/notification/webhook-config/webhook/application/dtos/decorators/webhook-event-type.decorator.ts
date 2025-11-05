@@ -13,11 +13,11 @@ interface PropOptions {
 }
 
 /**
- * Property decorator for Webhook EventType
+ * Property decorator for Webhook WebhookEventType
  * @param {Object} options - Options for the decorator
  * @returns {PropertyDecorator}
  */
-export function ApiWebhookEventType(options: PropOptions = {}) {
+export function ApiWebhookWebhookEventType(options: PropOptions = {}) {
   const { required = true } = options;
 
   return applyDecorators(

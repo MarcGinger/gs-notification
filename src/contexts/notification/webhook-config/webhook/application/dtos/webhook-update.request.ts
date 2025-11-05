@@ -9,7 +9,6 @@ import { UpdateWebhookProps } from '../../domain/props';
 import {
   ApiWebhookConnectTimeoutMs,
   ApiWebhookDescription,
-  ApiWebhookEventType,
   ApiWebhookHeaders,
   ApiWebhookId,
   ApiWebhookMethod,
@@ -20,6 +19,7 @@ import {
   ApiWebhookStatus,
   ApiWebhookTargetUrl,
   ApiWebhookVerifyTls,
+  ApiWebhookWebhookEventType,
 } from './decorators';
 
 export class UpdateWebhookRequest implements UpdateWebhookProps {
@@ -35,8 +35,8 @@ export class UpdateWebhookRequest implements UpdateWebhookProps {
   @ApiWebhookTargetUrl()
   targetUrl?: string;
 
-  @ApiWebhookEventType()
-  eventType?: string;
+  @ApiWebhookWebhookEventType()
+  webhookEventType?: string;
 
   @ApiWebhookMethod()
   method?: WebhookMethodValue;

@@ -8,7 +8,7 @@ export interface UpdateWebhookProps {
   name?: string;
   description?: string;
   targetUrl?: string;
-  eventType?: string;
+  webhookEventType?: string;
   method?: WebhookMethodValue;
   headers?: Record<string, unknown>;
   signingSecretRef?: string;
