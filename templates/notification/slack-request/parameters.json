@@ -205,10 +205,10 @@
         "custom": []
       }
     },
-    "full_message": {
+    "request": {
       "docs": {
-        "name": "Full_message",
-        "summary": "Configuration for full_message table",
+        "name": "Request",
+        "summary": "Configuration for request table",
         "version": "1.0.0"
       },
       "apis": {},
@@ -220,28 +220,28 @@
       "redis": {
         "prefix": "",
         "version": "1.0",
-        "category": "notification:slack-request.full.message.v1",
+        "category": "notification:slack-request.request.v1",
         "ttl": 3600,
         "hash": true,
-        "aggregate": "full_message"
+        "aggregate": "request"
       },
       "eventstream": {
         "boundedContext": "notification",
-        "aggregate": "full_message",
+        "aggregate": "request",
         "version": "v1",
-        "stream": "notification.slackRequest.fullMessage",
-        "createdEvent": "NotificationSlackRequestFullMessageCreated.v1",
-        "updatedEvent": "NotificationSlackRequestFullMessageUpdated.v1",
-        "deletedEvent": "NotificationSlackRequestFullMessageDeleted.v1"
+        "stream": "notification.slackRequest.request",
+        "createdEvent": "NotificationSlackRequestRequestCreated.v1",
+        "updatedEvent": "NotificationSlackRequestRequestUpdated.v1",
+        "deletedEvent": "NotificationSlackRequestRequestDeleted.v1"
       },
       "cols": {
+        "code": {},
         "recipient": {},
         "data": {},
         "status": {},
         "workspace_code": {},
         "template_code": {},
-        "channel_code": {},
-        "code": {}
+        "channel_code": {}
       },
       "permissions": {
         "bulk": [
