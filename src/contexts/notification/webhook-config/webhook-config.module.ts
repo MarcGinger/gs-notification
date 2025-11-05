@@ -13,6 +13,9 @@ import { WebhookProjectorModule } from './webhook/webhook-projector.module';
 import { ConfigRouterModule } from './config/interface/http/config.router';
 
 import { ConfigProjectorModule } from './config/config-projector.module';
+import { AuthtypeRouterModule } from './authtype/interface/http/authtype.router';
+
+import { AuthtypeProjectorModule } from './authtype/authtype-projector.module';
 
 /**
  * WebhookConfig Module - Bounded Context Entry Point
@@ -39,6 +42,8 @@ import { ConfigProjectorModule } from './config/config-projector.module';
     WebhookProjectorModule,
     ConfigRouterModule,
     ConfigProjectorModule,
+    AuthtypeRouterModule,
+    AuthtypeProjectorModule,
   ],
   exports: [
     // Export all modules for potential cross-domain dependencies
@@ -46,6 +51,8 @@ import { ConfigProjectorModule } from './config/config-projector.module';
     WebhookProjectorModule,
     ConfigRouterModule,
     ConfigProjectorModule,
+    AuthtypeRouterModule,
+    AuthtypeProjectorModule,
   ],
 })
 export class NotificationWebhookConfigModule {}

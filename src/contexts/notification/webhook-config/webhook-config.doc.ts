@@ -122,6 +122,7 @@ This service is a critical component of the Notification Bounded Context, enabli
   |---------------|
   | [***webhook  →***](/api/docs/notification/webhook-config/webhook) |
   | [***config  →***](/api/docs/notification/webhook-config/config) |
+  | [***authtype  →***](/api/docs/notification/webhook-config/authtype) |
         `,
       )
       .setVersion('1.0.0')

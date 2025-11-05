@@ -17,7 +17,7 @@
         {
           "name": "id",
           "type": "string",
-          "childRelationshipType": "Config",
+          "childRelationshipType": "Authtype",
           "parentRelationshipType": "",
           "datatype": "VARCHAR",
           "primaryKey": true,
@@ -35,7 +35,7 @@
           "get": true,
           "list": true,
           "parentRelationship": "",
-          "childRelationship": "webhook_config",
+          "childRelationship": "webhook_config, webhook_authtype",
           "meta": {
             "kind": "string",
             "minLength": 10,
@@ -389,7 +389,7 @@
           "parentColumn": {
             "name": "id",
             "type": "string",
-            "childRelationshipType": "Config",
+            "childRelationshipType": "Authtype",
             "parentRelationshipType": "",
             "datatype": "VARCHAR",
             "primaryKey": true,
@@ -407,7 +407,7 @@
             "get": true,
             "list": true,
             "parentRelationship": "",
-            "childRelationship": "webhook_config",
+            "childRelationship": "webhook_config, webhook_authtype",
             "meta": {
               "kind": "string",
               "minLength": 10,
@@ -444,6 +444,70 @@
           },
           "type": "one",
           "complex": true
+        },
+        {
+          "name": "webhook_authtype",
+          "parentTable": "webhook",
+          "parentColumn": {
+            "name": "id",
+            "type": "string",
+            "childRelationshipType": "Authtype",
+            "parentRelationshipType": "",
+            "datatype": "VARCHAR",
+            "primaryKey": true,
+            "required": true,
+            "description": "Unique identifier for the webhook endpoint. Auto-generated UUID that serves as the primary key for webhook configuration management.",
+            "defaultvalue": "",
+            "example": "",
+            "autoIncrement": false,
+            "maxLength": "32",
+            "minLength": "10",
+            "array": false,
+            "isPII": "",
+            "create": true,
+            "update": true,
+            "get": true,
+            "list": true,
+            "parentRelationship": "",
+            "childRelationship": "webhook_config, webhook_authtype",
+            "meta": {
+              "kind": "string",
+              "minLength": 10,
+              "maxLength": 32
+            }
+          },
+          "childTable": "authtype",
+          "childColumn": {
+            "name": "webhook_id",
+            "type": "string",
+            "childRelationshipType": "",
+            "parentRelationshipType": "Webhook",
+            "datatype": "VARCHAR",
+            "primaryKey": false,
+            "required": true,
+            "description": "Unique identifier for the webhook endpoint. Auto-generated UUID that serves as the primary key for webhook configuration management.",
+            "defaultvalue": "",
+            "example": "",
+            "autoIncrement": false,
+            "maxLength": "32",
+            "minLength": "10",
+            "array": false,
+            "isPII": "",
+            "create": true,
+            "update": true,
+            "get": true,
+            "list": true,
+            "relationship": "one",
+            "parentRelationship": "webhook_authtype",
+            "childRelationship": "",
+            "meta": {
+              "kind": "string",
+              "minLength": 10,
+              "maxLength": 32
+            }
+          },
+          "type": "one",
+          "complex": true
         }
       ],
       "lines": [],
@@ -451,7 +515,7 @@
         {
           "name": "id",
           "type": "string",
-          "childRelationshipType": "Config",
+          "childRelationshipType": "Authtype",
           "parentRelationshipType": "",
           "datatype": "VARCHAR",
           "primaryKey": true,
@@ -469,7 +533,7 @@
           "get": true,
           "list": true,
           "parentRelationship": "",
-          "childRelationship": "webhook_config",
+          "childRelationship": "webhook_config, webhook_authtype",
           "meta": {
             "kind": "string",
             "minLength": 10,
@@ -481,7 +545,7 @@
         {
           "name": "id",
           "type": "string",
-          "childRelationshipType": "Config",
+          "childRelationshipType": "Authtype",
           "parentRelationshipType": "",
           "datatype": "VARCHAR",
           "primaryKey": true,
@@ -499,7 +563,7 @@
           "get": true,
           "list": true,
           "parentRelationship": "",
-          "childRelationship": "webhook_config",
+          "childRelationship": "webhook_config, webhook_authtype",
           "meta": {
             "kind": "string",
             "minLength": 10,
@@ -1120,7 +1184,7 @@
           "parentColumn": {
             "name": "id",
             "type": "string",
-            "childRelationshipType": "Config",
+            "childRelationshipType": "Authtype",
             "parentRelationshipType": "",
             "datatype": "VARCHAR",
             "primaryKey": true,
@@ -1138,7 +1202,7 @@
             "get": true,
             "list": true,
             "parentRelationship": "",
-            "childRelationship": "webhook_config",
+            "childRelationship": "webhook_config, webhook_authtype",
             "meta": {
               "kind": "string",
               "minLength": 10,
@@ -1272,6 +1336,654 @@
       },
       "domainName": "",
       "parentPath": []
+    },
+    {
+      "name": "authtype",
+      "description": "",
+      "columns": [
+        {
+          "name": "id",
+          "type": "number",
+          "childRelationshipType": "",
+          "parentRelationshipType": "",
+          "datatype": "INT",
+          "primaryKey": true,
+          "required": true,
+          "description": "",
+          "defaultvalue": "",
+          "example": "",
+          "autoIncrement": false,
+          "array": false,
+          "isPII": "",
+          "create": true,
+          "update": true,
+          "get": true,
+          "list": true,
+          "parentRelationship": "",
+          "childRelationship": "",
+          "meta": {
+            "kind": "number",
+            "autoIncrement": false
+          }
+        },
+        {
+          "name": "webhook_id",
+          "type": "string",
+          "childRelationshipType": "",
+          "parentRelationshipType": "Webhook",
+          "datatype": "VARCHAR",
+          "primaryKey": false,
+          "required": true,
+          "description": "Unique identifier for the webhook endpoint. Auto-generated UUID that serves as the primary key for webhook configuration management.",
+          "defaultvalue": "",
+          "example": "",
+          "autoIncrement": false,
+          "maxLength": "32",
+          "minLength": "10",
+          "array": false,
+          "isPII": "",
+          "create": true,
+          "update": true,
+          "get": true,
+          "list": true,
+          "relationship": "one",
+          "parentRelationship": "webhook_authtype",
+          "childRelationship": "",
+          "meta": {
+            "kind": "string",
+            "minLength": 10,
+            "maxLength": 32
+          }
+        },
+        {
+          "name": "type",
+          "type": "AuthtypeTypeEnum",
+          "childRelationshipType": "",
+          "parentRelationshipType": "",
+          "datatype": "ENUM",
+          "primaryKey": false,
+          "required": true,
+          "description": "Authentication method type - none (no auth), hmac (signature-based), basic (username/password), api-key (API key), oauth2-client-credentials (OAuth2 CC flow), or mtls (mutual TLS).",
+          "defaultvalue": "none",
+          "example": "",
+          "autoIncrement": false,
+          "enum": [
+            {
+              "key": "none"
+            },
+            {
+              "key": "hmac"
+            },
+            {
+              "key": "basic"
+            },
+            {
+              "key": "api-key"
+            },
+            {
+              "key": "oauth2-client-credentials"
+            },
+            {
+              "key": "mtls"
+            }
+          ],
+          "array": false,
+          "isPII": "",
+          "create": true,
+          "update": true,
+          "get": true,
+          "list": true,
+          "parentRelationship": "",
+          "childRelationship": "",
+          "meta": {
+            "kind": "enum",
+            "enumValues": [
+              "none",
+              "hmac",
+              "basic",
+              "api-key",
+              "oauth2-client-credentials",
+              "mtls"
+            ],
+            "enumName": "type"
+          }
+        },
+        {
+          "name": "signingSecretRef",
+          "type": "string",
+          "childRelationshipType": "",
+          "parentRelationshipType": "",
+          "datatype": "VARCHAR",
+          "primaryKey": false,
+          "required": false,
+          "description": "Secret reference for HMAC signing key. Used with 'hmac' authentication type to generate request signatures for verification.",
+          "defaultvalue": "",
+          "example": "",
+          "autoIncrement": false,
+          "maxLength": "255",
+          "array": false,
+          "isPII": "",
+          "create": true,
+          "update": true,
+          "get": true,
+          "list": true,
+          "parentRelationship": "",
+          "childRelationship": "",
+          "meta": {
+            "kind": "string",
+            "maxLength": 255
+          }
+        },
+        {
+          "name": "signatureAlgorithm",
+          "type": "AuthtypeSignatureAlgorithmEnum",
+          "childRelationshipType": "",
+          "parentRelationshipType": "",
+          "datatype": "ENUM",
+          "primaryKey": false,
+          "required": false,
+          "description": "Cryptographic algorithm for HMAC signatures - sha256 (recommended) or sha1 (legacy). Only used with 'hmac' authentication type.",
+          "defaultvalue": "sha256",
+          "example": "",
+          "autoIncrement": false,
+          "enum": [
+            {
+              "key": "sha256"
+            },
+            {
+              "key": "sha1"
+            }
+          ],
+          "array": false,
+          "isPII": "",
+          "create": true,
+          "update": true,
+          "get": true,
+          "list": true,
+          "parentRelationship": "",
+          "childRelationship": "",
+          "meta": {
+            "kind": "enum",
+            "enumValues": [
+              "sha256",
+              "sha1"
+            ],
+            "enumName": "signatureAlgorithm"
+          }
+        },
+        {
+          "name": "usernameRef",
+          "type": "string",
+          "childRelationshipType": "",
+          "parentRelationshipType": "",
+          "datatype": "VARCHAR",
+          "primaryKey": false,
+          "required": false,
+          "description": "Secret reference for Basic Auth username. Used with 'basic' authentication type for HTTP Basic Authentication.",
+          "defaultvalue": "",
+          "example": "",
+          "autoIncrement": false,
+          "maxLength": "255",
+          "array": false,
+          "isPII": "",
+          "create": true,
+          "update": true,
+          "get": true,
+          "list": true,
+          "parentRelationship": "",
+          "childRelationship": "",
+          "meta": {
+            "kind": "string",
+            "maxLength": 255
+          }
+        },
+        {
+          "name": "passwordRef",
+          "type": "string",
+          "childRelationshipType": "",
+          "parentRelationshipType": "",
+          "datatype": "VARCHAR",
+          "primaryKey": false,
+          "required": false,
+          "description": "Secret reference for Basic Auth password. Used with 'basic' authentication type for HTTP Basic Authentication.",
+          "defaultvalue": "",
+          "example": "",
+          "autoIncrement": false,
+          "maxLength": "255",
+          "array": false,
+          "isPII": "",
+          "create": true,
+          "update": true,
+          "get": true,
+          "list": true,
+          "parentRelationship": "",
+          "childRelationship": "",
+          "meta": {
+            "kind": "string",
+            "maxLength": 255
+          }
+        },
+        {
+          "name": "apiKeyRef",
+          "type": "string",
+          "childRelationshipType": "",
+          "parentRelationshipType": "",
+          "datatype": "VARCHAR",
+          "primaryKey": false,
+          "required": false,
+          "description": "Secret reference for API key value. Used with 'api-key' authentication type for API key-based authentication.",
+          "defaultvalue": "",
+          "example": "",
+          "autoIncrement": false,
+          "maxLength": "255",
+          "array": false,
+          "isPII": "",
+          "create": true,
+          "update": true,
+          "get": true,
+          "list": true,
+          "parentRelationship": "",
+          "childRelationship": "",
+          "meta": {
+            "kind": "string",
+            "maxLength": 255
+          }
+        },
+        {
+          "name": "apiKeyHeader",
+          "type": "string",
+          "childRelationshipType": "",
+          "parentRelationshipType": "",
+          "datatype": "VARCHAR",
+          "primaryKey": false,
+          "required": false,
+          "description": "HTTP header name for API key transmission. Used with 'api-key' authentication type. Default is 'X-API-Key' if not specified.",
+          "defaultvalue": "X-API-Key",
+          "example": "",
+          "autoIncrement": false,
+          "maxLength": "100",
+          "array": false,
+          "isPII": "",
+          "create": true,
+          "update": true,
+          "get": true,
+          "list": true,
+          "parentRelationship": "",
+          "childRelationship": "",
+          "meta": {
+            "kind": "string",
+            "maxLength": 100
+          }
+        },
+        {
+          "name": "apiKeyQueryParam",
+          "type": "string",
+          "childRelationshipType": "",
+          "parentRelationshipType": "",
+          "datatype": "VARCHAR",
+          "primaryKey": false,
+          "required": false,
+          "description": "Query parameter name for API key transmission. Optional alternative to header-based API key auth. Used with 'api-key' authentication type.",
+          "defaultvalue": "",
+          "example": "",
+          "autoIncrement": false,
+          "maxLength": "100",
+          "array": false,
+          "isPII": "",
+          "create": true,
+          "update": true,
+          "get": true,
+          "list": true,
+          "parentRelationship": "",
+          "childRelationship": "",
+          "meta": {
+            "kind": "string",
+            "maxLength": 100
+          }
+        },
+        {
+          "name": "tokenUrl",
+          "type": "string",
+          "childRelationshipType": "",
+          "parentRelationshipType": "",
+          "datatype": "VARCHAR",
+          "primaryKey": false,
+          "required": false,
+          "description": "OAuth2 token endpoint URL for client credentials flow. Used with 'oauth2-client-credentials' authentication type to obtain access tokens.",
+          "defaultvalue": "",
+          "example": "",
+          "autoIncrement": false,
+          "maxLength": "500",
+          "array": false,
+          "isPII": "",
+          "create": true,
+          "update": true,
+          "get": true,
+          "list": true,
+          "parentRelationship": "",
+          "childRelationship": "",
+          "meta": {
+            "kind": "string",
+            "maxLength": 500
+          }
+        },
+        {
+          "name": "clientIdRef",
+          "type": "string",
+          "childRelationshipType": "",
+          "parentRelationshipType": "",
+          "datatype": "VARCHAR",
+          "primaryKey": false,
+          "required": false,
+          "description": "Secret reference for OAuth2 client ID. Used with 'oauth2-client-credentials' authentication type for client identification.",
+          "defaultvalue": "",
+          "example": "",
+          "autoIncrement": false,
+          "maxLength": "255",
+          "array": false,
+          "isPII": "",
+          "create": true,
+          "update": true,
+          "get": true,
+          "list": true,
+          "parentRelationship": "",
+          "childRelationship": "",
+          "meta": {
+            "kind": "string",
+            "maxLength": 255
+          }
+        },
+        {
+          "name": "clientSecretRef",
+          "type": "string",
+          "childRelationshipType": "",
+          "parentRelationshipType": "",
+          "datatype": "VARCHAR",
+          "primaryKey": false,
+          "required": false,
+          "description": "Secret reference for OAuth2 client secret. Used with 'oauth2-client-credentials' authentication type for client authentication.",
+          "defaultvalue": "",
+          "example": "",
+          "autoIncrement": false,
+          "maxLength": "255",
+          "array": false,
+          "isPII": "",
+          "create": true,
+          "update": true,
+          "get": true,
+          "list": true,
+          "parentRelationship": "",
+          "childRelationship": "",
+          "meta": {
+            "kind": "string",
+            "maxLength": 255
+          }
+        },
+        {
+          "name": "scope",
+          "type": "string",
+          "childRelationshipType": "",
+          "parentRelationshipType": "",
+          "datatype": "VARCHAR",
+          "primaryKey": false,
+          "required": false,
+          "description": "OAuth2 scope string for client credentials flow. Space-separated list of permissions requested. Used with 'oauth2-client-credentials' authentication type.",
+          "defaultvalue": "",
+          "example": "",
+          "autoIncrement": false,
+          "maxLength": "500",
+          "array": false,
+          "isPII": "",
+          "create": true,
+          "update": true,
+          "get": true,
+          "list": true,
+          "parentRelationship": "",
+          "childRelationship": "",
+          "meta": {
+            "kind": "string",
+            "maxLength": 500
+          }
+        },
+        {
+          "name": "certRef",
+          "type": "string",
+          "childRelationshipType": "",
+          "parentRelationshipType": "",
+          "datatype": "VARCHAR",
+          "primaryKey": false,
+          "required": false,
+          "description": "Secret reference for client certificate in PEM format. Used with 'mtls' authentication type for mutual TLS authentication.",
+          "defaultvalue": "",
+          "example": "",
+          "autoIncrement": false,
+          "maxLength": "255",
+          "array": false,
+          "isPII": "",
+          "create": true,
+          "update": true,
+          "get": true,
+          "list": true,
+          "parentRelationship": "",
+          "childRelationship": "",
+          "meta": {
+            "kind": "string",
+            "maxLength": 255
+          }
+        },
+        {
+          "name": "keyRef",
+          "type": "string",
+          "childRelationshipType": "",
+          "parentRelationshipType": "",
+          "datatype": "VARCHAR",
+          "primaryKey": false,
+          "required": false,
+          "description": "Secret reference for private key in PEM format. Used with 'mtls' authentication type for mutual TLS authentication.",
+          "defaultvalue": "",
+          "example": "",
+          "autoIncrement": false,
+          "maxLength": "255",
+          "array": false,
+          "isPII": "",
+          "create": true,
+          "update": true,
+          "get": true,
+          "list": true,
+          "parentRelationship": "",
+          "childRelationship": "",
+          "meta": {
+            "kind": "string",
+            "maxLength": 255
+          }
+        },
+        {
+          "name": "caRef",
+          "type": "string",
+          "childRelationshipType": "",
+          "parentRelationshipType": "",
+          "datatype": "VARCHAR",
+          "primaryKey": false,
+          "required": false,
+          "description": "Optional secret reference for Certificate Authority bundle in PEM format. Used with 'mtls' authentication type for server certificate validation.",
+          "defaultvalue": "",
+          "example": "",
+          "autoIncrement": false,
+          "maxLength": "255",
+          "array": false,
+          "isPII": "",
+          "create": true,
+          "update": true,
+          "get": true,
+          "list": true,
+          "parentRelationship": "",
+          "childRelationship": "",
+          "meta": {
+            "kind": "string",
+            "maxLength": 255
+          }
+        }
+      ],
+      "relationships": [
+        {
+          "name": "webhook_authtype",
+          "parentTable": "webhook",
+          "parentColumn": {
+            "name": "id",
+            "type": "string",
+            "childRelationshipType": "Authtype",
+            "parentRelationshipType": "",
+            "datatype": "VARCHAR",
+            "primaryKey": true,
+            "required": true,
+            "description": "Unique identifier for the webhook endpoint. Auto-generated UUID that serves as the primary key for webhook configuration management.",
+            "defaultvalue": "",
+            "example": "",
+            "autoIncrement": false,
+            "maxLength": "32",
+            "minLength": "10",
+            "array": false,
+            "isPII": "",
+            "create": true,
+            "update": true,
+            "get": true,
+            "list": true,
+            "parentRelationship": "",
+            "childRelationship": "webhook_config, webhook_authtype",
+            "meta": {
+              "kind": "string",
+              "minLength": 10,
+              "maxLength": 32
+            }
+          },
+          "childTable": "authtype",
+          "childColumn": {
+            "name": "webhook_id",
+            "type": "string",
+            "childRelationshipType": "",
+            "parentRelationshipType": "Webhook",
+            "datatype": "VARCHAR",
+            "primaryKey": false,
+            "required": true,
+            "description": "Unique identifier for the webhook endpoint. Auto-generated UUID that serves as the primary key for webhook configuration management.",
+            "defaultvalue": "",
+            "example": "",
+            "autoIncrement": false,
+            "maxLength": "32",
+            "minLength": "10",
+            "array": false,
+            "isPII": "",
+            "create": true,
+            "update": true,
+            "get": true,
+            "list": true,
+            "relationship": "one",
+            "parentRelationship": "webhook_authtype",
+            "childRelationship": "",
+            "meta": {
+              "kind": "string",
+              "minLength": 10,
+              "maxLength": 32
+            }
+          },
+          "type": "one",
+          "complex": true
+        }
+      ],
+      "lines": [],
+      "keys": [
+        {
+          "name": "id",
+          "type": "number",
+          "childRelationshipType": "",
+          "parentRelationshipType": "",
+          "datatype": "INT",
+          "primaryKey": true,
+          "required": true,
+          "description": "",
+          "defaultvalue": "",
+          "example": "",
+          "autoIncrement": false,
+          "array": false,
+          "isPII": "",
+          "create": true,
+          "update": true,
+          "get": true,
+          "list": true,
+          "parentRelationship": "",
+          "childRelationship": "",
+          "meta": {
+            "kind": "number",
+            "autoIncrement": false
+          }
+        }
+      ],
+      "indexes": [],
+      "docs": {
+        "name": "Authtype",
+        "summary": "Configuration for authtype table",
+        "version": "1.0.0"
+      },
+      "apis": {},
+      "store": {
+        "read": "memory",
+        "write": "memory",
+        "query": "memory",
+        "projector": "memory"
+      },
+      "options": {
+        "command": true,
+        "create": true,
+        "update": true,
+        "read": "memory",
+        "write": "memory",
+        "query": "memory",
+        "projector": "memory",
+        "queue": false,
+        "softDelete": true,
+        "timestamps": true,
+        "versioning": true,
+        "logging": true,
+        "auditing": true,
+        "caching": true,
+        "eventStreaming": false
+      },
+      "cancel": {
+        "create": false,
+        "update": false,
+        "delete": false,
+        "batch": false,
+        "get": false
+      },
+      "redis": {
+        "prefix": "",
+        "version": "1.0",
+        "category": "notification:webhook-config.authtype.v1",
+        "ttl": 3600,
+        "hash": true,
+        "aggregate": "authtype"
+      },
+      "eventstream": {
+        "boundedContext": "notification",
+        "aggregate": "authtype",
+        "version": "v1",
+        "stream": "notification.webhookConfig.authtype",
+        "createdEvent": "NotificationWebhookConfigAuthtypeCreated.v1",
+        "updatedEvent": "NotificationWebhookConfigAuthtypeUpdated.v1",
+        "deletedEvent": "NotificationWebhookConfigAuthtypeDeleted.v1"
+      },
+      "permissions": {
+        "bulk": [
+          "update",
+          "delete",
+          "import"
+        ],
+        "adminOverride": true,
+        "auditView": true,
+        "custom": []
+      },
+      "domainName": "",
+      "parentPath": []
     }
   ],
   "relationships": [
@@ -1281,7 +1993,7 @@
       "parentColumn": {
         "name": "id",
         "type": "string",
-        "childRelationshipType": "Config",
+        "childRelationshipType": "Authtype",
         "parentRelationshipType": "",
         "datatype": "VARCHAR",
         "primaryKey": true,
@@ -1299,7 +2011,7 @@
         "get": true,
         "list": true,
         "parentRelationship": "",
-        "childRelationship": "webhook_config",
+        "childRelationship": "webhook_config, webhook_authtype",
         "meta": {
           "kind": "string",
           "minLength": 10,
@@ -1331,6 +2043,70 @@
         "childRelationship": "",
         "meta": {
           "kind": "string",
+          "maxLength": 32
+        }
+      },
+      "type": "one",
+      "complex": true
+    },
+    {
+      "name": "webhook_authtype",
+      "parentTable": "webhook",
+      "parentColumn": {
+        "name": "id",
+        "type": "string",
+        "childRelationshipType": "Authtype",
+        "parentRelationshipType": "",
+        "datatype": "VARCHAR",
+        "primaryKey": true,
+        "required": true,
+        "description": "Unique identifier for the webhook endpoint. Auto-generated UUID that serves as the primary key for webhook configuration management.",
+        "defaultvalue": "",
+        "example": "",
+        "autoIncrement": false,
+        "maxLength": "32",
+        "minLength": "10",
+        "array": false,
+        "isPII": "",
+        "create": true,
+        "update": true,
+        "get": true,
+        "list": true,
+        "parentRelationship": "",
+        "childRelationship": "webhook_config, webhook_authtype",
+        "meta": {
+          "kind": "string",
+          "minLength": 10,
+          "maxLength": 32
+        }
+      },
+      "childTable": "authtype",
+      "childColumn": {
+        "name": "webhook_id",
+        "type": "string",
+        "childRelationshipType": "",
+        "parentRelationshipType": "Webhook",
+        "datatype": "VARCHAR",
+        "primaryKey": false,
+        "required": true,
+        "description": "Unique identifier for the webhook endpoint. Auto-generated UUID that serves as the primary key for webhook configuration management.",
+        "defaultvalue": "",
+        "example": "",
+        "autoIncrement": false,
+        "maxLength": "32",
+        "minLength": "10",
+        "array": false,
+        "isPII": "",
+        "create": true,
+        "update": true,
+        "get": true,
+        "list": true,
+        "relationship": "one",
+        "parentRelationship": "webhook_authtype",
+        "childRelationship": "",
+        "meta": {
+          "kind": "string",
+          "minLength": 10,
           "maxLength": 32
         }
       },

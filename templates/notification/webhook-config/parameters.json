@@ -119,6 +119,65 @@
         "auditView": true,
         "custom": []
       }
+    },
+    "authtype": {
+      "docs": {
+        "name": "Authtype",
+        "summary": "Configuration for authtype table",
+        "version": "1.0.0"
+      },
+      "apis": {},
+      "store": {
+        "read": "sql,eventstream,redis",
+        "write": "sql,eventstream,redis",
+        "query": "sql,eventstream,redis"
+      },
+      "redis": {
+        "prefix": "",
+        "version": "1.0",
+        "category": "notification:webhook-config.authtype.v1",
+        "ttl": 3600,
+        "hash": true,
+        "aggregate": "authtype"
+      },
+      "eventstream": {
+        "boundedContext": "notification",
+        "aggregate": "authtype",
+        "version": "v1",
+        "stream": "notification.webhookConfig.authtype",
+        "createdEvent": "NotificationWebhookConfigAuthtypeCreated.v1",
+        "updatedEvent": "NotificationWebhookConfigAuthtypeUpdated.v1",
+        "deletedEvent": "NotificationWebhookConfigAuthtypeDeleted.v1"
+      },
+      "cols": {
+        "id": {},
+        "webhook_id": {},
+        "type": {},
+        "signingSecretRef": {},
+        "signatureAlgorithm": {},
+        "usernameRef": {},
+        "passwordRef": {},
+        "apiKeyRef": {},
+        "apiKeyHeader": {},
+        "apiKeyQueryParam": {},
+        "tokenUrl": {},
+        "clientIdRef": {},
+        "clientSecretRef": {},
+        "scope": {},
+        "certRef": {},
+        "keyRef": {},
+        "caRef": {}
+      },
+      "permissions": {
+        "bulk": [
+          "update",
+          "delete",
+          "import"
+        ],
+        "adminOverride": true,
+        "auditView": true,
+        "custom": []
+      }
     }
   },
   "docs": {

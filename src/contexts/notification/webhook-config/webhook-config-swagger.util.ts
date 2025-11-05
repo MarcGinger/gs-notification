@@ -7,6 +7,7 @@ import { AppConfigUtil } from 'src/shared/config/app-config.util';
 import { WebhookConfigDocumentation } from './webhook-config.doc';
 import { WebhookDocumentation } from './webhook/docs/webhook.doc';
 import { ConfigDocumentation } from './config/docs/config.doc';
+import { AuthtypeDocumentation } from './authtype/docs/authtype.doc';
 
 /**
  * Setup notification-webhook-config application/service Swagger documentation
@@ -25,10 +26,12 @@ export function setupNotificationWebhookConfigDocs(
   // Setup documentation for all notification_webhook_config aggregates
   const webhookUrls = WebhookDocumentation.setupAll(app, port);
   const configUrls = ConfigDocumentation.setupAll(app, port);
+  const authtypeUrls = AuthtypeDocumentation.setupAll(app, port);
 
   return {
     ...boundedContextUrls,
     ...webhookUrls,
     ...configUrls,
+    ...authtypeUrls,
   };
 }

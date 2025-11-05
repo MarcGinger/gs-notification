@@ -767,25 +767,25 @@
 			"temporary": false,
 			"ifnotexists": false
 		},
-		"5c13801a-a520-42d2-873e-cacb30e40ec3": {
-			"id": "5c13801a-a520-42d2-873e-cacb30e40ec3",
+		"af7d8e9f-0a1b-2c3d-4e5f-6789abcdef01": {
+			"id": "af7d8e9f-0a1b-2c3d-4e5f-6789abcdef01",
 			"visible": true,
 			"name": "authtype",
-			"desc": "",
+			"desc": "# 🔐 Webhook Authentication Configuration\n\nThe **authtype** table stores comprehensive authentication configurations for webhook endpoints. It supports multiple authentication methods including HMAC signing, Basic Auth, API Key authentication, OAuth2 Client Credentials, and mutual TLS (mTLS).\n\n## Purpose\n\nThis table enables secure webhook delivery by providing flexible authentication mechanisms that can be configured per webhook endpoint. Each authentication type has its own set of required and optional parameters stored as JSON or referenced secrets.\n\n## Authentication Types Supported\n\n* **none**: No authentication required\n* **hmac**: HMAC-based signature authentication using shared secrets\n* **basic**: HTTP Basic Authentication with username/password\n* **api-key**: API key authentication via headers or query parameters\n* **oauth2-client-credentials**: OAuth2 Client Credentials flow for machine-to-machine auth\n* **mtls**: Mutual TLS authentication using client certificates\n\n## Security Considerations\n\nAll sensitive authentication data (passwords, API keys, certificates, etc.) are stored as references to external secret management systems rather than plain text values. This ensures proper security practices and enables secret rotation without database changes.",
 			"estimatedSize": "",
 			"cols": [
 				{
-					"id": "c6b5ec25-45bd-4877-96b1-a92caf477d2d",
+					"id": "ba8c9d0e-1f2a-3b4c-5d6e-7f8a9b0c1d2e",
 					"name": "id",
-					"datatype": "INT",
-					"param": "",
+					"datatype": "VARCHAR",
+					"param": "32",
 					"pk": true,
 					"nn": true,
 					"fk": false,
-					"comment": "",
+					"comment": "Unique identifier for the authentication configuration. Auto-generated UUID that serves as the primary key.",
 					"defaultvalue": "",
 					"data": "",
-					"after": "",
+					"after": "min(10)",
 					"autoinc": false,
 					"collation": "",
 					"charset": "",
@@ -796,17 +796,17 @@
 					"estimatedSize": ""
 				},
 				{
-					"id": "d4ae5ef1-cc28-426c-b07f-1db5c2848eee",
-					"name": "webhook_id",
+					"id": "cb9d0e1f-2a3b-4c5d-6e7f-8a9b0c1d2e3f",
+					"name": "webhookId",
 					"datatype": "VARCHAR",
 					"param": "32",
 					"pk": false,
 					"nn": true,
 					"fk": true,
-					"comment": "Unique identifier for the webhook endpoint. Auto-generated UUID that serves as the primary key for webhook configuration management.",
+					"comment": "Foreign key reference to the webhook this authentication configuration belongs to. Establishes one-to-one relationship with webhook table.",
 					"defaultvalue": "",
 					"data": "",
-					"after": "min(10)",
+					"after": "",
 					"autoinc": false,
 					"collation": "",
 					"charset": "",
@@ -1130,30 +1130,103 @@
 					"unsigned": false,
 					"enum": "",
 					"estimatedSize": ""
+				},
+				{
+					"id": "af5b6c7d-8e9f-0a1b-2c3d-4e5f6a7b8c9d",
+					"name": "createdAt",
+					"datatype": "TIMESTAMP",
+					"param": "",
+					"pk": false,
+					"nn": true,
+					"fk": false,
+					"comment": "Timestamp when the authentication configuration was created. Auto-populated on insert for audit trail and temporal querying.",
+					"defaultvalue": "CURRENT_TIMESTAMP",
+					"data": "",
+					"after": "",
+					"autoinc": false,
+					"collation": "",
+					"charset": "",
+					"binary": false,
+					"zerofill": false,
+					"unsigned": false,
+					"enum": "",
+					"estimatedSize": ""
+				},
+				{
+					"id": "ba6c7d8e-9f0a-1b2c-3d4e-5f6a7b8c9d0e",
+					"name": "updatedAt",
+					"datatype": "TIMESTAMP",
+					"param": "",
+					"pk": false,
+					"nn": true,
+					"fk": false,
+					"comment": "Timestamp when the authentication configuration was last modified. Auto-updated on every change for change tracking and audit purposes.",
+					"defaultvalue": "CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP",
+					"data": "",
+					"after": "",
+					"autoinc": false,
+					"collation": "",
+					"charset": "",
+					"binary": false,
+					"zerofill": false,
+					"unsigned": false,
+					"enum": "",
+					"estimatedSize": ""
 				}
 			],
 			"relations": [
-				"51f4de80-23d4-4b99-af16-790b85e0f709"
+				"ff7d8e9f-0a1b-2c3d-4e5f-6789abcdef02"
 			],
 			"lines": [],
 			"keys": [
 				{
-					"id": "24d54d63-3ce9-4c5e-a6ef-06a8cf23e10e",
+					"id": "ca8d9e0f-1a2b-3c4d-5e6f-7a8b9c0d1e2f",
 					"name": "PRIMARY",
 					"isPk": true,
 					"cols": [
 						{
-							"id": "e0ebe137-0666-4370-b858-f552568da7f9",
-							"colid": "c6b5ec25-45bd-4877-96b1-a92caf477d2d"
+							"id": "db9e0f1a-2b3c-4d5e-6f7a-8b9c0d1e2f3a",
+							"colid": "ba8c9d0e-1f2a-3b4c-5d6e-7f8a9b0c1d2e"
 						}
 					]
 				}
 			],
-			"indexes": [],
+			"indexes": [
+				{
+					"id": "ec0f1a2b-3c4d-5e6f-7a8b-9c0d1e2f3a4b",
+					"name": "authtype_ix_webhook",
+					"unique": true,
+					"fulltext": false,
+					"using": "na",
+					"algorithm": "na",
+					"lockoption": "na",
+					"cols": [
+						{
+							"id": "fd1a2b3c-4d5e-6f7a-8b9c-0d1e2f3a4b5c",
+							"colid": "cb9d0e1f-2a3b-4c5d-6e7f-8a9b0c1d2e3f"
+						}
+					]
+				},
+				{
+					"id": "ae2b3c4d-5e6f-7a8b-9c0d-1e2f3a4b5c6d",
+					"name": "authtype_ix_type",
+					"unique": false,
+					"fulltext": false,
+					"using": "na",
+					"algorithm": "na",
+					"lockoption": "na",
+					"cols": [
+						{
+							"id": "bf3c4d5e-6f7a-8b9c-0d1e-2f3a4b5c6d7e",
+							"colid": "dc0e1f2a-3b4c-5d6e-7f8a-9b0c1d2e3f4a"
+						}
+					]
+				}
+			],
 			"embeddable": false,
 			"generate": true,
 			"generateCustomCode": true,
-			"customCode": "",
+			"customCode": "write('kurrentdb')\nread('redis')\nquery('redis')\nprojector('redis')\nsoftDelete(false)",
 			"tabletype": "InnoDB",
 			"collation": "utf8mb4_general_ci",
 			"charset": "utf8mb4",
@@ -1218,6 +1291,33 @@
 			"customCode": "",
 			"relationColor": "transparent",
 			"linegraphics": "default"
+		},
+		"ff7d8e9f-0a1b-2c3d-4e5f-6789abcdef02": {
+			"id": "ff7d8e9f-0a1b-2c3d-4e5f-6789abcdef02",
+			"name": "webhook_authtype",
+			"desc": "One-to-one relationship between webhook and its authentication configuration",
+			"type": "identifying",
+			"parent_key": "9ad06bbc-a718-4190-8cd9-8ed68a449145",
+			"parent": "cd5f87d5-b86c-47eb-8bd6-6699ed90dc28",
+			"child": "af7d8e9f-0a1b-2c3d-4e5f-6789abcdef01",
+			"c_mp": "true",
+			"c_mch": "true",
+			"c_p": "one",
+			"c_ch": "one",
+			"c_cp": "",
+			"c_cch": "",
+			"cols": [
+				{
+					"id": "af1b2c3d-4e5f-6a7b-8c9d-0e1f2a3b4c5d",
+					"parentcol": "da5d4788-4185-4bb4-9b78-dee1102fd58b",
+					"childcol": "cb9d0e1f-2a3b-4c5d-6e7f-8a9b0c1d2e3f"
+				}
+			],
+			"generate": true,
+			"generateCustomCode": true,
+			"customCode": "",
+			"relationColor": "transparent",
+			"linegraphics": "default"
 		}
 	},
 	"notes": {},
@@ -1247,7 +1347,7 @@
 		},
 		"type": "MARIADB",
 		"version": 1,
-		"lastSaved": 1762378865712,
+		"lastSaved": 1762345665175,
 		"beforeScript": "",
 		"afterScript": "",
 		"sqlSettings": {
@@ -1293,8 +1393,8 @@
 			"diagramItems": {
 				"cd5f87d5-b86c-47eb-8bd6-6699ed90dc28": {
 					"referencedItemId": "cd5f87d5-b86c-47eb-8bd6-6699ed90dc28",
-					"x": 199,
-					"y": 30,
+					"x": 45,
+					"y": 141,
 					"gHeight": 308,
 					"gWidth": 279,
 					"color": "#ffffff",
@@ -1306,8 +1406,8 @@
 				},
 				"00829685-51b5-4cea-a843-525855771acd": {
 					"referencedItemId": "00829685-51b5-4cea-a843-525855771acd",
-					"x": 526,
-					"y": 95,
+					"x": 382,
+					"y": 127,
 					"gHeight": 351,
 					"gWidth": 291,
 					"color": "#ffffff",
@@ -1319,10 +1419,10 @@
 				},
 				"5c13801a-a520-42d2-873e-cacb30e40ec3": {
 					"referencedItemId": "5c13801a-a520-42d2-873e-cacb30e40ec3",
-					"x": 67,
-					"y": 206,
-					"gHeight": 333,
-					"gWidth": 278,
+					"x": 66,
+					"y": 31,
+					"gHeight": 63,
+					"gWidth": 231,
 					"color": "#ffffff",
 					"background": "#03a9f4",
 					"resized": false,
@@ -1382,9 +1482,9 @@
 	"order": [
 		"cd5f87d5-b86c-47eb-8bd6-6699ed90dc28",
 		"00829685-51b5-4cea-a843-525855771acd",
-		"5c13801a-a520-42d2-873e-cacb30e40ec3",
+		"af7d8e9f-0a1b-2c3d-4e5f-6789abcdef01",
 		"c8858001-b702-4f41-9b7a-31625fd98548",
-		"51f4de80-23d4-4b99-af16-790b85e0f709"
+		"ff7d8e9f-0a1b-2c3d-4e5f-6789abcdef02"
 	],
 	"collapsedTreeItems": [],
 	"reverseStats": {}
