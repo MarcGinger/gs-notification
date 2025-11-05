@@ -6,8 +6,8 @@
  */
 
 import { Injectable } from '@nestjs/common';
-import { SecureTestProps } from '../props/secure-test.props';
-import { SecureTestSecretService } from '../services/secure-test-secret.service';
+import { SecureTestProps } from '../domain/props/secure-test.props';
+import { SecureTestSecretService } from '../domain/services/secure-test-secret.service';
 
 /**
  * SecureTest Domain Aggregate
@@ -112,7 +112,10 @@ export class SecureTestApplicationService {
       throw new Error('Failed to resolve authentication credentials');
     }
 
-    return this.sendAuthenticatedRequest(request, credentials);
+    return this.sendAuthenticatedRequest(request, {
+      username: credentials.username,
+      password: credentials.password,
+    });
   }
 
   private computeSignature(payload: any, secret: string): string {
