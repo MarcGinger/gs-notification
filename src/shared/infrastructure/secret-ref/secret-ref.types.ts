@@ -57,6 +57,6 @@ export interface SecretResolutionContext {
   tenantId: string; // from ActorContext or execution context
   boundedContext: string; // e.g., 'notification'
   purpose: 'http-sign' | 'db-conn' | 'job-exec' | 'other';
-  environment: 'dev' | 'test' | 'staging' | 'prod';
+  environment: 'development' | 'test' | 'staging' | 'production';
   rateLimitConfig?: RateLimitConfig;
 }

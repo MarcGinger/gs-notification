@@ -29,9 +29,13 @@ export class PolicyGuard {
     }
 
     // Require fixed versions in prod unless explicitly allowed
-    if (ctx?.environment === 'prod' && opts?.requireVersion && !ref.version) {
+    if (
+      ctx?.environment === 'production' &&
+      opts?.requireVersion &&
+      !ref.version
+    ) {
       throw new SecretRefError(
-        'pinned version required in prod',
+        'pinned version required in production',
         'POLICY_DENIED',
         ref,
       );

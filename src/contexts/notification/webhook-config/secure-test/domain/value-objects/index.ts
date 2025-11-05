@@ -3,6 +3,7 @@ export * from './id.vo';
 export * from './name.vo';
 export * from './password.vo';
 export * from './secure-test-instance.vo';
+export * from './secure-test-secret-ref.vo';
 export * from './signature-algorithm.vo';
 export * from './signing-secret.vo';
 export * from './type.vo';

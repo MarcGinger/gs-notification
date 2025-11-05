@@ -5,6 +5,7 @@ import {
   createSecretRef,
   parseSecretUri,
 } from '../index';
+import { AppConfigUtil } from 'src/shared/config/app-config.util';
 
 /**
  * Example: Slack HTTP client using SecretRef adapter
@@ -30,7 +31,7 @@ export class SlackHttpClient {
       tenantId: cfg.botTokenRef.tenant,
       boundedContext: cfg.botTokenRef.namespace,
       purpose: 'http-sign' as const,
-      environment: (process.env.NODE_ENV ?? 'dev') as any,
+      environment: AppConfigUtil.getEnvironment(),
     };
 
     // Resolve both secrets concurrently
