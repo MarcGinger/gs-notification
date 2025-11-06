@@ -450,9 +450,9 @@ export class SecureTestProjector
       // Extract tenant using shared utility
       const tenant = TenantExtractor.extractTenant(event);
 
-      // Use SecureTestFieldValidatorUtil to create validated secureTest snapshot
-      const secureTestSnapshot =
-        SecureTestFieldValidatorUtil.createSecureTestSnapshotFromEventData(
+      // Use SecureTestFieldValidatorUtil to create projector data with SecretRef support
+      const secureTestProjectorData =
+        SecureTestFieldValidatorUtil.createSecureTestProjectorDataFromEventData(
           eventData,
         );
 
@@ -471,7 +471,7 @@ export class SecureTestProjector
 
       // Add projector-specific fields for Redis storage
       return {
-        ...secureTestSnapshot,
+        ...secureTestProjectorData,
         ...eventEnvelope, // Override with correct envelope data
         tenant,
         deletedAt: null, // Projector handles soft deletes

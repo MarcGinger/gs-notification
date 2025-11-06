@@ -273,6 +273,8 @@ export class AppConfigUtil {
     return {
       project: process.env.DOPPLER_PROJECT || 'default-doppler-project',
       config: process.env.DOPPLER_CONFIG || configMap[nodeEnv] || 'dev_main',
+      baseUrl: process.env.DOPPLER_BASE_URL || 'https://api.doppler.com',
+      timeoutMs: Number(process.env.DOPPLER_TIMEOUT_MS) || 5000,
       enableFallback: nodeEnv !== 'production',
       enableLogging: nodeEnv === 'development',
       strict: nodeEnv === 'production',

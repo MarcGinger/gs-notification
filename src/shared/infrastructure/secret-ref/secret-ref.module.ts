@@ -10,10 +10,25 @@ import { DopplerClient } from './providers/doppler.client';
 import { SecretRefConfigValidator } from './config/secret-ref-config.validator';
 import { SecretRefHealthIndicator } from './health/secret-ref-health.indicator';
 import { SecretRefMetricsService } from './metrics/secret-ref-metrics.service';
+import {
+  LoggingModule,
+  BOUNDED_CONTEXT_LOGGER,
+  APP_LOGGER,
+  Logger,
+} from '../../logging';
+import { AppConfigUtil } from '../../config/app-config.util';
 
 @Global()
 @Module({
+  imports: [LoggingModule],
   providers: [
+    // Logger for SecretRef bounded context
+    {
+      provide: BOUNDED_CONTEXT_LOGGER,
+      useFactory: (appLogger: Logger) => appLogger,
+      inject: [APP_LOGGER],
+    },
+
     // Core
     SecretRefService,
     ProviderRegistry,
@@ -35,13 +50,17 @@ import { SecretRefMetricsService } from './metrics/secret-ref-metrics.service';
       provide: DopplerClient,
       useFactory: (validator: SecretRefConfigValidator) => {
         validator.validate(); // Validate config at startup
+
+        // Use centralized configuration from AppConfigUtil
+        const dopplerConfig = AppConfigUtil.getDopplerConfig();
+
         return new DopplerClient({
-          // ⚠️ Read from env/ConfigService only (no plaintext anywhere else)
+          // Keep token as direct env read for security - never log or expose this
           token: process.env.DOPPLER_TOKEN ?? '',
-          project: process.env.DOPPLER_PROJECT ?? 'default',
-          config: process.env.DOPPLER_CONFIG ?? 'dev',
-          baseUrl: process.env.DOPPLER_BASE_URL ?? 'https://api.doppler.com',
-          timeoutMs: Number(process.env.DOPPLER_TIMEOUT_MS ?? 5000),
+          project: dopplerConfig.project,
+          config: dopplerConfig.config,
+          baseUrl: dopplerConfig.baseUrl,
+          timeoutMs: dopplerConfig.timeoutMs,
         });
       },
       inject: [SecretRefConfigValidator],
