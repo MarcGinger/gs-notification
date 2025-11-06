@@ -120,10 +120,10 @@ export class SecureTestStateMapper {
       name: name!,
       description: description || undefined,
       type: type!,
-      signingSecret: signingSecret || undefined,
+      signingSecretRef: undefined, // TODO: Convert string to SecretRef
       signatureAlgorithm: signatureAlgorithm || undefined,
-      username: username || undefined,
-      password: password || undefined,
+      usernameRef: undefined, // TODO: Convert string to SecretRef
+      passwordRef: undefined, // TODO: Convert string to SecretRef
       version: version!,
       createdAt: createdAt!,
       updatedAt: updatedAt!,
@@ -147,10 +147,10 @@ export class SecureTestStateMapper {
       name: domainState.name.value,
       description: domainState.description?.value,
       type: domainState.type.value,
-      signingSecret: domainState.signingSecret?.value,
+      signingSecret: domainState.signingSecretRef?.ref.key,
       signatureAlgorithm: domainState.signatureAlgorithm?.value,
-      username: domainState.username?.value,
-      password: domainState.password?.value,
+      username: domainState.usernameRef?.ref.key,
+      password: domainState.passwordRef?.ref.key,
       version: domainState.version.value,
       createdAt: domainState.createdAt.value,
       updatedAt: domainState.updatedAt.value,

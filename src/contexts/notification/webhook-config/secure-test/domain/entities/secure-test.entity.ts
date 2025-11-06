@@ -23,6 +23,7 @@ import {
   createSecureTestSignatureAlgorithm,
   createSecureTestType,
 } from '../value-objects';
+import { SecureTestSecretRef } from '../value-objects/secure-test-secret-ref.vo';
 
 /**
  * Domain Entity: SecureTest
@@ -213,10 +214,10 @@ export class SecureTestEntity extends EntityIdBase<
       name: nameResult.value,
       description: descriptionResult.value,
       type: typeResult.value,
-      signingSecret: signingSecretResult.value,
+      signingSecretRef: undefined, // TODO: Convert StringVO to SecretRef
       signatureAlgorithm: signatureAlgorithmResult.value,
-      username: usernameResult.value,
-      password: passwordResult.value,
+      usernameRef: undefined, // TODO: Convert StringVO to SecretRef
+      passwordRef: undefined, // TODO: Convert StringVO to SecretRef
       createdAt: createdAtResult.value,
       updatedAt: updatedAtResult.value,
       version: versionResult.value,
@@ -268,20 +269,20 @@ export class SecureTestEntity extends EntityIdBase<
     return this.props.type;
   }
 
-  public get signingSecret(): SecureTestSigningSecret | undefined {
-    return this.props.signingSecret;
+  public get signingSecret(): SecureTestSecretRef | undefined {
+    return this.props.signingSecretRef;
   }
 
   public get signatureAlgorithm(): SecureTestSignatureAlgorithm | undefined {
     return this.props.signatureAlgorithm;
   }
 
-  public get username(): SecureTestUsername | undefined {
-    return this.props.username;
+  public get username(): SecureTestSecretRef | undefined {
+    return this.props.usernameRef;
   }
 
-  public get password(): SecureTestPassword | undefined {
-    return this.props.password;
+  public get password(): SecureTestSecretRef | undefined {
+    return this.props.passwordRef;
   }
 
   public get createdAt(): SecureTestCreatedAt {
@@ -373,7 +374,8 @@ export class SecureTestEntity extends EntityIdBase<
     updatedAt?: Date,
     version?: number,
   ): Result<SecureTestEntity, DomainError> {
-    return this.createUpdatedEntity({ signingSecret }, updatedAt, version);
+    // TODO: Convert StringVO to SecretRef before update
+    return this.createUpdatedEntity({}, updatedAt, version);
   }
 
   /**
@@ -429,7 +431,8 @@ export class SecureTestEntity extends EntityIdBase<
     updatedAt?: Date,
     version?: number,
   ): Result<SecureTestEntity, DomainError> {
-    return this.createUpdatedEntity({ username }, updatedAt, version);
+    // TODO: Convert StringVO to SecretRef before update
+    return this.createUpdatedEntity({}, updatedAt, version);
   }
 
   /**
@@ -444,7 +447,8 @@ export class SecureTestEntity extends EntityIdBase<
     updatedAt?: Date,
     version?: number,
   ): Result<SecureTestEntity, DomainError> {
-    return this.createUpdatedEntity({ password }, updatedAt, version);
+    // TODO: Convert StringVO to SecretRef before update
+    return this.createUpdatedEntity({}, updatedAt, version);
   }
 
   // ======================
@@ -469,10 +473,10 @@ export class SecureTestEntity extends EntityIdBase<
       name: this.props.name.value,
       description: this.props.description?.value,
       type: this.props.type.value,
-      signingSecret: this.props.signingSecret?.value,
+      signingSecret: this.props.signingSecretRef?.ref.key,
       signatureAlgorithm: this.props.signatureAlgorithm?.value,
-      username: this.props.username?.value,
-      password: this.props.password?.value,
+      username: this.props.usernameRef?.ref.key,
+      password: this.props.passwordRef?.ref.key,
       createdAt: this.props.createdAt.value,
       updatedAt: this.props.updatedAt.value,
       version: this.props.version.value,

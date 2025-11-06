@@ -8,6 +8,7 @@ import {
   SecureTestApplicationService,
   SecureTestAuthorizationService,
   SecureTestAuthorizationAdapter,
+  SecureTestSecretRefService,
 } from './application/services';
 import {
   IUpsertSecureTestUseCase,
@@ -53,6 +54,7 @@ import {
     SecureTestApplicationService,
     SecureTestAuthorizationService,
     SecureTestAuthorizationAdapter,
+    SecureTestSecretRefService,
 
     // Use case implementations
     {

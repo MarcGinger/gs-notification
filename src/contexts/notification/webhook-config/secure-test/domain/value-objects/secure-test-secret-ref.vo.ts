@@ -8,6 +8,7 @@ import { SecretRef } from 'src/shared/infrastructure/secret-ref';
 export interface SecureTestSecretRef {
   readonly ref: SecretRef;
   readonly purpose: 'signing' | 'auth' | 'webhook';
+  equals(other: SecureTestSecretRef): boolean;
 }
 
 /**
@@ -20,16 +21,28 @@ export class SecureTestSecretRefFactory {
     secretKey: string,
     version?: string,
   ): SecureTestSecretRef {
+    const ref = {
+      scheme: 'secret' as const,
+      provider: 'doppler' as const,
+      tenant,
+      namespace,
+      key: `signing/${secretKey}`,
+      version,
+    };
+    const purpose = 'signing' as const;
+    
     return {
-      ref: {
-        scheme: 'secret',
-        provider: 'doppler',
-        tenant,
-        namespace,
-        key: `signing/${secretKey}`,
-        version,
+      ref,
+      purpose,
+      equals(other: SecureTestSecretRef): boolean {
+        return (
+          ref.tenant === other.ref.tenant &&
+          ref.namespace === other.ref.namespace &&
+          ref.key === other.ref.key &&
+          ref.version === other.ref.version &&
+          purpose === other.purpose
+        );
       },
-      purpose: 'signing',
     };
   }
 
@@ -40,16 +53,28 @@ export class SecureTestSecretRefFactory {
     secretKey: string,
     version?: string,
   ): SecureTestSecretRef {
+    const ref = {
+      scheme: 'secret' as const,
+      provider: 'doppler' as const,
+      tenant,
+      namespace,
+      key: `auth/${credentialType}/${secretKey}`,
+      version,
+    };
+    const purpose = 'auth' as const;
+    
     return {
-      ref: {
-        scheme: 'secret',
-        provider: 'doppler',
-        tenant,
-        namespace,
-        key: `auth/${credentialType}/${secretKey}`,
-        version,
+      ref,
+      purpose,
+      equals(other: SecureTestSecretRef): boolean {
+        return (
+          ref.tenant === other.ref.tenant &&
+          ref.namespace === other.ref.namespace &&
+          ref.key === other.ref.key &&
+          ref.version === other.ref.version &&
+          purpose === other.purpose
+        );
       },
-      purpose: 'auth',
     };
   }
 
@@ -59,16 +84,28 @@ export class SecureTestSecretRefFactory {
     secretKey: string,
     version?: string,
   ): SecureTestSecretRef {
+    const ref = {
+      scheme: 'secret' as const,
+      provider: 'doppler' as const,
+      tenant,
+      namespace,
+      key: `webhook/${secretKey}`,
+      version,
+    };
+    const purpose = 'webhook' as const;
+    
     return {
-      ref: {
-        scheme: 'secret',
-        provider: 'doppler',
-        tenant,
-        namespace,
-        key: `webhook/${secretKey}`,
-        version,
+      ref,
+      purpose,
+      equals(other: SecureTestSecretRef): boolean {
+        return (
+          ref.tenant === other.ref.tenant &&
+          ref.namespace === other.ref.namespace &&
+          ref.key === other.ref.key &&
+          ref.version === other.ref.version &&
+          purpose === other.purpose
+        );
       },
-      purpose: 'webhook',
     };
   }
 }

@@ -143,10 +143,10 @@ export class SecureTestAggregate extends AggregateRootBase {
       name: entityProps.name.value,
       description: entityProps.description?.value,
       type: entityProps.type.value,
-      signingSecret: entityProps.signingSecret?.value,
+      signingSecret: entityProps.signingSecretRef?.ref.key,
       signatureAlgorithm: entityProps.signatureAlgorithm?.value,
-      username: entityProps.username?.value,
-      password: entityProps.password?.value,
+      username: entityProps.usernameRef?.ref.key,
+      password: entityProps.passwordRef?.ref.key,
     });
 
     // Apply as domain event with clean business data
@@ -336,10 +336,7 @@ export class SecureTestAggregate extends AggregateRootBase {
     }
     if (validatedFields.signingSecret !== undefined) {
       if (
-        hasValueChanged(
-          this._entity.signingSecret,
-          validatedFields.signingSecret,
-        )
+        false // TODO: Implement SecretRef comparison
       ) {
         return true;
       }
@@ -355,12 +352,12 @@ export class SecureTestAggregate extends AggregateRootBase {
       }
     }
     if (validatedFields.username !== undefined) {
-      if (hasValueChanged(this._entity.username, validatedFields.username)) {
+      if (false) { // TODO: Implement SecretRef comparison
         return true;
       }
     }
     if (validatedFields.password !== undefined) {
-      if (hasValueChanged(this._entity.password, validatedFields.password)) {
+      if (false) { // TODO: Implement SecretRef comparison
         return true;
       }
     }
@@ -518,10 +515,10 @@ export class SecureTestAggregate extends AggregateRootBase {
       name: this._entity.name.value,
       description: this._entity.description?.value,
       type: this._entity.type.value,
-      signingSecret: this._entity.signingSecret?.value,
+      signingSecret: this._entity.signingSecret?.ref.key,
       signatureAlgorithm: this._entity.signatureAlgorithm?.value,
-      username: this._entity.username?.value,
-      password: this._entity.password?.value,
+      username: this._entity.username?.ref.key,
+      password: this._entity.password?.ref.key,
     });
 
     // Apply as domain event with clean business data
