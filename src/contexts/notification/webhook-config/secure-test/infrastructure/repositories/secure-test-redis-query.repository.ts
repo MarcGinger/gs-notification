@@ -11,7 +11,6 @@ import {
   RepositoryLoggingConfig,
   handleRepositoryError,
   safeParseJSON,
-  safeParseJSONArray,
   RepositoryOptions,
 } from 'src/shared/infrastructure/repositories';
 import { Result, DomainError, err, ok } from 'src/shared/errors';
@@ -19,6 +18,8 @@ import { Option } from 'src/shared/domain/types';
 import { ActorContext } from 'src/shared/application/context';
 import { RepositoryErrorFactory } from 'src/shared/domain/errors/repository.error';
 import { CacheMetricsCollector } from 'src/shared/infrastructure/projections/cache-optimization';
+import { SecretRefService } from 'src/shared/infrastructure/secret-ref/secret-ref.service';
+import { SecretRef } from 'src/shared/infrastructure/secret-ref/secret-ref.types';
 import { WEBHOOK_CONFIG_DI_TOKENS } from '../../../webhook-config.constants';
 import { SecureTestProjectionKeys } from '../../secure-test-projection-keys';
 import { DetailSecureTestResponse } from '../../application/dtos';
@@ -69,6 +70,7 @@ export class SecureTestQueryRepository implements ISecureTestQuery {
     @Inject(CLOCK) private readonly clock: Clock,
     @Inject(WEBHOOK_CONFIG_DI_TOKENS.IO_REDIS)
     private readonly redis: Redis,
+    private readonly secretRefService: SecretRefService,
   ) {
     this.loggingConfig = {
       serviceName: 'SecureTestConfigService',
@@ -172,7 +174,7 @@ export class SecureTestQueryRepository implements ISecureTestQuery {
       }
 
       // Parse Redis hash to secureTest data
-      const secureTest = this.parseRedisHashToSecureTest(hashData);
+      const secureTest = await this.parseRedisHashToSecureTest(hashData, actor);
 
       if (!secureTest) {
         // SecureTest exists but is soft deleted or malformed
@@ -243,10 +245,12 @@ export class SecureTestQueryRepository implements ISecureTestQuery {
   /**
    * Parse Redis hash data into DetailSecureTestResponse DTO
    * Uses DTO instead of domain props for CQRS compliance
+   * Now handles SecretRef objects stored in Redis and resolves them to actual values
    */
-  private parseRedisHashToSecureTest(
+  private async parseRedisHashToSecureTest(
     hashData: Record<string, string>,
-  ): SecureTestCacheData | null {
+    actor: ActorContext,
+  ): Promise<SecureTestCacheData | null> {
     try {
       if (!hashData || Object.keys(hashData).length === 0) {
         return null;
@@ -257,11 +261,6 @@ export class SecureTestQueryRepository implements ISecureTestQuery {
         return null;
       }
 
-      // Parse array fields using safeParseJSONArray utility
-
-      // Parse object fields using safeParseJSON utility
-      // Extract basic fields directly from hash data
-
       // Type assertion for type - cached data should already be validated
       const type = hashData.type as DetailSecureTestResponse['type'];
 
@@ -269,15 +268,34 @@ export class SecureTestQueryRepository implements ISecureTestQuery {
       const signatureAlgorithm =
         hashData.signatureAlgorithm as DetailSecureTestResponse['signatureAlgorithm'];
 
+      // Parse and resolve SecretRef objects to actual values
+      const signingSecret = await this.resolveSecretRefFromRedis(
+        hashData.signingSecretRef,
+        'signing secret',
+        actor,
+      );
+
+      const username = await this.resolveSecretRefFromRedis(
+        hashData.usernameRef,
+        'username',
+        actor,
+      );
+
+      const password = await this.resolveSecretRefFromRedis(
+        hashData.passwordRef,
+        'password',
+        actor,
+      );
+
       return {
         id: hashData.id,
         name: hashData.name,
         description: hashData.description || undefined,
         type,
-        signingSecret: hashData.signingSecret || undefined,
+        signingSecret,
         signatureAlgorithm,
-        username: hashData.username || undefined,
-        password: hashData.password || undefined,
+        username,
+        password,
         version: parseInt(hashData.version, 10),
         createdAt: new Date(hashData.createdAt),
         updatedAt: new Date(hashData.updatedAt),
@@ -295,6 +313,72 @@ export class SecureTestQueryRepository implements ISecureTestQuery {
       return null;
     }
   }
+
+  /**
+   * Resolve a SecretRef from Redis hash data to actual secret value
+   * @param secretRefJson - JSON string of SecretRef object stored in Redis
+   * @param secretType - Type of secret for logging (e.g., 'signing secret', 'username')
+   * @param actor - Actor context for secret resolution
+   * @returns Resolved secret value or undefined if not found/invalid
+   */
+  private async resolveSecretRefFromRedis(
+    secretRefJson: string | undefined,
+    secretType: string,
+    actor: ActorContext,
+  ): Promise<string | undefined> {
+    if (!secretRefJson) {
+      return undefined;
+    }
+
+    try {
+      // Parse SecretRef from JSON
+      const secretRef = safeParseJSON<SecretRef>(secretRefJson, secretType);
+      if (!secretRef || !secretRef.scheme || !secretRef.provider) {
+        Log.warn(this.logger, `Invalid SecretRef format for ${secretType}`, {
+          secretRefJson,
+          secretType,
+        });
+        return undefined;
+      }
+
+      // Resolve SecretRef to actual value using SecretRefService
+      const resolutionContext = {
+        tenantId: actor.tenant,
+        boundedContext: 'notification',
+        purpose: 'db-conn' as const,
+        environment:
+          (process.env.NODE_ENV as
+            | 'development'
+            | 'test'
+            | 'staging'
+            | 'production') || 'development',
+      };
+      const resolvedSecret = await this.secretRefService.resolve(
+        secretRef,
+        undefined,
+        resolutionContext,
+      );
+
+      Log.debug(
+        this.logger,
+        `Successfully resolved SecretRef for ${secretType}`,
+        {
+          secretType,
+          secretKey: secretRef.key,
+          providerLatency: resolvedSecret.providerLatencyMs,
+        },
+      );
+
+      return resolvedSecret.value;
+    } catch (error) {
+      Log.error(this.logger, `Error resolving SecretRef for ${secretType}`, {
+        secretType,
+        error: (error as Error).message,
+      });
+      return undefined;
+    }
+  }
+
   /**
    * Helper to create consistent logging context using shared utilities
    */

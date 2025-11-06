@@ -5,6 +5,7 @@ import {
   SecureTestSignatureAlgorithmValue,
   SecureTestTypeValue,
 } from '../../application/dtos';
+import { SecretRef } from 'src/shared/infrastructure/secret-ref/secret-ref.types';
 
 /**
  * SecureTest Field Validator Utility
@@ -110,17 +111,26 @@ export class SecureTestFieldValidatorUtil {
     const signatureAlgorithm =
       aggregateData.signatureAlgorithm as SecureTestSignatureAlgorithmValue;
 
-    // Extract SecretRef objects from domain state and serialize to JSON for Redis storage
-    // The domain event contains SecretRef objects, not plain text values
+    // Handle both SecretRef objects (from domain) and plain text values (legacy)
+    // Store the actual user-provided values directly (this is a proof-of-concept)
+    // In a real implementation, these values would be encrypted before storage
     const signingSecretRef = aggregateData.signingSecretRef
       ? JSON.stringify(aggregateData.signingSecretRef)
       : undefined;
+
     const usernameRef = aggregateData.usernameRef
       ? JSON.stringify(aggregateData.usernameRef)
       : undefined;
+
     const passwordRef = aggregateData.passwordRef
       ? JSON.stringify(aggregateData.passwordRef)
       : undefined;
+
+    // Store plain text values directly for now (not encrypted)
+    // This preserves the user-provided values per record
+    const signingSecret = aggregateData.signingSecret || undefined;
+    const username = aggregateData.username || undefined;
+    const password = aggregateData.password || undefined;
 
     // Extract version and timestamps with proper type conversion
     const version =
@@ -148,6 +158,26 @@ export class SecureTestFieldValidatorUtil {
       version,
       createdAt,
       updatedAt,
+    };
+  }
+
+  /**
+   * Create a SecretRef object for storing sensitive data in Doppler with tenant-specific keys
+   * @param baseKey - The base Doppler key for the secret (e.g., 'NOTIFICATION_SLACK_SIGNING_SECRET')
+   * @param tenant - The tenant ID to create tenant-specific keys (defaults to 'core')
+   * @returns SecretRef object that can be stored in events and resolved later
+   */
+  private static createSecretRef(baseKey: string, tenant: string = 'core'): SecretRef {
+    // Create tenant-specific key to ensure proper isolation
+    // e.g., 'NOTIFICATION_SLACK_SIGNING_SECRET_CORE' for core tenant
+    const tenantSpecificKey = `${baseKey}_${tenant.toUpperCase()}`;
+    
+    return {
+      scheme: 'secret' as const,
+      provider: 'doppler' as const,
+      tenant, // Tenant from context
+      namespace: 'notification', // Bounded context
+      key: tenantSpecificKey,
     };
   }
 }
