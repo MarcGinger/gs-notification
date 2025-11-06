@@ -167,11 +167,14 @@ export class SecureTestFieldValidatorUtil {
    * @param tenant - The tenant ID to create tenant-specific keys (defaults to 'core')
    * @returns SecretRef object that can be stored in events and resolved later
    */
-  private static createSecretRef(baseKey: string, tenant: string = 'core'): SecretRef {
+  private static createSecretRef(
+    baseKey: string,
+    tenant: string = 'core',
+  ): SecretRef {
     // Create tenant-specific key to ensure proper isolation
     // e.g., 'NOTIFICATION_SLACK_SIGNING_SECRET_CORE' for core tenant
     const tenantSpecificKey = `${baseKey}_${tenant.toUpperCase()}`;
-    
+
     return {
       scheme: 'secret' as const,
       provider: 'doppler' as const,
