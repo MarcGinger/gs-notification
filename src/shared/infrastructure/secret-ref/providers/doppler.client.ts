@@ -55,14 +55,17 @@ export class DopplerClient {
         );
       }
 
-      const data = await res.json();
+      const data = (await res.json()) as any;
       this.recordSuccess();
 
-      // Shape normalization (adjust if using SDK)
+      // Shape normalization - extract actual secret value from Doppler API response
+      const secretValue = String(
+        data?.value?.computed ?? data?.value?.raw ?? '',
+      );
       return {
-        value: data?.value ?? '',
+        value: secretValue,
         version: String(data?.version ?? 'latest'),
-        expiresAt: data?.expires_at,
+        expiresAt: data?.expires_at ? String(data.expires_at) : undefined,
         project: this.opts.project,
         config: this.opts.config,
       };

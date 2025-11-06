@@ -15,10 +15,11 @@ export class DopplerProvider {
     ref: SecretRef,
     _opts?: ResolveOptions,
   ): Promise<ResolvedSecret> {
-    const path = `${ref.tenant}/${ref.namespace}/${ref.key}`; // convention
+    // Doppler uses flat key names, not hierarchical paths
+    const secretName = ref.key;
     const version = ref.version ?? 'latest';
     const t0 = Date.now();
-    const res = await this.api.getSecret(path, version);
+    const res = await this.api.getSecret(secretName, version);
     const latency = Date.now() - t0;
     return {
       value: res.value,
@@ -30,8 +31,9 @@ export class DopplerProvider {
   }
 
   async inspect(ref: SecretRef): Promise<SecretMetadata> {
-    const path = `${ref.tenant}/${ref.namespace}/${ref.key}`;
-    const res = await this.api.getSecret(path, ref.version ?? 'latest');
+    // Doppler uses flat key names, not hierarchical paths
+    const secretName = ref.key;
+    const res = await this.api.getSecret(secretName, ref.version ?? 'latest');
     return {
       version: res.version,
       expiresAt: res.expiresAt,

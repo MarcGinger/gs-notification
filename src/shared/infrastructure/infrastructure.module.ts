@@ -18,6 +18,7 @@ import { APP_LOGGER, Logger } from '../logging';
 import { AppConfigUtil } from '../config/app-config.util';
 import { LoggingModule } from '../logging/logging.module';
 import { InMemoryCacheService } from '../application/caching/cache.service';
+import { SecretRefModule } from './secret-ref';
 
 import {
   CHECKPOINT_STORE,
@@ -31,6 +32,7 @@ import {
 @Module({
   imports: [
     LoggingModule, // Required for APP_LOGGER
+    SecretRefModule, // Global SecretRef resolution service
     EventStoreModule, // Must export EventStoreService and EventStoreDBClient
     BullMQModule.register({
       redisUrl: AppConfigUtil.getRedisConfig().url,

@@ -87,7 +87,7 @@ export class SecureTestSecretRefService {
     return SecureTestSecretRefFactory.createSigningSecretRef(
       context.tenant,
       'notification.webhook-config.secure-test',
-      `${request.id}/signing-secret`,
+      `${request.id}_secret`,
     );
   }
 
@@ -102,7 +102,7 @@ export class SecureTestSecretRefService {
       context.tenant,
       'notification.webhook-config.secure-test',
       'username',
-      `${request.id}/username`,
+      `${request.id}_user`,
     );
   }
 
@@ -117,7 +117,7 @@ export class SecureTestSecretRefService {
       context.tenant,
       'notification.webhook-config.secure-test',
       'password',
-      `${request.id}/password`,
+      `${request.id}_pass`,
     );
   }
 }

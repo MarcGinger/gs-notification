@@ -26,7 +26,7 @@ export class SecureTestSecretRefFactory {
       provider: 'doppler' as const,
       tenant,
       namespace,
-      key: `signing/${secretKey}`,
+      key: `SIGNING_${secretKey.toUpperCase().replace(/[^A-Z0-9]/g, '_')}`,
       version,
     };
     const purpose = 'signing' as const;
@@ -58,7 +58,7 @@ export class SecureTestSecretRefFactory {
       provider: 'doppler' as const,
       tenant,
       namespace,
-      key: `auth/${credentialType}/${secretKey}`,
+      key: `AUTH_${credentialType.toUpperCase()}_${secretKey.toUpperCase().replace(/[^A-Z0-9]/g, '_')}`,
       version,
     };
     const purpose = 'auth' as const;
@@ -89,7 +89,7 @@ export class SecureTestSecretRefFactory {
       provider: 'doppler' as const,
       tenant,
       namespace,
-      key: `webhook/${secretKey}`,
+      key: `WEBHOOK_${secretKey.toUpperCase().replace(/[^A-Z0-9]/g, '_')}`,
       version,
     };
     const purpose = 'webhook' as const;
