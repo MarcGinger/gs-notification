@@ -30,7 +30,7 @@ export class SecureTestSecretRefFactory {
       version,
     };
     const purpose = 'signing' as const;
-    
+
     return {
       ref,
       purpose,
@@ -62,7 +62,7 @@ export class SecureTestSecretRefFactory {
       version,
     };
     const purpose = 'auth' as const;
-    
+
     return {
       ref,
       purpose,
@@ -93,7 +93,7 @@ export class SecureTestSecretRefFactory {
       version,
     };
     const purpose = 'webhook' as const;
-    
+
     return {
       ref,
       purpose,

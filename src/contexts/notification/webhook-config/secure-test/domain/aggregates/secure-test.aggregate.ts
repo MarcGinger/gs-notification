@@ -352,12 +352,14 @@ export class SecureTestAggregate extends AggregateRootBase {
       }
     }
     if (validatedFields.username !== undefined) {
-      if (false) { // TODO: Implement SecretRef comparison
+      if (false) {
+        // TODO: Implement SecretRef comparison
         return true;
       }
     }
     if (validatedFields.password !== undefined) {
-      if (false) { // TODO: Implement SecretRef comparison
+      if (false) {
+        // TODO: Implement SecretRef comparison
         return true;
       }
     }
