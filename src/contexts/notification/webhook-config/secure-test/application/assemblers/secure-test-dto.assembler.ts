@@ -32,10 +32,11 @@ export class SecureTestDtoAssembler {
     dto.name = domainState.name.value;
     dto.description = domainState.description?.value;
     dto.type = domainState.type.value;
-    dto.signingSecret = domainState.signingSecret?.value;
+    // SECURITY: Return SecretRef metadata instead of plaintext secrets
+    dto.signingSecret = domainState.signingSecretRef ? '[SecretRef Protected]' : undefined;
     dto.signatureAlgorithm = domainState.signatureAlgorithm?.value;
-    dto.username = domainState.username?.value;
-    dto.password = domainState.password?.value;
+    dto.username = domainState.usernameRef ? '[SecretRef Protected]' : undefined;
+    dto.password = domainState.passwordRef ? '[SecretRef Protected]' : undefined;
 
     return dto;
   }

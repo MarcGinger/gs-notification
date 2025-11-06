@@ -5,7 +5,7 @@ import { DomainError, Result, err, withContext } from 'src/shared/errors';
 import { Clock } from 'src/shared/domain/clock';
 import { EventMetadata } from 'src/shared/domain/events';
 import { SecureTestAggregate } from '../aggregates';
-import { CreateSecureTestProps } from '../props';
+import { CreateSecureTestProps, SecureTestProps } from '../props';
 import { SecureTestDomainState } from '../state';
 import {
   SecureTestCreatedAt,
@@ -15,10 +15,7 @@ import {
   SecureTestName,
   SecureTestDescription,
   createSecureTestType,
-  SecureTestSigningSecret,
   createSecureTestSignatureAlgorithm,
-  SecureTestUsername,
-  SecureTestPassword,
 } from '../value-objects';
 
 /**
@@ -26,7 +23,7 @@ import {
  * Moved from application layer to properly separate business concerns
  */
 export function createSecureTestAggregateFromProps(
-  props: CreateSecureTestProps,
+  props: SecureTestProps,
   metadata: EventMetadata,
   clock: Clock,
   // validatedEntities?: {
@@ -86,18 +83,9 @@ export function createSecureTestAggregateFromProps(
     );
   }
 
-  const signingSecretResult = SecureTestSigningSecret.from(props.signingSecret);
-  if (!signingSecretResult.ok) {
-    return err(
-      withContext(signingSecretResult.error, {
-        ...signingSecretResult.error.context,
-        correlationId: metadata.correlationId,
-        userId: metadata.userId,
-        operation: 'create_secure_test',
-        signingSecret: props.signingSecret,
-      }),
-    );
-  }
+  // For SecretRef, we don't validate the secret content here
+  // The SecretRef itself is the validated reference
+  const signingSecretRef = props.signingSecretRef;
 
   const signatureAlgorithmResult = createSecureTestSignatureAlgorithm(
     props.signatureAlgorithm,
@@ -114,31 +102,9 @@ export function createSecureTestAggregateFromProps(
     );
   }
 
-  const usernameResult = SecureTestUsername.from(props.username);
-  if (!usernameResult.ok) {
-    return err(
-      withContext(usernameResult.error, {
-        ...usernameResult.error.context,
-        correlationId: metadata.correlationId,
-        userId: metadata.userId,
-        operation: 'create_secure_test',
-        username: props.username,
-      }),
-    );
-  }
-
-  const passwordResult = SecureTestPassword.from(props.password);
-  if (!passwordResult.ok) {
-    return err(
-      withContext(passwordResult.error, {
-        ...passwordResult.error.context,
-        correlationId: metadata.correlationId,
-        userId: metadata.userId,
-        operation: 'create_secure_test',
-        password: props.password,
-      }),
-    );
-  }
+  // For SecretRef, we use the references directly
+  const usernameRef = props.usernameRef;
+  const passwordRef = props.passwordRef;
 
   const createdAtResult = SecureTestCreatedAt.create(clock.now());
   if (!createdAtResult.ok) {
@@ -161,10 +127,10 @@ export function createSecureTestAggregateFromProps(
     name: nameResult.value,
     description: descriptionResult.value,
     type: typeResult.value,
-    signingSecret: signingSecretResult.value,
+    signingSecretRef: signingSecretRef,
     signatureAlgorithm: signatureAlgorithmResult.value,
-    username: usernameResult.value,
-    password: passwordResult.value,
+    usernameRef: usernameRef,
+    passwordRef: passwordRef,
     createdAt: createdAtResult.value,
     updatedAt: updatedAtResult.value,
     version: versionResult.value,
