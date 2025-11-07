@@ -106,10 +106,10 @@ export class SecureTestFieldValidatorUtil {
     name: string;
     description?: string;
     type: SecureTestTypeValue;
-    signingSecretRef?: string;
+    signingSecret?: string;
     signatureAlgorithm?: SecureTestSignatureAlgorithmValue;
-    usernameRef?: string;
-    passwordRef?: string;
+    username?: string;
+    password?: string;
     version: number;
     createdAt: Date;
     updatedAt: Date;
@@ -122,19 +122,18 @@ export class SecureTestFieldValidatorUtil {
     const signatureAlgorithm =
       aggregateData.signatureAlgorithm as SecureTestSignatureAlgorithmValue;
 
-    // Handle both SecretRef objects (from domain) and plain text values (legacy)
-    // Store the actual user-provided values directly (this is a proof-of-concept)
-    // In a real implementation, these values would be encrypted before storage
-    const signingSecretRef = aggregateData.signingSecretRef
-      ? JSON.stringify(aggregateData.signingSecretRef)
+    // Handle SecretRef objects from encrypted event data
+    // The writer repository stores encrypted SecretRef objects in these fields
+    const signingSecretRef = aggregateData.signingSecret
+      ? JSON.stringify(aggregateData.signingSecret)
       : undefined;
 
-    const usernameRef = aggregateData.usernameRef
-      ? JSON.stringify(aggregateData.usernameRef)
+    const usernameRef = aggregateData.username
+      ? JSON.stringify(aggregateData.username)
       : undefined;
 
-    const passwordRef = aggregateData.passwordRef
-      ? JSON.stringify(aggregateData.passwordRef)
+    const passwordRef = aggregateData.password
+      ? JSON.stringify(aggregateData.password)
       : undefined;
 
     // Store plain text values directly for now (not encrypted)
@@ -160,10 +159,10 @@ export class SecureTestFieldValidatorUtil {
       name,
       description,
       type,
-      signingSecretRef,
+      signingSecret: signingSecretRef,
       signatureAlgorithm,
-      usernameRef,
-      passwordRef,
+      username: usernameRef,
+      password: passwordRef,
       version,
       createdAt,
       updatedAt,

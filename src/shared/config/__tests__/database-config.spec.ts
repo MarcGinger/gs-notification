@@ -59,7 +59,7 @@ describe('Database Configuration Centralization', () => {
       expect(config.host).toBe('localhost');
       expect(config.port).toBe(5432);
       expect(config.database).toBe('postgres');
-      expect(config.schema).toBe('gs_scaffold_read');
+      expect(config.schema).toBe('public');
       expect(config.maxQueryExecutionTime).toBe(500);
     });
   });

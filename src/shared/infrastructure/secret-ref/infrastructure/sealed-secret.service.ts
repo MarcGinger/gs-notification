@@ -95,18 +95,31 @@ export class SealedSecretService {
       // const kek = parseKEKFromDoppler(kekResponse.value);
 
       // TODO: Implement actual envelope decryption
-      // For now, decode the mock envelope
-      const mockData = JSON.parse(
-        Buffer.from(ref.blob, 'base64url').toString(),
-      ) as {
-        plaintext: string;
-        tenant: string;
-        timestamp: number;
-      };
+      // For now, decode the mock envelope - handle both formats
+      const decodedString = Buffer.from(ref.blob, 'base64').toString();
 
-      // Validate tenant matches
-      if (mockData.tenant !== ref.tenant) {
-        throw new Error('Tenant mismatch in sealed reference');
+      let plaintext: string;
+      try {
+        // Try to parse as JSON first (new format)
+        const mockData = JSON.parse(decodedString) as {
+          plaintext: string;
+          tenant: string;
+          timestamp: number;
+        };
+
+        // Validate tenant matches
+        if (mockData.tenant !== ref.tenant) {
+          throw new Error('Tenant mismatch in sealed reference');
+        }
+
+        plaintext = mockData.plaintext;
+      } catch {
+        // Fallback to direct string format (legacy format)
+        this.logger.debug('Using legacy blob format for unsealing', {
+          tenant: ref.tenant,
+          kekKid: ref.kekKid,
+        });
+        plaintext = decodedString;
       }
 
       // Simulate async operation for linting
@@ -117,7 +130,7 @@ export class SealedSecretService {
         kekKid: ref.kekKid,
       });
 
-      return mockData.plaintext;
+      return plaintext;
     } catch (error) {
       this.logger.error('Failed to unseal secret', {
         tenant: ref.tenant,

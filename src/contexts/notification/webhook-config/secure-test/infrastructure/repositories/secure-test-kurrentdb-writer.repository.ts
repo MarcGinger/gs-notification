@@ -673,6 +673,9 @@ export class SecureTestWriterRepository
   /**
    * Create SecretRef for sensitive data storage
    * Uses Sealed SecretRef for enhanced security with encrypted blobs
+   *
+   * SECURITY WARNING: This is a mock implementation that stores plaintext in base64.
+   * In production, this MUST use real XChaCha20-Poly1305 encryption with proper KEKs.
    */
   private createSecretRef(
     plaintextValue: string,
@@ -682,10 +685,18 @@ export class SecureTestWriterRepository
     // Create KEK (Key Encryption Key) identifier for the tenant
     const kekKid = `TENANT_KEK_${tenant.toUpperCase()}_V1`;
 
-    // In real implementation, this would encrypt the plaintextValue
-    // For now, we'll create a mock encrypted blob
+    // SECURITY ISSUE: This is NOT actual encryption - just base64 encoding!
+    // Real implementation must:
+    // 1. Load actual KEK for the tenant from secure key management
+    // 2. Generate random nonce for XChaCha20-Poly1305
+    // 3. Encrypt plaintextValue with KEK + nonce + AAD
+    // 4. Store encrypted ciphertext in blob (not plaintext)
     const mockEncryptedBlob = Buffer.from(
-      `encrypted-${plaintextValue}-${Date.now()}`,
+      JSON.stringify({
+        plaintext: plaintextValue, // ⚠️ SECURITY RISK: Plaintext visible after base64 decode
+        tenant,
+        timestamp: Date.now(),
+      }),
     ).toString('base64');
 
     // Create sealed SecretRef with XChaCha20-Poly1305 encryption

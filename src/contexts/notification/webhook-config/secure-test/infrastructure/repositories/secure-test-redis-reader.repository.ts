@@ -10,7 +10,6 @@ import {
   RepositoryLoggingUtil,
   RepositoryLoggingConfig,
   handleRepositoryError,
-  safeParseJSON,
   RepositoryOptions,
 } from 'src/shared/infrastructure/repositories';
 import { Result, DomainError, err, ok } from 'src/shared/errors';
@@ -18,13 +17,8 @@ import { Option } from 'src/shared/domain/types';
 import { ActorContext } from 'src/shared/application/context';
 import { RepositoryErrorFactory } from 'src/shared/domain/errors/repository.error';
 import { CacheMetricsCollector } from 'src/shared/infrastructure/projections/cache-optimization';
-import { SecretRefService } from 'src/shared/infrastructure/secret-ref/secret-ref.service';
-import { SecretRef } from 'src/shared/infrastructure/secret-ref/secret-ref.types';
-import {
-  SecretRefUnion,
-  isDopplerSecretRef,
-  isSealedSecretRef,
-} from 'src/shared/infrastructure/secret-ref/domain/sealed-secret-ref.types';
+import { EnhancedSecretRefService } from 'src/shared/infrastructure/secret-ref/infrastructure/enhanced-secret-ref.service';
+import { SecretRefUnion } from 'src/shared/infrastructure/secret-ref/domain/sealed-secret-ref.types';
 import { SecureTestFieldValidatorUtil } from '../utilities/secure-test-field-validator.util';
 import { WEBHOOK_CONFIG_DI_TOKENS } from '../../../webhook-config.constants';
 import { SecureTestProjectionKeys } from '../../secure-test-projection-keys';
@@ -46,6 +40,10 @@ import { ISecureTestReader } from '../../application/ports';
  * - Maintains same interface as SQL-based implementation
  * - Comprehensive logging and error handling
  *
+ * SECURITY WARNING: This implementation processes mock encrypted SecretRef objects
+ * that contain base64-encoded plaintext values. In production, proper decryption
+ * with XChaCha20-Poly1305 encryption and tenant-specific KEKs would be required.
+ *
  * @domain Notification Context - SecureTest Reader Repository (Redis)
  * @layer Infrastructure
  * @pattern Repository Pattern + Redis Projector
@@ -61,7 +59,7 @@ export class SecureTestReaderRepository implements ISecureTestReader {
     @Inject(CLOCK) private readonly clock: Clock,
     @Inject(WEBHOOK_CONFIG_DI_TOKENS.IO_REDIS)
     private readonly redis: Redis,
-    private readonly secretRefService: SecretRefService,
+    private readonly secretRefService: EnhancedSecretRefService,
   ) {
     this.loggingConfig = {
       serviceName: 'WebhookConfigService',
@@ -93,6 +91,9 @@ export class SecureTestReaderRepository implements ISecureTestReader {
   /**
    * Parse Redis hash data into SecureTestSnapshotProps
    * Now handles SecretRef objects stored in Redis and resolves them to actual values
+   *
+   * SECURITY NOTE: SecretRef objects in Redis contain mock encrypted data (base64
+   * encoded plaintext). Production systems require real XChaCha20-Poly1305 decryption.
    */
   private async parseRedisHashToSecureTest(
     hashData: Record<string, string>,
@@ -117,19 +118,19 @@ export class SecureTestReaderRepository implements ISecureTestReader {
 
       // Parse and resolve SecretRef objects to actual values
       const signingSecret = await this.resolveSecretRefFromRedis(
-        hashData.signingSecretRef,
+        hashData.signingSecret,
         'signing secret',
         actor,
       );
 
       const username = await this.resolveSecretRefFromRedis(
-        hashData.usernameRef,
+        hashData.username,
         'username',
         actor,
       );
 
       const password = await this.resolveSecretRefFromRedis(
-        hashData.passwordRef,
+        hashData.password,
         'password',
         actor,
       );
@@ -164,6 +165,11 @@ export class SecureTestReaderRepository implements ISecureTestReader {
   /**
    * Resolve a SecretRef from Redis hash data to actual secret value
    * Enhanced to support both legacy SecretRef and new SecretRefUnion types
+   *
+   * SECURITY WARNING: The sealed SecretRef objects in Redis contain base64-encoded
+   * plaintext, not actual encrypted data. In production, proper decryption with
+   * XChaCha20-Poly1305 and tenant KEKs would be required.
+   *
    * @param secretRefJson - JSON string of SecretRef object stored in Redis
    * @param secretType - Type of secret for logging purposes
    * @param actor - Actor context for SecretRef resolution
@@ -172,6 +178,7 @@ export class SecureTestReaderRepository implements ISecureTestReader {
   private async resolveSecretRefFromRedis(
     secretRefJson: string | undefined,
     secretType: string,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     actor: ActorContext,
   ): Promise<string | undefined> {
     if (!secretRefJson) {
@@ -189,80 +196,22 @@ export class SecureTestReaderRepository implements ISecureTestReader {
           secretType,
         });
 
-        // Convert SecretRefUnion to legacy SecretRef for resolution
-        const legacySecretRef =
-          this.convertSecretRefUnionToLegacy(secretRefUnion);
-
-        // Resolve using SecretRefService with proper context
-        const resolutionContext = {
-          tenantId: actor.tenant,
-          boundedContext: 'notification',
-          purpose: 'db-conn' as const,
-          environment:
-            (process.env.NODE_ENV as
-              | 'development'
-              | 'test'
-              | 'staging'
-              | 'production') || 'development',
-        };
-
-        const result = await this.secretRefService.resolve(
-          legacySecretRef,
-          undefined,
-          resolutionContext,
-        );
-
-        return result?.value;
+        // Use EnhancedSecretRefService to resolve SecretRefUnion directly
+        const result =
+          await this.secretRefService.resolveSecret(secretRefUnion);
+        return result;
       }
 
-      // Fallback to legacy SecretRef parsing
-      const secretRef = safeParseJSON<SecretRef>(secretRefJson, secretType);
-      if (!secretRef || !secretRef.scheme || !secretRef.provider) {
-        Log.warn(this.logger, `Invalid SecretRef format for ${secretType}`, {
+      // Fallback to legacy SecretRef parsing - this shouldn't happen with new data
+      Log.warn(
+        this.logger,
+        `Falling back to legacy SecretRef parsing for ${secretType}`,
+        {
           secretRefJson,
           secretType,
-        });
-        return undefined;
-      }
-
-      // Resolve SecretRef to actual value using SecretRefService
-      const resolutionContext = {
-        tenantId: actor.tenant,
-        boundedContext: 'notification',
-        purpose: 'db-conn' as const,
-        environment:
-          (process.env.NODE_ENV as
-            | 'development'
-            | 'test'
-            | 'staging'
-            | 'production') || 'development',
-      };
-      const result = await this.secretRefService.resolve(
-        secretRef,
-        undefined,
-        resolutionContext,
+        },
       );
-
-      if (result && result.value) {
-        Log.debug(
-          this.logger,
-          `Successfully resolved ${secretType} from SecretRef`,
-          {
-            secretType,
-            tenant: secretRef.tenant,
-            namespace: secretRef.namespace,
-            key: secretRef.key,
-            providerLatency: result.providerLatencyMs,
-          },
-        );
-        return result.value;
-      } else {
-        Log.warn(this.logger, `No value resolved for ${secretType} SecretRef`, {
-          secretType,
-          secretRef,
-        });
-        return undefined;
-      }
+      return undefined;
     } catch (error) {
       Log.error(this.logger, `Failed to resolve ${secretType} from SecretRef`, {
         method: 'resolveSecretRefFromRedis',
@@ -744,43 +693,5 @@ export class SecureTestReaderRepository implements ISecureTestReader {
       // Handle and return the classified error using shared utility
       return handleRepositoryError(error);
     }
-  }
-
-  /**
-   * Convert SecretRefUnion to legacy SecretRef format for backward compatibility
-   * @param secretRefUnion - SecretRefUnion (Doppler or Sealed)
-   * @returns Legacy SecretRef format
-   */
-  private convertSecretRefUnionToLegacy(
-    secretRefUnion: SecretRefUnion,
-  ): SecretRef {
-    if (isDopplerSecretRef(secretRefUnion)) {
-      // Convert DopplerSecretRef to legacy format (direct mapping)
-      return {
-        scheme: secretRefUnion.scheme,
-        provider: secretRefUnion.provider, // 'doppler'
-        tenant: secretRefUnion.tenant,
-        namespace: secretRefUnion.namespace,
-        key: secretRefUnion.key,
-        version: secretRefUnion.version,
-        raw: secretRefUnion.raw,
-      };
-    } else if (isSealedSecretRef(secretRefUnion)) {
-      // For sealed SecretRef, we create a special doppler-format key that signals
-      // the EnhancedSecretRefService to handle it as a sealed secret
-      const sealedKey = `sealed:${secretRefUnion.kekKid}:${secretRefUnion.blob}`;
-      return {
-        scheme: secretRefUnion.scheme,
-        provider: 'doppler', // Use doppler provider for legacy compatibility
-        tenant: secretRefUnion.tenant,
-        namespace: 'sealed', // Special namespace for sealed secrets
-        key: sealedKey,
-        version: `v${secretRefUnion.v}`,
-        raw: `secret://doppler/${secretRefUnion.tenant}/sealed/${sealedKey}@v${secretRefUnion.v}`,
-      };
-    }
-
-    // Fallback for unknown types (should not happen with proper validation)
-    throw new Error('Unsupported SecretRefUnion type');
   }
 }

@@ -5,7 +5,7 @@ import { CacheLayer } from '../cache/cache.layer';
 import { PolicyGuard } from '../policy/policy.guard';
 import { ProviderRegistry } from '../providers/provider.registry';
 import { DopplerProvider } from '../providers/doppler.provider';
-import { SecretRef, SecretRefError } from '../secret-ref.types';
+import { SecretRef, SecretRefError, ResolvedSecret } from '../secret-ref.types';
 import { BOUNDED_CONTEXT_LOGGER, Logger } from '../../../logging';
 
 describe('SecretRefService', () => {
@@ -143,11 +143,15 @@ describe('SecretRefService', () => {
 
   describe('healthCheck', () => {
     it('should return healthy status when canary check passes', async () => {
-      mockDopplerClient.getSecret.mockResolvedValue({
-        value: 'canary-value',
-        version: '1',
-        project: 'test-project',
-        config: 'dev',
+      mockDopplerClient.getSecret.mockImplementation(async () => {
+        // Add a small delay to ensure latency is measured
+        await new Promise((resolve) => setTimeout(resolve, 1));
+        return {
+          value: 'canary-value',
+          version: '1',
+          project: 'test-project',
+          config: 'dev',
+        };
       });
 
       const result = await service.healthCheck();
@@ -178,7 +182,10 @@ function createMockCache(): jest.Mocked<CacheLayer> {
     get: jest.fn(),
     set: jest.fn(),
     buildKey: jest.fn((ref) => `test-key-${ref.key}`),
-    computeTtl: jest.fn(() => 300000),
+    computeTtl: jest.fn(
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      (_ref: SecretRef, _result: ResolvedSecret, _maxTtlMs?: number) => 300000,
+    ),
   };
 }
 

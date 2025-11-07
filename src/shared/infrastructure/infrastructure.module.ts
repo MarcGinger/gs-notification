@@ -153,6 +153,9 @@ import {
 
     // Cache infrastructure
     CACHE_SERVICE,
+
+    // Secret reference infrastructure
+    SecretRefModule,
   ],
 })
 export class InfrastructureModule {}

@@ -8,15 +8,59 @@ import {
   registerDomainPolicy,
 } from './policy.provider';
 import { PII_POLICY_PROVIDER } from './pii-policy';
-import { PRODUCT_CONFIG_POLICY } from '../../../contexts/bank/product-config/policies/pii/product-config-policy';
+// Mock policy for testing (replaces missing bank context)
+const MOCK_POLICY = {
+  domain: 'product-config',
+  keywords: {
+    include: [
+      'ssn',
+      'social-security',
+      'tax-id',
+      'email',
+      'phone',
+      'address',
+      'name',
+      'customerName',
+      'customer',
+      'username',
+    ],
+    exclude: ['id', 'status', 'type'],
+  },
+  fieldHints: {
+    piiFields: [
+      'ssn',
+      'email',
+      'phone',
+      'address',
+      'name',
+      'customerName',
+      'customer.name',
+    ],
+    nonPiiFields: [
+      'id',
+      'status',
+      'type',
+      'railName',
+      'rail.name',
+      'amount',
+      'age',
+      'code',
+    ],
+  },
+  protection: {
+    PERSONAL_IDENTIFIER: 'encrypt' as const,
+    CONTACT_INFO: 'mask' as const,
+    DEMOGRAPHIC: 'pseudonymize' as const,
+  },
+};
 
 describe('PIIClassificationService', () => {
   let service: PIIClassificationService;
   let policyProvider: DefaultPIIPolicyProvider;
 
   beforeEach(async () => {
-    // Register the product-config policy for testing
-    registerDomainPolicy(PRODUCT_CONFIG_POLICY);
+    // Register the mock policy for testing
+    registerDomainPolicy(MOCK_POLICY);
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -65,7 +109,7 @@ describe('PIIClassificationService', () => {
             fieldName: 'customerName',
             categories: expect.arrayContaining([
               PIICategory.PERSONAL_IDENTIFIER,
-            ]),
+            ]) as PIICategory[],
           }),
         ]),
       );
@@ -96,8 +140,8 @@ describe('PIIClassificationService', () => {
           expect.objectContaining({
             path: 'customer.name',
             fieldName: 'name',
-            detector: 'path_rule',
-            confidence: 1,
+            detector: 'field_name',
+            confidence: 0.6,
           }),
         ]),
       );

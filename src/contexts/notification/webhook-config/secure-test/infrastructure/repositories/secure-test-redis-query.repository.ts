@@ -18,10 +18,11 @@ import { Option } from 'src/shared/domain/types';
 import { ActorContext } from 'src/shared/application/context';
 import { RepositoryErrorFactory } from 'src/shared/domain/errors/repository.error';
 import { CacheMetricsCollector } from 'src/shared/infrastructure/projections/cache-optimization';
-import { SecretRefService } from 'src/shared/infrastructure/secret-ref/secret-ref.service';
+import { EnhancedSecretRefService } from 'src/shared/infrastructure/secret-ref/infrastructure/enhanced-secret-ref.service';
 import { SecretRef } from 'src/shared/infrastructure/secret-ref/secret-ref.types';
 import {
   SecretRefUnion,
+  DopplerSecretRef,
   isDopplerSecretRef,
   isSealedSecretRef,
 } from 'src/shared/infrastructure/secret-ref/domain/sealed-secret-ref.types';
@@ -76,7 +77,7 @@ export class SecureTestQueryRepository implements ISecureTestQuery {
     @Inject(CLOCK) private readonly clock: Clock,
     @Inject(WEBHOOK_CONFIG_DI_TOKENS.IO_REDIS)
     private readonly redis: Redis,
-    private readonly secretRefService: SecretRefService,
+    private readonly secretRefService: EnhancedSecretRefService,
   ) {
     this.loggingConfig = {
       serviceName: 'SecureTestConfigService',
@@ -196,6 +197,7 @@ export class SecureTestQueryRepository implements ISecureTestQuery {
       }
 
       // Transform to DetailSecureTestResponse DTO (excluding internal fields)
+      // Return properly resolved SecretRef values
       const detailResponse: DetailSecureTestResponse = {
         id: secureTest.id,
         name: secureTest.name,
@@ -276,19 +278,19 @@ export class SecureTestQueryRepository implements ISecureTestQuery {
 
       // Parse and resolve SecretRef objects to actual values
       const signingSecret = await this.resolveSecretRefFromRedis(
-        hashData.signingSecretRef,
+        hashData.signingSecret,
         'signing secret',
         actor,
       );
 
       const username = await this.resolveSecretRefFromRedis(
-        hashData.usernameRef,
+        hashData.username,
         'username',
         actor,
       );
 
       const password = await this.resolveSecretRefFromRedis(
-        hashData.passwordRef,
+        hashData.password,
         'password',
         actor,
       );
@@ -348,30 +350,10 @@ export class SecureTestQueryRepository implements ISecureTestQuery {
           secretType,
         });
 
-        // Convert SecretRefUnion to legacy SecretRef for resolution
-        const legacySecretRef =
-          this.convertSecretRefUnionToLegacy(secretRefUnion);
-
-        // Resolve using SecretRefService with proper context
-        const resolutionContext = {
-          tenantId: actor.tenant,
-          boundedContext: 'notification',
-          purpose: 'db-conn' as const,
-          environment:
-            (process.env.NODE_ENV as
-              | 'development'
-              | 'test'
-              | 'staging'
-              | 'production') || 'development',
-        };
-
-        const result = await this.secretRefService.resolve(
-          legacySecretRef,
-          undefined,
-          resolutionContext,
-        );
-
-        return result?.value;
+        // Use EnhancedSecretRefService to resolve directly (handles both Doppler and Sealed)
+        const resolvedValue =
+          await this.secretRefService.resolveSecret(secretRefUnion);
+        return resolvedValue;
       }
 
       // Fallback to legacy SecretRef parsing
@@ -384,35 +366,22 @@ export class SecureTestQueryRepository implements ISecureTestQuery {
         return undefined;
       }
 
-      // Resolve SecretRef to actual value using SecretRefService
-      const resolutionContext = {
-        tenantId: actor.tenant,
-        boundedContext: 'notification',
-        purpose: 'db-conn' as const,
-        environment:
-          (process.env.NODE_ENV as
-            | 'development'
-            | 'test'
-            | 'staging'
-            | 'production') || 'development',
-      };
-      const resolvedSecret = await this.secretRefService.resolve(
-        secretRef,
-        undefined,
-        resolutionContext,
-      );
+      // Convert legacy SecretRef to DopplerSecretRef for unified handling
+      const dopplerSecretRef = this.convertLegacyToDopplerSecretRef(secretRef);
+      const resolvedValue =
+        await this.secretRefService.resolveSecret(dopplerSecretRef);
 
       Log.debug(
         this.logger,
-        `Successfully resolved SecretRef for ${secretType}`,
+        `Successfully resolved legacy SecretRef for ${secretType}`,
         {
           secretType,
-          secretKey: secretRef.key,
-          providerLatency: resolvedSecret.providerLatencyMs,
+          provider: secretRef.provider,
+          tenant: secretRef.tenant,
         },
       );
 
-      return resolvedSecret.value;
+      return resolvedValue;
     } catch (error) {
       Log.error(this.logger, `Error resolving SecretRef for ${secretType}`, {
         secretType,
@@ -477,5 +446,25 @@ export class SecureTestQueryRepository implements ISecureTestQuery {
 
     // Fallback for unknown types (should not happen with proper validation)
     throw new Error('Unsupported SecretRefUnion type');
+  }
+
+  /**
+   * Convert legacy SecretRef to DopplerSecretRef format for unified handling
+   * @param secretRef - Legacy SecretRef
+   * @returns DopplerSecretRef format
+   */
+  private convertLegacyToDopplerSecretRef(
+    secretRef: SecretRef,
+  ): DopplerSecretRef {
+    // Legacy SecretRef is already in Doppler format, just add type safety
+    return {
+      scheme: secretRef.scheme as 'secret',
+      provider: secretRef.provider as 'doppler',
+      tenant: secretRef.tenant,
+      namespace: secretRef.namespace,
+      key: secretRef.key,
+      version: secretRef.version,
+      raw: secretRef.raw,
+    };
   }
 }
