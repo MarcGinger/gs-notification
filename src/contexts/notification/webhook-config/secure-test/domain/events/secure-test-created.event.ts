@@ -20,7 +20,7 @@ export interface SecureTestCreatedEventPayload {
   signatureAlgorithm?: SecureTestSignatureAlgorithmValue;
   username?: string;
   password?: string;
-}/**
+} /**
  * SecureTest Created Domain Event
  *
  * Emitted when a new secureTest is successfully created.

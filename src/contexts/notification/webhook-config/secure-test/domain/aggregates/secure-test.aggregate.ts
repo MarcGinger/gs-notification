@@ -512,7 +512,7 @@ export class SecureTestAggregate extends AggregateRootBase {
     // Commit the batched changes
     this._entity = currentEntity;
 
-    // Create domain-shaped update event with pure business values  
+    // Create domain-shaped update event with pure business values
     // Domain layer works with plaintext - encryption is handled by infrastructure
     const updatedEvent = SecureTestUpdatedEvent.create({
       id: this._entity.id.value,

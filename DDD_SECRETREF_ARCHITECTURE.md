@@ -7,6 +7,7 @@ This document outlines the correct Domain-Driven Design (DDD) architecture for h
 ## Architecture Principles
 
 ### 🧠 Domain Layer
+
 **Knows:** Business rules, invariants, aggregates, entities, and value objects  
 **Does NOT know:** Persistence format, encryption, transport, or infrastructure details  
 **Works with:** Pure business values (plaintext strings) as meaningful domain types  
@@ -17,15 +18,17 @@ This document outlines the correct Domain-Driven Design (DDD) architecture for h
 interface SecureTestCreatedEventPayload {
   id: string;
   name: string;
-  signingSecret?: string;  // Pure business value, not encryption artifact
-  username?: string;       // Pure business value
-  password?: string;       // Pure business value
+  signingSecret?: string; // Pure business value, not encryption artifact
+  username?: string; // Pure business value
+  password?: string; // Pure business value
 }
 ```
 
 ### ⚙️ Application Layer
+
 **Coordinates:** Commands and queries between domain and infrastructure  
 **Responsibilities:**
+
 - Pass decrypted domain objects into aggregates
 - Receive domain results and coordinate with encryption services
 - Define which infrastructure adapters to use
@@ -50,8 +53,10 @@ export class SecureTestSecretRefService {
 ```
 
 ### 🏗️ Infrastructure Layer
+
 **Implements:** Mechanics of encryption, storage, and transport  
 **Responsibilities:**
+
 - Use appropriate encryption provider (Doppler, Sealed, etc.)
 - Handle encryption at rest and decryption on read transparently
 - Guarantee repositories never leak plaintext secrets
@@ -65,7 +70,10 @@ export class EncryptedSecureTestWriterRepository implements ISecureTestWriter {
     private readonly crypto: CryptoAdapter,
   ) {}
 
-  async save(actor: ActorContext, secureTest: SecureTestAggregate): Promise<Result<SaveReceipt, DomainError>> {
+  async save(
+    actor: ActorContext,
+    secureTest: SecureTestAggregate,
+  ): Promise<Result<SaveReceipt, DomainError>> {
     // Intercept domain events and encrypt sensitive fields before persistence
     const encryptedAggregate = this.encryptSensitiveFields(secureTest, actor);
     return this.inner.save(actor, encryptedAggregate);
@@ -78,21 +86,23 @@ export class EncryptedSecureTestWriterRepository implements ISecureTestWriter {
 ### Event Flow
 
 1. **Domain Creates Events** with plaintext business values:
+
    ```typescript
    // Domain aggregate creates event with pure business data
    const createdEvent = SecureTestCreatedEvent.create({
      id: 'test-id',
      signingSecret: 'ACTUAL_SECRET_VALUE', // Pure business value
-     username: 'admin',                    // Pure business value
+     username: 'admin', // Pure business value
    });
    ```
 
 2. **Infrastructure Intercepts Events** before persistence:
+
    ```typescript
    // Infrastructure adapter encrypts before storage
    private encryptEventData(event: DomainEvent, actor: ActorContext): DomainEvent {
      const encryptedData = { ...event.data };
-     
+
      if (event.data.signingSecret) {
        encryptedData.signingSecret = this.createSecretRef(
          event.data.signingSecret, // Take plaintext from domain
@@ -100,7 +110,7 @@ export class EncryptedSecureTestWriterRepository implements ISecureTestWriter {
          'signing',
        );
      }
-     
+
      return { ...event, data: encryptedData };
    }
    ```
@@ -110,7 +120,7 @@ export class EncryptedSecureTestWriterRepository implements ISecureTestWriter {
    {
      "signingSecret": {
        "type": "doppler",
-       "tenant": "core", 
+       "tenant": "core",
        "namespace": "signing",
        "key": "ENCRYPTED_REFERENCE_KEY"
      }
@@ -123,9 +133,9 @@ export class EncryptedSecureTestWriterRepository implements ISecureTestWriter {
 // Application layer wires up the encryption adapter
 @Module({
   providers: [
-    SecureTestWriterRepository,        // Inner repository
+    SecureTestWriterRepository, // Inner repository
     {
-      provide: ISecureTestWriter,      // Interface
+      provide: ISecureTestWriter, // Interface
       useClass: EncryptedSecureTestWriterRepository, // Encryption adapter
     },
   ],
@@ -136,20 +146,23 @@ export class SecureTestModule {}
 ## Benefits
 
 ### ✅ Clean Domain Layer
+
 - Domain works with pure business concepts
 - No infrastructure leakage
 - Easy to unit test with plain values
 - Clear business logic
 
 ### ✅ Transparent Infrastructure
-- Encryption/decryption happens automatically  
+
+- Encryption/decryption happens automatically
 - Multiple encryption providers supported
 - Infrastructure changes don't affect domain
 - Security handled at proper layer
 
 ### ✅ Flexible Application Layer
+
 - Coordinates between layers appropriately
-- Can switch encryption strategies  
+- Can switch encryption strategies
 - Handles cross-cutting concerns
 - Clear separation of responsibilities
 
@@ -178,7 +191,7 @@ secure-test/
 ## Migration Path
 
 1. ✅ **Domain Events Fixed** - Now use plaintext business values
-2. ✅ **Infrastructure Adapters Created** - Handle encryption transparently  
+2. ✅ **Infrastructure Adapters Created** - Handle encryption transparently
 3. 🔄 **Application Layer Updated** - Wire encryption adapters
 4. 🔄 **Integration Tests** - Verify end-to-end encryption flow
 5. 🔄 **Production Deployment** - Gradual rollout with monitoring
