@@ -19,6 +19,53 @@ export interface SensitiveFieldConfig {
 }
 
 /**
+ * Structure of a parsed SecretRef object from JSON
+ */
+interface ParsedSecretRef {
+  scheme: string;
+  provider: string;
+  blob: string;
+  [key: string]: unknown;
+}
+
+/**
+ * Structure of decrypted blob data (mock encryption format)
+ */
+interface MockEncryptedBlobData {
+  plaintext: string;
+  tenant: string;
+  namespace: string;
+  timestamp: number;
+  mockEncryption: boolean;
+}
+
+/**
+ * Type guard to check if object is a valid SecretRef
+ */
+function isValidSecretRef(obj: unknown): obj is ParsedSecretRef {
+  return (
+    typeof obj === 'object' &&
+    obj !== null &&
+    typeof (obj as ParsedSecretRef).scheme === 'string' &&
+    typeof (obj as ParsedSecretRef).provider === 'string' &&
+    typeof (obj as ParsedSecretRef).blob === 'string'
+  );
+}
+
+/**
+ * Type guard to check if object is valid blob data
+ */
+function isValidBlobData(obj: unknown): obj is MockEncryptedBlobData {
+  return (
+    typeof obj === 'object' &&
+    obj !== null &&
+    typeof (obj as MockEncryptedBlobData).plaintext === 'string' &&
+    typeof (obj as MockEncryptedBlobData).tenant === 'string' &&
+    typeof (obj as MockEncryptedBlobData).namespace === 'string'
+  );
+}
+
+/**
  * Shared service for encrypting sensitive fields in domain events
  *
  * This service provides reusable functionality for:
@@ -50,26 +97,24 @@ export class EventEncryptionService {
     config: SensitiveFieldConfig,
   ): readonly DomainEvent[] {
     return events.map((event) => {
+      // Cast event data to a record for processing
+      const eventData = event.data as Record<string, unknown>;
+
       // Only encrypt events with sensitive data
-      if (!this.hasSensitiveFields(event.data, config)) {
+      if (!this.hasSensitiveFields(eventData, config)) {
         return event;
       }
 
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-      const eventData = event.data as any;
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       const encryptedData = { ...eventData };
 
       // Convert plaintext secrets to SecretRef objects for storage
       for (const fieldName of config.sensitiveFields) {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
         const fieldValue = eventData[fieldName];
         if (fieldValue && typeof fieldValue === 'string') {
           const namespace =
             config.namespaceMap?.[fieldName] ??
             config.defaultNamespace ??
             'general';
-          // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
           encryptedData[fieldName] = this.createSecretRef(
             fieldValue,
             actor.tenant,
@@ -89,14 +134,16 @@ export class EventEncryptionService {
    * @param config - Configuration for sensitive field detection (required)
    * @returns True if the event contains any sensitive fields
    */
-  hasSensitiveFields(eventData: any, config: SensitiveFieldConfig): boolean {
+  hasSensitiveFields(
+    eventData: Record<string, unknown>,
+    config: SensitiveFieldConfig,
+  ): boolean {
     if (!eventData || typeof eventData !== 'object') {
       return false;
     }
 
     return config.sensitiveFields.some(
       (fieldName) =>
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
         eventData[fieldName] && typeof eventData[fieldName] === 'string',
     );
   }
@@ -173,35 +220,39 @@ export class EventEncryptionService {
       }
 
       try {
-        // Parse the SecretRef JSON
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-        const secretRef = JSON.parse(secretRefJson);
+        // Parse the SecretRef JSON with type validation
+        const secretRefRaw = JSON.parse(secretRefJson);
 
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-        if (secretRef.scheme === 'secret' && secretRef.provider === 'sealed') {
+        if (!isValidSecretRef(secretRefRaw)) {
+          throw new Error(`Invalid SecretRef format for field ${fieldName}`);
+        }
+
+        if (
+          secretRefRaw.scheme === 'secret' &&
+          secretRefRaw.provider === 'sealed'
+        ) {
           // Decode the mock encrypted blob (base64 -> JSON)
-          // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-argument
-          const blobData = JSON.parse(
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-argument
-            Buffer.from(secretRef.blob, 'base64').toString('utf-8'),
+          const blobDataRaw = JSON.parse(
+            Buffer.from(secretRefRaw.blob, 'base64').toString('utf-8'),
           );
 
+          if (!isValidBlobData(blobDataRaw)) {
+            throw new Error(`Invalid blob data format for field ${fieldName}`);
+          }
+
           // Validate tenant matches
-          // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-          if (blobData.tenant !== actor.tenant) {
+          if (blobDataRaw.tenant !== actor.tenant) {
             throw new Error(`Tenant mismatch for field ${fieldName}`);
           }
 
           // Extract the plaintext (mock decryption)
-          // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment
-          decrypted[fieldName] = blobData.plaintext;
+          decrypted[fieldName] = blobDataRaw.plaintext;
         } else {
           // For other SecretRef types, we'd need proper resolution
           // For now, just return undefined
           decrypted[fieldName] = undefined;
         }
       } catch (error) {
-        // eslint-disable-next-line no-console
         console.warn(`Failed to decrypt field ${fieldName}:`, error);
         decrypted[fieldName] = undefined;
       }
