@@ -55,7 +55,7 @@ export class DopplerClient {
         );
       }
 
-      const data = (await res.json()) as any;
+      const data = await res.json();
       this.recordSuccess();
 
       // Shape normalization - extract actual secret value from Doppler API response

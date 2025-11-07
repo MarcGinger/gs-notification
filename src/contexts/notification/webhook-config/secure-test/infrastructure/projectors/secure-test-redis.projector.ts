@@ -41,6 +41,11 @@ import { NotificationSlackProjectorConfig } from '../../../projector.config';
 import { SecureTestProjectionKeys } from '../../secure-test-projection-keys';
 import { SecureTestFieldValidatorUtil } from '../utilities/secure-test-field-validator.util';
 import { DetailSecureTestResponse } from '../../application/dtos';
+import {
+  SecretRefUnion,
+  isDopplerSecretRef,
+  isSealedSecretRef,
+} from 'src/shared/infrastructure/secret-ref/domain/sealed-secret-ref.types';
 /**
  * SecureTest projector error catalog using shared error definitions
  */
@@ -345,8 +350,8 @@ export class SecureTestProjector
         config.VERSION_KEY_PREFIX,
       );
 
-      // ✅ Log observable outcomes for SLO monitoring
-      this.logProjectionOutcome(outcome, event, tenant);
+      // ✅ Log observable outcomes for SLO monitoring with SecretRef type information
+      this.logProjectionOutcome(outcome, event, tenant, params);
 
       return outcome;
     } catch (error) {
@@ -375,12 +380,59 @@ export class SecureTestProjector
   }
 
   /**
+   * Phase 3.3: Inspect SecretRef type for projection metrics without decryption
+   * Maintains security boundaries by only examining type information, not decrypting sealed content
+   * @param secretRefJson - JSON string of SecretRef from projection data
+   * @returns SecretRef type information for metrics/logging
+   */
+  private inspectSecretRefType(secretRefJson?: string): {
+    type: 'doppler' | 'sealed' | 'legacy' | 'none';
+    hasTenantScope: boolean;
+  } {
+    if (!secretRefJson) {
+      return { type: 'none', hasTenantScope: false };
+    }
+
+    try {
+      const parsed: unknown = JSON.parse(secretRefJson);
+
+      // Try parsing as SecretRefUnion first
+      if (parsed && typeof parsed === 'object' && parsed !== null) {
+        try {
+          // Safe type checking using SecretRefUnion validation
+          const secretRefUnion = parsed as SecretRefUnion;
+          if (isDopplerSecretRef(secretRefUnion)) {
+            return { type: 'doppler', hasTenantScope: false };
+          } else if (isSealedSecretRef(secretRefUnion)) {
+            // Sealed SecretRefs have tenant scope by definition (require tenant KEK)
+            return { type: 'sealed', hasTenantScope: true };
+          }
+        } catch {
+          // Not a valid SecretRefUnion, try legacy format
+        }
+      }
+
+      // Legacy SecretRef format (just secretId string)
+      if (parsed && typeof parsed === 'object' && 'secretId' in parsed) {
+        return { type: 'legacy', hasTenantScope: false };
+      }
+
+      return { type: 'none', hasTenantScope: false };
+    } catch {
+      // Invalid JSON or parsing error
+      return { type: 'none', hasTenantScope: false };
+    }
+  }
+
+  /**
    * Log projection outcomes for SLO monitoring and incident analysis
+   * Enhanced for Phase 3.3: Includes SecretRef type information for sealed SecretRef observability
    */
   private logProjectionOutcome(
     outcome: ProjectionOutcome,
     event: ProjectionEvent,
     tenant: string,
+    params?: SecureTestProjectionParams,
   ): void {
     const outcomeLabels = {
       [ProjectionOutcome.APPLIED]: 'applied',
@@ -393,6 +445,21 @@ export class SecureTestProjector
     const outcomeLabel = outcomeLabels[outcome] || 'unknown';
     const level = outcome === ProjectionOutcome.APPLIED ? 'debug' : 'info';
 
+    // Phase 3.3: Add SecretRef type information for sealed SecretRef observability
+    const secretRefTypes = params
+      ? {
+          signingSecretType: this.inspectSecretRefType(params.signingSecret)
+            .type,
+          usernameType: this.inspectSecretRefType(params.username).type,
+          passwordType: this.inspectSecretRefType(params.password).type,
+          hasSealedSecrets: [
+            this.inspectSecretRefType(params.signingSecret),
+            this.inspectSecretRefType(params.username),
+            this.inspectSecretRefType(params.password),
+          ].some((ref) => ref.type === 'sealed'),
+        }
+      : {};
+
     Log[level](this.logger, `Event projection outcome: ${outcomeLabel}`, {
       method: 'logProjectionOutcome',
       outcome,
@@ -402,6 +469,7 @@ export class SecureTestProjector
       revision: event.revision,
       tenant,
       metrics: this.metricsCollector.getMetrics(),
+      ...secretRefTypes, // Include SecretRef type information for observability
     });
   }
 
@@ -436,9 +504,10 @@ export class SecureTestProjector
 
   /**
    * Extract secure-test parameters from event data using SecureTestFieldValidatorUtil
-   *
+  /**
    * Uses SecureTestFieldValidatorUtil to create validated DetailSecureTestResponse for consistent
    * validation across repository and projector, and TenantExtractor for reliable tenant identification.
+   * Enhanced for Phase 3.3: Supports sealed SecretRef projection with proper security boundaries.
    */
   private extractSecureTestParams(
     event: ProjectionEvent,
@@ -450,7 +519,9 @@ export class SecureTestProjector
       // Extract tenant using shared utility
       const tenant = TenantExtractor.extractTenant(event);
 
-      // Use SecureTestFieldValidatorUtil to create projector data with SecretRef support
+      // Use SecureTestFieldValidatorUtil to create projector data with SecretRefUnion support
+      // The field validator handles both Doppler and Sealed SecretRef types by storing them as JSON
+      // Sealed SecretRefs remain encrypted in projections, maintaining security boundaries
       const secureTestProjectorData =
         SecureTestFieldValidatorUtil.createSecureTestProjectorDataFromEventData(
           eventData,

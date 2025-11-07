@@ -10,6 +10,8 @@ import { DopplerClient } from './providers/doppler.client';
 import { SecretRefConfigValidator } from './config/secret-ref-config.validator';
 import { SecretRefHealthIndicator } from './health/secret-ref-health.indicator';
 import { SecretRefMetricsService } from './metrics/secret-ref-metrics.service';
+import { SealedSecretService } from './infrastructure/sealed-secret.service';
+import { EnhancedSecretRefService } from './infrastructure/enhanced-secret-ref.service';
 import {
   LoggingModule,
   BOUNDED_CONTEXT_LOGGER,
@@ -34,6 +36,10 @@ import { AppConfigUtil } from '../../config/app-config.util';
     ProviderRegistry,
     PolicyGuard,
     { provide: CacheLayer, useExisting: InMemoryCache },
+
+    // Enhanced Services (Phase 1)
+    SealedSecretService,
+    EnhancedSecretRefService,
 
     // Configuration & Health
     SecretRefConfigValidator,
@@ -68,6 +74,8 @@ import { AppConfigUtil } from '../../config/app-config.util';
   ],
   exports: [
     SecretRefService,
+    SealedSecretService,
+    EnhancedSecretRefService,
     SecretRefHealthIndicator,
     SecretRefMetricsService,
   ],

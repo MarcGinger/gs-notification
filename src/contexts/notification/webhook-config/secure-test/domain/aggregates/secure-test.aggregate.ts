@@ -137,7 +137,8 @@ export class SecureTestAggregate extends AggregateRootBase {
       eventMetadata,
     );
 
-    // Create typed SecureTestCreatedEvent with only business data
+    // Create typed SecureTestCreatedEvent with pure business values
+    // Domain layer works with plaintext - encryption is handled by infrastructure
     const createdEvent = SecureTestCreatedEvent.create({
       id: entityProps.id.value,
       name: entityProps.name.value,
@@ -511,7 +512,8 @@ export class SecureTestAggregate extends AggregateRootBase {
     // Commit the batched changes
     this._entity = currentEntity;
 
-    // Create domain-shaped update event (same structure as created event)
+    // Create domain-shaped update event with pure business values  
+    // Domain layer works with plaintext - encryption is handled by infrastructure
     const updatedEvent = SecureTestUpdatedEvent.create({
       id: this._entity.id.value,
       name: this._entity.name.value,

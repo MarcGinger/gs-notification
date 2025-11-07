@@ -20,6 +20,12 @@ import { RepositoryErrorFactory } from 'src/shared/domain/errors/repository.erro
 import { CacheMetricsCollector } from 'src/shared/infrastructure/projections/cache-optimization';
 import { SecretRefService } from 'src/shared/infrastructure/secret-ref/secret-ref.service';
 import { SecretRef } from 'src/shared/infrastructure/secret-ref/secret-ref.types';
+import {
+  SecretRefUnion,
+  isDopplerSecretRef,
+  isSealedSecretRef,
+} from 'src/shared/infrastructure/secret-ref/domain/sealed-secret-ref.types';
+import { SecureTestFieldValidatorUtil } from '../utilities/secure-test-field-validator.util';
 import { WEBHOOK_CONFIG_DI_TOKENS } from '../../../webhook-config.constants';
 import { SecureTestProjectionKeys } from '../../secure-test-projection-keys';
 import { DetailSecureTestResponse } from '../../application/dtos';
@@ -316,6 +322,7 @@ export class SecureTestQueryRepository implements ISecureTestQuery {
 
   /**
    * Resolve a SecretRef from Redis hash data to actual secret value
+   * Enhanced to support both legacy SecretRef and new SecretRefUnion types
    * @param secretRefJson - JSON string of SecretRef object stored in Redis
    * @param secretType - Type of secret for logging (e.g., 'signing secret', 'username')
    * @param actor - Actor context for secret resolution
@@ -331,7 +338,43 @@ export class SecureTestQueryRepository implements ISecureTestQuery {
     }
 
     try {
-      // Parse SecretRef from JSON
+      // Try parsing as SecretRefUnion first (new format)
+      const secretRefUnion =
+        SecureTestFieldValidatorUtil.parseSecretRefFromJSON(secretRefJson);
+      if (secretRefUnion) {
+        Log.debug(this.logger, `Resolved SecretRefUnion for ${secretType}`, {
+          provider: secretRefUnion.provider,
+          tenant: secretRefUnion.tenant,
+          secretType,
+        });
+
+        // Convert SecretRefUnion to legacy SecretRef for resolution
+        const legacySecretRef =
+          this.convertSecretRefUnionToLegacy(secretRefUnion);
+
+        // Resolve using SecretRefService with proper context
+        const resolutionContext = {
+          tenantId: actor.tenant,
+          boundedContext: 'notification',
+          purpose: 'db-conn' as const,
+          environment:
+            (process.env.NODE_ENV as
+              | 'development'
+              | 'test'
+              | 'staging'
+              | 'production') || 'development',
+        };
+
+        const result = await this.secretRefService.resolve(
+          legacySecretRef,
+          undefined,
+          resolutionContext,
+        );
+
+        return result?.value;
+      }
+
+      // Fallback to legacy SecretRef parsing
       const secretRef = safeParseJSON<SecretRef>(secretRefJson, secretType);
       if (!secretRef || !secretRef.scheme || !secretRef.provider) {
         Log.warn(this.logger, `Invalid SecretRef format for ${secretType}`, {
@@ -396,5 +439,43 @@ export class SecureTestQueryRepository implements ISecureTestQuery {
       actor,
       additionalContext,
     );
+  }
+
+  /**
+   * Convert SecretRefUnion to legacy SecretRef format for backward compatibility
+   * @param secretRefUnion - SecretRefUnion (Doppler or Sealed)
+   * @returns Legacy SecretRef format
+   */
+  private convertSecretRefUnionToLegacy(
+    secretRefUnion: SecretRefUnion,
+  ): SecretRef {
+    if (isDopplerSecretRef(secretRefUnion)) {
+      // Convert DopplerSecretRef to legacy format (direct mapping)
+      return {
+        scheme: secretRefUnion.scheme,
+        provider: secretRefUnion.provider, // 'doppler'
+        tenant: secretRefUnion.tenant,
+        namespace: secretRefUnion.namespace,
+        key: secretRefUnion.key,
+        version: secretRefUnion.version,
+        raw: secretRefUnion.raw,
+      };
+    } else if (isSealedSecretRef(secretRefUnion)) {
+      // For sealed SecretRef, we create a special doppler-format key that signals
+      // the EnhancedSecretRefService to handle it as a sealed secret
+      const sealedKey = `sealed:${secretRefUnion.kekKid}:${secretRefUnion.blob}`;
+      return {
+        scheme: secretRefUnion.scheme,
+        provider: 'doppler', // Use doppler provider for legacy compatibility
+        tenant: secretRefUnion.tenant,
+        namespace: 'sealed', // Special namespace for sealed secrets
+        key: sealedKey,
+        version: `v${secretRefUnion.v}`,
+        raw: `secret://doppler/${secretRefUnion.tenant}/sealed/${sealedKey}@v${secretRefUnion.v}`,
+      };
+    }
+
+    // Fallback for unknown types (should not happen with proper validation)
+    throw new Error('Unsupported SecretRefUnion type');
   }
 }
