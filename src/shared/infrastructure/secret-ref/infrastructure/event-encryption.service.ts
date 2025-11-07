@@ -19,29 +19,6 @@ export interface SensitiveFieldConfig {
 }
 
 /**
- * Default configuration for common sensitive fields
- */
-const DEFAULT_SENSITIVE_FIELD_CONFIG: SensitiveFieldConfig = {
-  sensitiveFields: [
-    'signingSecret',
-    'username',
-    'password',
-    'apiKey',
-    'token',
-    'secret',
-  ],
-  namespaceMap: {
-    signingSecret: 'signing',
-    username: 'auth',
-    password: 'auth',
-    apiKey: 'api',
-    token: 'auth',
-    secret: 'general',
-  },
-  defaultNamespace: 'general',
-};
-
-/**
  * Shared service for encrypting sensitive fields in domain events
  *
  * This service provides reusable functionality for:
@@ -64,13 +41,13 @@ export class EventEncryptionService {
    *
    * @param events - Domain events to process
    * @param actor - Actor context containing tenant information
-   * @param config - Configuration for sensitive field detection (optional, uses defaults)
+   * @param config - Configuration for sensitive field detection (required)
    * @returns Events with sensitive fields converted to SecretRef objects
    */
   encryptSensitiveFields(
     events: readonly DomainEvent[],
     actor: ActorContext,
-    config: SensitiveFieldConfig = DEFAULT_SENSITIVE_FIELD_CONFIG,
+    config: SensitiveFieldConfig,
   ): readonly DomainEvent[] {
     return events.map((event) => {
       // Only encrypt events with sensitive data
@@ -109,13 +86,10 @@ export class EventEncryptionService {
    * Check if event data contains sensitive fields that need encryption
    *
    * @param eventData - Event data to check
-   * @param config - Configuration for sensitive field detection
+   * @param config - Configuration for sensitive field detection (required)
    * @returns True if the event contains any sensitive fields
    */
-  hasSensitiveFields(
-    eventData: any,
-    config: SensitiveFieldConfig = DEFAULT_SENSITIVE_FIELD_CONFIG,
-  ): boolean {
+  hasSensitiveFields(eventData: any, config: SensitiveFieldConfig): boolean {
     if (!eventData || typeof eventData !== 'object') {
       return false;
     }

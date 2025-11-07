@@ -2,7 +2,7 @@ const http = require('http');
 
 // Test data for creating a new SecureTest with sensitive fields
 const testSecureTestData = {
-  id: 'test-webhook-config-secretref-new', // Unique ID for this test
+  id: 'test-webhook-config-secretref-final', // Unique ID for this test
   name: 'Test Webhook Config',
   description: 'Test webhook configuration with SecretRef encryption',
   type: 'none',

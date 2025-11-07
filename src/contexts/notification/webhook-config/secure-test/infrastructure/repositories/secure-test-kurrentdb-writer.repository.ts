@@ -165,7 +165,15 @@ export class SecureTestWriterRepository
     const eventsToStore = this.eventEncryptionService.encryptSensitiveFields(
       events,
       actor,
-      // ['signingSecret', 'username', 'password'],
+      {
+        sensitiveFields: ['signingSecret', 'username', 'password'],
+        namespaceMap: {
+          signingSecret: 'signing',
+          username: 'auth',
+          password: 'auth',
+        },
+        defaultNamespace: 'general',
+      },
     );
 
     // prevVersion = version BEFORE current batch
