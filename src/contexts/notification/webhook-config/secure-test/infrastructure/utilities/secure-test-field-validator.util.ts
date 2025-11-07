@@ -27,56 +27,6 @@ import { EventDataProcessingUtils } from 'src/shared/infrastructure/events/utili
  */
 export class SecureTestFieldValidatorUtil {
   /**
-   * Create a validated DetailSecureTestResponse from raw EventStore event data
-   *
-   * Uses modern safeParseJSON utilities and DTOs to maintain CQRS compliance.
-   * This creates read model data for projections, not domain props.
-   *
-   * @param aggregateData - Raw event data from EventStore
-   * @returns Validated DetailSecureTestResponse DTO with all required fields
-   * @throws Error if required fields are missing or invalid
-   */
-  static createSecureTestSnapshotFromEventData(
-    aggregateData: Record<string, any>,
-  ): DetailSecureTestResponse & {
-    version: number;
-    createdAt: Date;
-    updatedAt: Date;
-  } {
-    // Extract simple fields directly from event data
-    const id = aggregateData.id as string;
-    const name = aggregateData.name as string;
-    const description = aggregateData.description as string;
-    const type = aggregateData.type as SecureTestTypeValue;
-    const signatureAlgorithm =
-      aggregateData.signatureAlgorithm as SecureTestSignatureAlgorithmValue;
-
-    // Extract version and timestamps with proper type conversion
-    const version = EventDataProcessingUtils.extractVersion(aggregateData);
-    const { createdAt, updatedAt } =
-      EventDataProcessingUtils.extractTimestamps(aggregateData);
-
-    // Return SecretRef objects as JSON strings for Redis storage
-    // This maintains backward compatibility with snapshot props structure
-    // but stores encrypted SecretRef objects instead of plain text
-    return {
-      id,
-      name,
-      description,
-      type,
-      // For backward compatibility, still return the expected interface
-      // but now with SecretRef support we'll add a new method for projector
-      signingSecret: undefined,
-      signatureAlgorithm,
-      username: undefined,
-      password: undefined,
-      version,
-      createdAt,
-      updatedAt,
-    };
-  }
-
-  /**
    * Create projector data with SecretRef objects for Redis storage
    *
    * This method extracts SecretRef objects from event data and serializes them
