@@ -5,17 +5,14 @@ import {
   SecureTestSignatureAlgorithmValue,
   SecureTestTypeValue,
 } from '../../application/dtos';
-import { SecretRef } from 'src/shared/infrastructure/secret-ref/secret-ref.types';
+
 import {
   SecretRefUnion,
   DopplerSecretRef,
   SealedSecretRef,
-  validateSecretRef,
-  isDopplerSecretRef,
-  isSealedSecretRef,
-  createDopplerSecretRef,
-  createSealedSecretRef,
 } from 'src/shared/infrastructure/secret-ref/domain/sealed-secret-ref.types';
+import { SecretRefUtils } from 'src/shared/infrastructure/secret-ref/utilities/secret-ref.utils';
+import { EventDataProcessingUtils } from 'src/shared/infrastructure/events/utilities/event-data-processing.utils';
 
 /**
  * SecureTest Field Validator Utility
@@ -55,18 +52,9 @@ export class SecureTestFieldValidatorUtil {
       aggregateData.signatureAlgorithm as SecureTestSignatureAlgorithmValue;
 
     // Extract version and timestamps with proper type conversion
-    const version =
-      typeof aggregateData.version === 'string'
-        ? parseInt(aggregateData.version, 10)
-        : (aggregateData.version as number);
-    const createdAt =
-      typeof aggregateData.createdAt === 'string'
-        ? new Date(aggregateData.createdAt)
-        : (aggregateData.createdAt as Date);
-    const updatedAt =
-      typeof aggregateData.updatedAt === 'string'
-        ? new Date(aggregateData.updatedAt)
-        : (aggregateData.updatedAt as Date);
+    const version = EventDataProcessingUtils.extractVersion(aggregateData);
+    const { createdAt, updatedAt } =
+      EventDataProcessingUtils.extractTimestamps(aggregateData);
 
     // Return SecretRef objects as JSON strings for Redis storage
     // This maintains backward compatibility with snapshot props structure
@@ -140,18 +128,9 @@ export class SecureTestFieldValidatorUtil {
     // Extract credentials for validation (they're handled via SecretRef below)
 
     // Extract version and timestamps with proper type conversion
-    const version =
-      typeof aggregateData.version === 'string'
-        ? parseInt(aggregateData.version, 10)
-        : (aggregateData.version as number);
-    const createdAt =
-      typeof aggregateData.createdAt === 'string'
-        ? new Date(aggregateData.createdAt)
-        : (aggregateData.createdAt as Date);
-    const updatedAt =
-      typeof aggregateData.updatedAt === 'string'
-        ? new Date(aggregateData.updatedAt)
-        : (aggregateData.updatedAt as Date);
+    const version = EventDataProcessingUtils.extractVersion(aggregateData);
+    const { createdAt, updatedAt } =
+      EventDataProcessingUtils.extractTimestamps(aggregateData);
 
     return {
       id,
@@ -176,7 +155,7 @@ export class SecureTestFieldValidatorUtil {
    * Validate SecretRefUnion object (supports both doppler and sealed)
    */
   static validateSecretRefUnion(ref: unknown): ref is SecretRefUnion {
-    return validateSecretRef(ref);
+    return SecretRefUtils.validateSecretRefUnion(ref);
   }
 
   /**
@@ -186,13 +165,7 @@ export class SecureTestFieldValidatorUtil {
     baseKey: string,
     tenant: string = 'core',
   ): DopplerSecretRef {
-    // Parse field path to extract namespace and key
-    // Format: "notification.slack.token" -> namespace: "notification", key: "slack.token"
-    const parts = baseKey.split('.');
-    const namespace = parts[0] || 'default';
-    const key = parts.slice(1).join('.') || baseKey;
-
-    return createDopplerSecretRef(tenant, namespace, key, {
+    return SecretRefUtils.createDopplerSecretRefForField(baseKey, tenant, {
       version: 'latest',
       algHint: 'doppler-v1',
     });
@@ -206,54 +179,38 @@ export class SecureTestFieldValidatorUtil {
     context: string,
     algorithm: 'XCHACHA20-POLY1305' | 'AES-256-GCM' = 'XCHACHA20-POLY1305',
   ): SealedSecretRef {
-    const mockBlob = Buffer.from(`encrypted-${context}`).toString('base64');
-    const kekKid = `TENANT_KEK_${tenant.toUpperCase()}_V1`;
-
-    return createSealedSecretRef(tenant, kekKid, algorithm, mockBlob, {
-      aad: context,
-      v: 1,
-    });
+    return SecretRefUtils.createSealedSecretRefForField(
+      tenant,
+      context,
+      algorithm,
+    );
   }
 
   /**
    * Parse and validate SecretRef from stored JSON string
    */
   static parseSecretRefFromJSON(jsonString: string): SecretRefUnion | null {
-    try {
-      const parsed = JSON.parse(jsonString);
-
-      if (this.validateSecretRefUnion(parsed)) {
-        return parsed;
-      }
-
-      return null;
-    } catch {
-      return null;
-    }
+    return SecretRefUtils.parseSecretRefFromJSON(jsonString);
   }
 
   /**
    * Serialize SecretRef to JSON string for storage
    */
   static serializeSecretRefToJSON(ref: SecretRefUnion): string {
-    if (!this.validateSecretRefUnion(ref)) {
-      throw new Error('Invalid SecretRef cannot be serialized');
-    }
-
-    return JSON.stringify(ref);
+    return SecretRefUtils.serializeSecretRefToJSON(ref);
   }
 
   /**
    * Check if SecretRef is Doppler type
    */
   static isDopplerSecretRef(ref: SecretRefUnion): ref is DopplerSecretRef {
-    return isDopplerSecretRef(ref);
+    return SecretRefUtils.isDopplerSecretRef(ref);
   }
 
   /**
    * Check if SecretRef is Sealed type
    */
   static isSealedSecretRef(ref: SecretRefUnion): ref is SealedSecretRef {
-    return isSealedSecretRef(ref);
+    return SecretRefUtils.isSealedSecretRef(ref);
   }
 }

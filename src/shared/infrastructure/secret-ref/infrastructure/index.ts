@@ -4,3 +4,4 @@ export {
 } from './event-encryption.service';
 export { EnhancedSecretRefService } from './enhanced-secret-ref.service';
 export { SealedSecretService } from './sealed-secret.service';
+export { SecretRefUtils } from '../utilities/secret-ref.utils';

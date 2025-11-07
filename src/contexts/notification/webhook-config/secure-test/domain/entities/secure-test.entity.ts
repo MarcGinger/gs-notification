@@ -174,7 +174,7 @@ export class SecureTestEntity extends EntityIdBase<
       return err(typeResult.error);
     }
     const signingSecretResult = SecureTestSigningSecret.from(
-      snapshot.signingSecret ?? '',
+      snapshot.signingSecret,
     );
     if (!signingSecretResult.ok) {
       return err(signingSecretResult.error);

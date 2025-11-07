@@ -161,10 +161,11 @@ export class SecureTestWriterRepository
       return ok(receipt);
     }
 
-    // Encrypt sensitive fields before persistence (Infrastructure Layer responsibility)
+    // Encrypt sensitive fields before persistence
     const eventsToStore = this.eventEncryptionService.encryptSensitiveFields(
       events,
       actor,
+      // ['signingSecret', 'username', 'password'],
     );
 
     // prevVersion = version BEFORE current batch

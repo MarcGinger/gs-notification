@@ -175,4 +175,64 @@ export class EventEncryptionService {
       },
     );
   }
+
+  /**
+   * Mock decryption method to resolve SecretRef objects back to plaintext
+   *
+   * ⚠️ SECURITY WARNING: This is a mock implementation for development only.
+   * In production, this MUST use real decryption with proper KEK management.
+   *
+   * @param encryptedFields - Object containing SecretRef fields as JSON strings
+   * @param actor - Actor context for tenant validation
+   * @returns Object with decrypted plaintext values
+   */
+  decryptSecretRefFields(
+    encryptedFields: Record<string, string | undefined>,
+    actor: ActorContext,
+  ): Record<string, string | undefined> {
+    const decrypted: Record<string, string | undefined> = {};
+
+    for (const [fieldName, secretRefJson] of Object.entries(encryptedFields)) {
+      if (!secretRefJson) {
+        decrypted[fieldName] = undefined;
+        continue;
+      }
+
+      try {
+        // Parse the SecretRef JSON
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+        const secretRef = JSON.parse(secretRefJson);
+
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+        if (secretRef.scheme === 'secret' && secretRef.provider === 'sealed') {
+          // Decode the mock encrypted blob (base64 -> JSON)
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-argument
+          const blobData = JSON.parse(
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-argument
+            Buffer.from(secretRef.blob, 'base64').toString('utf-8'),
+          );
+
+          // Validate tenant matches
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+          if (blobData.tenant !== actor.tenant) {
+            throw new Error(`Tenant mismatch for field ${fieldName}`);
+          }
+
+          // Extract the plaintext (mock decryption)
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment
+          decrypted[fieldName] = blobData.plaintext;
+        } else {
+          // For other SecretRef types, we'd need proper resolution
+          // For now, just return undefined
+          decrypted[fieldName] = undefined;
+        }
+      } catch (error) {
+        // eslint-disable-next-line no-console
+        console.warn(`Failed to decrypt field ${fieldName}:`, error);
+        decrypted[fieldName] = undefined;
+      }
+    }
+
+    return decrypted;
+  }
 }

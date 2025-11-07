@@ -3,6 +3,7 @@
 
 import { Injectable, Inject } from '@nestjs/common';
 import { Redis } from 'ioredis';
+import { CacheMetricsCollector } from 'src/shared/infrastructure/projections/cache-optimization';
 import { APP_LOGGER, Log, componentLogger, Logger } from 'src/shared/logging';
 import { CorrelationUtil } from 'src/shared/utilities/correlation.util';
 import { Clock, CLOCK } from 'src/shared/infrastructure/time';
@@ -10,21 +11,20 @@ import {
   RepositoryLoggingUtil,
   RepositoryLoggingConfig,
   handleRepositoryError,
+  safeParseJSON,
+  safeParseJSONArray,
   RepositoryOptions,
 } from 'src/shared/infrastructure/repositories';
 import { Result, DomainError, err, ok } from 'src/shared/errors';
 import { Option } from 'src/shared/domain/types';
 import { ActorContext } from 'src/shared/application/context';
 import { RepositoryErrorFactory } from 'src/shared/domain/errors/repository.error';
-import { CacheMetricsCollector } from 'src/shared/infrastructure/projections/cache-optimization';
-import { EnhancedSecretRefService } from 'src/shared/infrastructure/secret-ref/infrastructure/enhanced-secret-ref.service';
-import { SecretRefUnion } from 'src/shared/infrastructure/secret-ref/domain/sealed-secret-ref.types';
-import { SecureTestFieldValidatorUtil } from '../utilities/secure-test-field-validator.util';
 import { WEBHOOK_CONFIG_DI_TOKENS } from '../../../webhook-config.constants';
 import { SecureTestProjectionKeys } from '../../secure-test-projection-keys';
 import { SecureTestSnapshotProps } from '../../domain/props';
 import { SecureTestId } from '../../domain/value-objects';
 import { ISecureTestReader } from '../../application/ports';
+import { EventEncryptionService } from 'src/shared/infrastructure/secret-ref/infrastructure/event-encryption.service';
 
 /**
  * SecureTest Reader Repository - Redis Implementation
@@ -39,10 +39,6 @@ import { ISecureTestReader } from '../../application/ports';
  * - Version hint optimization for cache efficiency
  * - Maintains same interface as SQL-based implementation
  * - Comprehensive logging and error handling
- *
- * SECURITY WARNING: This implementation processes mock encrypted SecretRef objects
- * that contain base64-encoded plaintext values. In production, proper decryption
- * with XChaCha20-Poly1305 encryption and tenant-specific KEKs would be required.
  *
  * @domain Notification Context - SecureTest Reader Repository (Redis)
  * @layer Infrastructure
@@ -59,7 +55,7 @@ export class SecureTestReaderRepository implements ISecureTestReader {
     @Inject(CLOCK) private readonly clock: Clock,
     @Inject(WEBHOOK_CONFIG_DI_TOKENS.IO_REDIS)
     private readonly redis: Redis,
-    private readonly secretRefService: EnhancedSecretRefService,
+    private readonly eventEncryptionService: EventEncryptionService,
   ) {
     this.loggingConfig = {
       serviceName: 'WebhookConfigService',
@@ -90,15 +86,10 @@ export class SecureTestReaderRepository implements ISecureTestReader {
 
   /**
    * Parse Redis hash data into SecureTestSnapshotProps
-   * Now handles SecretRef objects stored in Redis and resolves them to actual values
-   *
-   * SECURITY NOTE: SecretRef objects in Redis contain mock encrypted data (base64
-   * encoded plaintext). Production systems require real XChaCha20-Poly1305 decryption.
    */
-  private async parseRedisHashToSecureTest(
+  private parseRedisHashToSecureTest(
     hashData: Record<string, string>,
-    actor: ActorContext,
-  ): Promise<SecureTestSnapshotProps | null> {
+  ): SecureTestSnapshotProps | null {
     try {
       if (!hashData || Object.keys(hashData).length === 0) {
         return null;
@@ -109,6 +100,11 @@ export class SecureTestReaderRepository implements ISecureTestReader {
         return null;
       }
 
+      // Parse array fields using safeParseJSONArray utility
+
+      // Parse object fields using safeParseJSON utility
+      // Extract basic fields directly from hash data
+
       // Type assertion for type - cached data should already be validated
       const type = hashData.type as SecureTestSnapshotProps['type'];
 
@@ -116,34 +112,15 @@ export class SecureTestReaderRepository implements ISecureTestReader {
       const signatureAlgorithm =
         hashData.signatureAlgorithm as SecureTestSnapshotProps['signatureAlgorithm'];
 
-      // Parse and resolve SecretRef objects to actual values
-      const signingSecret = await this.resolveSecretRefFromRedis(
-        hashData.signingSecret,
-        'signing secret',
-        actor,
-      );
-
-      const username = await this.resolveSecretRefFromRedis(
-        hashData.username,
-        'username',
-        actor,
-      );
-
-      const password = await this.resolveSecretRefFromRedis(
-        hashData.password,
-        'password',
-        actor,
-      );
-
       return {
         id: hashData.id,
         name: hashData.name,
         description: hashData.description || undefined,
         type,
-        signingSecret,
+        signingSecret: hashData.signingSecret || undefined,
         signatureAlgorithm,
-        username,
-        password,
+        username: hashData.username || undefined,
+        password: hashData.password || undefined,
         version: parseInt(hashData.version, 10),
         createdAt: new Date(hashData.createdAt),
         updatedAt: new Date(hashData.updatedAt),
@@ -159,66 +136,6 @@ export class SecureTestReaderRepository implements ISecureTestReader {
         },
       );
       return null;
-    }
-  }
-
-  /**
-   * Resolve a SecretRef from Redis hash data to actual secret value
-   * Enhanced to support both legacy SecretRef and new SecretRefUnion types
-   *
-   * SECURITY WARNING: The sealed SecretRef objects in Redis contain base64-encoded
-   * plaintext, not actual encrypted data. In production, proper decryption with
-   * XChaCha20-Poly1305 and tenant KEKs would be required.
-   *
-   * @param secretRefJson - JSON string of SecretRef object stored in Redis
-   * @param secretType - Type of secret for logging purposes
-   * @param actor - Actor context for SecretRef resolution
-   * @returns Resolved secret value or undefined if not available
-   */
-  private async resolveSecretRefFromRedis(
-    secretRefJson: string | undefined,
-    secretType: string,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    actor: ActorContext,
-  ): Promise<string | undefined> {
-    if (!secretRefJson) {
-      return undefined;
-    }
-
-    try {
-      // Try parsing as SecretRefUnion first (new format)
-      const secretRefUnion =
-        SecureTestFieldValidatorUtil.parseSecretRefFromJSON(secretRefJson);
-      if (secretRefUnion) {
-        Log.debug(this.logger, `Resolved SecretRefUnion for ${secretType}`, {
-          provider: secretRefUnion.provider,
-          tenant: secretRefUnion.tenant,
-          secretType,
-        });
-
-        // Use EnhancedSecretRefService to resolve SecretRefUnion directly
-        const result =
-          await this.secretRefService.resolveSecret(secretRefUnion);
-        return result;
-      }
-
-      // Fallback to legacy SecretRef parsing - this shouldn't happen with new data
-      Log.warn(
-        this.logger,
-        `Falling back to legacy SecretRef parsing for ${secretType}`,
-        {
-          secretRefJson,
-          secretType,
-        },
-      );
-      return undefined;
-    } catch (error) {
-      Log.error(this.logger, `Failed to resolve ${secretType} from SecretRef`, {
-        method: 'resolveSecretRefFromRedis',
-        secretType,
-        error: (error as Error).message,
-      });
-      return undefined;
     }
   }
 
@@ -330,11 +247,8 @@ export class SecureTestReaderRepository implements ISecureTestReader {
         return ok(Option.none());
       }
 
-      // Parse Redis hash to SecureTestSnapshot with SecretRef resolution
-      const secureTestSnapshot = await this.parseRedisHashToSecureTest(
-        hashData,
-        actor,
-      );
+      // Parse Redis hash to SecureTestSnapshot
+      const secureTestSnapshot = this.parseRedisHashToSecureTest(hashData);
 
       if (!secureTestSnapshot) {
         RepositoryLoggingUtil.logQueryMetrics(
@@ -349,6 +263,25 @@ export class SecureTestReaderRepository implements ISecureTestReader {
         return ok(Option.none());
       }
 
+      // Decrypt SecretRef objects back to actual values
+      const decryptedSecrets =
+        this.eventEncryptionService.decryptSecretRefFields(
+          {
+            signingSecret: secureTestSnapshot.signingSecret,
+            username: secureTestSnapshot.username,
+            password: secureTestSnapshot.password,
+          },
+          actor,
+        );
+
+      // Update snapshot with decrypted values
+      const decryptedSnapshot: SecureTestSnapshotProps = {
+        ...secureTestSnapshot,
+        signingSecret: decryptedSecrets.signingSecret,
+        username: decryptedSecrets.username,
+        password: decryptedSecrets.password,
+      };
+
       // Log query metrics using shared utility
       RepositoryLoggingUtil.logQueryMetrics(
         this.logger,
@@ -358,13 +291,13 @@ export class SecureTestReaderRepository implements ISecureTestReader {
           resultCount: 1,
           dataQuality: 'good',
           sampleData: {
-            id: secureTestSnapshot.id,
-            version: secureTestSnapshot.version,
+            id: decryptedSnapshot.id,
+            version: decryptedSnapshot.version,
           },
         },
       );
 
-      return ok(Option.some(secureTestSnapshot));
+      return ok(Option.some(decryptedSnapshot));
     } catch (error) {
       // Log operation error using shared utility
       RepositoryLoggingUtil.logOperationError(
