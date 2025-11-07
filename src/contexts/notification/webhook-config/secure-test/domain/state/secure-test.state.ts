@@ -8,9 +8,11 @@ import {
   SecureTestDescription,
   SecureTestId,
   SecureTestName,
+  SecureTestPassword,
   SecureTestSignatureAlgorithm,
+  SecureTestSigningSecret,
   SecureTestType,
-  SecureTestSecretRef,
+  SecureTestUsername,
 } from '../value-objects';
 
 /**
@@ -31,10 +33,10 @@ export interface SecureTestDomainState {
   name: SecureTestName;
   description?: SecureTestDescription;
   type: SecureTestType;
-  signingSecretRef?: SecureTestSecretRef;
+  signingSecret?: SecureTestSigningSecret;
   signatureAlgorithm?: SecureTestSignatureAlgorithm;
-  usernameRef?: SecureTestSecretRef;
-  passwordRef?: SecureTestSecretRef;
+  username?: SecureTestUsername;
+  password?: SecureTestPassword;
   version: SecureTestVersion;
   createdAt: SecureTestCreatedAt;
   updatedAt: SecureTestUpdatedAt;

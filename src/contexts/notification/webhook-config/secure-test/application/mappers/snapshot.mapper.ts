@@ -20,9 +20,9 @@ export const mapSecureTestSnapshotToDto = (
     name: snapshot.name,
     description: snapshot.description,
     type: snapshot.type,
-    signingSecret: snapshot.signingSecret ?? undefined,
+    signingSecret: snapshot.signingSecret,
     signatureAlgorithm: snapshot.signatureAlgorithm,
-    username: snapshot.username ?? undefined,
-    password: snapshot.password ?? undefined,
+    username: snapshot.username,
+    password: snapshot.password,
   };
 };

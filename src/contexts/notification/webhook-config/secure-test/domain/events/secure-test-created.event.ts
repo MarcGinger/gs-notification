@@ -5,11 +5,9 @@ import type {
   SecureTestSignatureAlgorithmValue,
   SecureTestTypeValue,
 } from '../value-objects';
-
 /**
  * SecureTest Created Event Payload
- * Contains only pure business facts - no encryption artifacts or infrastructure concerns
- * The domain layer works with plaintext business values
+ * Contains only business facts - no envelope metadata, timestamps, or versioning
  */
 export interface SecureTestCreatedEventPayload {
   id: string;
@@ -20,7 +18,9 @@ export interface SecureTestCreatedEventPayload {
   signatureAlgorithm?: SecureTestSignatureAlgorithmValue;
   username?: string;
   password?: string;
-} /**
+}
+
+/**
  * SecureTest Created Domain Event
  *
  * Emitted when a new secureTest is successfully created.

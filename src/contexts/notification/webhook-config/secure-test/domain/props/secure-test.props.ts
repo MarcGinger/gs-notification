@@ -5,38 +5,8 @@ import {
   SecureTestSignatureAlgorithmValue,
   SecureTestTypeValue,
 } from '../value-objects';
-import { SecureTestSecretRef } from '../value-objects/secure-test-secret-ref.vo';
 
-/**
- * SecureTestProps - Domain Properties with SecretRef Protection
- *
- * SECURITY: Sensitive fields (signingSecret, username, password) are now
- * protected using SecretRef instead of plain strings. This ensures:
- * - No plaintext secrets in domain events/snapshots
- * - Proper tenant isolation and access control
- * - Secret rotation capability
- * - Audit logging without value exposure
- */
 export interface SecureTestProps {
-  id: string;
-  name: string;
-  description?: string;
-  type: SecureTestTypeValue;
-
-  // 🔐 PROTECTED: Signing secret reference instead of plaintext
-  signingSecretRef?: SecureTestSecretRef;
-  signatureAlgorithm?: SecureTestSignatureAlgorithmValue;
-
-  // 🔐 PROTECTED: Authentication credentials as references
-  usernameRef?: SecureTestSecretRef;
-  passwordRef?: SecureTestSecretRef;
-}
-
-/**
- * Legacy interface for backward compatibility
- * @deprecated Use SecureTestProps with SecretRef instead
- */
-export interface SecureTestPropsLegacy {
   id: string;
   name: string;
   description?: string;

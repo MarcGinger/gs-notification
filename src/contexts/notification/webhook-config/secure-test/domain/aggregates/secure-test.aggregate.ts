@@ -137,17 +137,16 @@ export class SecureTestAggregate extends AggregateRootBase {
       eventMetadata,
     );
 
-    // Create typed SecureTestCreatedEvent with pure business values
-    // Domain layer works with plaintext - encryption is handled by infrastructure
+    // Create typed SecureTestCreatedEvent with only business data
     const createdEvent = SecureTestCreatedEvent.create({
       id: entityProps.id.value,
       name: entityProps.name.value,
       description: entityProps.description?.value,
       type: entityProps.type.value,
-      signingSecret: entityProps.signingSecretRef?.ref.key,
+      signingSecret: entityProps.signingSecret?.value,
       signatureAlgorithm: entityProps.signatureAlgorithm?.value,
-      username: entityProps.usernameRef?.ref.key,
-      password: entityProps.passwordRef?.ref.key,
+      username: entityProps.username?.value,
+      password: entityProps.password?.value,
     });
 
     // Apply as domain event with clean business data
@@ -337,7 +336,10 @@ export class SecureTestAggregate extends AggregateRootBase {
     }
     if (validatedFields.signingSecret !== undefined) {
       if (
-        false // TODO: Implement SecretRef comparison
+        hasValueChanged(
+          this._entity.signingSecret,
+          validatedFields.signingSecret,
+        )
       ) {
         return true;
       }
@@ -353,14 +355,12 @@ export class SecureTestAggregate extends AggregateRootBase {
       }
     }
     if (validatedFields.username !== undefined) {
-      if (false) {
-        // TODO: Implement SecretRef comparison
+      if (hasValueChanged(this._entity.username, validatedFields.username)) {
         return true;
       }
     }
     if (validatedFields.password !== undefined) {
-      if (false) {
-        // TODO: Implement SecretRef comparison
+      if (hasValueChanged(this._entity.password, validatedFields.password)) {
         return true;
       }
     }
@@ -512,17 +512,16 @@ export class SecureTestAggregate extends AggregateRootBase {
     // Commit the batched changes
     this._entity = currentEntity;
 
-    // Create domain-shaped update event with pure business values
-    // Domain layer works with plaintext - encryption is handled by infrastructure
+    // Create domain-shaped update event (same structure as created event)
     const updatedEvent = SecureTestUpdatedEvent.create({
       id: this._entity.id.value,
       name: this._entity.name.value,
       description: this._entity.description?.value,
       type: this._entity.type.value,
-      signingSecret: this._entity.signingSecret?.ref.key,
+      signingSecret: this._entity.signingSecret?.value,
       signatureAlgorithm: this._entity.signatureAlgorithm?.value,
-      username: this._entity.username?.ref.key,
-      password: this._entity.password?.ref.key,
+      username: this._entity.username?.value,
+      password: this._entity.password?.value,
     });
 
     // Apply as domain event with clean business data

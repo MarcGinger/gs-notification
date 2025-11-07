@@ -8,7 +8,7 @@ import type {
 
 /**
  * SecureTest Updated Event Payload
- * Contains only pure business facts - no encryption artifacts or infrastructure concerns
+ * Domain-shaped payload with no PII
  * Same shape as Created event for consistent replayability
  */
 export interface SecureTestUpdatedEventPayload {

@@ -45,7 +45,6 @@ import { UpsertSecureTestCommand } from '../commands';
 import { IUpsertSecureTestUseCase } from './contracts';
 
 import { SecureTestAuthorizationAdapter } from '../services';
-import { SecureTestSecretRefService } from '../services/secure-test-secretref.service';
 import { DetailSecureTestResponse } from '../dtos';
 import { SecureTestDtoAssembler } from '../assemblers';
 // Shared compliance services
@@ -69,7 +68,6 @@ export class UpsertSecureTestUseCase implements IUpsertSecureTestUseCase {
     @Inject(SECURE_TEST_WRITER_TOKEN)
     private readonly secureTestWriter: ISecureTestWriter,
     private readonly authorizationService: SecureTestAuthorizationAdapter,
-    private readonly secretRefService: SecureTestSecretRefService,
     @Inject(APP_LOGGER)
     readonly moduleLogger: Logger,
     @Inject(CLOCK)
@@ -313,25 +311,15 @@ export class UpsertSecureTestUseCase implements IUpsertSecureTestUseCase {
             clock,
           );
         }
-        // CREATE path - Convert to SecretRef protected props first
+        // CREATE path - Validate and transform, no default creation
         const upsertProps = {
           ...(rawProps || {}),
           id: command.id,
         };
 
         const createProps = upsertProps as CreateSecureTestProps;
-
-        // Convert plaintext secrets to SecretRef
-        const securePropsResult = this.secretRefService.createSecureTest(
-          createProps,
-          actor,
-        );
-        if (!securePropsResult.ok) {
-          return securePropsResult;
-        }
-
         return createSecureTestAggregateFromProps(
-          securePropsResult.value,
+          createProps,
           enhancedMetadata,
           clock,
         );
