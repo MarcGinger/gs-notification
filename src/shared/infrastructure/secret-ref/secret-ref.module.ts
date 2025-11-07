@@ -12,6 +12,7 @@ import { SecretRefHealthIndicator } from './health/secret-ref-health.indicator';
 import { SecretRefMetricsService } from './metrics/secret-ref-metrics.service';
 import { SealedSecretService } from './infrastructure/sealed-secret.service';
 import { EnhancedSecretRefService } from './infrastructure/enhanced-secret-ref.service';
+import { EventEncryptionService } from './infrastructure/event-encryption.service';
 import {
   LoggingModule,
   BOUNDED_CONTEXT_LOGGER,
@@ -40,6 +41,7 @@ import { AppConfigUtil } from '../../config/app-config.util';
     // Enhanced Services (Phase 1)
     SealedSecretService,
     EnhancedSecretRefService,
+    EventEncryptionService,
 
     // Configuration & Health
     SecretRefConfigValidator,
@@ -76,6 +78,7 @@ import { AppConfigUtil } from '../../config/app-config.util';
     SecretRefService,
     SealedSecretService,
     EnhancedSecretRefService,
+    EventEncryptionService,
     SecretRefHealthIndicator,
     SecretRefMetricsService,
   ],

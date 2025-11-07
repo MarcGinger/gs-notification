@@ -5,6 +5,3 @@ export * from './domain-event.base';
 
 // Projection interfaces
 export * from './projection-event.interface';
-
-// SecretRef domain events
-export * from './secretref.events';

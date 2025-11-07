@@ -16,7 +16,6 @@ import {
   createDopplerSecretRef,
   createSealedSecretRef,
 } from 'src/shared/infrastructure/secret-ref/domain/sealed-secret-ref.types';
-import { TenantContext } from 'src/shared/domain/tenant';
 
 /**
  * SecureTest Field Validator Utility
@@ -169,29 +168,6 @@ export class SecureTestFieldValidatorUtil {
     };
   }
 
-  /**
-   * Create a SecretRef object for storing sensitive data in Doppler with tenant-specific keys
-   * @param baseKey - The base Doppler key for the secret (e.g., 'NOTIFICATION_SLACK_SIGNING_SECRET')
-   * @param tenant - The tenant ID to create tenant-specific keys (defaults to 'core')
-   * @returns SecretRef object that can be stored in events and resolved later
-   */
-  private static createSecretRef(
-    baseKey: string,
-    tenant: string = 'core',
-  ): SecretRef {
-    // Create tenant-specific key to ensure proper isolation
-    // e.g., 'NOTIFICATION_SLACK_SIGNING_SECRET_CORE' for core tenant
-    const tenantSpecificKey = `${baseKey}_${tenant.toUpperCase()}`;
-
-    return {
-      scheme: 'secret' as const,
-      provider: 'doppler' as const,
-      tenant, // Tenant from context
-      namespace: 'notification', // Bounded context
-      key: tenantSpecificKey,
-    };
-  }
-
   // ==============================================
   // PHASE 3.1: ENHANCED SECRETREF VALIDATION
   // ==============================================
@@ -279,155 +255,5 @@ export class SecureTestFieldValidatorUtil {
    */
   static isSealedSecretRef(ref: SecretRefUnion): ref is SealedSecretRef {
     return isSealedSecretRef(ref);
-  }
-
-  /**
-   * Enhanced projector data creation with SecretRefUnion support
-   */
-  static createEnhancedSecureTestProjectorDataFromEventData(
-    aggregateData: Record<string, any>,
-    tenantContext?: TenantContext,
-  ): {
-    id: string;
-    name: string;
-    description?: string;
-    type: SecureTestTypeValue;
-    signingSecretRef?: string;
-    signatureAlgorithm?: SecureTestSignatureAlgorithmValue;
-    usernameRef?: string;
-    passwordRef?: string;
-    version: number;
-    createdAt: Date;
-    updatedAt: Date;
-    // Metadata for mixed-mode operation
-    secretRefTypes: {
-      signingSecret?: 'doppler' | 'sealed';
-      username?: 'doppler' | 'sealed';
-      password?: 'doppler' | 'sealed';
-    };
-  } {
-    // Extract simple fields directly from event data
-    const id = aggregateData.id as string;
-    const name = aggregateData.name as string;
-    const description = aggregateData.description as string;
-    const type = aggregateData.type as SecureTestTypeValue;
-    const signatureAlgorithm =
-      aggregateData.signatureAlgorithm as SecureTestSignatureAlgorithmValue;
-
-    // Enhanced SecretRef handling with validation
-    const signingSecretRef = aggregateData.signingSecretRef
-      ? this.serializeSecretRefToJSON(
-          this.parseSecretRefFromJSON(
-            JSON.stringify(aggregateData.signingSecretRef),
-          ) ||
-            this.createDopplerSecretRefForField(
-              'NOTIFICATION_SLACK_SIGNING_SECRET',
-              tenantContext?.tenantId || 'core',
-            ),
-        )
-      : undefined;
-
-    const usernameRef = aggregateData.usernameRef
-      ? this.serializeSecretRefToJSON(
-          this.parseSecretRefFromJSON(
-            JSON.stringify(aggregateData.usernameRef),
-          ) ||
-            this.createDopplerSecretRefForField(
-              'NOTIFICATION_SLACK_USERNAME',
-              tenantContext?.tenantId || 'core',
-            ),
-        )
-      : undefined;
-
-    const passwordRef = aggregateData.passwordRef
-      ? this.serializeSecretRefToJSON(
-          this.parseSecretRefFromJSON(
-            JSON.stringify(aggregateData.passwordRef),
-          ) ||
-            this.createDopplerSecretRefForField(
-              'NOTIFICATION_SLACK_PASSWORD',
-              tenantContext?.tenantId || 'core',
-            ),
-        )
-      : undefined;
-
-    // Determine SecretRef types for metadata
-    const secretRefTypes = {
-      signingSecret: signingSecretRef
-        ? this.isDopplerSecretRef(
-            this.parseSecretRefFromJSON(signingSecretRef)!,
-          )
-          ? ('doppler' as const)
-          : ('sealed' as const)
-        : undefined,
-      username: usernameRef
-        ? this.isDopplerSecretRef(this.parseSecretRefFromJSON(usernameRef)!)
-          ? ('doppler' as const)
-          : ('sealed' as const)
-        : undefined,
-      password: passwordRef
-        ? this.isDopplerSecretRef(this.parseSecretRefFromJSON(passwordRef)!)
-          ? ('doppler' as const)
-          : ('sealed' as const)
-        : undefined,
-    };
-
-    // Extract version and timestamps with proper type conversion
-    const version =
-      typeof aggregateData.version === 'string'
-        ? parseInt(aggregateData.version, 10)
-        : (aggregateData.version as number);
-    const createdAt =
-      typeof aggregateData.createdAt === 'string'
-        ? new Date(aggregateData.createdAt)
-        : (aggregateData.createdAt as Date);
-    const updatedAt =
-      typeof aggregateData.updatedAt === 'string'
-        ? new Date(aggregateData.updatedAt)
-        : (aggregateData.updatedAt as Date);
-
-    return {
-      id,
-      name,
-      description,
-      type,
-      signingSecretRef,
-      signatureAlgorithm,
-      usernameRef,
-      passwordRef,
-      version,
-      createdAt,
-      updatedAt,
-      secretRefTypes,
-    };
-  }
-
-  /**
-   * Migrate legacy SecretRef to new SecretRefUnion format
-   */
-  static migrateLegacySecretRef(
-    legacyRef: SecretRef,
-    tenantContext: TenantContext,
-  ): SecretRefUnion {
-    // If it's already a valid SecretRefUnion, return as-is
-    if (this.validateSecretRefUnion(legacyRef)) {
-      return legacyRef as SecretRefUnion;
-    }
-
-    // Otherwise, create a Doppler SecretRef from legacy format
-    const key = String((legacyRef as any).key || 'UNKNOWN_KEY');
-    const parts = key.split('.');
-    const namespace = parts[0] || 'legacy';
-    const secretKey = parts.slice(1).join('.') || key;
-
-    return createDopplerSecretRef(
-      tenantContext.tenantId,
-      namespace,
-      secretKey,
-      {
-        version: 'latest',
-        algHint: 'legacy-migration',
-      },
-    );
   }
 }

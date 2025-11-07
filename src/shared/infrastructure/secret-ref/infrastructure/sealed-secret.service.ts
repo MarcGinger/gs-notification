@@ -3,9 +3,6 @@ import { DopplerClient } from '../providers/doppler.client';
 import { type SealedSecretRef } from '../domain/sealed-secret-ref.types';
 import { generateTenantKEK } from './crypto/key-derivation.util';
 import { SUPPORTED_ALGORITHMS } from './crypto/crypto.constants';
-// TODO: Phase 2.1 - Add domain event imports
-// import { SecretRefSealedEvent, SecretRefUnsealedEvent } from 'src/shared/domain/events';
-// import { TenantContext, createTenantContext } from 'src/shared/domain/tenant';
 
 /**
  * Service for handling sealed SecretRef operations using envelope encryption
@@ -59,11 +56,6 @@ export class SealedSecretService {
         kekKid,
         algorithm: sealedRef.alg,
       });
-
-      // TODO: Phase 2.1 - Emit domain event for sealed secret
-      // const tenantContext = createTenantContext(tenant);
-      // const sealedEvent = SecretRefSealedEvent.create({...}, tenantContext);
-      // eventEmitter.emit('secret-ref.sealed', sealedEvent);
 
       return sealedRef;
     } catch (error) {
