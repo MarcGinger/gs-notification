@@ -386,7 +386,7 @@ export class SecureTestProjector
    * @returns SecretRef type information for metrics/logging
    */
   private inspectSecretRefType(secretRefJson?: string): {
-    type: 'doppler' | 'sealed' | 'legacy' | 'none';
+    type: 'doppler' | 'sealed' | 'none';
     hasTenantScope: boolean;
   } {
     if (!secretRefJson) {
@@ -408,13 +408,8 @@ export class SecureTestProjector
             return { type: 'sealed', hasTenantScope: true };
           }
         } catch {
-          // Not a valid SecretRefUnion, try legacy format
+          // Not a valid SecretRefUnion
         }
-      }
-
-      // Legacy SecretRef format (just secretId string)
-      if (parsed && typeof parsed === 'object' && 'secretId' in parsed) {
-        return { type: 'legacy', hasTenantScope: false };
       }
 
       return { type: 'none', hasTenantScope: false };
