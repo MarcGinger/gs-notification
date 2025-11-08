@@ -10,8 +10,6 @@ import {
   RepositoryLoggingUtil,
   RepositoryLoggingConfig,
   handleRepositoryError,
-  safeParseJSON,
-  safeParseJSONArray,
   RepositoryOptions,
 } from 'src/shared/infrastructure/repositories';
 import { Result, DomainError, err, ok } from 'src/shared/errors';
@@ -19,7 +17,7 @@ import { Option } from 'src/shared/domain/types';
 import { ActorContext } from 'src/shared/application/context';
 import { RepositoryErrorFactory } from 'src/shared/domain/errors/repository.error';
 import { CacheMetricsCollector } from 'src/shared/infrastructure/projections/cache-optimization';
-import { EventEncryptionService } from 'src/shared/infrastructure/secret-ref/infrastructure';
+import { EventEncryptionFactory } from 'src/shared/infrastructure/encryption';
 import { WEBHOOK_CONFIG_DI_TOKENS } from '../../../webhook-config.constants';
 import { SecureTestProjectionKeys } from '../../secure-test-projection-keys';
 import { DetailSecureTestResponse } from '../../application/dtos';
@@ -70,7 +68,7 @@ export class SecureTestQueryRepository implements ISecureTestQuery {
     @Inject(CLOCK) private readonly clock: Clock,
     @Inject(WEBHOOK_CONFIG_DI_TOKENS.IO_REDIS)
     private readonly redis: Redis,
-    private readonly eventEncryptionService: EventEncryptionService,
+    private readonly eventEncryptionFactory: EventEncryptionFactory,
   ) {
     this.loggingConfig = {
       serviceName: 'SecureTestConfigService',
@@ -189,16 +187,30 @@ export class SecureTestQueryRepository implements ISecureTestQuery {
         return ok(Option.none());
       }
 
-      // Decrypt SecretRef objects back to actual values
-      const decryptedSecrets =
-        this.eventEncryptionService.decryptSecretRefFields(
-          {
-            signingSecret: secureTest.signingSecret,
-            username: secureTest.username,
-            password: secureTest.password,
-          },
-          actor,
-        );
+      // Decrypt SecretRef objects back to actual values using EventEncryptionFactory
+      const mockDomainEvent = {
+        signingSecret: secureTest.signingSecret,
+        username: secureTest.username,
+        password: secureTest.password,
+      };
+
+      const secretConfig = EventEncryptionFactory.createSecretConfig({
+        sensitiveFields: ['signingSecret', 'username', 'password'],
+        namespaceMap: {
+          signingSecret: 'webhook',
+          username: 'auth',
+          password: 'auth',
+        },
+        defaultNamespace: 'secure-test',
+      });
+
+      const decryptionResult = await this.eventEncryptionFactory.decryptEvents(
+        [mockDomainEvent],
+        actor,
+        secretConfig,
+      );
+
+      const decryptedSecrets = decryptionResult.events[0] || mockDomainEvent;
 
       // Transform to DetailSecureTestResponse DTO (excluding internal fields)
       const detailResponse: DetailSecureTestResponse = {

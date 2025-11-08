@@ -36,16 +36,13 @@ import { APP_LOGGER, Log, Logger } from 'src/shared/logging';
 import { Clock, CLOCK } from 'src/shared/infrastructure/time';
 import { withContext } from 'src/shared/errors';
 import { CacheService } from 'src/shared/application/caching/cache.service';
+import { EventEncryptionFactory } from 'src/shared/infrastructure/encryption';
 import { WEBHOOK_CONFIG_DI_TOKENS } from '../../../webhook-config.constants';
 import { NotificationSlackProjectorConfig } from '../../../projector.config';
 import { SecureTestProjectionKeys } from '../../secure-test-projection-keys';
 import { SecureTestFieldValidatorUtil } from '../utilities/secure-test-field-validator.util';
 import { DetailSecureTestResponse } from '../../application/dtos';
-import {
-  SecretRefUnion,
-  isDopplerSecretRef,
-  isSealedSecretRef,
-} from 'src/shared/infrastructure/secret-ref/domain/sealed-secret-ref.types';
+
 /**
  * SecureTest projector error catalog using shared error definitions
  */
@@ -115,6 +112,7 @@ export class SecureTestProjector
     private readonly redis: Redis,
     @Inject(WEBHOOK_CONFIG_DI_TOKENS.CACHE_SERVICE)
     private readonly cache: CacheService,
+    private readonly eventEncryptionFactory: EventEncryptionFactory,
   ) {
     super(
       SecureTestProjectionKeys.PROJECTOR_NAME,
@@ -380,43 +378,32 @@ export class SecureTestProjector
   }
 
   /**
+   * Get available encryption strategies from EventEncryptionFactory for observability
+   * This provides insight into what encryption strategies are available without performing operations
+   */
+  private getAvailableEncryptionStrategies(): string[] {
+    return this.eventEncryptionFactory.getAvailableStrategies();
+  }
+
+  /**
    * Phase 3.3: Inspect SecretRef type for projection metrics without decryption
-   * Maintains security boundaries by only examining type information, not decrypting sealed content
+   * Uses EventEncryptionFactory static utility for consistent observability across components
    * @param secretRefJson - JSON string of SecretRef from projection data
    * @returns SecretRef type information for metrics/logging
    */
   private inspectSecretRefType(secretRefJson?: string): {
     type: 'doppler' | 'sealed' | 'none';
     hasTenantScope: boolean;
+    availableStrategies?: string[];
   } {
-    if (!secretRefJson) {
-      return { type: 'none', hasTenantScope: false };
-    }
+    // Get available strategies for observability context
+    const availableStrategies = this.getAvailableEncryptionStrategies();
 
-    try {
-      const parsed: unknown = JSON.parse(secretRefJson);
-
-      // Try parsing as SecretRefUnion first
-      if (parsed && typeof parsed === 'object' && parsed !== null) {
-        try {
-          // Safe type checking using SecretRefUnion validation
-          const secretRefUnion = parsed as SecretRefUnion;
-          if (isDopplerSecretRef(secretRefUnion)) {
-            return { type: 'doppler', hasTenantScope: false };
-          } else if (isSealedSecretRef(secretRefUnion)) {
-            // Sealed SecretRefs have tenant scope by definition (require tenant KEK)
-            return { type: 'sealed', hasTenantScope: true };
-          }
-        } catch {
-          // Not a valid SecretRefUnion
-        }
-      }
-
-      return { type: 'none', hasTenantScope: false };
-    } catch {
-      // Invalid JSON or parsing error
-      return { type: 'none', hasTenantScope: false };
-    }
+    // Use EventEncryptionFactory static utility for consistent SecretRef inspection
+    return EventEncryptionFactory.inspectSecretRefType(
+      secretRefJson,
+      availableStrategies,
+    );
   }
 
   /**
@@ -441,6 +428,7 @@ export class SecureTestProjector
     const level = outcome === ProjectionOutcome.APPLIED ? 'debug' : 'info';
 
     // Phase 3.3: Add SecretRef type information for sealed SecretRef observability
+    // Enhanced with EventEncryptionFactory strategy awareness
     const secretRefTypes = params
       ? {
           signingSecretType: this.inspectSecretRefType(params.signingSecret)
@@ -452,6 +440,8 @@ export class SecureTestProjector
             this.inspectSecretRefType(params.username),
             this.inspectSecretRefType(params.password),
           ].some((ref) => ref.type === 'sealed'),
+          availableEncryptionStrategies:
+            this.getAvailableEncryptionStrategies(),
         }
       : {};
 

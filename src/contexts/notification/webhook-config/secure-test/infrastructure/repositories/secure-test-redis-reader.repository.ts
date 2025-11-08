@@ -11,15 +11,14 @@ import {
   RepositoryLoggingUtil,
   RepositoryLoggingConfig,
   handleRepositoryError,
-  safeParseJSON,
-  safeParseJSONArray,
   RepositoryOptions,
 } from 'src/shared/infrastructure/repositories';
 import { Result, DomainError, err, ok } from 'src/shared/errors';
 import { Option } from 'src/shared/domain/types';
 import { ActorContext } from 'src/shared/application/context';
 import { RepositoryErrorFactory } from 'src/shared/domain/errors/repository.error';
-import { EventEncryptionService } from 'src/shared/infrastructure/secret-ref/infrastructure';
+import { EventEncryptionFactory } from 'src/shared/infrastructure/encryption';
+import { SecureTestEncryptionConfig } from '../encryption/secure-test-encryption.config';
 import { WEBHOOK_CONFIG_DI_TOKENS } from '../../../webhook-config.constants';
 import { SecureTestProjectionKeys } from '../../secure-test-projection-keys';
 import { SecureTestSnapshotProps } from '../../domain/props';
@@ -55,7 +54,7 @@ export class SecureTestReaderRepository implements ISecureTestReader {
     @Inject(CLOCK) private readonly clock: Clock,
     @Inject(WEBHOOK_CONFIG_DI_TOKENS.IO_REDIS)
     private readonly redis: Redis,
-    private readonly eventEncryptionService: EventEncryptionService,
+    private readonly eventEncryptionFactory: EventEncryptionFactory,
   ) {
     this.loggingConfig = {
       serviceName: 'WebhookConfigService',
@@ -263,16 +262,22 @@ export class SecureTestReaderRepository implements ISecureTestReader {
         return ok(Option.none());
       }
 
-      // Decrypt SecretRef objects back to actual values
-      const decryptedSecrets =
-        this.eventEncryptionService.decryptSecretRefFields(
-          {
-            signingSecret: secureTestSnapshot.signingSecret,
-            username: secureTestSnapshot.username,
-            password: secureTestSnapshot.password,
-          },
-          actor,
-        );
+      // Decrypt SecretRef objects back to actual values using EventEncryptionFactory
+      const mockDomainEvent = {
+        signingSecret: secureTestSnapshot.signingSecret,
+        username: secureTestSnapshot.username,
+        password: secureTestSnapshot.password,
+      };
+
+      const secretConfig = SecureTestEncryptionConfig.createSecretRefConfig();
+
+      const decryptionResult = await this.eventEncryptionFactory.decryptEvents(
+        [mockDomainEvent],
+        actor,
+        secretConfig,
+      );
+
+      const decryptedSecrets = decryptionResult.events[0] || mockDomainEvent;
 
       // Update snapshot with decrypted values
       const decryptedSnapshot: SecureTestSnapshotProps = {

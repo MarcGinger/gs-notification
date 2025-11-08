@@ -30,6 +30,11 @@ import {
   PIIStrategy,
   HybridStrategy,
 } from './strategies';
+import {
+  SecretRefUnion,
+  isDopplerSecretRef,
+  isSealedSecretRef,
+} from 'src/shared/infrastructure/secret-ref/domain/sealed-secret-ref.types';
 
 @Injectable()
 export class EventEncryptionFactory implements IEventEncryptionFactory {
@@ -167,24 +172,16 @@ export class EventEncryptionFactory implements IEventEncryptionFactory {
   /**
    * Static helper to create SecretRef configuration
    */
-  static createSecretConfig(options?: {
-    sensitiveFields?: string[];
-    namespaceMap?: Record<string, string>;
+  static createSecretConfig(options: {
+    sensitiveFields: string[];
+    namespaceMap: Record<string, string>;
     defaultNamespace?: string;
   }): EncryptionConfig {
     return {
       type: 'secret',
-      sensitiveFields: options?.sensitiveFields || [
-        'signingSecret',
-        'username',
-        'password',
-      ],
-      namespaceMap: options?.namespaceMap || {
-        signingSecret: 'signing',
-        username: 'auth',
-        password: 'auth',
-      },
-      defaultNamespace: options?.defaultNamespace || 'general',
+      sensitiveFields: options.sensitiveFields,
+      namespaceMap: options.namespaceMap,
+      defaultNamespace: options.defaultNamespace || 'general',
     };
   }
 
@@ -205,24 +202,16 @@ export class EventEncryptionFactory implements IEventEncryptionFactory {
   /**
    * Static helper to create Doppler configuration
    */
-  static createDopplerConfig(options?: {
-    sensitiveFields?: string[];
-    namespaceMap?: Record<string, string>;
+  static createDopplerConfig(options: {
+    sensitiveFields: string[];
+    namespaceMap: Record<string, string>;
     defaultNamespace?: string;
   }): EncryptionConfig {
     return {
       type: 'doppler',
-      sensitiveFields: options?.sensitiveFields || [
-        'signingSecret',
-        'username',
-        'password',
-      ],
-      namespaceMap: options?.namespaceMap || {
-        signingSecret: 'signing',
-        username: 'auth',
-        password: 'auth',
-      },
-      defaultNamespace: options?.defaultNamespace || 'general',
+      sensitiveFields: options.sensitiveFields,
+      namespaceMap: options.namespaceMap,
+      defaultNamespace: options.defaultNamespace || 'general',
     };
   }
 
@@ -331,6 +320,63 @@ export class EventEncryptionFactory implements IEventEncryptionFactory {
 
       default:
         return null;
+    }
+  }
+
+  /**
+   * Static utility for inspecting SecretRef types without decryption
+   *
+   * Provides observability into SecretRef structure for monitoring and logging
+   * without compromising security by attempting decryption. Used across
+   * repositories, projectors, and other components for consistent observability.
+   *
+   * @param secretRefJson - JSON string representation of SecretRef
+   * @param availableStrategies - Optional array of available strategies for context
+   * @returns SecretRef type information with tenant scope and strategy context
+   */
+  static inspectSecretRefType(
+    secretRefJson?: string,
+    availableStrategies?: string[],
+  ): {
+    type: 'doppler' | 'sealed' | 'none';
+    hasTenantScope: boolean;
+    availableStrategies?: string[];
+  } {
+    if (!secretRefJson) {
+      return { type: 'none', hasTenantScope: false, availableStrategies };
+    }
+
+    try {
+      const parsed: unknown = JSON.parse(secretRefJson);
+
+      // Try parsing as SecretRefUnion first
+      if (parsed && typeof parsed === 'object' && parsed !== null) {
+        try {
+          // Safe type checking using SecretRefUnion validation
+          const secretRefUnion = parsed as SecretRefUnion;
+          if (isDopplerSecretRef(secretRefUnion)) {
+            return {
+              type: 'doppler',
+              hasTenantScope: false,
+              availableStrategies,
+            };
+          } else if (isSealedSecretRef(secretRefUnion)) {
+            // Sealed SecretRefs have tenant scope by definition (require tenant KEK)
+            return {
+              type: 'sealed',
+              hasTenantScope: true,
+              availableStrategies,
+            };
+          }
+        } catch {
+          // Not a valid SecretRefUnion
+        }
+      }
+
+      return { type: 'none', hasTenantScope: false, availableStrategies };
+    } catch {
+      // Invalid JSON or parsing error
+      return { type: 'none', hasTenantScope: false, availableStrategies };
     }
   }
 }

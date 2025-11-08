@@ -36,6 +36,9 @@ import { APP_LOGGER, Log, Logger } from 'src/shared/logging';
 import { Clock, CLOCK } from 'src/shared/infrastructure/time';
 import { withContext } from 'src/shared/errors';
 import { CacheService } from 'src/shared/application/caching/cache.service';
+import { EventEncryptionFactory } from 'src/shared/infrastructure/encryption/event-encryption.factory';
+import { WebhookEncryptionConfig } from '../encryption/webhook-encryption.config';
+import { ActorContext } from 'src/shared/application/context';
 import { WEBHOOK_CONFIG_DI_TOKENS } from '../../../webhook-config.constants';
 import { NotificationSlackProjectorConfig } from '../../../projector.config';
 import { WebhookProjectionKeys } from '../../webhook-projection-keys';
@@ -110,6 +113,7 @@ export class WebhookProjector
     private readonly redis: Redis,
     @Inject(WEBHOOK_CONFIG_DI_TOKENS.CACHE_SERVICE)
     private readonly cache: CacheService,
+    private readonly eventEncryptionFactory: EventEncryptionFactory,
   ) {
     super(
       WebhookProjectionKeys.PROJECTOR_NAME,
@@ -256,23 +260,26 @@ export class WebhookProjector
       // ✅ Extract webhook parameters using existing utility
       const params = this.extractWebhookParams(event, 'project');
 
+      // ✅ Encrypt sensitive webhook data before storing
+      const encryptedParams = await this.encryptWebhookData(params, tenant);
+
       // ✅ Apply version hint deduplication first (production-ready SET NX EX)
       const config = NotificationSlackProjectorConfig.getConfig();
       const alreadyProcessed = await CacheOptimizationUtils.checkVersionHint(
         this.redis,
         tenant,
         'webhook',
-        params.id,
-        params.version,
+        encryptedParams.id,
+        encryptedParams.version,
         config.VERSION_KEY_PREFIX,
       );
 
       if (alreadyProcessed) {
         this.logger.debug(
           'Webhook already processed - using version hint optimization for ' +
-            params.id +
+            encryptedParams.id +
             ' version ' +
-            params.version,
+            encryptedParams.version,
         );
         const outcome = ProjectionOutcome.SKIPPED_HINT;
         this.logProjectionOutcome(outcome, event, tenant);
@@ -281,13 +288,13 @@ export class WebhookProjector
 
       // ✅ Build field pairs using shared utility (convert to generic Record)
       const fieldPairs = RedisPipelineBuilder.buildFieldPairs(
-        params as unknown as Record<string, unknown>,
+        encryptedParams as unknown as Record<string, unknown>,
       );
 
       // ✅ Generate cluster-safe keys using centralized WebhookProjectionKeys
       const entityKey = WebhookProjectionKeys.getRedisWebhookKey(
         tenant,
-        params.id,
+        encryptedParams.id,
       );
       const indexKey = WebhookProjectionKeys.getRedisWebhookIndexKey(tenant);
 
@@ -298,14 +305,14 @@ export class WebhookProjector
       const pipeline = this.redis.pipeline();
 
       // ✅ Route to soft delete or upsert based on deletion state
-      if (params.deletedAt) {
+      if (encryptedParams.deletedAt) {
         // Use shared Redis pipeline builder for cluster-safe soft delete
         RedisPipelineBuilder.executeSoftDelete(
           pipeline,
           entityKey,
           indexKey,
-          params.id,
-          params.deletedAt,
+          encryptedParams.id,
+          encryptedParams.deletedAt,
         );
 
         // ✅ Record soft delete operation (metrics collected by base projector)
@@ -315,9 +322,9 @@ export class WebhookProjector
           pipeline,
           entityKey,
           indexKey,
-          params.id,
-          params.version,
-          params.updatedAt,
+          encryptedParams.id,
+          encryptedParams.version,
+          encryptedParams.updatedAt,
           fieldPairs,
         );
 
@@ -338,8 +345,8 @@ export class WebhookProjector
         this.redis,
         tenant,
         'webhook',
-        params.id,
-        params.version,
+        encryptedParams.id,
+        encryptedParams.version,
         undefined, // Use default TTL
         config.VERSION_KEY_PREFIX,
       );
@@ -409,6 +416,59 @@ export class WebhookProjector
    */
   private extractTenant(event: ProjectionEvent): string {
     return TenantExtractor.extractTenant(event);
+  }
+
+  /**
+   * Encrypt webhook data using EventEncryptionFactory
+   */
+  private async encryptWebhookData(
+    webhook: WebhookProjectionParams,
+    tenant: string,
+  ): Promise<WebhookProjectionParams> {
+    try {
+      // Create mock actor context for encryption
+      const actor: ActorContext = {
+        userId: 'webhook-projector',
+        tenant,
+        tenant_userId: `${tenant}:webhook-projector`,
+        roles: ['system'],
+      };
+
+      // Create mock domain event for encryption
+      const mockDomainEvent = {
+        signingSecret: webhook.signingSecret,
+        headers: webhook.headers,
+      };
+
+      const piiConfig = WebhookEncryptionConfig.createPIIConfig(tenant);
+
+      const encryptionResult = await this.eventEncryptionFactory.encryptEvents(
+        [mockDomainEvent],
+        actor,
+        piiConfig,
+      );
+
+      const encryptedData = encryptionResult.events[0];
+
+      // Return webhook with encrypted fields
+      return {
+        ...webhook,
+        signingSecret: encryptedData?.signingSecret || webhook.signingSecret,
+        headers: encryptedData?.headers || webhook.headers,
+      };
+    } catch (error) {
+      // Log encryption error but continue with original data
+      Log.warn(
+        this.logger,
+        'Failed to encrypt webhook data, storing unencrypted',
+        {
+          method: 'encryptWebhookData',
+          error: (error as Error).message,
+          webhookId: webhook.id,
+        },
+      );
+      return webhook;
+    }
   }
 
   /**
