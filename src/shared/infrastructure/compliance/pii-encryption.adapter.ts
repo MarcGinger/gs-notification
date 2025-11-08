@@ -52,17 +52,19 @@ export class PIIEncryptionAdapter {
             skippedEventCount: 1,
             algorithm: 'none',
             encryptedFields: [],
-            strategyMetadata: [{
-              algorithm: 'none',
-              keyId: 'none',
-              tenant,
-              namespace: 'pii',
-              timestamp: new Date().toISOString(),
-              source: 'pii-adapter',
-              processedFields: [],
-              strategyVersion: '1.0.0',
-              operationType: 'encrypt' as const,
-            }],
+            strategyMetadata: [
+              {
+                algorithm: 'none',
+                keyId: 'none',
+                tenant,
+                namespace: 'pii',
+                timestamp: new Date().toISOString(),
+                source: 'pii-adapter',
+                processedFields: [],
+                strategyVersion: '1.0.0',
+                operationType: 'encrypt' as const,
+              },
+            ],
           },
         };
       }
@@ -120,7 +122,9 @@ export class PIIEncryptionAdapter {
       return encryptionResult;
     } catch (error) {
       if (this.logger) {
-        this.logger.error('PII encryption failed', undefined, { error: (error as Error).message });
+        this.logger.error('PII encryption failed', undefined, {
+          error: (error as Error).message,
+        });
       }
 
       // Return original data on encryption failure (fail-open for availability)
@@ -133,17 +137,19 @@ export class PIIEncryptionAdapter {
           skippedEventCount: 1,
           algorithm: 'none',
           encryptedFields: [],
-          strategyMetadata: [{
-            algorithm: 'none',
-            keyId: 'encryption-failed',
-            tenant,
-            namespace: 'pii',
-            timestamp: new Date().toISOString(),
-            source: 'pii-adapter-error',
-            processedFields: [],
-            strategyVersion: '1.0.0',
-            operationType: 'encrypt' as const,
-          }],
+          strategyMetadata: [
+            {
+              algorithm: 'none',
+              keyId: 'encryption-failed',
+              tenant,
+              namespace: 'pii',
+              timestamp: new Date().toISOString(),
+              source: 'pii-adapter-error',
+              processedFields: [],
+              strategyVersion: '1.0.0',
+              operationType: 'encrypt' as const,
+            },
+          ],
         },
       };
     }
@@ -200,7 +206,10 @@ export class PIIEncryptionAdapter {
   async createSearchIndex(value: string, tenant: string): Promise<string> {
     // For now, return a simple hash-based index
     const crypto = await import('crypto');
-    return crypto.createHash('sha256').update(`${value}-${tenant}`).digest('hex');
+    return crypto
+      .createHash('sha256')
+      .update(`${value}-${tenant}`)
+      .digest('hex');
   }
 
   /**
@@ -211,7 +220,10 @@ export class PIIEncryptionAdapter {
     // Simple heuristic - encrypted values are typically base64 strings
     if (typeof value !== 'string') return false;
     try {
-      return Buffer.from(value, 'base64').toString('base64') === value && value.length > 20;
+      return (
+        Buffer.from(value, 'base64').toString('base64') === value &&
+        value.length > 20
+      );
     } catch {
       return false;
     }

@@ -1,6 +1,6 @@
 /**
  * Event Encryption Factory - Observability Examples
- * 
+ *
  * This file demonstrates how to identify which encryption strategy is being applied
  * and monitor encryption operations across the system.
  */
@@ -13,16 +13,15 @@ import { DomainEvent } from './src/shared/domain/events';
 async function demonstrateStrategyObservability(
   factory: EventEncryptionFactory,
   events: DomainEvent[],
-  actor: ActorContext
+  actor: ActorContext,
 ) {
-  
   // 1. PII Encryption Strategy
   console.log('=== PII Encryption Strategy ===');
   const piiConfig = EventEncryptionFactory.createPIIConfig({
     domain: 'notification',
-    tenant: actor.tenant
+    tenant: actor.tenant,
   });
-  
+
   const piiResult = await factory.encryptEvents(events, actor, piiConfig);
   console.log('Strategy Type:', piiResult.metadata.encryptionType); // 'pii'
   console.log('Processed Events:', piiResult.metadata.processedEventCount);
@@ -30,40 +29,36 @@ async function demonstrateStrategyObservability(
   console.log('Algorithm Used:', piiResult.metadata.algorithm);
   console.log('Encrypted Fields:', piiResult.metadata.encryptedFields);
   console.log('Strategy Metadata:', piiResult.metadata.strategyMetadata);
-  
-  
+
   // 2. SecretRef Strategy
   console.log('\n=== SecretRef Strategy ===');
   const secretConfig = EventEncryptionFactory.createSecretConfig({
     sensitiveFields: ['signingSecret', 'apiKey'],
-    namespaceMap: { 
+    namespaceMap: {
       signingSecret: 'webhook',
-      apiKey: 'external-service' 
-    }
+      apiKey: 'external-service',
+    },
   });
-  
+
   const secretResult = await factory.encryptEvents(events, actor, secretConfig);
   console.log('Strategy Type:', secretResult.metadata.encryptionType); // 'secret'
   console.log('Algorithm Used:', secretResult.metadata.algorithm);
   console.log('Encrypted Fields:', secretResult.metadata.encryptedFields);
-  
-  
+
   // 3. No-op Strategy (Development/Testing)
   console.log('\n=== No-op Strategy ===');
   const noopConfig = EventEncryptionFactory.createNoopConfig();
-  
+
   const noopResult = await factory.encryptEvents(events, actor, noopConfig);
   console.log('Strategy Type:', noopResult.metadata.encryptionType); // 'noop'
   console.log('Encrypted Events:', noopResult.metadata.encryptedEventCount); // 0
   console.log('Skipped Events:', noopResult.metadata.skippedEventCount); // all events
-  
-  
+
   // 4. Check Available Strategies
   console.log('\n=== Available Strategies ===');
   const availableStrategies = factory.getAvailableStrategies();
   console.log('Registered Strategies:', availableStrategies); // ['noop', 'secret', 'pii']
-  
-  
+
   // 5. Strategy Metadata Deep Dive
   console.log('\n=== Detailed Strategy Metadata ===');
   piiResult.metadata.strategyMetadata.forEach((strategyMeta, index) => {
@@ -83,15 +78,15 @@ async function demonstrateStrategyObservability(
 // Example: Configuration-Based Strategy Detection
 function identifyStrategyFromConfig(config: any): string {
   const strategyTypeMap = {
-    'noop': 'No encryption (development/testing)',
-    'pii': 'PII field encryption with classification',
-    'secret': 'SecretRef adapter for sensitive fields',
-    'doppler': 'Doppler secrets management',
-    'env': 'Environment variable encryption',
-    'hybrid': 'Multi-strategy pipeline',
-    'custom': 'Custom encryption strategy'
+    noop: 'No encryption (development/testing)',
+    pii: 'PII field encryption with classification',
+    secret: 'SecretRef adapter for sensitive fields',
+    doppler: 'Doppler secrets management',
+    env: 'Environment variable encryption',
+    hybrid: 'Multi-strategy pipeline',
+    custom: 'Custom encryption strategy',
   };
-  
+
   return strategyTypeMap[config.type] || 'Unknown strategy';
 }
 
@@ -103,25 +98,32 @@ class EncryptionObserver {
       operation: operationType,
       strategy: result.metadata.encryptionType,
       processed: result.metadata.processedEventCount,
-      affected: operationType === 'encrypt' 
-        ? result.metadata.encryptedEventCount 
-        : result.metadata.decryptedEventCount,
+      affected:
+        operationType === 'encrypt'
+          ? result.metadata.encryptedEventCount
+          : result.metadata.decryptedEventCount,
       skipped: result.metadata.skippedEventCount,
       algorithm: result.metadata.algorithm,
-      fields: operationType === 'encrypt' 
-        ? result.metadata.encryptedFields 
-        : result.metadata.decryptedFields
+      fields:
+        operationType === 'encrypt'
+          ? result.metadata.encryptedFields
+          : result.metadata.decryptedFields,
     };
-    
+
     console.log(`[ENCRYPTION_MONITOR] ${JSON.stringify(logEntry)}`);
   }
 }
 
 // Example: Runtime Strategy Validation
-function validateExpectedStrategy(result: any, expectedStrategy: string): boolean {
+function validateExpectedStrategy(
+  result: any,
+  expectedStrategy: string,
+): boolean {
   const actualStrategy = result.metadata.encryptionType;
   if (actualStrategy !== expectedStrategy) {
-    console.warn(`Strategy mismatch! Expected: ${expectedStrategy}, Got: ${actualStrategy}`);
+    console.warn(
+      `Strategy mismatch! Expected: ${expectedStrategy}, Got: ${actualStrategy}`,
+    );
     return false;
   }
   return true;
@@ -130,36 +132,42 @@ function validateExpectedStrategy(result: any, expectedStrategy: string): boolea
 // Example: Performance Monitoring by Strategy
 class StrategyPerformanceMonitor {
   private metrics = new Map<string, { calls: number; totalTime: number }>();
-  
+
   async measureStrategy<T>(
     strategyName: string,
-    operation: () => Promise<T>
+    operation: () => Promise<T>,
   ): Promise<T> {
     const startTime = Date.now();
     const result = await operation();
     const endTime = Date.now();
     const duration = endTime - startTime;
-    
-    const existing = this.metrics.get(strategyName) || { calls: 0, totalTime: 0 };
+
+    const existing = this.metrics.get(strategyName) || {
+      calls: 0,
+      totalTime: 0,
+    };
     this.metrics.set(strategyName, {
       calls: existing.calls + 1,
-      totalTime: existing.totalTime + duration
+      totalTime: existing.totalTime + duration,
     });
-    
+
     console.log(`[PERF] ${strategyName}: ${duration}ms`);
     return result;
   }
-  
-  getPerformanceReport(): Record<string, { avgTime: number; totalCalls: number }> {
+
+  getPerformanceReport(): Record<
+    string,
+    { avgTime: number; totalCalls: number }
+  > {
     const report: Record<string, { avgTime: number; totalCalls: number }> = {};
-    
+
     this.metrics.forEach((metrics, strategy) => {
       report[strategy] = {
         avgTime: metrics.totalTime / metrics.calls,
-        totalCalls: metrics.calls
+        totalCalls: metrics.calls,
       };
     });
-    
+
     return report;
   }
 }
@@ -169,5 +177,5 @@ export {
   identifyStrategyFromConfig,
   EncryptionObserver,
   validateExpectedStrategy,
-  StrategyPerformanceMonitor
+  StrategyPerformanceMonitor,
 };
