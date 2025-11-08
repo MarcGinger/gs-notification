@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 import { ComplianceModule } from '../../services/compliance';
-import { EncryptionModule } from '../encryption';
+import { EventEncryptionModule } from '../encryption';
 import { LoggingModule } from '../../logging';
 import { PIIEncryptionAdapter } from './pii-encryption.adapter';
 
@@ -18,7 +18,7 @@ import { PIIEncryptionAdapter } from './pii-encryption.adapter';
 @Module({
   imports: [
     ComplianceModule, // Domain compliance services
-    EncryptionModule, // Field encryption infrastructure
+    EventEncryptionModule.register(), // Event encryption infrastructure
     LoggingModule, // For logger injection
   ],
   providers: [PIIEncryptionAdapter],

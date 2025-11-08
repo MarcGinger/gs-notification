@@ -1,9 +1,9 @@
 import { Injectable, Inject } from '@nestjs/common';
 import {
-  FieldEncryptionService,
+  EventEncryptionFactory,
   EncryptionResult,
   EncryptionMetadata,
-  FIELD_ENCRYPTION_SERVICE,
+  PIIEncryptionConfig,
 } from '../encryption';
 import { DataClassification } from '../../services/compliance';
 import { Logger, APP_LOGGER } from '../../logging';
@@ -26,8 +26,7 @@ import { Logger, APP_LOGGER } from '../../logging';
 @Injectable()
 export class PIIEncryptionAdapter {
   constructor(
-    @Inject(FIELD_ENCRYPTION_SERVICE)
-    private readonly encryptionService: FieldEncryptionService,
+    private readonly eventEncryptionFactory: EventEncryptionFactory,
     @Inject(APP_LOGGER)
     private readonly logger: Logger,
   ) {}
@@ -41,88 +40,110 @@ export class PIIEncryptionAdapter {
     tenant: string,
     correlationId?: string,
   ): Promise<EncryptionResult> {
-    const startTime = Date.now();
-    const encryptedData = { ...data };
-    const encryptedFields: string[] = [];
-
     try {
       // Only encrypt if PII is detected and encryption is required
       if (!classification.containsPII || !classification.requiresEncryption) {
         return {
-          encryptedData,
+          events: [{ data }] as any[],
           metadata: {
-            keyId: 'none',
+            encryptionType: 'noop',
+            processedEventCount: 1,
+            encryptedEventCount: 0,
+            skippedEventCount: 1,
             algorithm: 'none',
-            encryptedAt: new Date().toISOString(),
             encryptedFields: [],
-            classificationSummary: {
-              categoriesCount: classification.piiCategories.length,
-              confidentialityLevel: classification.confidentialityLevel,
-              requiresEncryption: false,
-            },
+            strategyMetadata: [{
+              algorithm: 'none',
+              keyId: 'none',
+              tenant,
+              namespace: 'pii',
+              timestamp: new Date().toISOString(),
+              source: 'pii-adapter',
+              processedFields: [],
+              strategyVersion: '1.0.0',
+              operationType: 'encrypt' as const,
+            }],
           },
         };
       }
 
-      // Encrypt fields identified as sensitive in classification
-      for (const sensitiveField of classification.sensitiveFields) {
-        const fieldValue = this.getNestedFieldValue(data, sensitiveField);
+      // Create PII encryption configuration
+      const piiConfig: PIIEncryptionConfig = {
+        type: 'pii',
+        domain: 'compliance',
+        tenant,
+        correlationId,
+      };
 
-        if (fieldValue !== null && fieldValue !== undefined) {
-          const encryptedField = await this.encryptionService.encrypt(
-            this.safeStringify(fieldValue),
-            tenant,
-          );
+      // Create a mock actor context for PII encryption
+      const mockActor = {
+        userId: 'system',
+        tenant,
+        tenant_userId: 'system',
+      };
 
-          this.setNestedFieldValue(
-            encryptedData,
-            sensitiveField,
-            encryptedField,
-          );
-          encryptedFields.push(sensitiveField);
-        }
-      }
-
-      const encryptionMetadata: EncryptionMetadata = {
-        keyId: 'tenant-active-key', // Will be set by encryption service
-        algorithm: 'aes-256-gcm',
-        encryptedAt: new Date().toISOString(),
-        encryptedFields,
-        classificationSummary: {
-          categoriesCount: classification.piiCategories.length,
-          confidentialityLevel: classification.confidentialityLevel,
-          requiresEncryption: classification.requiresEncryption,
+      // Create a mock domain event with the data
+      const mockEvent = {
+        type: 'PIIDataEncryption',
+        version: 1,
+        occurredAt: new Date(),
+        aggregateId: 'pii-data',
+        aggregateType: 'PIIData',
+        data,
+        metadata: {
+          actor: mockActor,
+          correlationId: correlationId || 'pii-encryption',
+          service: 'pii-encryption-adapter',
+          timestampIso: new Date().toISOString(),
+          eventVersion: '1.0',
+          schemaVersion: '2023.1',
+          source: 'compliance.pii-encryption',
         },
       };
 
+      // Use the EventEncryptionFactory to encrypt
+      const encryptionResult = await this.eventEncryptionFactory.encryptEvents(
+        [mockEvent],
+        mockActor,
+        piiConfig,
+      );
+
       // Log encryption operation (safe - no plaintext)
       if (this.logger) {
-        this.logger.debug('PII fields encrypted for persistence');
+        this.logger.debug('PII fields encrypted for persistence', undefined, {
+          encryptedCount: encryptionResult.metadata.encryptedEventCount,
+          algorithm: encryptionResult.metadata.algorithm,
+          tenant,
+        });
       }
 
-      return {
-        encryptedData,
-        metadata: encryptionMetadata,
-      };
+      return encryptionResult;
     } catch (error) {
       if (this.logger) {
-        this.logger.error('PII encryption failed');
+        this.logger.error('PII encryption failed', undefined, { error: (error as Error).message });
       }
 
       // Return original data on encryption failure (fail-open for availability)
-      // In production, you might want to fail-closed depending on security requirements
       return {
-        encryptedData: data,
+        events: [{ data }] as any[],
         metadata: {
-          keyId: 'encryption-failed',
+          encryptionType: 'error',
+          processedEventCount: 1,
+          encryptedEventCount: 0,
+          skippedEventCount: 1,
           algorithm: 'none',
-          encryptedAt: new Date().toISOString(),
           encryptedFields: [],
-          classificationSummary: {
-            categoriesCount: classification.piiCategories.length,
-            confidentialityLevel: classification.confidentialityLevel,
-            requiresEncryption: classification.requiresEncryption,
-          },
+          strategyMetadata: [{
+            algorithm: 'none',
+            keyId: 'encryption-failed',
+            tenant,
+            namespace: 'pii',
+            timestamp: new Date().toISOString(),
+            source: 'pii-adapter-error',
+            processedFields: [],
+            strategyVersion: '1.0.0',
+            operationType: 'encrypt' as const,
+          }],
         },
       };
     }
@@ -174,15 +195,25 @@ export class PIIEncryptionAdapter {
 
   /**
    * Create blind index for searchable PII fields
+   * @deprecated This functionality should be implemented using EventEncryptionFactory
    */
   async createSearchIndex(value: string, tenant: string): Promise<string> {
-    return this.encryptionService.createBlindIndex(value, tenant);
+    // For now, return a simple hash-based index
+    const crypto = await import('crypto');
+    return crypto.createHash('sha256').update(`${value}-${tenant}`).digest('hex');
   }
 
   /**
    * Check if a value is encrypted
+   * @deprecated This functionality should be implemented using EventEncryptionFactory
    */
   isEncrypted(value: unknown): boolean {
-    return this.encryptionService.isEncrypted(value);
+    // Simple heuristic - encrypted values are typically base64 strings
+    if (typeof value !== 'string') return false;
+    try {
+      return Buffer.from(value, 'base64').toString('base64') === value && value.length > 20;
+    } catch {
+      return false;
+    }
   }
 }

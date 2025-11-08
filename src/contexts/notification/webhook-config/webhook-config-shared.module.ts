@@ -9,6 +9,7 @@ import { OpaModule } from 'src/shared/security';
 import { ComplianceModule } from 'src/shared/services/compliance';
 import { ComplianceInfrastructureModule } from 'src/shared/infrastructure/compliance';
 import { InfrastructureModule } from 'src/shared/infrastructure/infrastructure.module';
+import { EventEncryptionModule } from 'src/shared/infrastructure/encryption';
 import { TypeOrmDatabaseModule } from 'src/shared/infrastructure/database/typeorm.module';
 import {
   DATA_SOURCE,
@@ -62,6 +63,7 @@ import { SlackModule } from 'src/shared/infrastructure/slack/slack.module';
     ComplianceModule,
     ComplianceInfrastructureModule,
     InfrastructureModule,
+    EventEncryptionModule.register(), // New unified encryption factory
     TypeOrmDatabaseModule,
     // TODO import other shared modules as needed
     SlackModule,
@@ -118,6 +120,7 @@ import { SlackModule } from 'src/shared/infrastructure/slack/slack.module';
     ComplianceModule,
     ComplianceInfrastructureModule,
     InfrastructureModule,
+    EventEncryptionModule,
 
     // Export shared services
     WebhookConfigPolicyService,

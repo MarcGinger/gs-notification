@@ -25,7 +25,10 @@ import { SecureTestProjectionKeys } from '../../secure-test-projection-keys';
 import { SecureTestId } from '../../domain/value-objects';
 import { SecureTestDeletedEvent } from '../../domain/events';
 import { ISecureTestWriter } from '../../application/ports';
-import { EventEncryptionService } from 'src/shared/infrastructure/secret-ref/infrastructure/event-encryption.service';
+import {
+  EventEncryptionFactory,
+  EncryptionConfig,
+} from 'src/shared/infrastructure/encryption';
 
 /**
  * SecureTest Writer Repository - Interface Segregation Principle Implementation
@@ -54,7 +57,7 @@ export class SecureTestWriterRepository
     @Inject(APP_LOGGER) baseLogger: Logger,
     private readonly eventStore: EventStoreService,
     @Inject(CLOCK) private readonly clock: Clock,
-    private readonly eventEncryptionService: EventEncryptionService,
+    private readonly eventEncryptionFactory: EventEncryptionFactory,
   ) {
     super();
     this.loggingConfig = {
@@ -161,11 +164,9 @@ export class SecureTestWriterRepository
       return ok(receipt);
     }
 
-    // Encrypt sensitive fields before persistence
-    const eventsToStore = this.eventEncryptionService.encryptSensitiveFields(
-      events,
-      actor,
-      {
+    // Encrypt sensitive fields before persistence using new factory
+    const secretConfig: EncryptionConfig =
+      EventEncryptionFactory.createSecretConfig({
         sensitiveFields: ['signingSecret', 'username', 'password'],
         namespaceMap: {
           signingSecret: 'signing',
@@ -173,8 +174,37 @@ export class SecureTestWriterRepository
           password: 'auth',
         },
         defaultNamespace: 'general',
-      },
+      });
+
+    const encryptionResult = await this.eventEncryptionFactory.encryptEvents(
+      [...events],
+      actor,
+      secretConfig,
     );
+
+    // Log encryption strategy details for observability
+    Log.info(this.logger, 'Events encrypted with strategy details', {
+      ...logContext,
+      encryptionStrategy: {
+        type: secretConfig.type, // 'secret', 'pii', 'noop', etc.
+        encryptedCount: encryptionResult.metadata.encryptedEventCount,
+        skippedCount: encryptionResult.metadata.skippedEventCount,
+        algorithm: encryptionResult.metadata.algorithm,
+        encryptedFields: encryptionResult.metadata.encryptedFields,
+        strategyDetails: encryptionResult.metadata.strategyMetadata.map(
+          (meta) => ({
+            strategyName: meta.source,
+            algorithm: meta.algorithm,
+            keyId: meta.keyId,
+            namespace: meta.namespace,
+            version: meta.strategyVersion,
+            processedFields: meta.processedFields,
+          }),
+        ),
+      },
+    });
+
+    const eventsToStore = encryptionResult.events;
 
     // prevVersion = version BEFORE current batch
     const prevVersion = secureTest.version - eventsToStore.length;

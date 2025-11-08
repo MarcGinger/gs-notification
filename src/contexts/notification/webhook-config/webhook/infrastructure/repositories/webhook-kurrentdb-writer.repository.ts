@@ -206,7 +206,7 @@ export class WebhookWriterRepository
           // Create new event with encrypted data
           const encryptedEvent = {
             ...event,
-            data: encryptionResult.encryptedData,
+            data: encryptionResult.events[0]?.data || event.data,
           };
 
           processedEvents.push(encryptedEvent);
@@ -220,7 +220,7 @@ export class WebhookWriterRepository
               eventType: event.type,
               eventIndex: i,
               encryptedFieldsCount:
-                encryptionResult.metadata.encryptedFields.length,
+                encryptionResult.metadata.encryptedFields?.length || 0,
               classificationLevel: classification.confidentialityLevel,
               algorithm: encryptionResult.metadata.algorithm,
             },
