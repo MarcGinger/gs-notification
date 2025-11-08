@@ -265,6 +265,10 @@ export class UnifiedProjectorUtils {
       ),
     };
 
-    Log[level](this.logger, `Event projection outcome: ${outcomeLabel}`, logData);
+    Log[level](
+      this.logger,
+      `Event projection outcome: ${outcomeLabel}`,
+      logData,
+    );
   }
 }
