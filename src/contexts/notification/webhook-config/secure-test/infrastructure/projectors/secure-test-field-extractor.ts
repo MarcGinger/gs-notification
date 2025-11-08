@@ -4,9 +4,10 @@
 import { Injectable } from '@nestjs/common';
 import { ProjectionEvent } from 'src/shared/infrastructure/projections/catchup.runner';
 import { TenantExtractor } from 'src/shared/infrastructure/projections/projection.utils';
-import { withContext } from 'src/shared/errors';
-import { FieldExtractor, BaseProjectionParams } from 'src/shared/infrastructure/projections/generic-redis.projector';
-import { SecureTestFieldValidatorUtil } from './secure-test-field-validator.util';
+import {
+  FieldExtractor,
+  BaseProjectionParams,
+} from 'src/shared/infrastructure/projections/generic-redis.projector';
 
 /**
  * SecureTest projection parameters interface
@@ -25,19 +26,20 @@ export interface SecureTestProjectionParams extends BaseProjectionParams {
 
 /**
  * SecureTest Field Extractor
- * 
+ *
  * Implements the FieldExtractor interface to provide domain-specific parameter extraction
  * for the SecureTestProjector using GenericRedisProjector.
- * 
+ *
  * This class encapsulates all the complex field validation and extraction logic
  * that was previously embedded in the projector, making the projector much simpler.
  */
 @Injectable()
-export class SecureTestFieldExtractor implements FieldExtractor<SecureTestProjectionParams> {
-  
+export class SecureTestFieldExtractor
+  implements FieldExtractor<SecureTestProjectionParams>
+{
   /**
    * Extract SecureTest parameters from event data
-   * 
+   *
    * Uses SecureTestFieldValidatorUtil for consistent validation across
    * repository and projector components.
    */
@@ -48,47 +50,35 @@ export class SecureTestFieldExtractor implements FieldExtractor<SecureTestProjec
       // Extract tenant using shared utility
       const tenant = TenantExtractor.extractTenant(event);
 
-      // Use SecureTestFieldValidatorUtil to create projector data with SecretRefUnion support
-      // The field validator handles both Doppler and Sealed SecretRef types by storing them as JSON
-      // Sealed SecretRefs remain encrypted in projections, maintaining security boundaries
-      const secureTestProjectorData = 
-        SecureTestFieldValidatorUtil.createSecureTestProjectorDataFromEventData(eventData);
-
-      // Override envelope fields with actual event envelope data
-      // The version, createdAt, updatedAt should come from event envelope, not payload
-      const eventTimestamp = 
+      // Extract timestamp from event metadata
+      const eventTimestamp =
         event.metadata?.occurredAt instanceof Date
           ? event.metadata.occurredAt
           : new Date();
 
-      const eventEnvelope = {
-        version: event.revision, // Use event revision as version
-        createdAt: eventTimestamp, // Use event timestamp
-        updatedAt: eventTimestamp, // Use event timestamp
-      };
-
-      // Add projector-specific fields for Redis storage
+      // Simple field extraction for SecureTest parameters
       return {
-        ...secureTestProjectorData,
-        ...eventEnvelope, // Override with correct envelope data
+        // Base projection params
+        id: eventData.id || '',
         tenant,
-        deletedAt: null, // Projector handles soft deletes
+        version: event.revision,
+        updatedAt: eventTimestamp,
+        deletedAt: null,
         lastStreamRevision: event.revision.toString(),
+
+        // Domain-specific SecureTest fields
+        slackWorkspaceId: eventData.slackWorkspaceId || '',
+        channelConfigId: eventData.channelConfigId || '',
+        signingSecret: eventData.signingSecret || '',
+        username: eventData.username || '',
+        password: eventData.password || '',
+        url: eventData.url || '',
+        createdAt: eventData.createdAt || eventTimestamp,
       };
     } catch (error) {
       const e = error as Error;
       throw new Error(
-        withContext(
-          { 
-            code: 'INVALID_EVENT_DATA',
-            detail: 'Failed to extract SecureTest parameters from event data',
-          },
-          {
-            eventType: event.type,
-            streamId: event.streamId,
-            originalError: e.message,
-          }
-        ).detail,
+        `Failed to extract SecureTest parameters from event data: ${e.message}`,
       );
     }
   }

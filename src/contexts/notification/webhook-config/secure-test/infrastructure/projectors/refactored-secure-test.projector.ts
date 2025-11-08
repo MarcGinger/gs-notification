@@ -37,26 +37,31 @@ interface SecureTestProjectionParams extends UnifiedProjectionParams {
   // Domain-specific fields
   slackWorkspaceId: string;
   channelConfigId: string;
-  signingSecret: string;
-  username: string;
-  password: string;
+  signingSecret?: string;
+  username?: string;
+  password?: string;
   url: string;
   createdAt: Date;
   tenant: string;
   lastStreamRevision?: string | null;
+  // Additional fields from field validator
+  name: string;
+  description?: string;
+  type?: string;
+  signatureAlgorithm?: string;
 }
 
 /**
  * Refactored SecureTest Projector using Unified Approach
- * 
+ *
  * This shows how to refactor existing projectors to use the unified utilities
  * without major architectural changes. The projector becomes much simpler:
- * 
+ *
  * 1. Uses UnifiedProjectorUtils for all Redis operations
  * 2. Focuses only on domain-specific parameter extraction
  * 3. Maintains existing lifecycle management
  * 4. Preserves existing DI tokens and configuration
- * 
+ *
  * Benefits:
  * - Reduces code duplication by ~200 lines
  * - Standardizes projection behavior across all projectors
@@ -74,7 +79,8 @@ export class RefactoredSecureTestProjector
   // Configuration for unified projection operations
   private static readonly UNIFIED_CONFIG: UnifiedProjectionConfig = {
     projectorName: SecureTestProjectionKeys.PROJECTOR_NAME,
-    versionKeyPrefix: NotificationSlackProjectorConfig.getConfig().VERSION_KEY_PREFIX,
+    versionKeyPrefix:
+      NotificationSlackProjectorConfig.getConfig().VERSION_KEY_PREFIX,
     getRedisEntityKey: (tenant: string, id: string) =>
       SecureTestProjectionKeys.getRedisSecureTestKey(tenant, id),
     getRedisIndexKey: (tenant: string) =>
@@ -187,7 +193,7 @@ export class RefactoredSecureTestProjector
 
   /**
    * Project individual event - MUCH SIMPLER NOW!
-   * 
+   *
    * The projection logic is reduced from ~150 lines to ~20 lines.
    * All Redis operations, caching, error handling, and logging
    * are handled by the UnifiedProjectorUtils.
@@ -222,7 +228,7 @@ export class RefactoredSecureTestProjector
 
   /**
    * Extract secure-test parameters - keeps existing logic
-   * 
+   *
    * This method stays exactly the same as your current implementation.
    * Only the parameter extraction logic is domain-specific.
    */
@@ -246,7 +252,7 @@ export class RefactoredSecureTestProjector
           ? event.metadata.occurredAt
           : new Date();
 
-      // Return unified parameters
+      // Return unified parameters with all required fields
       return {
         ...secureTestData,
         tenant,
@@ -254,6 +260,10 @@ export class RefactoredSecureTestProjector
         updatedAt: eventTimestamp,
         deletedAt: null,
         lastStreamRevision: event.revision.toString(),
+        // Add missing SecureTest-specific fields
+        slackWorkspaceId: eventData.slackWorkspaceId || '',
+        channelConfigId: eventData.channelConfigId || '',
+        url: eventData.url || '',
       };
     } catch (error) {
       const e = error as Error;
@@ -264,14 +274,14 @@ export class RefactoredSecureTestProjector
 
 /**
  * Usage Summary:
- * 
+ *
  * BEFORE (Original SecureTestProjector):
  * - ~450 lines of code
  * - Complex Redis pipeline operations
  * - Manual cache management
  * - Custom error handling
  * - Custom logging
- * 
+ *
  * AFTER (Refactored with Unified Approach):
  * - ~200 lines of code (55% reduction)
  * - All Redis operations handled by UnifiedProjectorUtils
@@ -279,12 +289,12 @@ export class RefactoredSecureTestProjector
  * - Standardized error handling
  * - Consistent logging with encryption context
  * - Focus only on domain-specific logic
- * 
+ *
  * The same approach can be applied to ConfigProjector and WebhookProjector:
  * - ConfigProjector doesn't need EventEncryptionFactory (pass undefined)
  * - WebhookProjector needs EventEncryptionFactory for encryption operations
  * - All projectors use the same UnifiedProjectorUtils
- * 
+ *
  * Migration Strategy:
  * 1. Create UnifiedProjectorUtils (done above)
  * 2. Refactor one projector at a time

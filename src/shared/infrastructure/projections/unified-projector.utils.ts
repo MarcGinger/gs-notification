@@ -13,7 +13,7 @@ import { RedisClusterUtils } from 'src/shared/infrastructure/projections/redis-s
 import { ProjectionOutcome } from 'src/shared/infrastructure/projections/event-pipeline-processor';
 import { TenantExtractor } from 'src/shared/infrastructure/projections/projection.utils';
 import { EventEncryptionFactory } from 'src/shared/infrastructure/encryption';
-import { Logger } from 'src/shared/logging';
+import { Logger, Log } from 'src/shared/logging';
 
 /**
  * Configuration for unified projection operations
@@ -37,16 +37,16 @@ export interface UnifiedProjectionParams {
 
 /**
  * Unified Redis Projector Utilities
- * 
+ *
  * Provides shared functionality that can be mixed into existing projectors
  * without requiring major refactoring. This is a more practical approach
  * that doesn't force inheritance changes.
- * 
+ *
  * Usage in existing projectors:
  * ```typescript
  * class MyProjector extends BaseProjector {
  *   private projectorUtils = new UnifiedProjectorUtils(this.config, this.redis, this.logger);
- * 
+ *
  *   async projectEvent(event: ProjectionEvent) {
  *     const params = this.extractMyParams(event);
  *     return this.projectorUtils.executeProjection(event, params, this.eventEncryptionFactory);
@@ -70,7 +70,7 @@ export class UnifiedProjectorUtils {
 
   /**
    * Execute unified projection logic
-   * 
+   *
    * This method encapsulates all the common projection logic:
    * - Version hint checking
    * - Redis pipeline operations
@@ -157,12 +157,18 @@ export class UnifiedProjectorUtils {
       );
 
       // Log outcome with optional encryption context
-      this.logProjectionOutcome(outcome, event, tenant, params, eventEncryptionFactory);
+      this.logProjectionOutcome(
+        outcome,
+        event,
+        tenant,
+        params,
+        eventEncryptionFactory,
+      );
 
       return outcome;
     } catch (error) {
       const e = error as Error;
-      this.logger.error('Failed to project event with unified pipeline', {
+      Log.error(this.logger, 'Failed to project event with unified pipeline', {
         method: 'executeProjection',
         projectorName: this.config.projectorName,
         eventType: event.type,
@@ -188,9 +194,15 @@ export class UnifiedProjectorUtils {
     }
 
     const availableStrategies = eventEncryptionFactory.getAvailableStrategies();
-    
+
     // Find potential SecretRef fields (fields ending with 'Secret' or common secret field names)
-    const secretFields = ['signingSecret', 'username', 'password', 'token', 'key'];
+    const secretFields = [
+      'signingSecret',
+      'username',
+      'password',
+      'token',
+      'key',
+    ];
     const secretRefTypes: Record<string, string> = {};
     let hasSealedSecrets = false;
 
@@ -247,9 +259,12 @@ export class UnifiedProjectorUtils {
       revision: event.revision,
       tenant,
       metrics: this.metricsCollector.getMetrics(),
-      ...this.getEncryptionLogData(params as Record<string, unknown>, eventEncryptionFactory),
+      ...this.getEncryptionLogData(
+        params as unknown as Record<string, unknown>,
+        eventEncryptionFactory,
+      ),
     };
 
-    this.logger[level](`Event projection outcome: ${outcomeLabel}`, logData);
+    Log[level](this.logger, `Event projection outcome: ${outcomeLabel}`, logData);
   }
 }

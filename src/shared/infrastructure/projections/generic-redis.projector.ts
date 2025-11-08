@@ -63,17 +63,17 @@ export interface BaseProjectionParams {
 
 /**
  * Generic Redis Projector
- * 
+ *
  * Provides a unified approach for Redis projections with optional encryption support.
  * Eliminates code duplication while maintaining flexibility for domain-specific needs.
- * 
+ *
  * Key Features:
  * - Optional EventEncryptionFactory injection for encryption-aware projectors
  * - Generic parameter extraction via FieldExtractor interface
  * - Configurable Redis key generation strategies
  * - Shared projection infrastructure (Redis scripts, caching, etc.)
  * - Observability and metrics collection
- * 
+ *
  * Usage:
  * ```typescript
  * @Injectable()
@@ -89,7 +89,9 @@ export interface BaseProjectionParams {
  * }
  * ```
  */
-export abstract class GenericRedisProjector<TParams extends BaseProjectionParams>
+export abstract class GenericRedisProjector<
+    TParams extends BaseProjectionParams,
+  >
   extends BaseProjector
   implements OnModuleInit, OnModuleDestroy
 {
@@ -150,10 +152,14 @@ export abstract class GenericRedisProjector<TParams extends BaseProjectionParams
    * Start the projector using CatchUpRunner
    */
   onModuleInit(): void {
-    Log.info(this.logger, `Starting ${this.config.projectorName} with CatchUpRunner`, {
-      method: 'onModuleInit',
-      subscriptionGroup: this.subscriptionGroup,
-    });
+    Log.info(
+      this.logger,
+      `Starting ${this.config.projectorName} with CatchUpRunner`,
+      {
+        method: 'onModuleInit',
+        subscriptionGroup: this.subscriptionGroup,
+      },
+    );
 
     try {
       // Register EVALSHA scripts for optimization
@@ -210,10 +216,14 @@ export abstract class GenericRedisProjector<TParams extends BaseProjectionParams
       this.setRunning(true);
       this.updateHealthStatusOnSuccess();
 
-      Log.info(this.logger, `${this.config.projectorName} started successfully`, {
-        method: 'onModuleInit',
-        status: 'running',
-      });
+      Log.info(
+        this.logger,
+        `${this.config.projectorName} started successfully`,
+        {
+          method: 'onModuleInit',
+          status: 'running',
+        },
+      );
     } catch (error) {
       const e = error as Error;
       this.updateHealthStatusOnError(e.message);
@@ -240,10 +250,14 @@ export abstract class GenericRedisProjector<TParams extends BaseProjectionParams
       this.catchUpRunner.stop(this.subscriptionGroup);
       this.setRunning(false);
 
-      Log.info(this.logger, `${this.config.projectorName} stopped successfully`, {
-        method: 'onModuleDestroy',
-        status: 'stopped',
-      });
+      Log.info(
+        this.logger,
+        `${this.config.projectorName} stopped successfully`,
+        {
+          method: 'onModuleDestroy',
+          status: 'stopped',
+        },
+      );
     } catch (error) {
       const e = error as Error;
       Log.error(this.logger, `Error stopping ${this.config.projectorName}`, {
@@ -432,11 +446,15 @@ export abstract class GenericRedisProjector<TParams extends BaseProjectionParams
     };
 
     // Add domain-specific data if available
-    const logData = params 
+    const logData = params
       ? { ...baseLogData, ...this.getCustomLogData(params) }
       : baseLogData;
 
-    Log[level](this.logger, `Event projection outcome: ${outcomeLabel}`, logData);
+    Log[level](
+      this.logger,
+      `Event projection outcome: ${outcomeLabel}`,
+      logData,
+    );
   }
 
   /**
