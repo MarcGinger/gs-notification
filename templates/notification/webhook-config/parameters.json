@@ -41,13 +41,13 @@
         "targetUrl": {},
         "method": {},
         "headers": {},
-        "signingSecretRef": {},
         "status": {},
         "verifyTls": {},
         "requestTimeoutMs": {},
         "connectTimeoutMs": {},
         "rateLimitPerMinute": {},
-        "webhookEventType": {}
+        "webhookEventType": {},
+        "signingSecret": {}
       },
       "permissions": {
         "bulk": [

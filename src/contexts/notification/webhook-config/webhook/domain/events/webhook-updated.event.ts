@@ -16,7 +16,7 @@ export interface WebhookUpdatedEventPayload {
   webhookEventType: string;
   method: WebhookMethodValue;
   headers?: Record<string, unknown>;
-  signingSecretRef?: string;
+  signingSecret?: string;
   status: WebhookStatusValue;
   verifyTls?: boolean;
   requestTimeoutMs?: number;
@@ -69,8 +69,8 @@ export class WebhookUpdatedEvent {
     return this.payload.headers;
   }
 
-  get signingSecretRef(): string | undefined {
-    return this.payload.signingSecretRef;
+  get signingSecret(): string | undefined {
+    return this.payload.signingSecret;
   }
 
   get status(): WebhookStatusValue {

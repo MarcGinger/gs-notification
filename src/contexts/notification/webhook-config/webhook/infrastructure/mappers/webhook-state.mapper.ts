@@ -19,7 +19,7 @@ import {
   WebhookWebhookEventType,
   createWebhookMethod,
   WebhookHeaders,
-  WebhookSigningSecretRef,
+  WebhookSigningSecret,
   createWebhookStatus,
   WebhookVerifyTls,
   WebhookRequestTimeoutMs,
@@ -85,10 +85,10 @@ export class WebhookStateMapper {
     const headers = snapshot.headers
       ? validateField('headers', WebhookHeaders.from(snapshot.headers))
       : undefined;
-    const signingSecretRef = snapshot.signingSecretRef
+    const signingSecret = snapshot.signingSecret
       ? validateField(
-          'signingSecretRef',
-          WebhookSigningSecretRef.from(snapshot.signingSecretRef),
+          'signingSecret',
+          WebhookSigningSecret.from(snapshot.signingSecret),
         )
       : undefined;
     const status = validateField(
@@ -157,7 +157,7 @@ export class WebhookStateMapper {
       webhookEventType: webhookEventType!,
       method: method!,
       headers: headers || undefined,
-      signingSecretRef: signingSecretRef || undefined,
+      signingSecret: signingSecret || undefined,
       status: status!,
       verifyTls: verifyTls || undefined,
       requestTimeoutMs: requestTimeoutMs || undefined,
@@ -187,7 +187,7 @@ export class WebhookStateMapper {
       webhookEventType: domainState.webhookEventType.value,
       method: domainState.method.value,
       headers: domainState.headers?.value,
-      signingSecretRef: domainState.signingSecretRef?.value,
+      signingSecret: domainState.signingSecret?.value,
       status: domainState.status.value,
       verifyTls: domainState.verifyTls?.value,
       requestTimeoutMs: domainState.requestTimeoutMs?.value,

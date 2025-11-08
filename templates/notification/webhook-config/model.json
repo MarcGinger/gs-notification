@@ -223,7 +223,7 @@
           }
         },
         {
-          "name": "signingSecretRef",
+          "name": "signingSecret",
           "type": "string",
           "childRelationshipType": "",
           "parentRelationshipType": "",
@@ -236,7 +236,7 @@
           "autoIncrement": false,
           "maxLength": "128",
           "array": false,
-          "isPII": "",
+          "isPII": "sensitive",
           "secret": false,
           "create": true,
           "update": true,

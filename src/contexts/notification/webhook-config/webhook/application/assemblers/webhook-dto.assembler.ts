@@ -35,7 +35,7 @@ export class WebhookDtoAssembler {
     dto.webhookEventType = domainState.webhookEventType.value;
     dto.method = domainState.method.value;
     dto.headers = domainState.headers?.value;
-    dto.signingSecretRef = domainState.signingSecretRef?.value;
+    dto.signingSecret = domainState.signingSecret?.value;
     dto.status = domainState.status.value;
     dto.verifyTls = domainState.verifyTls?.value;
     dto.requestTimeoutMs = domainState.requestTimeoutMs?.value;
@@ -62,7 +62,7 @@ export class WebhookDtoAssembler {
     dto.webhookEventType = domainState.webhookEventType.value;
     dto.method = domainState.method.value;
     dto.headers = domainState.headers?.value;
-    dto.signingSecretRef = domainState.signingSecretRef?.value;
+    dto.signingSecret = domainState.signingSecret?.value;
     dto.status = domainState.status.value;
     dto.verifyTls = domainState.verifyTls?.value;
     dto.requestTimeoutMs = domainState.requestTimeoutMs?.value;

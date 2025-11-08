@@ -15,7 +15,7 @@ import {
   WebhookWebhookEventType,
   createWebhookMethod,
   WebhookHeaders,
-  WebhookSigningSecretRef,
+  WebhookSigningSecret,
   createWebhookStatus,
   WebhookVerifyTls,
   WebhookRequestTimeoutMs,
@@ -163,22 +163,22 @@ export function updateWebhookAggregateFromSnapshot(
     validatedFields.headers = headersResult.value;
   }
 
-  // Validate signingSecretRef if provided
-  if (updateProps.signingSecretRef !== undefined) {
-    const signingSecretRefResult = WebhookSigningSecretRef.from(
-      updateProps.signingSecretRef,
+  // Validate signingSecret if provided
+  if (updateProps.signingSecret !== undefined) {
+    const signingSecretResult = WebhookSigningSecret.from(
+      updateProps.signingSecret,
     );
-    if (!signingSecretRefResult.ok) {
+    if (!signingSecretResult.ok) {
       return err(
-        withContext(signingSecretRefResult.error, {
-          operation: 'update_webhook_signing_secret_ref_validation',
+        withContext(signingSecretResult.error, {
+          operation: 'update_webhook_signing_secret_validation',
           correlationId: metadata.correlationId,
           userId: metadata.actor?.userId,
-          providedSigningSecretRef: updateProps.signingSecretRef,
+          providedSigningSecret: updateProps.signingSecret,
         }),
       );
     }
-    validatedFields.signingSecretRef = signingSecretRefResult.value;
+    validatedFields.signingSecret = signingSecretResult.value;
   }
 
   // Validate status if provided

@@ -15,7 +15,7 @@ import {
   ApiWebhookName,
   ApiWebhookRateLimitPerMinute,
   ApiWebhookRequestTimeoutMs,
-  ApiWebhookSigningSecretRef,
+  ApiWebhookSigningSecret,
   ApiWebhookStatus,
   ApiWebhookTargetUrl,
   ApiWebhookVerifyTls,
@@ -44,8 +44,8 @@ export class CreateWebhookRequest implements CreateWebhookProps {
   @ApiWebhookHeaders({ required: false })
   headers?: Record<string, unknown>;
 
-  @ApiWebhookSigningSecretRef({ required: false })
-  signingSecretRef?: string;
+  @ApiWebhookSigningSecret({ required: false })
+  signingSecret?: string;
 
   @ApiWebhookStatus()
   status: WebhookStatusValue;

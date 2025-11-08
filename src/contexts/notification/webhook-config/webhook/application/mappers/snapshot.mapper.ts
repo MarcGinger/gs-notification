@@ -23,7 +23,7 @@ export const mapWebhookSnapshotToDto = (
     webhookEventType: snapshot.webhookEventType,
     method: snapshot.method,
     headers: snapshot.headers,
-    signingSecretRef: snapshot.signingSecretRef,
+    signingSecret: snapshot.signingSecret,
     status: snapshot.status,
     verifyTls: snapshot.verifyTls,
     requestTimeoutMs: snapshot.requestTimeoutMs,

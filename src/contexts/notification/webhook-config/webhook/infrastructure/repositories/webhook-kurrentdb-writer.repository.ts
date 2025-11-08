@@ -26,11 +26,22 @@ import { WebhookId } from '../../domain/value-objects';
 import { WebhookDeletedEvent } from '../../domain/events';
 import { IWebhookWriter } from '../../application/ports';
 
+// PII Protection at Persistence Boundary
+import { PIIClassificationService } from 'src/shared/services/compliance';
+import { PIIEncryptionAdapter } from 'src/shared/infrastructure/compliance';
+
 /**
  * Webhook Writer Repository - Interface Segregation Principle Implementation
  *
- * Handles write operations (create, update, delete) for Webhook aggregates.
- * This repository focuses solely on data modification operations.
+ * Handles write operations (create, update, delete) for Webhook aggregates
+ * with PII protection at the persistence boundary (CQRS command side).
+ *
+ * PII Protection Features:
+ * - Automatic field-level encryption based on aggregate metadata classification
+ * - AES-256-GCM encryption with key rotation support
+ * - Safe logging (no plaintext PII in logs)
+ * - Blind index generation for searchable fields
+ * - Clean separation: domain uses raw data, infrastructure encrypts at boundary.
  *
  * ISP Benefits:
  * - Clients that only need to write data don't depend on read methods
@@ -40,7 +51,7 @@ import { IWebhookWriter } from '../../application/ports';
  *
  * @domain Notification Context - Webhook Writer Repository
  * @layer Infrastructure
- * @pattern Repository Pattern + Interface Segregation Principle
+ * @pattern Repository Pattern + Interface Segregation Principle + CQRS Encryption
  */
 export class WebhookWriterRepository
   extends BaseWriterRepository
@@ -53,6 +64,8 @@ export class WebhookWriterRepository
     @Inject(APP_LOGGER) baseLogger: Logger,
     private readonly eventStore: EventStoreService,
     @Inject(CLOCK) private readonly clock: Clock,
+    private readonly piiClassificationService: PIIClassificationService,
+    private readonly piiEncryptionAdapter: PIIEncryptionAdapter,
   ) {
     super();
     this.loggingConfig = {
@@ -156,8 +169,92 @@ export class WebhookWriterRepository
       return ok(receipt);
     }
 
-    // Use original events for persistence (no PII processing needed)
-    const eventsToStore = events;
+    // **CQRS ENCRYPTION AT PERSISTENCE BOUNDARY**
+    // This is where we implement the architectural pattern you described:
+    // 1. Classify PII in events that will be persisted
+    // 2. Apply field-level encryption to event data containing PII
+    // 3. Store protected events in EventStoreDB
+    // 4. Return success/failure without exposing protected data
+
+    // Step 1: Process each event for PII encryption
+    const processedEvents: DomainEvent[] = [];
+    for (let i = 0; i < events.length; i++) {
+      const event = events[i];
+      const eventData = event.data;
+
+      // Step 2: Classify PII in this event's data
+      const classification = this.piiClassificationService.classifyData(
+        eventData as Record<string, unknown>,
+        {
+          domain: 'webhook-config',
+          tenant: actor.tenant,
+          // entityType: 'webhook' // Future: for entity-specific rules
+        },
+      );
+
+      // Step 3: Apply PII encryption to event if required
+      if (classification.containsPII && classification.requiresEncryption) {
+        try {
+          const encryptionResult =
+            await this.piiEncryptionAdapter.encryptPIIFields(
+              eventData as Record<string, unknown>,
+              classification,
+              actor.tenant || 'default',
+              correlationId,
+            );
+
+          // Create new event with encrypted data
+          const encryptedEvent = {
+            ...event,
+            data: encryptionResult.encryptedData,
+          };
+
+          processedEvents.push(encryptedEvent);
+
+          Log.debug(
+            this.logger,
+            'PII fields encrypted in event at persistence boundary',
+            {
+              ...logContext,
+              stream,
+              eventType: event.type,
+              eventIndex: i,
+              encryptedFieldsCount:
+                encryptionResult.metadata.encryptedFields.length,
+              classificationLevel: classification.confidentialityLevel,
+              algorithm: encryptionResult.metadata.algorithm,
+            },
+          );
+        } catch (encryptionError) {
+          Log.error(
+            this.logger,
+            'PII encryption failed for event at persistence boundary',
+            {
+              ...logContext,
+              stream,
+              eventType: event.type,
+              eventIndex: i,
+              error:
+                encryptionError instanceof Error
+                  ? encryptionError.message
+                  : 'Unknown encryption error',
+            },
+          );
+
+          return err(
+            RepositoryErrorFactory.connectionError(
+              `Failed to encrypt PII data in event ${event.type} at persistence boundary`,
+            ),
+          );
+        }
+      } else {
+        // No PII detected, use original event
+        processedEvents.push(event);
+      }
+    }
+
+    // Use processed events (with encrypted PII fields) for persistence
+    const eventsToStore = processedEvents;
 
     // prevVersion = version BEFORE current batch
     const prevVersion = webhook.version - eventsToStore.length;

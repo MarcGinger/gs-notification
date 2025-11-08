@@ -47,8 +47,7 @@ export const WebhookResource = (permission: WebhookPermission) =>
       const webhookEventType =
         body?.webhookEventType || query?.webhookEventType;
       const method = body?.method || query?.method;
-      const signingSecretRef =
-        body?.signingSecretRef || query?.signingSecretRef;
+      const signingSecret = body?.signingSecret || query?.signingSecret;
       const status = body?.status || query?.status;
       const verifyTls = body?.verifyTls || query?.verifyTls;
       const requestTimeoutMs =
@@ -64,7 +63,7 @@ export const WebhookResource = (permission: WebhookPermission) =>
         targetUrl,
         webhookEventType,
         method,
-        signingSecretRef,
+        signingSecret,
         status,
         verifyTls,
         requestTimeoutMs,

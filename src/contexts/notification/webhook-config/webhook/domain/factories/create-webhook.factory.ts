@@ -18,7 +18,7 @@ import {
   WebhookWebhookEventType,
   createWebhookMethod,
   WebhookHeaders,
-  WebhookSigningSecretRef,
+  WebhookSigningSecret,
   createWebhookStatus,
   WebhookVerifyTls,
   WebhookRequestTimeoutMs,
@@ -132,17 +132,15 @@ export function createWebhookAggregateFromProps(
     );
   }
 
-  const signingSecretRefResult = WebhookSigningSecretRef.from(
-    props.signingSecretRef,
-  );
-  if (!signingSecretRefResult.ok) {
+  const signingSecretResult = WebhookSigningSecret.from(props.signingSecret);
+  if (!signingSecretResult.ok) {
     return err(
-      withContext(signingSecretRefResult.error, {
-        ...signingSecretRefResult.error.context,
+      withContext(signingSecretResult.error, {
+        ...signingSecretResult.error.context,
         correlationId: metadata.correlationId,
         userId: metadata.userId,
         operation: 'create_webhook',
-        signingSecretRef: props.signingSecretRef,
+        signingSecret: props.signingSecret,
       }),
     );
   }
@@ -242,7 +240,7 @@ export function createWebhookAggregateFromProps(
     webhookEventType: webhookEventTypeResult.value,
     method: methodResult.value,
     headers: headersResult.value,
-    signingSecretRef: signingSecretRefResult.value,
+    signingSecret: signingSecretResult.value,
     status: statusResult.value,
     verifyTls: verifyTlsResult.value,
     requestTimeoutMs: requestTimeoutMsResult.value,

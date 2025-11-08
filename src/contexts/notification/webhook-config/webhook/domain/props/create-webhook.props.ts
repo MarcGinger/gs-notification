@@ -11,7 +11,7 @@ export interface CreateWebhookProps {
   webhookEventType: string;
   method: WebhookMethodValue;
   headers?: Record<string, unknown>;
-  signingSecretRef?: string;
+  signingSecret?: string;
   status: WebhookStatusValue;
   verifyTls?: boolean;
   requestTimeoutMs?: number;

@@ -10,7 +10,7 @@ export interface WebhookContext extends Record<string, unknown> {
   webhookEventType: string;
   method: string;
   headers?: Record<string, unknown>;
-  signingSecretRef?: string;
+  signingSecret?: string;
   status: string;
   verifyTls?: boolean;
   requestTimeoutMs?: number;
@@ -197,20 +197,20 @@ export const WebhookErrors = {
     category: 'validation',
     retryable: false,
   } as DomainError<'WEBHOOK.INVALID_REQUEST_TIMEOUT_MS_DATA', WebhookContext>,
-  INVALID_SIGNING_SECRET_REF: {
-    code: 'WEBHOOK.INVALID_SIGNING_SECRET_REF',
+  INVALID_SIGNING_SECRET: {
+    code: 'WEBHOOK.INVALID_SIGNING_SECRET',
     title: 'Value Required',
-    detail: 'Signing secret ref is required for Webhook.',
+    detail: 'Signing secret is required for Webhook.',
     category: 'validation',
     retryable: false,
-  } as DomainError<'WEBHOOK.INVALID_SIGNING_SECRET_REF', WebhookContext>,
-  INVALID_SIGNING_SECRET_REF_DATA: {
-    code: 'WEBHOOK.INVALID_SIGNING_SECRET_REF_DATA',
+  } as DomainError<'WEBHOOK.INVALID_SIGNING_SECRET', WebhookContext>,
+  INVALID_SIGNING_SECRET_DATA: {
+    code: 'WEBHOOK.INVALID_SIGNING_SECRET_DATA',
     title: 'Value Required',
-    detail: 'Signing secret ref is required for Webhook.',
+    detail: 'Signing secret is required for Webhook.',
     category: 'validation',
     retryable: false,
-  } as DomainError<'WEBHOOK.INVALID_SIGNING_SECRET_REF_DATA', WebhookContext>,
+  } as DomainError<'WEBHOOK.INVALID_SIGNING_SECRET_DATA', WebhookContext>,
   INVALID_STATUS: {
     code: 'WEBHOOK.INVALID_STATUS',
     title: 'Value Required',

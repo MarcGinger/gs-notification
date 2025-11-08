@@ -13,7 +13,7 @@ import {
   WebhookName,
   WebhookRateLimitPerMinute,
   WebhookRequestTimeoutMs,
-  WebhookSigningSecretRef,
+  WebhookSigningSecret,
   WebhookStatus,
   WebhookTargetUrl,
   WebhookVerifyTls,
@@ -41,7 +41,7 @@ export interface WebhookDomainState {
   webhookEventType: WebhookWebhookEventType;
   method: WebhookMethod;
   headers?: WebhookHeaders;
-  signingSecretRef?: WebhookSigningSecretRef;
+  signingSecret?: WebhookSigningSecret;
   status: WebhookStatus;
   verifyTls?: WebhookVerifyTls;
   requestTimeoutMs?: WebhookRequestTimeoutMs;

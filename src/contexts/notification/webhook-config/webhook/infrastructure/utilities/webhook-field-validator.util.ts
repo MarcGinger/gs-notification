@@ -52,7 +52,7 @@ export class WebhookFieldValidatorUtil {
     const targetUrl = aggregateData.targetUrl as string;
     const webhookEventType = aggregateData.webhookEventType as string;
     const method = aggregateData.method as WebhookMethodValue;
-    const signingSecretRef = aggregateData.signingSecretRef as string;
+    const signingSecret = aggregateData.signingSecret as string;
     const status = aggregateData.status as WebhookStatusValue;
     const verifyTls =
       aggregateData.verifyTls === 'true' || aggregateData.verifyTls === true;
@@ -93,7 +93,7 @@ export class WebhookFieldValidatorUtil {
       webhookEventType,
       method,
       headers,
-      signingSecretRef,
+      signingSecret,
       status,
       verifyTls,
       requestTimeoutMs,

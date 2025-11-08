@@ -19,7 +19,7 @@ import {
   WebhookName,
   WebhookRateLimitPerMinute,
   WebhookRequestTimeoutMs,
-  WebhookSigningSecretRef,
+  WebhookSigningSecret,
   WebhookStatus,
   WebhookStatusLogic,
   WebhookStatusValue,
@@ -190,11 +190,11 @@ export class WebhookEntity extends EntityIdBase<WebhookDomainState, WebhookId> {
     if (!headersResult.ok) {
       return err(headersResult.error);
     }
-    const signingSecretRefResult = WebhookSigningSecretRef.from(
-      snapshot.signingSecretRef,
+    const signingSecretResult = WebhookSigningSecret.from(
+      snapshot.signingSecret,
     );
-    if (!signingSecretRefResult.ok) {
-      return err(signingSecretRefResult.error);
+    if (!signingSecretResult.ok) {
+      return err(signingSecretResult.error);
     }
     const statusResult = createWebhookStatus(snapshot.status);
     if (!statusResult.ok) {
@@ -245,7 +245,7 @@ export class WebhookEntity extends EntityIdBase<WebhookDomainState, WebhookId> {
       webhookEventType: webhookEventTypeResult.value,
       method: methodResult.value,
       headers: headersResult.value,
-      signingSecretRef: signingSecretRefResult.value,
+      signingSecret: signingSecretResult.value,
       status: statusResult.value,
       verifyTls: verifyTlsResult.value,
       requestTimeoutMs: requestTimeoutMsResult.value,
@@ -323,8 +323,8 @@ export class WebhookEntity extends EntityIdBase<WebhookDomainState, WebhookId> {
     return this.props.headers;
   }
 
-  public get signingSecretRef(): WebhookSigningSecretRef | undefined {
-    return this.props.signingSecretRef;
+  public get signingSecret(): WebhookSigningSecret | undefined {
+    return this.props.signingSecret;
   }
 
   public get status(): WebhookStatus {
@@ -470,18 +470,18 @@ export class WebhookEntity extends EntityIdBase<WebhookDomainState, WebhookId> {
   }
 
   /**
-   * Creates a new entity with updated signingSecretRef (pure state transition)
+   * Creates a new entity with updated signingSecret (pure state transition)
    *
-   * @param signingSecretRef - New signingSecretRef value
+   * @param signingSecret - New signingSecret value
    * @param updatedAt - Optional timestamp (uses clock if not provided)
    * @returns Result<WebhookEntity, DomainError>
    */
-  public withSigningSecretRef(
-    signingSecretRef: WebhookSigningSecretRef,
+  public withSigningSecret(
+    signingSecret: WebhookSigningSecret,
     updatedAt?: Date,
     version?: number,
   ): Result<WebhookEntity, DomainError> {
-    return this.createUpdatedEntity({ signingSecretRef }, updatedAt, version);
+    return this.createUpdatedEntity({ signingSecret }, updatedAt, version);
   }
 
   /**
@@ -609,7 +609,7 @@ export class WebhookEntity extends EntityIdBase<WebhookDomainState, WebhookId> {
       webhookEventType: this.props.webhookEventType.value,
       method: this.props.method.value,
       headers: this.props.headers?.value,
-      signingSecretRef: this.props.signingSecretRef?.value,
+      signingSecret: this.props.signingSecret?.value,
       status: this.props.status.value,
       verifyTls: this.props.verifyTls?.value,
       requestTimeoutMs: this.props.requestTimeoutMs?.value,

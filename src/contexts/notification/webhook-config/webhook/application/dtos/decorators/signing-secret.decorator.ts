@@ -13,11 +13,11 @@ interface PropOptions {
 }
 
 /**
- * Property decorator for Webhook SigningSecretRef
+ * Property decorator for Webhook SigningSecret
  * @param {Object} options - Options for the decorator
  * @returns {PropertyDecorator}
  */
-export function ApiWebhookSigningSecretRef(options: PropOptions = {}) {
+export function ApiWebhookSigningSecret(options: PropOptions = {}) {
   const { required = false } = options;
 
   return applyDecorators(

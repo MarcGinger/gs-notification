@@ -146,7 +146,7 @@ export class WebhookAggregate extends AggregateRootBase {
       webhookEventType: entityProps.webhookEventType.value,
       method: entityProps.method.value,
       headers: entityProps.headers?.value,
-      signingSecretRef: entityProps.signingSecretRef?.value,
+      signingSecret: entityProps.signingSecret?.value,
       status: entityProps.status.value,
       verifyTls: entityProps.verifyTls?.value,
       requestTimeoutMs: entityProps.requestTimeoutMs?.value,
@@ -205,7 +205,7 @@ export class WebhookAggregate extends AggregateRootBase {
           webhookEventType: string;
           method: WebhookMethodValue;
           headers?: Record<string, unknown>;
-          signingSecretRef?: string;
+          signingSecret?: string;
           status: WebhookStatusValue;
           verifyTls?: boolean;
           requestTimeoutMs?: number;
@@ -225,7 +225,7 @@ export class WebhookAggregate extends AggregateRootBase {
           webhookEventType: d.webhookEventType,
           method: d.method,
           headers: d.headers,
-          signingSecretRef: d.signingSecretRef,
+          signingSecret: d.signingSecret,
           status: d.status,
           verifyTls: d.verifyTls,
           requestTimeoutMs: d.requestTimeoutMs,
@@ -369,11 +369,11 @@ export class WebhookAggregate extends AggregateRootBase {
         return true;
       }
     }
-    if (validatedFields.signingSecretRef !== undefined) {
+    if (validatedFields.signingSecret !== undefined) {
       if (
         hasValueChanged(
-          this._entity.signingSecretRef,
-          validatedFields.signingSecretRef,
+          this._entity.signingSecret,
+          validatedFields.signingSecret,
         )
       ) {
         return true;
@@ -554,9 +554,9 @@ export class WebhookAggregate extends AggregateRootBase {
       currentEntity = entityResult.value;
     }
 
-    if (validatedFields.signingSecretRef !== undefined) {
-      const entityResult = currentEntity.withSigningSecretRef(
-        validatedFields.signingSecretRef,
+    if (validatedFields.signingSecret !== undefined) {
+      const entityResult = currentEntity.withSigningSecret(
+        validatedFields.signingSecret,
         updatedAt,
         nextVersion,
       );
@@ -626,7 +626,7 @@ export class WebhookAggregate extends AggregateRootBase {
       webhookEventType: this._entity.webhookEventType.value,
       method: this._entity.method.value,
       headers: this._entity.headers?.value,
-      signingSecretRef: this._entity.signingSecretRef?.value,
+      signingSecret: this._entity.signingSecret?.value,
       status: this._entity.status.value,
       verifyTls: this._entity.verifyTls?.value,
       requestTimeoutMs: this._entity.requestTimeoutMs?.value,

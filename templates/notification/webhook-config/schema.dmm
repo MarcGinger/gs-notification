@@ -156,7 +156,7 @@
 				},
 				{
 					"id": "k6l7m8n9-o0p1-2q3r-4s5t-6u7v8w9x0y1z",
-					"name": "signingSecretRef",
+					"name": "signingSecret",
 					"datatype": "VARCHAR",
 					"param": "128",
 					"pk": false,
@@ -165,7 +165,7 @@
 					"comment": "Reference or key name for the signing secret used to generate webhook signatures. Stores the secret identifier, not the actual secret value for security.",
 					"defaultvalue": "NULL",
 					"data": "",
-					"after": "",
+					"after": "pii()",
 					"autoinc": false,
 					"collation": "",
 					"charset": "",
@@ -1452,7 +1452,7 @@
 		},
 		"type": "MARIADB",
 		"version": 1,
-		"lastSaved": 1762381864436,
+		"lastSaved": 1762383306022,
 		"beforeScript": "",
 		"afterScript": "",
 		"sqlSettings": {
@@ -1498,7 +1498,7 @@
 			"diagramItems": {
 				"cd5f87d5-b86c-47eb-8bd6-6699ed90dc28": {
 					"referencedItemId": "cd5f87d5-b86c-47eb-8bd6-6699ed90dc28",
-					"x": 199,
+					"x": 225,
 					"y": 30,
 					"gHeight": 308,
 					"gWidth": 279,
@@ -1537,8 +1537,8 @@
 				},
 				"a6b26988-b7bc-41e9-9958-f72b0b72761d": {
 					"referencedItemId": "a6b26988-b7bc-41e9-9958-f72b0b72761d",
-					"x": 184,
-					"y": 374,
+					"x": 261,
+					"y": 477,
 					"gHeight": 171,
 					"gWidth": 244,
 					"color": "#ffffff",

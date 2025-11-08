@@ -6,7 +6,7 @@ export * from './method.vo';
 export * from './name.vo';
 export * from './rate-limit-per-minute.vo';
 export * from './request-timeout-ms.vo';
-export * from './signing-secret-ref.vo';
+export * from './signing-secret.vo';
 export * from './status.vo';
 export * from './target-url.vo';
 export * from './verify-tls.vo';

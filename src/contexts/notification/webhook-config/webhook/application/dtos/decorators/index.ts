@@ -6,7 +6,7 @@ export * from './method.decorator';
 export * from './name.decorator';
 export * from './rate-limit-per-minute.decorator';
 export * from './request-timeout-ms.decorator';
-export * from './signing-secret-ref.decorator';
+export * from './signing-secret.decorator';
 export * from './status.decorator';
 export * from './target-url.decorator';
 export * from './verify-tls.decorator';

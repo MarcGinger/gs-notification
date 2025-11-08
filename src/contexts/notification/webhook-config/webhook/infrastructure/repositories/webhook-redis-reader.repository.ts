@@ -121,7 +121,7 @@ export class WebhookReaderRepository implements IWebhookReader {
         webhookEventType: hashData.webhookEventType,
         method,
         headers,
-        signingSecretRef: hashData.signingSecretRef || undefined,
+        signingSecret: hashData.signingSecret || undefined,
         status,
         verifyTls: hashData.verifyTls === 'true',
         requestTimeoutMs: parseInt(hashData.requestTimeoutMs, 10),
