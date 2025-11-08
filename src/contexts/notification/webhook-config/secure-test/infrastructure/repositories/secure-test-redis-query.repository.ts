@@ -19,11 +19,11 @@ import { Option } from 'src/shared/domain/types';
 import { ActorContext } from 'src/shared/application/context';
 import { RepositoryErrorFactory } from 'src/shared/domain/errors/repository.error';
 import { CacheMetricsCollector } from 'src/shared/infrastructure/projections/cache-optimization';
+import { EventEncryptionService } from 'src/shared/infrastructure/secret-ref/infrastructure';
 import { WEBHOOK_CONFIG_DI_TOKENS } from '../../../webhook-config.constants';
 import { SecureTestProjectionKeys } from '../../secure-test-projection-keys';
 import { DetailSecureTestResponse } from '../../application/dtos';
 import { ISecureTestQuery } from '../../application/ports';
-import { EventEncryptionService } from 'src/shared/infrastructure/secret-ref/infrastructure/event-encryption.service';
 
 /**
  * Internal secureTest data structure for Redis operations

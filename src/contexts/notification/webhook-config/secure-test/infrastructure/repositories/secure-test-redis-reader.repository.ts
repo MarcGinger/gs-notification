@@ -19,12 +19,12 @@ import { Result, DomainError, err, ok } from 'src/shared/errors';
 import { Option } from 'src/shared/domain/types';
 import { ActorContext } from 'src/shared/application/context';
 import { RepositoryErrorFactory } from 'src/shared/domain/errors/repository.error';
+import { EventEncryptionService } from 'src/shared/infrastructure/secret-ref/infrastructure';
 import { WEBHOOK_CONFIG_DI_TOKENS } from '../../../webhook-config.constants';
 import { SecureTestProjectionKeys } from '../../secure-test-projection-keys';
 import { SecureTestSnapshotProps } from '../../domain/props';
 import { SecureTestId } from '../../domain/value-objects';
 import { ISecureTestReader } from '../../application/ports';
-import { EventEncryptionService } from 'src/shared/infrastructure/secret-ref/infrastructure/event-encryption.service';
 
 /**
  * SecureTest Reader Repository - Redis Implementation
