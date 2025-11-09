@@ -204,6 +204,7 @@ export class SecureTestWriterRepository
     });
 
     const eventsToStore = encryptionResult.events;
+
     // prevVersion = version BEFORE current batch
     const prevVersion = secureTest.version - eventsToStore.length;
 

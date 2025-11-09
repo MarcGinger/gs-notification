@@ -9,7 +9,6 @@ import { OpaModule } from 'src/shared/security';
 import { ComplianceModule } from 'src/shared/services/compliance';
 import { ComplianceInfrastructureModule } from 'src/shared/infrastructure/compliance';
 import { InfrastructureModule } from 'src/shared/infrastructure/infrastructure.module';
-import { EventEncryptionModule } from 'src/shared/infrastructure/encryption';
 import { TypeOrmDatabaseModule } from 'src/shared/infrastructure/database/typeorm.module';
 import {
   DATA_SOURCE,
@@ -34,6 +33,7 @@ import { WEBHOOK_CONFIG_DI_TOKENS } from './webhook-config.constants';
 import { WebhookConfigPolicyService } from './webhook-config-policy.service';
 // TODO remove this line if not used
 import { SlackModule } from 'src/shared/infrastructure/slack/slack.module';
+import { EventEncryptionModule } from 'src/shared/infrastructure/encryption';
 
 /**
  * Webhook config Shared Module

@@ -266,7 +266,7 @@ export class SecureTestReaderRepository implements ISecureTestReader {
 
       // Parse and decrypt SecretRef objects from Redis JSON strings using shared utility
       const decryptedSecrets =
-        await SecureTestDecryptionUtil.decryptSecretTestFields(
+        await SecureTestDecryptionUtil.decryptSecureTestFields(
           {
             signingSecret: secureTestSnapshot.signingSecret,
             username: secureTestSnapshot.username,

@@ -41,7 +41,7 @@ export class WebhookDecryptionUtil {
    * @param logger - Logger instance for error reporting
    * @returns Promise resolving to record of field names to decrypted string values
    */
-  static async decryptSecretRefFields(
+  static async decryptWebhookFields(
     secretFields: Record<string, string | undefined>,
     actor: ActorContext,
     eventEncryptionFactory: EventEncryptionFactory,
@@ -61,49 +61,5 @@ export class WebhookDecryptionUtil {
         domain: 'Webhook',
       },
     );
-  }
-
-  /**
-   * Decrypt specific Webhook fields commonly used across repositories
-   *
-   * Convenience wrapper for the most common Webhook field decryption pattern.
-   * Handles the standard fields: signingSecret, authToken, apiKey.
-   *
-   * @param webhookData - Object containing encrypted Webhook fields
-   * @param actor - Actor context for decryption
-   * @param eventEncryptionFactory - Factory for handling encryption/decryption operations
-   * @param logger - Logger instance for error reporting
-   * @returns Promise resolving to decrypted field values
-   */
-  static async decryptWebhookFields(
-    webhookData: {
-      signingSecret?: string;
-      authToken?: string;
-      apiKey?: string;
-    },
-    actor: ActorContext,
-    eventEncryptionFactory: EventEncryptionFactory,
-    logger: Logger,
-  ): Promise<{
-    signingSecret?: string;
-    authToken?: string;
-    apiKey?: string;
-  }> {
-    const decryptedFields = await this.decryptSecretRefFields(
-      {
-        signingSecret: webhookData.signingSecret,
-        authToken: webhookData.authToken,
-        apiKey: webhookData.apiKey,
-      },
-      actor,
-      eventEncryptionFactory,
-      logger,
-    );
-
-    return {
-      signingSecret: decryptedFields.signingSecret,
-      authToken: decryptedFields.authToken,
-      apiKey: decryptedFields.apiKey,
-    };
   }
 }

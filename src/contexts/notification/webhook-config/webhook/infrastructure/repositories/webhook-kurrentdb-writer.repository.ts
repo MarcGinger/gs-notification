@@ -25,23 +25,22 @@ import { WebhookProjectionKeys } from '../../webhook-projection-keys';
 import { WebhookId } from '../../domain/value-objects';
 import { WebhookDeletedEvent } from '../../domain/events';
 import { IWebhookWriter } from '../../application/ports';
-
-// EventEncryptionFactory for unified encryption approach
-import { EventEncryptionFactory } from 'src/shared/infrastructure/encryption';
-import { WebhookEncryptionConfig } from '../encryption/webhook-encryption.config';
-
+import {
+  EventEncryptionFactory,
+  EncryptionConfig,
+} from 'src/shared/infrastructure/encryption';
 /**
  * Webhook Writer Repository - Interface Segregation Principle Implementation
  *
  * Handles write operations (create, update, delete) for Webhook aggregates
- * with unified encryption at the persistence boundary (CQRS command side).
+ * with PII protection at the persistence boundary (CQRS command side).
  *
- * Unified Encryption Features:
- * - EventEncryptionFactory with PII strategy for webhook domain
- * - Encrypts sensitive fields: signingSecret, headers
- * - Consistent encryption approach across all domains
- * - Observable encryption metadata and strategy reporting
- * - Clean separation: domain uses raw data, infrastructure encrypts at boundary
+ * PII Protection Features:
+ * - Automatic field-level encryption based on aggregate metadata classification
+ * - AES-256-GCM encryption with key rotation support
+ * - Safe logging (no plaintext PII in logs)
+ * - Blind index generation for searchable fields
+ * - Clean separation: domain uses raw data, infrastructure encrypts at boundary.
  *
  * ISP Benefits:
  * - Clients that only need to write data don't depend on read methods
@@ -51,7 +50,7 @@ import { WebhookEncryptionConfig } from '../encryption/webhook-encryption.config
  *
  * @domain Notification Context - Webhook Writer Repository
  * @layer Infrastructure
- * @pattern Repository Pattern + Interface Segregation Principle + EventEncryptionFactory
+ * @pattern Repository Pattern + Interface Segregation Principle + CQRS Encryption
  */
 export class WebhookWriterRepository
   extends BaseWriterRepository
@@ -168,64 +167,43 @@ export class WebhookWriterRepository
       return ok(receipt);
     }
 
-    // **UNIFIED ENCRYPTION AT PERSISTENCE BOUNDARY**
-    // Use EventEncryptionFactory for consistent encryption across all domains
-    // Encrypts sensitive fields (signingSecret, headers) using SecretRef strategy
+    // Encrypt sensitive fields before persistence using new factory
+    const secretConfig: EncryptionConfig =
+      EventEncryptionFactory.createSecretConfig({
+        sensitiveFields: [],
+        namespaceMap: {},
+        defaultNamespace: 'general',
+      });
 
-    let eventsToStore: DomainEvent[];
+    const encryptionResult = await this.eventEncryptionFactory.encryptEvents(
+      [...events],
+      actor,
+      secretConfig,
+    );
 
-    try {
-      // Configure SecretRef encryption for webhook domain
-      const secretConfig = WebhookEncryptionConfig.createSecretRefConfig();
-
-      // Encrypt events using EventEncryptionFactory
-      const encryptionResult = await this.eventEncryptionFactory.encryptEvents(
-        [...events], // Create mutable copy
-        actor,
-        secretConfig,
-      );
-
-      eventsToStore = encryptionResult.events;
-
-      Log.debug(
-        this.logger,
-        'Webhook events encrypted at persistence boundary',
-        {
-          ...logContext,
-          stream,
-          eventCount: events.length,
-          encryptedEventCount: encryptionResult.metadata.encryptedEventCount,
-          skippedEventCount: encryptionResult.metadata.skippedEventCount,
-          encryptionType: encryptionResult.metadata.encryptionType,
-          algorithm: encryptionResult.metadata.algorithm,
-          encryptedFields: encryptionResult.metadata.encryptedFields,
-        },
-      );
-    } catch (encryptionError) {
-      Log.error(
-        this.logger,
-        'Webhook encryption failed at persistence boundary',
-        {
-          ...logContext,
-          stream,
-          eventCount: events.length,
-          error:
-            encryptionError instanceof Error
-              ? encryptionError.message
-              : 'Unknown encryption error',
-        },
-      );
-
-      return err(
-        RepositoryErrorFactory.connectionError(
-          `Failed to encrypt webhook data at persistence boundary: ${
-            encryptionError instanceof Error
-              ? encryptionError.message
-              : 'Unknown error'
-          }`,
+    // Log encryption strategy details for observability
+    Log.info(this.logger, 'Events encrypted with strategy details', {
+      ...logContext,
+      encryptionStrategy: {
+        type: secretConfig.type, // 'secret', 'pii', 'noop', etc.
+        encryptedCount: encryptionResult.metadata.encryptedEventCount,
+        skippedCount: encryptionResult.metadata.skippedEventCount,
+        algorithm: encryptionResult.metadata.algorithm,
+        encryptedFields: encryptionResult.metadata.encryptedFields,
+        strategyDetails: encryptionResult.metadata.strategyMetadata.map(
+          (meta) => ({
+            strategyName: meta.source,
+            algorithm: meta.algorithm,
+            keyId: meta.keyId,
+            namespace: meta.namespace,
+            version: meta.strategyVersion,
+            processedFields: meta.processedFields,
+          }),
         ),
-      );
-    }
+      },
+    });
+
+    const eventsToStore = encryptionResult.events;
 
     // prevVersion = version BEFORE current batch
     const prevVersion = webhook.version - eventsToStore.length;

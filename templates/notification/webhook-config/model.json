@@ -238,6 +238,10 @@
           "array": false,
           "isPII": "sensitive",
           "secret": false,
+          "security": {
+            "type": "pii",
+            "classification": "sensitive"
+          },
           "create": true,
           "update": true,
           "get": true,
@@ -2196,6 +2200,10 @@
           "array": false,
           "isPII": "",
           "secret": true,
+          "security": {
+            "type": "secret",
+            "classification": "sensitive"
+          },
           "create": true,
           "update": true,
           "get": true,
@@ -2261,6 +2269,10 @@
           "array": false,
           "isPII": "",
           "secret": true,
+          "security": {
+            "type": "secret",
+            "classification": "sensitive"
+          },
           "create": true,
           "update": true,
           "get": true,
@@ -2288,6 +2300,10 @@
           "array": false,
           "isPII": "",
           "secret": true,
+          "security": {
+            "type": "secret",
+            "classification": "sensitive"
+          },
           "create": true,
           "update": true,
           "get": true,

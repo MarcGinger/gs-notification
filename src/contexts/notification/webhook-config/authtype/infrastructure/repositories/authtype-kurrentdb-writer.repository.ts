@@ -157,6 +157,7 @@ export class AuthtypeWriterRepository
 
     // Use original events for persistence (no PII processing needed)
     const eventsToStore = events;
+
     // prevVersion = version BEFORE current batch
     const prevVersion = authtype.version - eventsToStore.length;
 

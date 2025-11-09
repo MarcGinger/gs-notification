@@ -121,7 +121,13 @@ export class UpsertSecureTestUseCase implements IUpsertSecureTestUseCase {
 
     // Step 2: Check PII compliance for input data with domain context
     const classification = this.piiClassificationService.classifyData(
-      {},
+      {
+        signingSecret: command.props.signingSecret,
+
+        username: command.props.username,
+
+        password: command.props.password,
+      },
       {
         domain: 'webhook-config',
         tenant: command.user.tenant,
@@ -391,6 +397,12 @@ export class UpsertSecureTestUseCase implements IUpsertSecureTestUseCase {
         aggregateVersion: aggregate.version,
         eventCount: aggregate.uncommittedEvents?.length ?? 0,
         businessData: {
+          SigningSecret: dto.signingSecret,
+
+          Username: dto.username,
+
+          Password: dto.password,
+
           // ... other non-PII business fields
           complianceApplied: classification.containsPII,
           fieldsUpdated: Object.keys(fieldsToUpdate).length,
