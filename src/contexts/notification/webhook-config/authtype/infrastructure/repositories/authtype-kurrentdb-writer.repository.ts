@@ -25,7 +25,6 @@ import { AuthtypeProjectionKeys } from '../../authtype-projection-keys';
 import { AuthtypeId } from '../../domain/value-objects';
 import { AuthtypeDeletedEvent } from '../../domain/events';
 import { IAuthtypeWriter } from '../../application/ports';
-
 /**
  * Authtype Writer Repository - Interface Segregation Principle Implementation
  *
@@ -158,7 +157,6 @@ export class AuthtypeWriterRepository
 
     // Use original events for persistence (no PII processing needed)
     const eventsToStore = events;
-
     // prevVersion = version BEFORE current batch
     const prevVersion = authtype.version - eventsToStore.length;
 

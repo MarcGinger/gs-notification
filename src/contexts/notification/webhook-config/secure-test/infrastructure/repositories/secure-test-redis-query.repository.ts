@@ -10,6 +10,8 @@ import {
   RepositoryLoggingUtil,
   RepositoryLoggingConfig,
   handleRepositoryError,
+  safeParseJSON,
+  safeParseJSONArray,
   RepositoryOptions,
 } from 'src/shared/infrastructure/repositories';
 import { Result, DomainError, err, ok } from 'src/shared/errors';
@@ -18,11 +20,11 @@ import { ActorContext } from 'src/shared/application/context';
 import { RepositoryErrorFactory } from 'src/shared/domain/errors/repository.error';
 import { CacheMetricsCollector } from 'src/shared/infrastructure/projections/cache-optimization';
 import { EventEncryptionFactory } from 'src/shared/infrastructure/encryption';
+import { SecureTestDecryptionUtil } from '../utilities';
 import { WEBHOOK_CONFIG_DI_TOKENS } from '../../../webhook-config.constants';
 import { SecureTestProjectionKeys } from '../../secure-test-projection-keys';
 import { DetailSecureTestResponse } from '../../application/dtos';
 import { ISecureTestQuery } from '../../application/ports';
-import { SecureTestDecryptionUtil } from '../utilities/secure-test-decryption.util';
 
 /**
  * Internal secureTest data structure for Redis operations
@@ -190,7 +192,7 @@ export class SecureTestQueryRepository implements ISecureTestQuery {
 
       // Parse and decrypt SecretRef objects from Redis JSON strings using shared utility
       const decryptedSecrets =
-        await SecureTestDecryptionUtil.decryptSecureTestFields(
+        await SecureTestDecryptionUtil.decryptSecretTestFields(
           {
             signingSecret: secureTest.signingSecret,
             username: secureTest.username,
