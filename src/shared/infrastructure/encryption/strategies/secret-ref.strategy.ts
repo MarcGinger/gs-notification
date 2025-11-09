@@ -105,14 +105,25 @@ export class SecretRefStrategy implements EncryptionStrategy {
 
         // Extract SecretRef fields from event data
         const secretRefFields: Record<string, string | undefined> = {};
-        const hasSecrets = sensitiveFields.some((field) => {
+
+        // Process all sensitive fields (don't stop at first match)
+        sensitiveFields.forEach((field) => {
           const value = eventData[field];
+
           if (value && typeof value === 'string') {
-            secretRefFields[field] = value;
-            return true;
+            // Check if it's actually a sealed secret JSON string
+            if (this.isSealedSecretJson(value)) {
+              secretRefFields[field] = value;
+            }
+          } else if (value && typeof value === 'object' && value !== null) {
+            // Check if it's a sealed secret object
+            if (this.isSealedSecretObject(value)) {
+              secretRefFields[field] = JSON.stringify(value);
+            }
           }
-          return false;
         });
+
+        const hasSecrets = Object.keys(secretRefFields).length > 0;
 
         if (!hasSecrets) {
           return event; // No secrets to decrypt
@@ -221,5 +232,38 @@ export class SecretRefStrategy implements EncryptionStrategy {
       const data = eventObj.data as Record<string, unknown>;
       return sensitiveFields.some((field) => field in data);
     });
+  }
+
+  /**
+   * Check if a string is a valid sealed secret JSON
+   */
+  private isSealedSecretJson(value: string): boolean {
+    try {
+      const parsed: unknown = JSON.parse(value);
+      return this.isSealedSecretObject(parsed);
+    } catch {
+      return false;
+    }
+  }
+
+  /**
+   * Check if an object is a valid sealed secret
+   */
+  private isSealedSecretObject(value: unknown): boolean {
+    if (!value || typeof value !== 'object') {
+      return false;
+    }
+
+    const obj = value as Record<string, unknown>;
+
+    // Check for sealed secret structure
+    return (
+      typeof obj.scheme === 'string' &&
+      obj.scheme === 'secret' &&
+      typeof obj.provider === 'string' &&
+      typeof obj.tenant === 'string' &&
+      typeof obj.blob === 'string' &&
+      typeof obj.v === 'number'
+    );
   }
 }
