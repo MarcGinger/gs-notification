@@ -170,19 +170,19 @@ export class WebhookWriterRepository
 
     // **UNIFIED ENCRYPTION AT PERSISTENCE BOUNDARY**
     // Use EventEncryptionFactory for consistent encryption across all domains
-    // Encrypts sensitive fields (signingSecret, headers) using PII strategy
+    // Encrypts sensitive fields (signingSecret, headers) using SecretRef strategy
 
     let eventsToStore: DomainEvent[];
 
     try {
-      // Configure PII encryption for webhook domain
-      const piiConfig = WebhookEncryptionConfig.createPIIConfig(actor.tenant);
+      // Configure SecretRef encryption for webhook domain
+      const secretConfig = WebhookEncryptionConfig.createSecretRefConfig();
 
       // Encrypt events using EventEncryptionFactory
       const encryptionResult = await this.eventEncryptionFactory.encryptEvents(
         [...events], // Create mutable copy
         actor,
-        piiConfig,
+        secretConfig,
       );
 
       eventsToStore = encryptionResult.events;

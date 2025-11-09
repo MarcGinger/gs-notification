@@ -265,21 +265,30 @@ export class WebhookQueryRepository implements IWebhookQuery {
     actor: ActorContext,
   ): Promise<WebhookCacheData> {
     try {
-      // Create mock domain event for decryption
+      // Create proper domain event structure for SecretRefStrategy
       const mockDomainEvent = {
-        signingSecret: webhook.signingSecret,
-        headers: webhook.headers,
+        type: 'WebhookQuery',
+        data: {
+          signingSecret: webhook.signingSecret,
+          headers: webhook.headers,
+        },
+        aggregateId: `webhook-query-${actor.tenant}-${Date.now()}`,
       };
 
-      const piiConfig = WebhookEncryptionConfig.createPIIConfig(actor.tenant);
+      const secretConfig = WebhookEncryptionConfig.createSecretRefConfig();
 
       const decryptionResult = await this.eventEncryptionFactory.decryptEvents(
         [mockDomainEvent],
         actor,
-        piiConfig,
+        secretConfig,
       );
 
-      const decryptedData = decryptionResult.events[0];
+      // Extract data from the domain event structure
+      const decryptedEvent = decryptionResult.events[0];
+      const decryptedData = decryptedEvent?.data || {
+        signingSecret: webhook.signingSecret,
+        headers: webhook.headers,
+      };
 
       // Return webhook with decrypted fields
       return {

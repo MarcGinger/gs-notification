@@ -434,21 +434,30 @@ export class WebhookProjector
         roles: ['system'],
       };
 
-      // Create mock domain event for encryption
+      // Create proper domain event structure for SecretRefStrategy
       const mockDomainEvent = {
-        signingSecret: webhook.signingSecret,
-        headers: webhook.headers,
+        type: 'WebhookProjection',
+        data: {
+          signingSecret: webhook.signingSecret,
+          headers: webhook.headers,
+        },
+        aggregateId: `webhook-projection-${tenant}-${Date.now()}`,
       };
 
-      const piiConfig = WebhookEncryptionConfig.createPIIConfig(tenant);
+      const secretConfig = WebhookEncryptionConfig.createSecretRefConfig();
 
       const encryptionResult = await this.eventEncryptionFactory.encryptEvents(
         [mockDomainEvent],
         actor,
-        piiConfig,
+        secretConfig,
       );
 
-      const encryptedData = encryptionResult.events[0];
+      // Extract data from the domain event structure
+      const encryptedEvent = encryptionResult.events[0];
+      const encryptedData = encryptedEvent?.data || {
+        signingSecret: webhook.signingSecret,
+        headers: webhook.headers,
+      };
 
       // Return webhook with encrypted fields
       return {
