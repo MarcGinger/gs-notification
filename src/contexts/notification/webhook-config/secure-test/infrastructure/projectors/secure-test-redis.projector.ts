@@ -70,23 +70,6 @@ interface SecureTestProjectionParams extends UnifiedProjectionParams {
   signatureAlgorithm?: string;
 }
 
-/**
- * Refactored SecureTest Projector using Unified Approach
- *
- * This shows how to refactor existing projectors to use the unified utilities
- * without major architectural changes. The projector becomes much simpler:
- *
- * 1. Uses UnifiedProjectorUtils for all Redis operations
- * 2. Focuses only on domain-specific parameter extraction
- * 3. Maintains existing lifecycle management
- * 4. Preserves existing DI tokens and configuration
- *
- * Benefits:
- * - Reduces code duplication by ~200 lines
- * - Standardizes projection behavior across all projectors
- * - Maintains encryption factory integration for SecretRef inspection
- * - Easier to test and maintain
- */
 @Injectable()
 export class SecureTestProjector
   extends BaseProjector
@@ -274,14 +257,13 @@ export class SecureTestProjector
   private async projectEvent(
     event: ProjectionEvent,
   ): Promise<ProjectionOutcome> {
-    const tenant = this.extractTenant(event);
+    const tenant = TenantExtractor.extractTenant(event);
 
     try {
       // Extract domain-specific parameters with enhanced error context
       const params = this.extractSecureTestParams(event, 'project');
 
       // Use unified utilities for all Redis operations
-      // This replaces ~100 lines of Redis pipeline code
       const outcome = await this.projectorUtils.executeProjection(
         event,
         params,
@@ -354,13 +336,6 @@ export class SecureTestProjector
   }
 
   /**
-   * Extract tenant ID from event using shared utility
-   */
-  private extractTenant(event: ProjectionEvent): string {
-    return TenantExtractor.extractTenant(event);
-  }
-
-  /**
    * Extract secure-test parameters with enhanced error context
    *
    * Uses SecureTestFieldValidatorUtil to create validated DetailSecureTestResponse for consistent
@@ -374,7 +349,7 @@ export class SecureTestProjector
       const eventData = event.data as Record<string, any>;
 
       // Extract tenant using existing logic
-      const tenant = event.streamId?.split('-')[0] || 'default';
+      const tenant = TenantExtractor.extractTenant(event);
 
       // Use existing SecureTestFieldValidatorUtil for validation
       const secureTestData =
@@ -413,48 +388,3 @@ export class SecureTestProjector
     }
   }
 }
-
-/**
- * Production-Ready Usage Summary:
- *
- * BEFORE (Original SecureTestProjector):
- * - ~450 lines of code
- * - Complex Redis pipeline operations
- * - Manual cache management
- * - Custom error handling
- * - Custom logging
- *
- * AFTER (Production-Ready with Unified Approach):
- * - ~350 lines of code (balanced simplification with production features)
- * - All Redis operations handled by UnifiedProjectorUtils
- * - Automatic cache management
- * - ✅ RESTORED: Structured error handling with error catalog and context
- * - ✅ RESTORED: Comprehensive logging for SLO monitoring and incident analysis
- * - ✅ RESTORED: Metrics collection for observability
- * - ✅ RESTORED: EVALSHA script registration for optimization
- * - ✅ RESTORED: Projection outcome logging for production monitoring
- * - Focus on domain-specific logic with production-ready infrastructure
- *
- * Production Features Restored:
- * - Error catalog with structured context using withContext()
- * - Comprehensive logging with stack traces and event details
- * - Metrics collection with CacheMetricsCollector
- * - SLO monitoring with projection outcome tracking
- * - EVALSHA script optimization
- * - Tenant extraction utilities
- * - Detailed health status management
- *
- * Benefits:
- * - Code reduction while maintaining production readiness
- * - Standardized projection behavior across all projectors
- * - Full observability and error handling
- * - Easier to maintain and debug in production
- * - Ready for monitoring, alerting, and incident response
- *
- * Migration Strategy for Other Projectors:
- * 1. Apply same production-ready enhancements to ConfigProjector and WebhookProjector
- * 2. ConfigProjector doesn't need EventEncryptionFactory (pass undefined)
- * 3. WebhookProjector needs EventEncryptionFactory for encryption operations
- * 4. All projectors use the same UnifiedProjectorUtils with production logging
- * 5. Maintain error catalogs and metrics collection for all projectors
- */

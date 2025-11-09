@@ -23,7 +23,7 @@ import { WEBHOOK_CONFIG_DI_TOKENS } from '../../../webhook-config.constants';
 import { SecureTestProjectionKeys } from '../../secure-test-projection-keys';
 import { SecureTestSnapshotProps } from '../../domain/props';
 import { SecureTestId } from '../../domain/value-objects';
-import { SecureTestEncryptionConfig } from '../encryption/secure-test-encryption.config';
+import { SecureTestDecryptionUtil } from '../utilities/secure-test-decryption.util';
 import { ISecureTestReader } from '../../application/ports';
 
 /**
@@ -263,15 +263,18 @@ export class SecureTestReaderRepository implements ISecureTestReader {
         return ok(Option.none());
       }
 
-      // Parse and decrypt SecretRef objects from Redis JSON strings
-      const decryptedSecrets = await this.decryptSecretRefFields(
-        {
-          signingSecret: secureTestSnapshot.signingSecret,
-          username: secureTestSnapshot.username,
-          password: secureTestSnapshot.password,
-        },
-        actor,
-      );
+      // Parse and decrypt SecretRef objects from Redis JSON strings using shared utility
+      const decryptedSecrets =
+        await SecureTestDecryptionUtil.decryptSecureTestFields(
+          {
+            signingSecret: secureTestSnapshot.signingSecret,
+            username: secureTestSnapshot.username,
+            password: secureTestSnapshot.password,
+          },
+          actor,
+          this.eventEncryptionFactory,
+          this.logger,
+        );
 
       // Update snapshot with decrypted values
       const decryptedSnapshot: SecureTestSnapshotProps = {
@@ -624,79 +627,6 @@ export class SecureTestReaderRepository implements ISecureTestReader {
 
       // Handle and return the classified error using shared utility
       return handleRepositoryError(error);
-    }
-  }
-
-  /**
-   * Parse and decrypt fields using EventEncryptionFactory
-   * The repository has no knowledge of encryption formats - the factory handles all encryption/decryption logic
-   */
-  private async decryptSecretRefFields(
-    secretFields: Record<string, string | undefined>,
-    actor: ActorContext,
-  ): Promise<Record<string, string | undefined>> {
-    try {
-      // Parse JSON strings back to objects (if they are JSON)
-      const parsedFields: Record<string, unknown> = {};
-
-      for (const [key, value] of Object.entries(secretFields)) {
-        if (value) {
-          try {
-            // Try to parse as JSON
-            const parsed = JSON.parse(value) as unknown;
-            parsedFields[key] = parsed;
-          } catch {
-            // Not JSON, treat as plain string
-            parsedFields[key] = value;
-          }
-        }
-      }
-
-      // Let EventEncryptionFactory handle ALL encryption/decryption logic
-      // The repository should have no knowledge of encryption formats
-
-      // Create proper domain event structure for SecretRefStrategy
-      const mockDomainEvent = {
-        type: 'SecureTestReader',
-        data: parsedFields,
-        aggregateId: `reader-${actor.tenant}-${Date.now()}`,
-      };
-      const secretConfig = SecureTestEncryptionConfig.createSecretRefConfig();
-
-      const decryptionResult = await this.eventEncryptionFactory.decryptEvents(
-        [mockDomainEvent],
-        actor,
-        secretConfig,
-      );
-
-      // Extract data from the domain event structure
-      const decryptedEvent = decryptionResult.events[0];
-      const decryptedResult = decryptedEvent?.data || parsedFields;
-
-      // Convert the result to string values for the repository interface
-      const result: Record<string, string | undefined> = {};
-
-      for (const [key, value] of Object.entries(decryptedResult)) {
-        if (typeof value === 'string') {
-          result[key] = value;
-        } else if (value === null || value === undefined) {
-          result[key] = undefined;
-        } else {
-          // EventEncryptionFactory should have decrypted this to a string
-          // If it returned an object, that indicates the factory needs to be fixed
-          result[key] = JSON.stringify(value);
-        }
-      }
-
-      return result;
-    } catch (error) {
-      Log.error(this.logger, 'Failed to decrypt fields', {
-        method: 'decryptSecretRefFields',
-        error: (error as Error).message,
-        fieldKeys: Object.keys(secretFields),
-      });
-      // Return original values on error
-      return secretFields;
     }
   }
 }

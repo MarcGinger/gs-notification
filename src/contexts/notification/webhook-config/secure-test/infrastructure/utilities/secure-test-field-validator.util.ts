@@ -4,12 +4,6 @@ import {
   SecureTestSignatureAlgorithmValue,
   SecureTestTypeValue,
 } from '../../application/dtos';
-
-import {
-  DopplerSecretRef,
-  SealedSecretRef,
-} from 'src/shared/infrastructure/secret-ref/domain/sealed-secret-ref.types';
-import { SecretRefUtils } from 'src/shared/infrastructure/secret-ref/utilities/secret-ref.utils';
 import { EventDataProcessingUtils } from 'src/shared/infrastructure/events/utilities/event-data-processing.utils';
 
 /**
@@ -93,33 +87,5 @@ export class SecureTestFieldValidatorUtil {
       createdAt,
       updatedAt,
     };
-  }
-
-  /**
-   * Create a Doppler SecretRef with enhanced validation
-   */
-  static createDopplerSecretRefForField(
-    baseKey: string,
-    tenant: string = 'core',
-  ): DopplerSecretRef {
-    return SecretRefUtils.createDopplerSecretRefForField(baseKey, tenant, {
-      version: 'latest',
-      algHint: 'doppler-v1',
-    });
-  }
-
-  /**
-   * Create a Sealed SecretRef for new webhook configurations
-   */
-  static createSealedSecretRefForField(
-    tenant: string,
-    context: string,
-    algorithm: 'XCHACHA20-POLY1305' | 'AES-256-GCM' = 'XCHACHA20-POLY1305',
-  ): SealedSecretRef {
-    return SecretRefUtils.createSealedSecretRefForField(
-      tenant,
-      context,
-      algorithm,
-    );
   }
 }
