@@ -25,7 +25,6 @@ import { ConfigProjectionKeys } from '../../config-projection-keys';
 import { ConfigId } from '../../domain/value-objects';
 import { ConfigDeletedEvent } from '../../domain/events';
 import { IConfigWriter } from '../../application/ports';
-
 /**
  * Config Writer Repository - Interface Segregation Principle Implementation
  *
@@ -158,7 +157,6 @@ export class ConfigWriterRepository
 
     // Use original events for persistence (no PII processing needed)
     const eventsToStore = events;
-
     // prevVersion = version BEFORE current batch
     const prevVersion = config.version - eventsToStore.length;
 

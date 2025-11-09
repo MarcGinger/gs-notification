@@ -29,7 +29,6 @@ import {
   EventEncryptionFactory,
   EncryptionConfig,
 } from 'src/shared/infrastructure/encryption';
-
 /**
  * SecureTest Writer Repository - Interface Segregation Principle Implementation
  *
@@ -169,7 +168,7 @@ export class SecureTestWriterRepository
       EventEncryptionFactory.createSecretConfig({
         sensitiveFields: ['signingSecret', 'username', 'password'],
         namespaceMap: {
-          signingSecret: 'signing',
+          signingSecret: 'auth',
           username: 'auth',
           password: 'auth',
         },
@@ -205,7 +204,6 @@ export class SecureTestWriterRepository
     });
 
     const eventsToStore = encryptionResult.events;
-
     // prevVersion = version BEFORE current batch
     const prevVersion = secureTest.version - eventsToStore.length;
 

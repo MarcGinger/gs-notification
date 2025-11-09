@@ -24,8 +24,6 @@ import { WebhookProjectionKeys } from '../../webhook-projection-keys';
 import { WebhookSnapshotProps } from '../../domain/props';
 import { WebhookId } from '../../domain/value-objects';
 import { IWebhookReader } from '../../application/ports';
-import { EventEncryptionFactory } from 'src/shared/infrastructure/encryption';
-import { WebhookEncryptionConfig } from '../encryption/webhook-encryption.config';
 
 /**
  * Webhook Reader Repository - Redis Implementation
@@ -56,7 +54,6 @@ export class WebhookReaderRepository implements IWebhookReader {
     @Inject(CLOCK) private readonly clock: Clock,
     @Inject(WEBHOOK_CONFIG_DI_TOKENS.IO_REDIS)
     private readonly redis: Redis,
-    private readonly eventEncryptionFactory: EventEncryptionFactory,
   ) {
     this.loggingConfig = {
       serviceName: 'WebhookConfigService',
@@ -83,61 +80,6 @@ export class WebhookReaderRepository implements IWebhookReader {
   private generateWebhookKey(tenant: string, id: string): string {
     // ✅ Use centralized key generation for consistency
     return WebhookProjectionKeys.getRedisWebhookKey(tenant, id);
-  }
-
-  /**
-   * Decrypt webhook data using EventEncryptionFactory
-   */
-  private async decryptWebhookData(
-    webhookSnapshot: WebhookSnapshotProps,
-    actor: ActorContext,
-  ): Promise<WebhookSnapshotProps> {
-    try {
-      // Create proper domain event structure for SecretRefStrategy
-      const mockDomainEvent = {
-        type: 'WebhookReader',
-        data: {
-          signingSecret: webhookSnapshot.signingSecret,
-          headers: webhookSnapshot.headers,
-        },
-        aggregateId: `webhook-reader-${actor.tenant}-${Date.now()}`,
-      };
-
-      const secretConfig = WebhookEncryptionConfig.createSecretRefConfig();
-
-      const decryptionResult = await this.eventEncryptionFactory.decryptEvents(
-        [mockDomainEvent],
-        actor,
-        secretConfig,
-      );
-
-      // Extract data from the domain event structure
-      const decryptedEvent = decryptionResult.events[0];
-      const decryptedData = decryptedEvent?.data || {
-        signingSecret: webhookSnapshot.signingSecret,
-        headers: webhookSnapshot.headers,
-      };
-
-      // Return webhook with decrypted fields
-      return {
-        ...webhookSnapshot,
-        signingSecret:
-          decryptedData?.signingSecret || webhookSnapshot.signingSecret,
-        headers: decryptedData?.headers || webhookSnapshot.headers,
-      };
-    } catch (error) {
-      // Log decryption error but return original data
-      Log.warn(
-        this.logger,
-        'Failed to decrypt webhook data, returning encrypted data',
-        {
-          method: 'decryptWebhookData',
-          error: (error as Error).message,
-          webhookId: webhookSnapshot.id,
-        },
-      );
-      return webhookSnapshot;
-    }
   }
 
   /**
@@ -327,12 +269,6 @@ export class WebhookReaderRepository implements IWebhookReader {
         return ok(Option.none());
       }
 
-      // Decrypt sensitive fields using EventEncryptionFactory
-      const decryptedWebhook = await this.decryptWebhookData(
-        webhookSnapshot,
-        actor,
-      );
-
       // Log query metrics using shared utility
       RepositoryLoggingUtil.logQueryMetrics(
         this.logger,
@@ -342,13 +278,13 @@ export class WebhookReaderRepository implements IWebhookReader {
           resultCount: 1,
           dataQuality: 'good',
           sampleData: {
-            id: decryptedWebhook.id,
-            version: decryptedWebhook.version,
+            id: webhookSnapshot.id,
+            version: webhookSnapshot.version,
           },
         },
       );
 
-      return ok(Option.some(decryptedWebhook));
+      return ok(Option.some(webhookSnapshot));
     } catch (error) {
       // Log operation error using shared utility
       RepositoryLoggingUtil.logOperationError(

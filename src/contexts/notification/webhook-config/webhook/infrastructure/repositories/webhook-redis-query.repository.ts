@@ -29,8 +29,6 @@ import {
 } from '../../application/dtos';
 import { PaginationMetaResponse } from 'src/shared/application/dtos';
 import { IWebhookQuery } from '../../application/ports';
-import { EventEncryptionFactory } from 'src/shared/infrastructure/encryption';
-import { WebhookEncryptionConfig } from '../encryption/webhook-encryption.config';
 
 /**
  * Internal webhook data structure for Redis operations
@@ -77,7 +75,6 @@ export class WebhookQueryRepository implements IWebhookQuery {
     @Inject(CLOCK) private readonly clock: Clock,
     @Inject(WEBHOOK_CONFIG_DI_TOKENS.IO_REDIS)
     private readonly redis: Redis,
-    private readonly eventEncryptionFactory: EventEncryptionFactory,
   ) {
     this.loggingConfig = {
       serviceName: 'WebhookConfigService',
@@ -196,24 +193,21 @@ export class WebhookQueryRepository implements IWebhookQuery {
         return ok(Option.none());
       }
 
-      // Decrypt webhook data
-      const decryptedWebhook = await this.decryptWebhookData(webhook, actor);
-
       // Transform to DetailWebhookResponse DTO (excluding internal fields)
       const detailResponse: DetailWebhookResponse = {
-        id: decryptedWebhook.id,
-        name: decryptedWebhook.name,
-        description: decryptedWebhook.description,
-        targetUrl: decryptedWebhook.targetUrl,
-        webhookEventType: decryptedWebhook.webhookEventType,
-        method: decryptedWebhook.method,
-        headers: decryptedWebhook.headers,
-        signingSecret: decryptedWebhook.signingSecret,
-        status: decryptedWebhook.status,
-        verifyTls: decryptedWebhook.verifyTls,
-        requestTimeoutMs: decryptedWebhook.requestTimeoutMs,
-        connectTimeoutMs: decryptedWebhook.connectTimeoutMs,
-        rateLimitPerMinute: decryptedWebhook.rateLimitPerMinute,
+        id: webhook.id,
+        name: webhook.name,
+        description: webhook.description,
+        targetUrl: webhook.targetUrl,
+        webhookEventType: webhook.webhookEventType,
+        method: webhook.method,
+        headers: webhook.headers,
+        signingSecret: webhook.signingSecret,
+        status: webhook.status,
+        verifyTls: webhook.verifyTls,
+        requestTimeoutMs: webhook.requestTimeoutMs,
+        connectTimeoutMs: webhook.connectTimeoutMs,
+        rateLimitPerMinute: webhook.rateLimitPerMinute,
       };
 
       Log.debug(this.logger, 'Webhook found successfully in Redis', {
@@ -255,60 +249,6 @@ export class WebhookQueryRepository implements IWebhookQuery {
    */
   private generateTenantIndexKey(tenant: string): string {
     return WebhookProjectionKeys.getRedisWebhookIndexKey(tenant);
-  }
-
-  /**
-   * Decrypt webhook data using EventEncryptionFactory
-   */
-  private async decryptWebhookData(
-    webhook: WebhookCacheData,
-    actor: ActorContext,
-  ): Promise<WebhookCacheData> {
-    try {
-      // Create proper domain event structure for SecretRefStrategy
-      const mockDomainEvent = {
-        type: 'WebhookQuery',
-        data: {
-          signingSecret: webhook.signingSecret,
-          headers: webhook.headers,
-        },
-        aggregateId: `webhook-query-${actor.tenant}-${Date.now()}`,
-      };
-
-      const secretConfig = WebhookEncryptionConfig.createSecretRefConfig();
-
-      const decryptionResult = await this.eventEncryptionFactory.decryptEvents(
-        [mockDomainEvent],
-        actor,
-        secretConfig,
-      );
-
-      // Extract data from the domain event structure
-      const decryptedEvent = decryptionResult.events[0];
-      const decryptedData = decryptedEvent?.data || {
-        signingSecret: webhook.signingSecret,
-        headers: webhook.headers,
-      };
-
-      // Return webhook with decrypted fields
-      return {
-        ...webhook,
-        signingSecret: decryptedData?.signingSecret || webhook.signingSecret,
-        headers: decryptedData?.headers || webhook.headers,
-      };
-    } catch (error) {
-      // Log decryption error but return original data
-      Log.warn(
-        this.logger,
-        'Failed to decrypt webhook data, returning encrypted data',
-        {
-          method: 'decryptWebhookData',
-          error: (error as Error).message,
-          webhookId: webhook.id,
-        },
-      );
-      return webhook;
-    }
   }
 
   /**
@@ -670,15 +610,8 @@ export class WebhookQueryRepository implements IWebhookQuery {
       const endIndex = startIndex + size;
       const paginatedWebhooks = sortedWebhooks.slice(startIndex, endIndex);
 
-      // Decrypt paginated webhooks before transforming to DTOs
-      const decryptedWebhooks = await Promise.all(
-        paginatedWebhooks.map((webhook) =>
-          this.decryptWebhookData(webhook, actor),
-        ),
-      );
-
       // Transform to DTOs
-      const webhookResponses = decryptedWebhooks.map((webhook) =>
+      const webhookResponses = paginatedWebhooks.map((webhook) =>
         this.toListResponse(webhook),
       );
 

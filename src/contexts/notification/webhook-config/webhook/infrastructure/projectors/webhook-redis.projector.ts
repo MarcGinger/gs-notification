@@ -36,9 +36,6 @@ import { APP_LOGGER, Log, Logger } from 'src/shared/logging';
 import { Clock, CLOCK } from 'src/shared/infrastructure/time';
 import { withContext } from 'src/shared/errors';
 import { CacheService } from 'src/shared/application/caching/cache.service';
-import { EventEncryptionFactory } from 'src/shared/infrastructure/encryption/event-encryption.factory';
-import { WebhookEncryptionConfig } from '../encryption/webhook-encryption.config';
-import { ActorContext } from 'src/shared/application/context';
 import { WEBHOOK_CONFIG_DI_TOKENS } from '../../../webhook-config.constants';
 import { NotificationSlackProjectorConfig } from '../../../projector.config';
 import { WebhookProjectionKeys } from '../../webhook-projection-keys';
@@ -113,7 +110,6 @@ export class WebhookProjector
     private readonly redis: Redis,
     @Inject(WEBHOOK_CONFIG_DI_TOKENS.CACHE_SERVICE)
     private readonly cache: CacheService,
-    private readonly eventEncryptionFactory: EventEncryptionFactory,
   ) {
     super(
       WebhookProjectionKeys.PROJECTOR_NAME,
@@ -260,26 +256,23 @@ export class WebhookProjector
       // ✅ Extract webhook parameters using existing utility
       const params = this.extractWebhookParams(event, 'project');
 
-      // ✅ Encrypt sensitive webhook data before storing
-      const encryptedParams = await this.encryptWebhookData(params, tenant);
-
       // ✅ Apply version hint deduplication first (production-ready SET NX EX)
       const config = NotificationSlackProjectorConfig.getConfig();
       const alreadyProcessed = await CacheOptimizationUtils.checkVersionHint(
         this.redis,
         tenant,
         'webhook',
-        encryptedParams.id,
-        encryptedParams.version,
+        params.id,
+        params.version,
         config.VERSION_KEY_PREFIX,
       );
 
       if (alreadyProcessed) {
         this.logger.debug(
           'Webhook already processed - using version hint optimization for ' +
-            encryptedParams.id +
+            params.id +
             ' version ' +
-            encryptedParams.version,
+            params.version,
         );
         const outcome = ProjectionOutcome.SKIPPED_HINT;
         this.logProjectionOutcome(outcome, event, tenant);
@@ -288,13 +281,13 @@ export class WebhookProjector
 
       // ✅ Build field pairs using shared utility (convert to generic Record)
       const fieldPairs = RedisPipelineBuilder.buildFieldPairs(
-        encryptedParams as unknown as Record<string, unknown>,
+        params as unknown as Record<string, unknown>,
       );
 
       // ✅ Generate cluster-safe keys using centralized WebhookProjectionKeys
       const entityKey = WebhookProjectionKeys.getRedisWebhookKey(
         tenant,
-        encryptedParams.id,
+        params.id,
       );
       const indexKey = WebhookProjectionKeys.getRedisWebhookIndexKey(tenant);
 
@@ -305,14 +298,14 @@ export class WebhookProjector
       const pipeline = this.redis.pipeline();
 
       // ✅ Route to soft delete or upsert based on deletion state
-      if (encryptedParams.deletedAt) {
+      if (params.deletedAt) {
         // Use shared Redis pipeline builder for cluster-safe soft delete
         RedisPipelineBuilder.executeSoftDelete(
           pipeline,
           entityKey,
           indexKey,
-          encryptedParams.id,
-          encryptedParams.deletedAt,
+          params.id,
+          params.deletedAt,
         );
 
         // ✅ Record soft delete operation (metrics collected by base projector)
@@ -322,9 +315,9 @@ export class WebhookProjector
           pipeline,
           entityKey,
           indexKey,
-          encryptedParams.id,
-          encryptedParams.version,
-          encryptedParams.updatedAt,
+          params.id,
+          params.version,
+          params.updatedAt,
           fieldPairs,
         );
 
@@ -345,8 +338,8 @@ export class WebhookProjector
         this.redis,
         tenant,
         'webhook',
-        encryptedParams.id,
-        encryptedParams.version,
+        params.id,
+        params.version,
         undefined, // Use default TTL
         config.VERSION_KEY_PREFIX,
       );
@@ -416,68 +409,6 @@ export class WebhookProjector
    */
   private extractTenant(event: ProjectionEvent): string {
     return TenantExtractor.extractTenant(event);
-  }
-
-  /**
-   * Encrypt webhook data using EventEncryptionFactory
-   */
-  private async encryptWebhookData(
-    webhook: WebhookProjectionParams,
-    tenant: string,
-  ): Promise<WebhookProjectionParams> {
-    try {
-      // Create mock actor context for encryption
-      const actor: ActorContext = {
-        userId: 'webhook-projector',
-        tenant,
-        tenant_userId: `${tenant}:webhook-projector`,
-        roles: ['system'],
-      };
-
-      // Create proper domain event structure for SecretRefStrategy
-      const mockDomainEvent = {
-        type: 'WebhookProjection',
-        data: {
-          signingSecret: webhook.signingSecret,
-          headers: webhook.headers,
-        },
-        aggregateId: `webhook-projection-${tenant}-${Date.now()}`,
-      };
-
-      const secretConfig = WebhookEncryptionConfig.createSecretRefConfig();
-
-      const encryptionResult = await this.eventEncryptionFactory.encryptEvents(
-        [mockDomainEvent],
-        actor,
-        secretConfig,
-      );
-
-      // Extract data from the domain event structure
-      const encryptedEvent = encryptionResult.events[0];
-      const encryptedData = encryptedEvent?.data || {
-        signingSecret: webhook.signingSecret,
-        headers: webhook.headers,
-      };
-
-      // Return webhook with encrypted fields
-      return {
-        ...webhook,
-        signingSecret: encryptedData?.signingSecret || webhook.signingSecret,
-        headers: encryptedData?.headers || webhook.headers,
-      };
-    } catch (error) {
-      // Log encryption error but continue with original data
-      Log.warn(
-        this.logger,
-        'Failed to encrypt webhook data, storing unencrypted',
-        {
-          method: 'encryptWebhookData',
-          error: (error as Error).message,
-          webhookId: webhook.id,
-        },
-      );
-      return webhook;
-    }
   }
 
   /**
