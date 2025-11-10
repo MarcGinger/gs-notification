@@ -6,7 +6,6 @@ import {
   ConfigOrderingValue,
   ConfigRetryStrategyValue,
   ConfigSignatureAlgorithmValue,
-  ConfigStrategyValue,
 } from '../../application/dtos';
 
 /**
@@ -35,7 +34,7 @@ export class ConfigFieldValidatorUtil {
     aggregateData: Record<string, any>,
   ): {
     webhookId: string;
-    strategy: ConfigStrategyValue;
+    rateLimitPerMinute?: number;
     maxRetryAttempts: number;
     retryBackoffSeconds: number;
     retryStrategy?: ConfigRetryStrategyValue;
@@ -55,7 +54,10 @@ export class ConfigFieldValidatorUtil {
     updatedAt: Date;
   } {
     const webhookId = aggregateData.webhookId as string;
-    const strategy = aggregateData.strategy as ConfigStrategyValue;
+    const rateLimitPerMinute =
+      typeof aggregateData.rateLimitPerMinute === 'string'
+        ? parseInt(aggregateData.rateLimitPerMinute, 10)
+        : (aggregateData.rateLimitPerMinute as number);
     const maxRetryAttempts =
       typeof aggregateData.maxRetryAttempts === 'string'
         ? parseInt(aggregateData.maxRetryAttempts, 10)
@@ -106,7 +108,7 @@ export class ConfigFieldValidatorUtil {
 
     return {
       webhookId,
-      strategy,
+      rateLimitPerMinute,
       maxRetryAttempts,
       retryBackoffSeconds,
       retryStrategy,

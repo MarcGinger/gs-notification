@@ -190,7 +190,7 @@ export class ConfigQueryRepository implements IConfigQuery {
       // Transform to DetailConfigResponse DTO (excluding internal fields)
       const detailResponse: DetailConfigResponse = {
         webhookId: config.webhookId,
-        strategy: config.strategy,
+        rateLimitPerMinute: config.rateLimitPerMinute,
         maxRetryAttempts: config.maxRetryAttempts,
         retryBackoffSeconds: config.retryBackoffSeconds,
         retryStrategy: config.retryStrategy,
@@ -273,9 +273,6 @@ export class ConfigQueryRepository implements IConfigQuery {
       );
       // Extract basic fields directly from hash data
 
-      // Type assertion for strategy - cached data should already be validated
-      const strategy = hashData.strategy as DetailConfigResponse['strategy'];
-
       // Type assertion for retryStrategy - cached data should already be validated
       const retryStrategy =
         hashData.retryStrategy as DetailConfigResponse['retryStrategy'];
@@ -289,7 +286,7 @@ export class ConfigQueryRepository implements IConfigQuery {
 
       return {
         webhookId: hashData.webhookId,
-        strategy,
+        rateLimitPerMinute: parseInt(hashData.rateLimitPerMinute || '0', 10),
         maxRetryAttempts: parseInt(hashData.maxRetryAttempts || '0', 10),
         retryBackoffSeconds: parseInt(hashData.retryBackoffSeconds || '0', 10),
         retryStrategy,

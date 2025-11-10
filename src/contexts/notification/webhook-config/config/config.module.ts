@@ -22,14 +22,14 @@ import {
   ConfigQueryRepository,
   ConfigReaderRepository,
   ConfigWriterRepository,
-  WebhookReaderRepository,
+  WorkspaceReaderRepository,
 } from './infrastructure/repositories';
 
 // Tokens for injection - imported directly from port files
 import {
   CONFIG_READER_TOKEN,
   CONFIG_WRITER_TOKEN,
-  WEBHOOK_REFERENCE_READER_TOKEN,
+  WORKSPACE_REFERENCE_READER_TOKEN,
   CONFIG_QUERY_TOKEN,
 } from './application/ports';
 @Module({
@@ -54,8 +54,8 @@ import {
 
     // Bounded Context Reader Repositories
     {
-      provide: WEBHOOK_REFERENCE_READER_TOKEN,
-      useClass: WebhookReaderRepository,
+      provide: WORKSPACE_REFERENCE_READER_TOKEN,
+      useClass: WorkspaceReaderRepository,
     },
 
     // Services that depend on repositories
@@ -80,7 +80,7 @@ import {
     CONFIG_WRITER_TOKEN,
     CONFIG_QUERY_TOKEN,
     // Bounded Context Reader tokens
-    WEBHOOK_REFERENCE_READER_TOKEN,
+    WORKSPACE_REFERENCE_READER_TOKEN,
   ],
 })
 export class ConfigModule {}

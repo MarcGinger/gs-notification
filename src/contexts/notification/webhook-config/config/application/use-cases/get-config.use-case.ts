@@ -257,7 +257,6 @@ export class GetConfigUseCase implements IGetConfigUseCase {
     if (!configDto) {
       const notFoundError = withContext(ConfigErrors.CONFIG_NOT_FOUND, {
         webhookId: params.webhookId,
-        strategy: 0, // Default values for required fields
         maxRetryAttempts: 0, // Default values for required fields
         retryBackoffSeconds: 0, // Default values for required fields
         defaultLocale: '', // Default values for required fields

@@ -29,7 +29,7 @@ export class ConfigDtoAssembler {
 
     // Extract primitive values from VOs
     dto.webhookId = domainState.webhookId.value;
-    dto.strategy = domainState.strategy.value;
+    dto.rateLimitPerMinute = domainState.rateLimitPerMinute?.value;
     dto.maxRetryAttempts = domainState.maxRetryAttempts.value;
     dto.retryBackoffSeconds = domainState.retryBackoffSeconds.value;
     dto.retryStrategy = domainState.retryStrategy?.value;

@@ -56,7 +56,7 @@ const ConfigProjectorErrors = createProjectorErrorCatalog(
 interface ConfigProjectionParams extends UnifiedProjectionParams {
   // Domain-specific fields
   webhookId: string;
-  strategy: string;
+  rateLimitPerMinute?: number;
   maxRetryAttempts: number;
   retryBackoffSeconds: number;
   retryStrategy?: string;

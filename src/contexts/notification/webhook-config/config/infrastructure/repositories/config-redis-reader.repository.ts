@@ -107,9 +107,6 @@ export class ConfigReaderRepository implements IConfigReader {
       );
       // Extract basic fields directly from hash data
 
-      // Type assertion for strategy - cached data should already be validated
-      const strategy = hashData.strategy as ConfigSnapshotProps['strategy'];
-
       // Type assertion for retryStrategy - cached data should already be validated
       const retryStrategy =
         hashData.retryStrategy as ConfigSnapshotProps['retryStrategy'];
@@ -123,7 +120,7 @@ export class ConfigReaderRepository implements IConfigReader {
 
       return {
         webhookId: hashData.webhookId,
-        strategy,
+        rateLimitPerMinute: parseInt(hashData.rateLimitPerMinute, 10),
         maxRetryAttempts: parseInt(hashData.maxRetryAttempts, 10),
         retryBackoffSeconds: parseInt(hashData.retryBackoffSeconds, 10),
         retryStrategy,

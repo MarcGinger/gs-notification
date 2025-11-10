@@ -7,18 +7,15 @@ import { Module } from '@nestjs/common';
 import { WebhookConfigSharedModule } from './webhook-config-shared.module';
 
 // Import all webhook-config domain modules
-import { WebhookRouterModule } from './webhook/interface/http/webhook.router';
+import { WorkspaceRouterModule } from './workspace/interface/http/workspace.router';
 
-import { WebhookProjectorModule } from './webhook/webhook-projector.module';
+import { WorkspaceProjectorModule } from './workspace/workspace-projector.module';
 import { ConfigRouterModule } from './config/interface/http/config.router';
 
 import { ConfigProjectorModule } from './config/config-projector.module';
-import { AuthtypeRouterModule } from './authtype/interface/http/authtype.router';
+import { AuthRouterModule } from './auth/interface/http/auth.router';
 
-import { AuthtypeProjectorModule } from './authtype/authtype-projector.module';
-import { SecureTestRouterModule } from './secure-test/interface/http/secure-test.router';
-
-import { SecureTestProjectorModule } from './secure-test/secure-test-projector.module';
+import { AuthProjectorModule } from './auth/auth-projector.module';
 
 /**
  * WebhookConfig Module - Bounded Context Entry Point
@@ -41,25 +38,21 @@ import { SecureTestProjectorModule } from './secure-test/secure-test-projector.m
   imports: [
     // Shared infrastructure (imported once for all domains)
     WebhookConfigSharedModule,
-    WebhookRouterModule,
-    WebhookProjectorModule,
+    WorkspaceRouterModule,
+    WorkspaceProjectorModule,
     ConfigRouterModule,
     ConfigProjectorModule,
-    AuthtypeRouterModule,
-    AuthtypeProjectorModule,
-    SecureTestRouterModule,
-    SecureTestProjectorModule,
+    AuthRouterModule,
+    AuthProjectorModule,
   ],
   exports: [
     // Export all modules for potential cross-domain dependencies
-    WebhookRouterModule,
-    WebhookProjectorModule,
+    WorkspaceRouterModule,
+    WorkspaceProjectorModule,
     ConfigRouterModule,
     ConfigProjectorModule,
-    AuthtypeRouterModule,
-    AuthtypeProjectorModule,
-    SecureTestRouterModule,
-    SecureTestProjectorModule,
+    AuthRouterModule,
+    AuthProjectorModule,
   ],
 })
 export class NotificationWebhookConfigModule {}

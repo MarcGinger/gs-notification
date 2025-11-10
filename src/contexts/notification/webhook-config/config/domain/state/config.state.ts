@@ -15,11 +15,11 @@ import {
   ConfigMaxRetryAttempts,
   ConfigMetadata,
   ConfigOrdering,
+  ConfigRateLimitPerMinute,
   ConfigRequestTimeoutMs,
   ConfigRetryBackoffSeconds,
   ConfigRetryStrategy,
   ConfigSignatureAlgorithm,
-  ConfigStrategy,
   ConfigWebhookId,
 } from '../value-objects';
 
@@ -38,7 +38,7 @@ import {
 
 export interface ConfigDomainState {
   webhookId: ConfigWebhookId;
-  strategy: ConfigStrategy;
+  rateLimitPerMinute?: ConfigRateLimitPerMinute;
   maxRetryAttempts: ConfigMaxRetryAttempts;
   retryBackoffSeconds: ConfigRetryBackoffSeconds;
   retryStrategy?: ConfigRetryStrategy;

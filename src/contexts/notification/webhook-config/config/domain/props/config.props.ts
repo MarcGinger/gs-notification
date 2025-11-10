@@ -5,12 +5,11 @@ import {
   ConfigOrderingValue,
   ConfigRetryStrategyValue,
   ConfigSignatureAlgorithmValue,
-  ConfigStrategyValue,
 } from '../value-objects';
 
 export interface ConfigProps {
   webhookId: string;
-  strategy: ConfigStrategyValue;
+  rateLimitPerMinute?: number;
   maxRetryAttempts: number;
   retryBackoffSeconds: number;
   retryStrategy?: ConfigRetryStrategyValue;

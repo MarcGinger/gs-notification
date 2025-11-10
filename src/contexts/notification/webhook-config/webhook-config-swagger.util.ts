@@ -5,10 +5,9 @@ import { INestApplication } from '@nestjs/common';
 import { AppConfigUtil } from 'src/shared/config/app-config.util';
 
 import { WebhookConfigDocumentation } from './webhook-config.doc';
-import { WebhookDocumentation } from './webhook/docs/webhook.doc';
+import { WorkspaceDocumentation } from './workspace/docs/workspace.doc';
 import { ConfigDocumentation } from './config/docs/config.doc';
-import { AuthtypeDocumentation } from './authtype/docs/authtype.doc';
-import { SecureTestDocumentation } from './secure-test/docs/secure-test.doc';
+import { AuthDocumentation } from './auth/docs/auth.doc';
 
 /**
  * Setup notification-webhook-config application/service Swagger documentation
@@ -25,16 +24,14 @@ export function setupNotificationWebhookConfigDocs(
   const boundedContextUrls = WebhookConfigDocumentation.setupAll(app, port);
 
   // Setup documentation for all notification_webhook_config aggregates
-  const webhookUrls = WebhookDocumentation.setupAll(app, port);
+  const workspaceUrls = WorkspaceDocumentation.setupAll(app, port);
   const configUrls = ConfigDocumentation.setupAll(app, port);
-  const authtypeUrls = AuthtypeDocumentation.setupAll(app, port);
-  const secureTestUrls = SecureTestDocumentation.setupAll(app, port);
+  const authUrls = AuthDocumentation.setupAll(app, port);
 
   return {
     ...boundedContextUrls,
-    ...webhookUrls,
+    ...workspaceUrls,
     ...configUrls,
-    ...authtypeUrls,
-    ...secureTestUrls,
+    ...authUrls,
   };
 }

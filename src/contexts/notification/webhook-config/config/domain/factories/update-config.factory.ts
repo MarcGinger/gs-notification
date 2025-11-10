@@ -9,7 +9,7 @@ import { ConfigEntity } from '../entities';
 import { ConfigSnapshotProps, UpdateConfigProps } from '../props';
 import { ValidatedConfigUpdateFields } from '../types';
 import {
-  createConfigStrategy,
+  ConfigRateLimitPerMinute,
   ConfigMaxRetryAttempts,
   ConfigRetryBackoffSeconds,
   createConfigRetryStrategy,
@@ -68,20 +68,22 @@ export function updateConfigAggregateFromSnapshot(
   // 2. Validate and apply updates for each provided field
   const validatedFields: ValidatedConfigUpdateFields = {};
 
-  // Validate strategy if provided
-  if (updateProps.strategy !== undefined) {
-    const strategyResult = createConfigStrategy(updateProps.strategy);
-    if (!strategyResult.ok) {
+  // Validate rateLimitPerMinute if provided
+  if (updateProps.rateLimitPerMinute !== undefined) {
+    const rateLimitPerMinuteResult = ConfigRateLimitPerMinute.from(
+      updateProps.rateLimitPerMinute,
+    );
+    if (!rateLimitPerMinuteResult.ok) {
       return err(
-        withContext(strategyResult.error, {
-          operation: 'update_config_strategy_validation',
+        withContext(rateLimitPerMinuteResult.error, {
+          operation: 'update_config_rate_limit_per_minute_validation',
           correlationId: metadata.correlationId,
           userId: metadata.actor?.userId,
-          providedStrategy: updateProps.strategy,
+          providedRateLimitPerMinute: updateProps.rateLimitPerMinute,
         }),
       );
     }
-    validatedFields.strategy = strategyResult.value;
+    validatedFields.rateLimitPerMinute = rateLimitPerMinuteResult.value;
   }
 
   // Validate maxRetryAttempts if provided

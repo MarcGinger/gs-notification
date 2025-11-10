@@ -3,7 +3,7 @@
 import { DomainError } from 'src/shared/errors';
 
 export interface ConfigContext extends Record<string, unknown> {
-  strategy: string;
+  rateLimitPerMinute?: number;
   maxRetryAttempts: number;
   retryBackoffSeconds: number;
   retryStrategy?: string;
@@ -122,13 +122,6 @@ export const ConfigErrors = {
     'CONFIG.ENUM_NOT_ALLOWED_SIGNATURE_ALGORITHM',
     ConfigContext
   >,
-  ENUM_NOT_ALLOWED_STRATEGY: {
-    code: 'CONFIG.ENUM_NOT_ALLOWED_STRATEGY',
-    title: 'Invalid Option',
-    detail: 'Strategy must be one of: per-webhook, per-tenant, global.',
-    category: 'validation',
-    retryable: false,
-  } as DomainError<'CONFIG.ENUM_NOT_ALLOWED_STRATEGY', ConfigContext>,
   INVALID_BACKOFF_JITTER_PCT: {
     code: 'CONFIG.INVALID_BACKOFF_JITTER_PCT',
     title: 'Value Required',
@@ -293,6 +286,20 @@ export const ConfigErrors = {
     category: 'validation',
     retryable: false,
   } as DomainError<'CONFIG.INVALID_ORDERING_TRANSITION', ConfigContext>,
+  INVALID_RATE_LIMIT_PER_MINUTE: {
+    code: 'CONFIG.INVALID_RATE_LIMIT_PER_MINUTE',
+    title: 'Value Required',
+    detail: 'Rate limit per minute is required for Config.',
+    category: 'validation',
+    retryable: false,
+  } as DomainError<'CONFIG.INVALID_RATE_LIMIT_PER_MINUTE', ConfigContext>,
+  INVALID_RATE_LIMIT_PER_MINUTE_DATA: {
+    code: 'CONFIG.INVALID_RATE_LIMIT_PER_MINUTE_DATA',
+    title: 'Value Required',
+    detail: 'Rate limit per minute is required for Config.',
+    category: 'validation',
+    retryable: false,
+  } as DomainError<'CONFIG.INVALID_RATE_LIMIT_PER_MINUTE_DATA', ConfigContext>,
   INVALID_REQUEST_TIMEOUT_MS: {
     code: 'CONFIG.INVALID_REQUEST_TIMEOUT_MS',
     title: 'Value Required',
@@ -366,27 +373,6 @@ export const ConfigErrors = {
     'CONFIG.INVALID_SIGNATURE_ALGORITHM_TRANSITION',
     ConfigContext
   >,
-  INVALID_STRATEGY: {
-    code: 'CONFIG.INVALID_STRATEGY',
-    title: 'Value Required',
-    detail: 'Strategy is required for Config.',
-    category: 'validation',
-    retryable: false,
-  } as DomainError<'CONFIG.INVALID_STRATEGY', ConfigContext>,
-  INVALID_STRATEGY_DATA: {
-    code: 'CONFIG.INVALID_STRATEGY_DATA',
-    title: 'Value Required',
-    detail: 'Strategy is required for Config.',
-    category: 'validation',
-    retryable: false,
-  } as DomainError<'CONFIG.INVALID_STRATEGY_DATA', ConfigContext>,
-  INVALID_STRATEGY_TRANSITION: {
-    code: 'CONFIG.INVALID_STRATEGY_TRANSITION',
-    title: 'Invalid State Transition',
-    detail: 'Strategy cannot transition to the requested state.',
-    category: 'validation',
-    retryable: false,
-  } as DomainError<'CONFIG.INVALID_STRATEGY_TRANSITION', ConfigContext>,
   INVALID_WEBHOOK_ID: {
     code: 'CONFIG.INVALID_WEBHOOK_ID',
     title: 'Value Required',
@@ -401,6 +387,14 @@ export const ConfigErrors = {
     category: 'validation',
     retryable: false,
   } as DomainError<'CONFIG.INVALID_WEBHOOK_ID_DATA', ConfigContext>,
+  INVALID_WORKSPACE_ID: {
+    code: 'CONFIG.INVALID_WORKSPACE_ID',
+    title: 'Invalid Workspace Reference',
+    detail:
+      'The specified id does not exist. Workspace must be valid when updating config.',
+    category: 'validation',
+    retryable: false,
+  } as DomainError<'CONFIG.INVALID_WORKSPACE_ID', ConfigContext>,
   NOT_BOOLEAN_DLQ_ENABLED: {
     code: 'CONFIG.NOT_BOOLEAN_DLQ_ENABLED',
     title: 'Not a Boolean',
@@ -460,6 +454,13 @@ export const ConfigErrors = {
     category: 'validation',
     retryable: false,
   } as DomainError<'CONFIG.NOT_INTEGER_MAX_RETRY_ATTEMPTS', ConfigContext>,
+  NOT_INTEGER_RATE_LIMIT_PER_MINUTE: {
+    code: 'CONFIG.NOT_INTEGER_RATE_LIMIT_PER_MINUTE',
+    title: 'Not an Integer',
+    detail: 'Rate limit per minute must be a whole number.',
+    category: 'validation',
+    retryable: false,
+  } as DomainError<'CONFIG.NOT_INTEGER_RATE_LIMIT_PER_MINUTE', ConfigContext>,
   NOT_INTEGER_REQUEST_TIMEOUT_MS: {
     code: 'CONFIG.NOT_INTEGER_REQUEST_TIMEOUT_MS',
     title: 'Not an Integer',
@@ -509,6 +510,13 @@ export const ConfigErrors = {
     category: 'validation',
     retryable: false,
   } as DomainError<'CONFIG.OUT_OF_RANGE_MAX_RETRY_ATTEMPTS', ConfigContext>,
+  OUT_OF_RANGE_RATE_LIMIT_PER_MINUTE: {
+    code: 'CONFIG.OUT_OF_RANGE_RATE_LIMIT_PER_MINUTE',
+    title: 'Value Out of Range',
+    detail: 'Rate limit per minute is outside the allowed range for Config.',
+    category: 'validation',
+    retryable: false,
+  } as DomainError<'CONFIG.OUT_OF_RANGE_RATE_LIMIT_PER_MINUTE', ConfigContext>,
   OUT_OF_RANGE_REQUEST_TIMEOUT_MS: {
     code: 'CONFIG.OUT_OF_RANGE_REQUEST_TIMEOUT_MS',
     title: 'Value Out of Range',

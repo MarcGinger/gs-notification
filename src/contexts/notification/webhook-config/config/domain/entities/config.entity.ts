@@ -21,19 +21,17 @@ import {
   ConfigMetadata,
   ConfigOrdering,
   ConfigOrderingLogic,
+  ConfigRateLimitPerMinute,
   ConfigRequestTimeoutMs,
   ConfigRetryBackoffSeconds,
   ConfigRetryStrategy,
   ConfigRetryStrategyLogic,
   ConfigSignatureAlgorithm,
   ConfigSignatureAlgorithmLogic,
-  ConfigStrategy,
-  ConfigStrategyLogic,
   ConfigWebhookId,
   createConfigOrdering,
   createConfigRetryStrategy,
   createConfigSignatureAlgorithm,
-  createConfigStrategy,
 } from '../value-objects';
 
 /**
@@ -173,9 +171,11 @@ export class ConfigEntity extends EntityIdBase<
     if (!webhookIdResult.ok) {
       return err(webhookIdResult.error);
     }
-    const strategyResult = createConfigStrategy(snapshot.strategy);
-    if (!strategyResult.ok) {
-      return err(strategyResult.error);
+    const rateLimitPerMinuteResult = ConfigRateLimitPerMinute.from(
+      snapshot.rateLimitPerMinute,
+    );
+    if (!rateLimitPerMinuteResult.ok) {
+      return err(rateLimitPerMinuteResult.error);
     }
     const maxRetryAttemptsResult = ConfigMaxRetryAttempts.from(
       snapshot.maxRetryAttempts,
@@ -272,7 +272,7 @@ export class ConfigEntity extends EntityIdBase<
 
     const props: ConfigDomainState = {
       webhookId: webhookIdResult.value,
-      strategy: strategyResult.value,
+      rateLimitPerMinute: rateLimitPerMinuteResult.value,
       maxRetryAttempts: maxRetryAttemptsResult.value,
       retryBackoffSeconds: retryBackoffSecondsResult.value,
       retryStrategy: retryStrategyResult.value,
@@ -306,9 +306,6 @@ export class ConfigEntity extends EntityIdBase<
     if (!props.webhookId) {
       return err(ConfigErrors.INVALID_WEBHOOK_ID_DATA);
     }
-    if (!props.strategy) {
-      return err(ConfigErrors.INVALID_STRATEGY_DATA);
-    }
     if (!props.maxRetryAttempts) {
       return err(ConfigErrors.INVALID_MAX_RETRY_ATTEMPTS_DATA);
     }
@@ -330,8 +327,8 @@ export class ConfigEntity extends EntityIdBase<
     return this.props.webhookId;
   }
 
-  public get strategy(): ConfigStrategy {
-    return this.props.strategy;
+  public get rateLimitPerMinute(): ConfigRateLimitPerMinute | undefined {
+    return this.props.rateLimitPerMinute;
   }
 
   public get maxRetryAttempts(): ConfigMaxRetryAttempts {
@@ -409,34 +406,18 @@ export class ConfigEntity extends EntityIdBase<
   // ======================
 
   /**
-   * Creates a new entity with updated strategy (with basic transition validation)
+   * Creates a new entity with updated rateLimitPerMinute (pure state transition)
    *
-   * @param strategy - New strategy value
+   * @param rateLimitPerMinute - New rateLimitPerMinute value
    * @param updatedAt - Optional timestamp (uses clock if not provided)
    * @returns Result<ConfigEntity, DomainError>
    */
-  public withStrategy(
-    strategy: ConfigStrategy,
+  public withRateLimitPerMinute(
+    rateLimitPerMinute: ConfigRateLimitPerMinute,
     updatedAt?: Date,
     version?: number,
   ): Result<ConfigEntity, DomainError> {
-    // Basic validation - business rules handled by aggregate
-    const currentStatus = this.props.strategy.value;
-    const targetStatus = strategy.value;
-
-    if (!ConfigStrategyLogic.canTransition(currentStatus, targetStatus)) {
-      return err({
-        ...ConfigErrors.INVALID_STRATEGY_TRANSITION,
-        context: {
-          currentStatus,
-          targetStatus,
-          validTransitions:
-            ConfigStrategyLogic.getValidTransitions(currentStatus),
-        },
-      });
-    }
-
-    return this.createUpdatedEntity({ strategy }, updatedAt, version);
+    return this.createUpdatedEntity({ rateLimitPerMinute }, updatedAt, version);
   }
 
   /**
@@ -740,7 +721,7 @@ export class ConfigEntity extends EntityIdBase<
   public toSnapshot(): ConfigSnapshotProps {
     return {
       webhookId: this.props.webhookId.value,
-      strategy: this.props.strategy.value,
+      rateLimitPerMinute: this.props.rateLimitPerMinute?.value,
       maxRetryAttempts: this.props.maxRetryAttempts.value,
       retryBackoffSeconds: this.props.retryBackoffSeconds.value,
       retryStrategy: this.props.retryStrategy?.value,

@@ -41,7 +41,8 @@ export const ConfigResource = (permission: ConfigPermission) =>
       const query = req.query as Record<string, unknown> | undefined;
 
       // Business data extraction
-      const strategy = body?.strategy || query?.strategy;
+      const rateLimitPerMinute =
+        body?.rateLimitPerMinute || query?.rateLimitPerMinute;
       const maxRetryAttempts =
         body?.maxRetryAttempts || query?.maxRetryAttempts;
       const retryBackoffSeconds =
@@ -65,7 +66,7 @@ export const ConfigResource = (permission: ConfigPermission) =>
       const defaultLocale = body?.defaultLocale || query?.defaultLocale;
 
       const baseAttributes = {
-        strategy,
+        rateLimitPerMinute,
         maxRetryAttempts,
         retryBackoffSeconds,
         retryStrategy,

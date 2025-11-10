@@ -12,7 +12,7 @@ import {
   ConfigUpdatedAt,
   ConfigVersion,
   ConfigWebhookId,
-  createConfigStrategy,
+  ConfigRateLimitPerMinute,
   ConfigMaxRetryAttempts,
   ConfigRetryBackoffSeconds,
   createConfigRetryStrategy,
@@ -55,15 +55,17 @@ export function createConfigAggregateFromProps(
     );
   }
 
-  const strategyResult = createConfigStrategy(props.strategy);
-  if (!strategyResult.ok) {
+  const rateLimitPerMinuteResult = ConfigRateLimitPerMinute.from(
+    props.rateLimitPerMinute,
+  );
+  if (!rateLimitPerMinuteResult.ok) {
     return err(
-      withContext(strategyResult.error, {
-        ...strategyResult.error.context,
+      withContext(rateLimitPerMinuteResult.error, {
+        ...rateLimitPerMinuteResult.error.context,
         correlationId: metadata.correlationId,
         userId: metadata.userId,
         operation: 'create_config',
-        strategy: props.strategy,
+        rateLimitPerMinute: props.rateLimitPerMinute,
       }),
     );
   }
@@ -284,7 +286,7 @@ export function createConfigAggregateFromProps(
   // Create the entity properties with validated value objects
   const entityProps: ConfigDomainState = {
     webhookId: webhookIdResult.value,
-    strategy: strategyResult.value,
+    rateLimitPerMinute: rateLimitPerMinuteResult.value,
     maxRetryAttempts: maxRetryAttemptsResult.value,
     retryBackoffSeconds: retryBackoffSecondsResult.value,
     retryStrategy: retryStrategyResult.value,

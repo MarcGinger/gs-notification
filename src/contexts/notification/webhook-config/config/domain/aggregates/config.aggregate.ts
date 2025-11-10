@@ -11,8 +11,6 @@ import { ConfigSnapshotProps } from '../props';
 import { ValidatedConfigUpdateFields } from '../types';
 import {
   ConfigWebhookId,
-  ConfigStrategyValue,
-  createConfigStrategy,
   ConfigRetryStrategyValue,
   createConfigRetryStrategy,
   ConfigSignatureAlgorithmValue,
@@ -144,7 +142,7 @@ export class ConfigAggregate extends AggregateRootBase {
     // Create typed ConfigCreatedEvent with only business data
     const createdEvent = ConfigCreatedEvent.create({
       webhookId: entityProps.webhookId.value,
-      strategy: entityProps.strategy.value,
+      rateLimitPerMinute: entityProps.rateLimitPerMinute?.value,
       maxRetryAttempts: entityProps.maxRetryAttempts.value,
       retryBackoffSeconds: entityProps.retryBackoffSeconds.value,
       retryStrategy: entityProps.retryStrategy?.value,
@@ -206,7 +204,7 @@ export class ConfigAggregate extends AggregateRootBase {
         // Both events now have the same domain shape - simple merge
         const d = event.data as {
           webhookId: string;
-          strategy: ConfigStrategyValue;
+          rateLimitPerMinute?: number;
           maxRetryAttempts: number;
           retryBackoffSeconds: number;
           retryStrategy?: ConfigRetryStrategyValue;
@@ -229,7 +227,7 @@ export class ConfigAggregate extends AggregateRootBase {
 
         const entityResult = ConfigEntity.fromSnapshot({
           webhookId: d.webhookId,
-          strategy: d.strategy,
+          rateLimitPerMinute: d.rateLimitPerMinute,
           maxRetryAttempts: d.maxRetryAttempts,
           retryBackoffSeconds: d.retryBackoffSeconds,
           retryStrategy: d.retryStrategy,
@@ -343,8 +341,13 @@ export class ConfigAggregate extends AggregateRootBase {
    */
   private detectChanges(validatedFields: ValidatedConfigUpdateFields): boolean {
     // Check each field for actual value changes using value object equality
-    if (validatedFields.strategy !== undefined) {
-      if (hasValueChanged(this._entity.strategy, validatedFields.strategy)) {
+    if (validatedFields.rateLimitPerMinute !== undefined) {
+      if (
+        hasValueChanged(
+          this._entity.rateLimitPerMinute,
+          validatedFields.rateLimitPerMinute,
+        )
+      ) {
         return true;
       }
     }
@@ -550,9 +553,9 @@ export class ConfigAggregate extends AggregateRootBase {
     let currentEntity = this._entity;
 
     // Apply each validated field change with type safety
-    if (validatedFields.strategy !== undefined) {
-      const entityResult = currentEntity.withStrategy(
-        validatedFields.strategy,
+    if (validatedFields.rateLimitPerMinute !== undefined) {
+      const entityResult = currentEntity.withRateLimitPerMinute(
+        validatedFields.rateLimitPerMinute,
         updatedAt,
         nextVersion,
       );
@@ -706,7 +709,7 @@ export class ConfigAggregate extends AggregateRootBase {
     // Create domain-shaped update event (same structure as created event)
     const updatedEvent = ConfigUpdatedEvent.create({
       webhookId: this._entity.webhookId.value,
-      strategy: this._entity.strategy.value,
+      rateLimitPerMinute: this._entity.rateLimitPerMinute?.value,
       maxRetryAttempts: this._entity.maxRetryAttempts.value,
       retryBackoffSeconds: this._entity.retryBackoffSeconds.value,
       retryStrategy: this._entity.retryStrategy?.value,
@@ -737,33 +740,6 @@ export class ConfigAggregate extends AggregateRootBase {
     this.apply(domainEvent);
 
     return ok(undefined);
-  }
-
-  /**
-   * Set entity to perWebhook
-   */
-  public perWebhook(): Result<void, DomainError> {
-    const strategyResult = createConfigStrategy('perWebhook');
-    if (!strategyResult.ok) return err(strategyResult.error);
-    return this.updateBatch({ strategy: strategyResult.value });
-  }
-
-  /**
-   * Set entity to perTenant
-   */
-  public perTenant(): Result<void, DomainError> {
-    const strategyResult = createConfigStrategy('perTenant');
-    if (!strategyResult.ok) return err(strategyResult.error);
-    return this.updateBatch({ strategy: strategyResult.value });
-  }
-
-  /**
-   * Set entity to global
-   */
-  public global(): Result<void, DomainError> {
-    const strategyResult = createConfigStrategy('global');
-    if (!strategyResult.ok) return err(strategyResult.error);
-    return this.updateBatch({ strategy: strategyResult.value });
   }
 
   /**

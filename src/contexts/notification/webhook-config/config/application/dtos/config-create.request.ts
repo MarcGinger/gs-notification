@@ -5,7 +5,6 @@ import type {
   ConfigOrderingValue,
   ConfigRetryStrategyValue,
   ConfigSignatureAlgorithmValue,
-  ConfigStrategyValue,
 } from '../../domain/value-objects';
 import { CreateConfigProps } from '../../domain/props';
 import {
@@ -19,11 +18,11 @@ import {
   ApiConfigMaxRetryAttempts,
   ApiConfigMetadata,
   ApiConfigOrdering,
+  ApiConfigRateLimitPerMinute,
   ApiConfigRequestTimeoutMs,
   ApiConfigRetryBackoffSeconds,
   ApiConfigRetryStrategy,
   ApiConfigSignatureAlgorithm,
-  ApiConfigStrategy,
   ApiConfigWebhookId,
 } from './decorators';
 
@@ -31,8 +30,8 @@ export class CreateConfigRequest implements CreateConfigProps {
   @ApiConfigWebhookId()
   webhookId: string;
 
-  @ApiConfigStrategy()
-  strategy: ConfigStrategyValue;
+  @ApiConfigRateLimitPerMinute({ required: false })
+  rateLimitPerMinute?: number;
 
   @ApiConfigMaxRetryAttempts()
   maxRetryAttempts: number;

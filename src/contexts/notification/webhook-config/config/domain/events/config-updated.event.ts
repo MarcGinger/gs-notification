@@ -5,7 +5,6 @@ import type {
   ConfigOrderingValue,
   ConfigRetryStrategyValue,
   ConfigSignatureAlgorithmValue,
-  ConfigStrategyValue,
 } from '../value-objects';
 
 /**
@@ -15,7 +14,7 @@ import type {
  */
 export interface ConfigUpdatedEventPayload {
   webhookId: string;
-  strategy: ConfigStrategyValue;
+  rateLimitPerMinute?: number;
   maxRetryAttempts: number;
   retryBackoffSeconds: number;
   retryStrategy?: ConfigRetryStrategyValue;
@@ -53,8 +52,8 @@ export class ConfigUpdatedEvent {
     return this.payload.webhookId;
   }
 
-  get strategy(): ConfigStrategyValue {
-    return this.payload.strategy;
+  get rateLimitPerMinute(): number | undefined {
+    return this.payload.rateLimitPerMinute;
   }
 
   get maxRetryAttempts(): number {

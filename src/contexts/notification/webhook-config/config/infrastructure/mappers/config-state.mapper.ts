@@ -13,7 +13,7 @@ import {
   ConfigUpdatedAt,
   ConfigVersion,
   ConfigWebhookId,
-  createConfigStrategy,
+  ConfigRateLimitPerMinute,
   ConfigMaxRetryAttempts,
   ConfigRetryBackoffSeconds,
   createConfigRetryStrategy,
@@ -69,10 +69,12 @@ export class ConfigStateMapper {
       'webhookId',
       ConfigWebhookId.from(snapshot.webhookId),
     );
-    const strategy = validateField(
-      'strategy',
-      createConfigStrategy(snapshot.strategy),
-    );
+    const rateLimitPerMinute = snapshot.rateLimitPerMinute
+      ? validateField(
+          'rateLimitPerMinute',
+          ConfigRateLimitPerMinute.from(snapshot.rateLimitPerMinute),
+        )
+      : undefined;
     const maxRetryAttempts = validateField(
       'maxRetryAttempts',
       ConfigMaxRetryAttempts.from(snapshot.maxRetryAttempts),
@@ -174,7 +176,7 @@ export class ConfigStateMapper {
     // All validations passed, construct the rich domain state
     const domainState: ConfigDomainState = {
       webhookId: webhookId!,
-      strategy: strategy!,
+      rateLimitPerMinute: rateLimitPerMinute || undefined,
       maxRetryAttempts: maxRetryAttempts!,
       retryBackoffSeconds: retryBackoffSeconds!,
       retryStrategy: retryStrategy || undefined,
@@ -207,7 +209,7 @@ export class ConfigStateMapper {
     return {
       // Extract primitive values from VOs
       webhookId: domainState.webhookId.value,
-      strategy: domainState.strategy.value,
+      rateLimitPerMinute: domainState.rateLimitPerMinute?.value,
       maxRetryAttempts: domainState.maxRetryAttempts.value,
       retryBackoffSeconds: domainState.retryBackoffSeconds.value,
       retryStrategy: domainState.retryStrategy?.value,

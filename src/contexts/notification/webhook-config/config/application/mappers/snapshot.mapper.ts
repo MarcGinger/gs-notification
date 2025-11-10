@@ -17,7 +17,7 @@ export const mapConfigSnapshotToDto = (
 ): DetailConfigResponse => {
   return {
     webhookId: snapshot.webhookId,
-    strategy: snapshot.strategy,
+    rateLimitPerMinute: snapshot.rateLimitPerMinute,
     maxRetryAttempts: snapshot.maxRetryAttempts,
     retryBackoffSeconds: snapshot.retryBackoffSeconds,
     retryStrategy: snapshot.retryStrategy,

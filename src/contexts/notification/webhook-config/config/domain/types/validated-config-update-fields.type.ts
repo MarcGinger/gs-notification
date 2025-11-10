@@ -12,17 +12,17 @@ import {
   ConfigMaxRetryAttempts,
   ConfigMetadata,
   ConfigOrdering,
+  ConfigRateLimitPerMinute,
   ConfigRequestTimeoutMs,
   ConfigRetryBackoffSeconds,
   ConfigRetryStrategy,
   ConfigSignatureAlgorithm,
-  ConfigStrategy,
   ConfigWebhookId,
 } from '../value-objects';
 
 export interface ValidatedConfigUpdateFields {
   webhookId?: ConfigWebhookId;
-  strategy?: ConfigStrategy;
+  rateLimitPerMinute?: ConfigRateLimitPerMinute;
   maxRetryAttempts?: ConfigMaxRetryAttempts;
   retryBackoffSeconds?: ConfigRetryBackoffSeconds;
   retryStrategy?: ConfigRetryStrategy;

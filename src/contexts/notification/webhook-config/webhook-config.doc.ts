@@ -120,10 +120,9 @@ This service is a critical component of the Notification Bounded Context, enabli
 
   | Modules |
   |---------------|
-  | [***webhook  →***](/api/docs/notification/webhook-config/webhook) |
+  | [***workspace  →***](/api/docs/notification/webhook-config/workspace) |
   | [***config  →***](/api/docs/notification/webhook-config/config) |
-  | [***authtype  →***](/api/docs/notification/webhook-config/authtype) |
-  | [***secure-test  →***](/api/docs/notification/webhook-config/secure-test) |
+  | [***auth  →***](/api/docs/notification/webhook-config/auth) |
         `,
       )
       .setVersion('1.0.0')

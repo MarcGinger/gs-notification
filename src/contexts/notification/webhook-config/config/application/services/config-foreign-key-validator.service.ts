@@ -9,9 +9,9 @@ import { Option } from 'src/shared/domain/types';
 import { ConfigErrors } from '../../domain/errors';
 import { WebhookConfigServiceConstants } from '../../../service-constants';
 import {
-  WEBHOOK_REFERENCE_READER_TOKEN,
-  WebhookReference,
-  IWebhookReader,
+  WORKSPACE_REFERENCE_READER_TOKEN,
+  WorkspaceReference,
+  IWorkspaceReader,
 } from '../ports';
 
 export interface ForeignKeyValidationContext {
@@ -36,13 +36,13 @@ export interface ForeignKeyValidationContext {
 @Injectable()
 export class ConfigForeignKeyValidatorService {
   constructor(
-    @Inject(WEBHOOK_REFERENCE_READER_TOKEN)
-    private readonly webhookReader: IWebhookReader,
+    @Inject(WORKSPACE_REFERENCE_READER_TOKEN)
+    private readonly workspaceReader: IWorkspaceReader,
   ) {}
   /**
    * Validates webhookId existence
    * @param actor - User context for authorization
-   * @param webhookId - Webhook id to validate
+   * @param webhookId - Workspace id to validate
    * @param context - Validation context for logging and error handling
    * @param logger - Logger instance for structured logging
    * @returns Result indicating validation success or failure
@@ -52,7 +52,7 @@ export class ConfigForeignKeyValidatorService {
     webhookId: string | undefined,
     context: ForeignKeyValidationContext,
     logger: Logger,
-  ): Promise<Result<WebhookReference | undefined, DomainError>> {
+  ): Promise<Result<WorkspaceReference | undefined, DomainError>> {
     if (!webhookId) {
       return ok(undefined);
     }
@@ -66,13 +66,13 @@ export class ConfigForeignKeyValidatorService {
       operation: context.operation,
     });
 
-    const webhookIdResult = await this.webhookReader.findWebhookById(
+    const webhookIdResult = await this.workspaceReader.findWorkspaceById(
       actor,
       webhookId,
     );
 
     if (!webhookIdResult.ok) {
-      Log.error(logger, 'Webhook lookup failed during validation', {
+      Log.error(logger, 'Workspace lookup failed during validation', {
         application: WebhookConfigServiceConstants.SERVICE_NAME,
         component: context.component,
         method: 'validateWebhookId',
@@ -85,10 +85,10 @@ export class ConfigForeignKeyValidatorService {
       return err(webhookIdResult.error);
     }
 
-    const webhook = webhookIdResult.value;
+    const workspace = webhookIdResult.value;
 
-    if (Option.isNone(webhook)) {
-      Log.warn(logger, 'Webhook not found during validation', {
+    if (Option.isNone(workspace)) {
+      Log.warn(logger, 'Workspace not found during validation', {
         application: WebhookConfigServiceConstants.SERVICE_NAME,
         component: context.component,
         method: 'validateWebhookId',
@@ -98,17 +98,17 @@ export class ConfigForeignKeyValidatorService {
         operation: context.operation,
       });
       return err(
-        withContext(ConfigErrors.INVALID_WEBHOOK_ID, {
+        withContext(ConfigErrors.INVALID_WORKSPACE_ID, {
           correlationId: context.correlationId,
           userId: context.userId,
           operation: context.operation,
           webhookId,
-          reason: 'Webhook id does not exist in the system',
+          reason: 'Workspace id does not exist in the system',
         }),
       );
     }
 
-    Log.debug(logger, 'Webhook existence validation passed', {
+    Log.debug(logger, 'Workspace existence validation passed', {
       application: WebhookConfigServiceConstants.SERVICE_NAME,
       component: context.component,
       method: 'validateWebhookId',
@@ -118,7 +118,7 @@ export class ConfigForeignKeyValidatorService {
       operation: context.operation,
     });
 
-    return ok(webhook.value);
+    return ok(workspace.value);
   }
 
   /**
@@ -139,7 +139,7 @@ export class ConfigForeignKeyValidatorService {
   ): Promise<
     Result<
       {
-        webhookId?: WebhookReference;
+        webhookId?: WorkspaceReference;
       },
       DomainError
     >
@@ -178,7 +178,7 @@ export class ConfigForeignKeyValidatorService {
   ): Promise<
     Result<
       {
-        webhookId?: WebhookReference;
+        webhookId?: WorkspaceReference;
       },
       DomainError
     >

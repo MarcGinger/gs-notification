@@ -5,7 +5,6 @@ import type {
   ConfigOrderingValue,
   ConfigRetryStrategyValue,
   ConfigSignatureAlgorithmValue,
-  ConfigStrategyValue,
 } from './decorators';
 import {
   ApiConfigBackoffJitterPct,
@@ -18,11 +17,11 @@ import {
   ApiConfigMaxRetryAttempts,
   ApiConfigMetadata,
   ApiConfigOrdering,
+  ApiConfigRateLimitPerMinute,
   ApiConfigRequestTimeoutMs,
   ApiConfigRetryBackoffSeconds,
   ApiConfigRetryStrategy,
   ApiConfigSignatureAlgorithm,
-  ApiConfigStrategy,
   ApiConfigWebhookId,
 } from './decorators';
 
@@ -30,8 +29,8 @@ export class DetailConfigResponse {
   @ApiConfigWebhookId()
   webhookId: string;
 
-  @ApiConfigStrategy()
-  strategy: ConfigStrategyValue;
+  @ApiConfigRateLimitPerMinute({ required: false })
+  rateLimitPerMinute?: number;
 
   @ApiConfigMaxRetryAttempts()
   maxRetryAttempts: number;
