@@ -3,6 +3,8 @@
 
 import { SecureTestSnapshotProps } from '../../domain/props';
 import { DetailSecureTestResponse } from '../dtos';
+import { SecureTestOptionsConfiguration } from '../../domain/value-objects';
+import { extractOptionsConfigurationData } from '../../domain/utilities';
 
 /**
  * SecureTest Snapshot to DTO Mappers
@@ -24,5 +26,17 @@ export const mapSecureTestSnapshotToDto = (
     signatureAlgorithm: snapshot.signatureAlgorithm,
     username: snapshot.username,
     password: snapshot.password,
+    options: snapshot.options,
   };
 };
+
+/**
+ * Map options configuration to DTO
+ *
+ * This application-layer function uses domain extraction and transforms
+ * the data to match the required DTO structure without business defaults.
+ */
+
+export const mapOptionsConfigurationToDto = <T>(
+  optionsConfiguration: SecureTestOptionsConfiguration,
+): T => extractOptionsConfigurationData<T>(optionsConfiguration);

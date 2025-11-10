@@ -9,12 +9,14 @@ import {
   ApiSecureTestDescription,
   ApiSecureTestId,
   ApiSecureTestName,
+  ApiSecureTestOptions,
   ApiSecureTestPassword,
   ApiSecureTestSignatureAlgorithm,
   ApiSecureTestSigningSecret,
   ApiSecureTestType,
   ApiSecureTestUsername,
 } from './decorators';
+import type { DetailOptionsResponse } from './';
 
 export class DetailSecureTestResponse {
   @ApiSecureTestId()
@@ -40,4 +42,7 @@ export class DetailSecureTestResponse {
 
   @ApiSecureTestPassword({ required: false })
   password?: string;
+
+  @ApiSecureTestOptions()
+  options: DetailOptionsResponse;
 }

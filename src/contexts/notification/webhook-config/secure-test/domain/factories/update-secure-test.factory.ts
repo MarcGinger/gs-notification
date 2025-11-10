@@ -16,6 +16,7 @@ import {
   createSecureTestSignatureAlgorithm,
   SecureTestUsername,
   SecureTestPassword,
+  SecureTestOptions,
 } from '../value-objects';
 
 /**
@@ -176,6 +177,23 @@ export function updateSecureTestAggregateFromSnapshot(
       );
     }
     validatedFields.password = passwordResult.value;
+  }
+
+  // Validateoptions if provided
+  if (updateProps.options !== undefined) {
+    const optionsResult = SecureTestOptions.update(updateProps.options);
+    if (!optionsResult.ok) {
+      return err(
+        withContext(optionsResult.error, {
+          operation: 'update_secure_test_options_validation',
+          correlationId: metadata.correlationId,
+          userId: metadata.actor?.userId,
+          providedOptions: updateProps.options,
+        }),
+      );
+    }
+
+    validatedFields.options = optionsResult.value;
   }
 
   // 3. Apply all validated changes in single atomic operation

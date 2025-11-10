@@ -19,6 +19,7 @@ import {
   createSecureTestSignatureAlgorithm,
   SecureTestUsername,
   SecureTestPassword,
+  SecureTestOptions,
 } from '../value-objects';
 
 /**
@@ -140,6 +141,12 @@ export function createSecureTestAggregateFromProps(
     );
   }
 
+  // Create options configuration using specialized factory
+  const optionsResult = SecureTestOptions.from(props.options);
+  if (!optionsResult.ok) {
+    return err(optionsResult.error);
+  }
+
   const createdAtResult = SecureTestCreatedAt.create(clock.now());
   if (!createdAtResult.ok) {
     return err(createdAtResult.error);
@@ -165,6 +172,7 @@ export function createSecureTestAggregateFromProps(
     signatureAlgorithm: signatureAlgorithmResult.value,
     username: usernameResult.value,
     password: passwordResult.value,
+    options: optionsResult.value,
     createdAt: createdAtResult.value,
     updatedAt: updatedAtResult.value,
     version: versionResult.value,

@@ -7,8 +7,9 @@ import { DomainError, Result, ok, err } from 'src/shared/errors';
 import { Clock } from 'src/shared/domain/clock';
 import { hasValueChanged } from 'src/shared/utilities';
 import { SecureTestEntity } from '../entities';
-import { SecureTestSnapshotProps } from '../props';
+import { OptionsProps, SecureTestSnapshotProps } from '../props';
 import { ValidatedSecureTestUpdateFields } from '../types';
+import { extractOptionsConfigurationData } from '../utilities';
 import {
   SecureTestId,
   SecureTestTypeValue,
@@ -147,6 +148,7 @@ export class SecureTestAggregate extends AggregateRootBase {
       signatureAlgorithm: entityProps.signatureAlgorithm?.value,
       username: entityProps.username?.value,
       password: entityProps.password?.value,
+      options: extractOptionsConfigurationData(entityProps.options),
     });
 
     // Apply as domain event with clean business data
@@ -201,6 +203,7 @@ export class SecureTestAggregate extends AggregateRootBase {
           signatureAlgorithm?: SecureTestSignatureAlgorithmValue;
           username?: string;
           password?: string;
+          options: OptionsProps;
         };
 
         // For event replay, we need to reconstruct the full snapshot
@@ -216,6 +219,7 @@ export class SecureTestAggregate extends AggregateRootBase {
           signatureAlgorithm: d.signatureAlgorithm,
           username: d.username,
           password: d.password,
+          options: d.options,
           createdAt: currentSnapshot.createdAt || event.occurredAt,
           updatedAt: event.occurredAt, // Always update the timestamp
           version: currentSnapshot.version + 1 || 1,
@@ -364,6 +368,11 @@ export class SecureTestAggregate extends AggregateRootBase {
         return true;
       }
     }
+    if (validatedFields.options !== undefined) {
+      if (hasValueChanged(this._entity.options, validatedFields.options)) {
+        return true;
+      }
+    }
     // No changes detected
     return false;
   }
@@ -509,6 +518,16 @@ export class SecureTestAggregate extends AggregateRootBase {
       currentEntity = entityResult.value;
     }
 
+    if (validatedFields.options !== undefined) {
+      const entityResult = currentEntity.withOptions(
+        validatedFields.options,
+        updatedAt,
+        nextVersion,
+      );
+      if (!entityResult.ok) return err(entityResult.error);
+      currentEntity = entityResult.value;
+    }
+
     // Commit the batched changes
     this._entity = currentEntity;
 
@@ -522,6 +541,7 @@ export class SecureTestAggregate extends AggregateRootBase {
       signatureAlgorithm: this._entity.signatureAlgorithm?.value,
       username: this._entity.username?.value,
       password: this._entity.password?.value,
+      options: extractOptionsConfigurationData(this._entity.options),
     });
 
     // Apply as domain event with clean business data

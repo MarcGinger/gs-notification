@@ -5,6 +5,7 @@ import type {
   SecureTestSignatureAlgorithmValue,
   SecureTestTypeValue,
 } from '../value-objects';
+import { UpsertOptionsProps } from './options';
 
 export interface UpsertSecureTestProps {
   id: string;
@@ -15,4 +16,5 @@ export interface UpsertSecureTestProps {
   signatureAlgorithm?: SecureTestSignatureAlgorithmValue;
   username?: string;
   password?: string;
+  options?: UpsertOptionsProps;
 }

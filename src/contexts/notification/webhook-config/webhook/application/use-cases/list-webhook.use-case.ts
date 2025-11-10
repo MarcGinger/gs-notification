@@ -202,9 +202,7 @@ export class ListWebhookUseCase implements IListWebhookUseCase {
         // For list operations, we log bulk data access for compliance audit
         const sampleData = finalResult.data[0]; // Use first item for classification
         const listClassification = this.piiClassificationService.classifyData(
-          {
-            signingSecret: sampleData.signingSecret || '',
-          },
+          {},
           {
             domain: 'webhook-config',
             tenant: query.user.tenant,

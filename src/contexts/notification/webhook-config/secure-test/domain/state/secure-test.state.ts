@@ -8,6 +8,7 @@ import {
   SecureTestDescription,
   SecureTestId,
   SecureTestName,
+  SecureTestOptionsConfiguration,
   SecureTestPassword,
   SecureTestSignatureAlgorithm,
   SecureTestSigningSecret,
@@ -37,6 +38,7 @@ export interface SecureTestDomainState {
   signatureAlgorithm?: SecureTestSignatureAlgorithm;
   username?: SecureTestUsername;
   password?: SecureTestPassword;
+  options: SecureTestOptionsConfiguration;
   version: SecureTestVersion;
   createdAt: SecureTestCreatedAt;
   updatedAt: SecureTestUpdatedAt;

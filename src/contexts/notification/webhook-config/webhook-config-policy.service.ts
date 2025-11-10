@@ -18,7 +18,6 @@ export const WEBHOOK_CONFIG_POLICY: PIIPolicyBundle = {
   },
   rules: [
     // Exact field paths that are PII
-    { match: 'signingSecret', action: 'pii', category: 'sensitive' },
     // Explicit exceptions (non-PII)
   ],
 };

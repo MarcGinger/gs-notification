@@ -19,8 +19,6 @@ import { Result, DomainError, err, ok } from 'src/shared/errors';
 import { Option } from 'src/shared/domain/types';
 import { ActorContext } from 'src/shared/application/context';
 import { RepositoryErrorFactory } from 'src/shared/domain/errors/repository.error';
-import { EventEncryptionFactory } from 'src/shared/infrastructure/encryption';
-import { WebhookDecryptionUtil } from '../utilities';
 import { WEBHOOK_CONFIG_DI_TOKENS } from '../../../webhook-config.constants';
 import { WebhookProjectionKeys } from '../../webhook-projection-keys';
 import { WebhookSnapshotProps } from '../../domain/props';
@@ -56,7 +54,6 @@ export class WebhookReaderRepository implements IWebhookReader {
     @Inject(CLOCK) private readonly clock: Clock,
     @Inject(WEBHOOK_CONFIG_DI_TOKENS.IO_REDIS)
     private readonly redis: Redis,
-    private readonly eventEncryptionFactory: EventEncryptionFactory,
   ) {
     this.loggingConfig = {
       serviceName: 'WebhookConfigService',
@@ -272,19 +269,6 @@ export class WebhookReaderRepository implements IWebhookReader {
         return ok(Option.none());
       }
 
-      // Parse and decrypt SecretRef objects from Redis JSON strings using shared utility
-      const decryptedSecrets = await WebhookDecryptionUtil.decryptWebhookFields(
-        {},
-        actor,
-        this.eventEncryptionFactory,
-        this.logger,
-      );
-
-      // Update snapshot with decrypted values
-      const decryptedSnapshot: WebhookSnapshotProps = {
-        ...webhookSnapshot,
-      };
-
       // Log query metrics using shared utility
       RepositoryLoggingUtil.logQueryMetrics(
         this.logger,
@@ -294,13 +278,13 @@ export class WebhookReaderRepository implements IWebhookReader {
           resultCount: 1,
           dataQuality: 'good',
           sampleData: {
-            id: decryptedSnapshot.id,
-            version: decryptedSnapshot.version,
+            id: webhookSnapshot.id,
+            version: webhookSnapshot.version,
           },
         },
       );
 
-      return ok(Option.some(decryptedSnapshot));
+      return ok(Option.some(webhookSnapshot));
     } catch (error) {
       // Log operation error using shared utility
       RepositoryLoggingUtil.logOperationError(

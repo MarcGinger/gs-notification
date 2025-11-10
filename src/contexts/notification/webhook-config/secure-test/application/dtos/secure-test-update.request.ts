@@ -10,12 +10,14 @@ import {
   ApiSecureTestDescription,
   ApiSecureTestId,
   ApiSecureTestName,
+  ApiSecureTestOptionsRequest,
   ApiSecureTestPassword,
   ApiSecureTestSignatureAlgorithm,
   ApiSecureTestSigningSecret,
   ApiSecureTestType,
   ApiSecureTestUsername,
 } from './decorators';
+import type { UpdateOptionsRequest } from './';
 
 export class UpdateSecureTestRequest implements UpdateSecureTestProps {
   @ApiSecureTestId()
@@ -41,4 +43,7 @@ export class UpdateSecureTestRequest implements UpdateSecureTestProps {
 
   @ApiSecureTestPassword({ required: false })
   password?: string;
+
+  @ApiSecureTestOptionsRequest()
+  options?: UpdateOptionsRequest;
 }

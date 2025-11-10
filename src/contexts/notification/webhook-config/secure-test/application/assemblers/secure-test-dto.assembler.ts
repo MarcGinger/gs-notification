@@ -2,7 +2,8 @@
 // REMOVE THIS COMMENT TO STOP AUTOMATIC UPDATES TO THIS BLOCK
 
 import { SecureTestDomainState } from '../../domain/state';
-import { DetailSecureTestResponse } from '../dtos';
+import { DetailOptionsResponse, DetailSecureTestResponse } from '../dtos';
+import { mapOptionsConfigurationToDto } from '../mappers';
 
 /**
  * SecureTest DTO Assembler
@@ -36,6 +37,11 @@ export class SecureTestDtoAssembler {
     dto.signatureAlgorithm = domainState.signatureAlgorithm?.value;
     dto.username = domainState.username?.value;
     dto.password = domainState.password?.value;
+
+    // Use existing mappers for complex configurations
+    dto.options = mapOptionsConfigurationToDto<DetailOptionsResponse>(
+      domainState.options,
+    );
 
     return dto;
   }

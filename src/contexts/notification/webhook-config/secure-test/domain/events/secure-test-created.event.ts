@@ -5,6 +5,7 @@ import type {
   SecureTestSignatureAlgorithmValue,
   SecureTestTypeValue,
 } from '../value-objects';
+import type { OptionsProps } from '../props';
 /**
  * SecureTest Created Event Payload
  * Contains only business facts - no envelope metadata, timestamps, or versioning
@@ -18,6 +19,7 @@ export interface SecureTestCreatedEventPayload {
   signatureAlgorithm?: SecureTestSignatureAlgorithmValue;
   username?: string;
   password?: string;
+  options: OptionsProps;
 }
 
 /**
@@ -68,5 +70,9 @@ export class SecureTestCreatedEvent {
 
   get password(): string | undefined {
     return this.payload.password;
+  }
+
+  get options(): OptionsProps {
+    return this.payload.options;
   }
 }

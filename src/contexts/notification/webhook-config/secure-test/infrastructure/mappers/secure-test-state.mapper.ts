@@ -20,6 +20,8 @@ import {
   createSecureTestSignatureAlgorithm,
   SecureTestUsername,
   SecureTestPassword,
+  SecureTestOptionsConfiguration,
+  optionsConfigurationToSnapshotProps,
 } from '../../domain/value-objects';
 import { Result, ok, err, DomainError } from 'src/shared/errors';
 import { SecureTestDomainState } from '../../domain/state/secure-test.state';
@@ -82,6 +84,10 @@ export class SecureTestStateMapper {
     const password = snapshot.password
       ? validateField('password', SecureTestPassword.from(snapshot.password))
       : undefined;
+    const options = validateField(
+      'options',
+      SecureTestOptionsConfiguration.from(snapshot.options),
+    );
     const version = validateField(
       'version',
       SecureTestVersion.from(snapshot.version),
@@ -124,6 +130,7 @@ export class SecureTestStateMapper {
       signatureAlgorithm: signatureAlgorithm || undefined,
       username: username || undefined,
       password: password || undefined,
+      options: options!,
       version: version!,
       createdAt: createdAt!,
       updatedAt: updatedAt!,
@@ -151,6 +158,7 @@ export class SecureTestStateMapper {
       signatureAlgorithm: domainState.signatureAlgorithm?.value,
       username: domainState.username?.value,
       password: domainState.password?.value,
+      options: optionsConfigurationToSnapshotProps(domainState.options), // Complex object - stored as-is for now
       version: domainState.version.value,
       createdAt: domainState.createdAt.value,
       updatedAt: domainState.updatedAt.value,

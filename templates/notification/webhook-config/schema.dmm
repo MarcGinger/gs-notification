@@ -165,7 +165,7 @@
 					"comment": "Reference or key name for the signing secret used to generate webhook signatures. Stores the secret identifier, not the actual secret value for security.",
 					"defaultvalue": "NULL",
 					"data": "",
-					"after": "pii()",
+					"after": "",
 					"autoinc": false,
 					"collation": "",
 					"charset": "",
@@ -1337,9 +1337,32 @@
 					"unsigned": false,
 					"enum": "",
 					"estimatedSize": ""
+				},
+				{
+					"id": "082d5712-fc7f-4810-8765-71bd51e89ff1",
+					"name": "options",
+					"datatype": "JSON",
+					"param": "",
+					"pk": false,
+					"nn": true,
+					"fk": true,
+					"comment": "",
+					"defaultvalue": "",
+					"data": "",
+					"after": "",
+					"autoinc": false,
+					"collation": "",
+					"charset": "",
+					"binary": false,
+					"zerofill": false,
+					"unsigned": false,
+					"enum": "",
+					"estimatedSize": ""
 				}
 			],
-			"relations": [],
+			"relations": [
+				"654093c9-cd7e-4c3d-9f5e-1480f4519f57"
+			],
 			"lines": [],
 			"keys": [
 				{
@@ -1359,6 +1382,87 @@
 			"generate": true,
 			"generateCustomCode": true,
 			"customCode": "write('kurrentdb')\nread('redis')\nquery('redis')\nprojector('redis')\nsoftDelete(false)",
+			"tabletype": "InnoDB",
+			"collation": "utf8mb4_general_ci",
+			"charset": "utf8mb4",
+			"rowformat": "",
+			"database": "service",
+			"initautoinc": "",
+			"temporary": false,
+			"ifnotexists": false
+		},
+		"992bdf01-bc35-4f80-a452-7ccf0b21d4b9": {
+			"id": "992bdf01-bc35-4f80-a452-7ccf0b21d4b9",
+			"visible": true,
+			"name": "options",
+			"desc": "",
+			"estimatedSize": "",
+			"cols": [
+				{
+					"id": "81fb7485-2b9b-4cc1-a452-c4c0b84d87d2",
+					"name": "id",
+					"datatype": "JSON",
+					"param": "",
+					"pk": true,
+					"nn": true,
+					"fk": false,
+					"comment": "",
+					"defaultvalue": "",
+					"data": "",
+					"after": "",
+					"autoinc": false,
+					"collation": "",
+					"charset": "",
+					"binary": false,
+					"zerofill": false,
+					"unsigned": false,
+					"enum": "",
+					"estimatedSize": ""
+				},
+				{
+					"id": "03b88ca7-651e-4f14-a9ab-6d6c0377a669",
+					"name": "name",
+					"datatype": "VARCHAR",
+					"param": "255",
+					"pk": false,
+					"nn": true,
+					"fk": false,
+					"comment": "",
+					"defaultvalue": "",
+					"data": "",
+					"after": "",
+					"autoinc": false,
+					"collation": "",
+					"charset": "",
+					"binary": false,
+					"zerofill": false,
+					"unsigned": false,
+					"enum": "",
+					"estimatedSize": ""
+				}
+			],
+			"relations": [
+				"654093c9-cd7e-4c3d-9f5e-1480f4519f57"
+			],
+			"lines": [],
+			"keys": [
+				{
+					"id": "92b539f0-4453-407f-853b-213c48b0be4e",
+					"name": "PRIMARY",
+					"isPk": true,
+					"cols": [
+						{
+							"id": "2fe2e926-334a-42e9-a4f6-46f879250b73",
+							"colid": "81fb7485-2b9b-4cc1-a452-c4c0b84d87d2"
+						}
+					]
+				}
+			],
+			"indexes": [],
+			"embeddable": false,
+			"generate": true,
+			"generateCustomCode": true,
+			"customCode": "",
 			"tabletype": "InnoDB",
 			"collation": "utf8mb4_general_ci",
 			"charset": "utf8mb4",
@@ -1423,6 +1527,33 @@
 			"customCode": "",
 			"relationColor": "transparent",
 			"linegraphics": "default"
+		},
+		"654093c9-cd7e-4c3d-9f5e-1480f4519f57": {
+			"id": "654093c9-cd7e-4c3d-9f5e-1480f4519f57",
+			"name": "table1_secure_test",
+			"desc": "",
+			"type": "identifying",
+			"parent_key": "92b539f0-4453-407f-853b-213c48b0be4e",
+			"parent": "992bdf01-bc35-4f80-a452-7ccf0b21d4b9",
+			"child": "a6b26988-b7bc-41e9-9958-f72b0b72761d",
+			"c_mp": "true",
+			"c_mch": "true",
+			"c_p": "one",
+			"c_ch": "many",
+			"c_cp": "",
+			"c_cch": "",
+			"cols": [
+				{
+					"id": "85dcce38-05f6-4760-be8b-45ff1fd94ceb",
+					"parentcol": "81fb7485-2b9b-4cc1-a452-c4c0b84d87d2",
+					"childcol": "082d5712-fc7f-4810-8765-71bd51e89ff1"
+				}
+			],
+			"generate": true,
+			"generateCustomCode": true,
+			"customCode": "",
+			"relationColor": "transparent",
+			"linegraphics": "default"
 		}
 	},
 	"notes": {},
@@ -1452,7 +1583,7 @@
 		},
 		"type": "MARIADB",
 		"version": 1,
-		"lastSaved": 1762699382120,
+		"lastSaved": 1762748444127,
 		"beforeScript": "",
 		"afterScript": "",
 		"sqlSettings": {
@@ -1537,10 +1668,23 @@
 				},
 				"a6b26988-b7bc-41e9-9958-f72b0b72761d": {
 					"referencedItemId": "a6b26988-b7bc-41e9-9958-f72b0b72761d",
-					"x": 266,
-					"y": 432,
-					"gHeight": 171,
+					"x": 121,
+					"y": 441,
+					"gHeight": 189,
 					"gWidth": 244,
+					"color": "#ffffff",
+					"background": "#03a9f4",
+					"resized": false,
+					"autoExpand": true,
+					"backgroundOpacity": "10",
+					"collapsed": false
+				},
+				"992bdf01-bc35-4f80-a452-7ccf0b21d4b9": {
+					"referencedItemId": "992bdf01-bc35-4f80-a452-7ccf0b21d4b9",
+					"x": 440,
+					"y": 457,
+					"gHeight": 63,
+					"gWidth": 202,
 					"color": "#ffffff",
 					"background": "#03a9f4",
 					"resized": false,
@@ -1602,8 +1746,10 @@
 		"a6b26988-b7bc-41e9-9958-f72b0b72761d",
 		"00829685-51b5-4cea-a843-525855771acd",
 		"cd5f87d5-b86c-47eb-8bd6-6699ed90dc28",
+		"992bdf01-bc35-4f80-a452-7ccf0b21d4b9",
 		"51f4de80-23d4-4b99-af16-790b85e0f709",
-		"c8858001-b702-4f41-9b7a-31625fd98548"
+		"c8858001-b702-4f41-9b7a-31625fd98548",
+		"654093c9-cd7e-4c3d-9f5e-1480f4519f57"
 	],
 	"collapsedTreeItems": [],
 	"reverseStats": {}

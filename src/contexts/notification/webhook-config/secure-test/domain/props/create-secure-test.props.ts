@@ -5,6 +5,7 @@ import type {
   SecureTestSignatureAlgorithmValue,
   SecureTestTypeValue,
 } from '../value-objects';
+import { CreateOptionsProps } from './options';
 
 export interface CreateSecureTestProps {
   id: string;
@@ -15,4 +16,5 @@ export interface CreateSecureTestProps {
   signatureAlgorithm?: SecureTestSignatureAlgorithmValue;
   username?: string;
   password?: string;
+  options: CreateOptionsProps;
 }

@@ -25,22 +25,11 @@ import { WebhookProjectionKeys } from '../../webhook-projection-keys';
 import { WebhookId } from '../../domain/value-objects';
 import { WebhookDeletedEvent } from '../../domain/events';
 import { IWebhookWriter } from '../../application/ports';
-import {
-  EventEncryptionFactory,
-  EncryptionConfig,
-} from 'src/shared/infrastructure/encryption';
 /**
  * Webhook Writer Repository - Interface Segregation Principle Implementation
  *
- * Handles write operations (create, update, delete) for Webhook aggregates
- * with PII protection at the persistence boundary (CQRS command side).
- *
- * PII Protection Features:
- * - Automatic field-level encryption based on aggregate metadata classification
- * - AES-256-GCM encryption with key rotation support
- * - Safe logging (no plaintext PII in logs)
- * - Blind index generation for searchable fields
- * - Clean separation: domain uses raw data, infrastructure encrypts at boundary.
+ * Handles write operations (create, update, delete) for Webhook aggregates.
+ * This repository focuses solely on data modification operations.
  *
  * ISP Benefits:
  * - Clients that only need to write data don't depend on read methods
@@ -50,7 +39,7 @@ import {
  *
  * @domain Notification Context - Webhook Writer Repository
  * @layer Infrastructure
- * @pattern Repository Pattern + Interface Segregation Principle + CQRS Encryption
+ * @pattern Repository Pattern + Interface Segregation Principle
  */
 export class WebhookWriterRepository
   extends BaseWriterRepository
@@ -63,7 +52,6 @@ export class WebhookWriterRepository
     @Inject(APP_LOGGER) baseLogger: Logger,
     private readonly eventStore: EventStoreService,
     @Inject(CLOCK) private readonly clock: Clock,
-    private readonly eventEncryptionFactory: EventEncryptionFactory,
   ) {
     super();
     this.loggingConfig = {
@@ -167,43 +155,8 @@ export class WebhookWriterRepository
       return ok(receipt);
     }
 
-    // Encrypt sensitive fields before persistence using new factory
-    const secretConfig: EncryptionConfig =
-      EventEncryptionFactory.createSecretConfig({
-        sensitiveFields: [],
-        namespaceMap: {},
-        defaultNamespace: 'general',
-      });
-
-    const encryptionResult = await this.eventEncryptionFactory.encryptEvents(
-      [...events],
-      actor,
-      secretConfig,
-    );
-
-    // Log encryption strategy details for observability
-    Log.info(this.logger, 'Events encrypted with strategy details', {
-      ...logContext,
-      encryptionStrategy: {
-        type: secretConfig.type, // 'secret', 'pii', 'noop', etc.
-        encryptedCount: encryptionResult.metadata.encryptedEventCount,
-        skippedCount: encryptionResult.metadata.skippedEventCount,
-        algorithm: encryptionResult.metadata.algorithm,
-        encryptedFields: encryptionResult.metadata.encryptedFields,
-        strategyDetails: encryptionResult.metadata.strategyMetadata.map(
-          (meta) => ({
-            strategyName: meta.source,
-            algorithm: meta.algorithm,
-            keyId: meta.keyId,
-            namespace: meta.namespace,
-            version: meta.strategyVersion,
-            processedFields: meta.processedFields,
-          }),
-        ),
-      },
-    });
-
-    const eventsToStore = encryptionResult.events;
+    // Use original events for persistence (no PII processing needed)
+    const eventsToStore = events;
 
     // prevVersion = version BEFORE current batch
     const prevVersion = webhook.version - eventsToStore.length;

@@ -63,6 +63,7 @@ interface SecureTestProjectionParams extends UnifiedProjectionParams {
   signatureAlgorithm?: string;
   username?: string;
   password?: string;
+  options: object;
   createdAt: Date;
   tenant: string;
   lastStreamRevision?: string | null;

@@ -19,8 +19,6 @@ import { Option } from 'src/shared/domain/types';
 import { ActorContext } from 'src/shared/application/context';
 import { RepositoryErrorFactory } from 'src/shared/domain/errors/repository.error';
 import { CacheMetricsCollector } from 'src/shared/infrastructure/projections/cache-optimization';
-import { EventEncryptionFactory } from 'src/shared/infrastructure/encryption';
-import { WebhookDecryptionUtil } from '../utilities';
 import { WEBHOOK_CONFIG_DI_TOKENS } from '../../../webhook-config.constants';
 import { WebhookProjectionKeys } from '../../webhook-projection-keys';
 import {
@@ -77,7 +75,6 @@ export class WebhookQueryRepository implements IWebhookQuery {
     @Inject(CLOCK) private readonly clock: Clock,
     @Inject(WEBHOOK_CONFIG_DI_TOKENS.IO_REDIS)
     private readonly redis: Redis,
-    private readonly eventEncryptionFactory: EventEncryptionFactory,
   ) {
     this.loggingConfig = {
       serviceName: 'WebhookConfigService',
@@ -195,14 +192,6 @@ export class WebhookQueryRepository implements IWebhookQuery {
         );
         return ok(Option.none());
       }
-
-      // Parse and decrypt SecretRef objects from Redis JSON strings using shared utility
-      const decryptedSecrets = await WebhookDecryptionUtil.decryptWebhookFields(
-        {},
-        actor,
-        this.eventEncryptionFactory,
-        this.logger,
-      );
 
       // Transform to DetailWebhookResponse DTO (excluding internal fields)
       const detailResponse: DetailWebhookResponse = {

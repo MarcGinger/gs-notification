@@ -261,6 +261,7 @@ export class GetSecureTestUseCase implements IGetSecureTestUseCase {
           id: params.id,
           name: '', // Default values for required fields
           type: 0, // Default values for required fields
+          options: 0, // Default values for required fields
           secureTestId: params.id,
           correlationId,
           userId: params.user.sub,

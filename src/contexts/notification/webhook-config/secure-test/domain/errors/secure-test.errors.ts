@@ -116,6 +116,13 @@ export const SecureTestErrors = {
     category: 'validation',
     retryable: false,
   } as DomainError<'SECURE_TEST.INVALID_NAME_DATA', SecureTestContext>,
+  INVALID_OPTIONS_DATA: {
+    code: 'SECURE_TEST.INVALID_OPTIONS_DATA',
+    title: 'Value Required',
+    detail: 'Options is required for Secure test.',
+    category: 'validation',
+    retryable: false,
+  } as DomainError<'SECURE_TEST.INVALID_OPTIONS_DATA', SecureTestContext>,
   INVALID_PASSWORD: {
     code: 'SECURE_TEST.INVALID_PASSWORD',
     title: 'Value Required',

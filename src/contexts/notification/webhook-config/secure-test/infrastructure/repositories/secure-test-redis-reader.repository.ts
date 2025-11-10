@@ -23,7 +23,7 @@ import { EventEncryptionFactory } from 'src/shared/infrastructure/encryption';
 import { SecureTestDecryptionUtil } from '../utilities';
 import { WEBHOOK_CONFIG_DI_TOKENS } from '../../../webhook-config.constants';
 import { SecureTestProjectionKeys } from '../../secure-test-projection-keys';
-import { SecureTestSnapshotProps } from '../../domain/props';
+import { OptionsProps, SecureTestSnapshotProps } from '../../domain/props';
 import { SecureTestId } from '../../domain/value-objects';
 import { ISecureTestReader } from '../../application/ports';
 
@@ -104,6 +104,7 @@ export class SecureTestReaderRepository implements ISecureTestReader {
       // Parse array fields using safeParseJSONArray utility
 
       // Parse object fields using safeParseJSON utility
+      const options = safeParseJSON<OptionsProps>(hashData.options, 'options');
       // Extract basic fields directly from hash data
 
       // Type assertion for type - cached data should already be validated
@@ -122,6 +123,7 @@ export class SecureTestReaderRepository implements ISecureTestReader {
         signatureAlgorithm,
         username: hashData.username || undefined,
         password: hashData.password || undefined,
+        options,
         version: parseInt(hashData.version, 10),
         createdAt: new Date(hashData.createdAt),
         updatedAt: new Date(hashData.updatedAt),

@@ -13,6 +13,7 @@ import {
   SecureTestDescription,
   SecureTestId,
   SecureTestName,
+  SecureTestOptionsConfiguration,
   SecureTestPassword,
   SecureTestSignatureAlgorithm,
   SecureTestSignatureAlgorithmLogic,
@@ -22,6 +23,7 @@ import {
   SecureTestUsername,
   createSecureTestSignatureAlgorithm,
   createSecureTestType,
+  optionsConfigurationToSnapshotProps,
 } from '../value-objects';
 
 /**
@@ -193,6 +195,10 @@ export class SecureTestEntity extends EntityIdBase<
     if (!passwordResult.ok) {
       return err(passwordResult.error);
     }
+    const optionsResult = SecureTestOptionsConfiguration.from(snapshot.options);
+    if (!optionsResult.ok) {
+      return err(optionsResult.error);
+    }
     const createdAtResult = SecureTestCreatedAt.from(snapshot.createdAt);
     if (!createdAtResult.ok) {
       return err(createdAtResult.error);
@@ -217,6 +223,7 @@ export class SecureTestEntity extends EntityIdBase<
       signatureAlgorithm: signatureAlgorithmResult.value,
       username: usernameResult.value,
       password: passwordResult.value,
+      options: optionsResult.value,
       createdAt: createdAtResult.value,
       updatedAt: updatedAtResult.value,
       version: versionResult.value,
@@ -243,6 +250,9 @@ export class SecureTestEntity extends EntityIdBase<
     }
     if (!props.type) {
       return err(SecureTestErrors.INVALID_TYPE_DATA);
+    }
+    if (!props.options) {
+      return err(SecureTestErrors.INVALID_OPTIONS_DATA);
     }
 
     return ok(undefined);
@@ -282,6 +292,10 @@ export class SecureTestEntity extends EntityIdBase<
 
   public get password(): SecureTestPassword | undefined {
     return this.props.password;
+  }
+
+  public get options(): SecureTestOptionsConfiguration {
+    return this.props.options;
   }
 
   public get createdAt(): SecureTestCreatedAt {
@@ -447,6 +461,21 @@ export class SecureTestEntity extends EntityIdBase<
     return this.createUpdatedEntity({ password }, updatedAt, version);
   }
 
+  /**
+   * Creates a new entity with updated options (pure state transition)
+   *
+   * @param options - New options value
+   * @param updatedAt - Optional timestamp (uses clock if not provided)
+   * @returns Result<SecureTestEntity, DomainError>
+   */
+  public withOptions(
+    options: SecureTestOptionsConfiguration,
+    updatedAt?: Date,
+    version?: number,
+  ): Result<SecureTestEntity, DomainError> {
+    return this.createUpdatedEntity({ options }, updatedAt, version);
+  }
+
   // ======================
   // Query Methods
   // ======================
@@ -473,6 +502,7 @@ export class SecureTestEntity extends EntityIdBase<
       signatureAlgorithm: this.props.signatureAlgorithm?.value,
       username: this.props.username?.value,
       password: this.props.password?.value,
+      options: optionsConfigurationToSnapshotProps(this.props.options),
       createdAt: this.props.createdAt.value,
       updatedAt: this.props.updatedAt.value,
       version: this.props.version.value,

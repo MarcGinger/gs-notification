@@ -236,12 +236,8 @@
           "autoIncrement": false,
           "maxLength": "128",
           "array": false,
-          "isPII": "sensitive",
+          "isPII": "",
           "secret": false,
-          "security": {
-            "type": "pii",
-            "classification": "sensitive"
-          },
           "create": true,
           "update": true,
           "get": true,
@@ -2314,9 +2310,97 @@
             "kind": "string",
             "maxLength": 255
           }
+        },
+        {
+          "name": "options",
+          "type": "Record<string, unknown>",
+          "childRelationshipType": "",
+          "parentRelationshipType": "Options",
+          "datatype": "JSON",
+          "primaryKey": false,
+          "required": true,
+          "description": "",
+          "defaultvalue": "",
+          "example": "",
+          "autoIncrement": false,
+          "array": false,
+          "isPII": "",
+          "secret": false,
+          "create": true,
+          "update": true,
+          "get": true,
+          "list": true,
+          "relationship": "one",
+          "parentRelationship": "table1_secure_test",
+          "childRelationship": "",
+          "meta": {
+            "kind": "json",
+            "jsonShape": "one"
+          }
         }
       ],
-      "relationships": [],
+      "relationships": [
+        {
+          "name": "table1_secure_test",
+          "parentTable": "options",
+          "parentColumn": {
+            "name": "id",
+            "type": "Record<string, unknown>",
+            "childRelationshipType": "SecureTest",
+            "parentRelationshipType": "",
+            "datatype": "JSON",
+            "primaryKey": true,
+            "required": true,
+            "description": "",
+            "defaultvalue": "",
+            "example": "",
+            "autoIncrement": false,
+            "array": false,
+            "isPII": "",
+            "secret": false,
+            "create": true,
+            "update": true,
+            "get": true,
+            "list": true,
+            "parentRelationship": "",
+            "childRelationship": "table1_secure_test",
+            "meta": {
+              "kind": "json",
+              "jsonShape": "object"
+            }
+          },
+          "childTable": "secure_test",
+          "childColumn": {
+            "name": "options",
+            "type": "Record<string, unknown>",
+            "childRelationshipType": "",
+            "parentRelationshipType": "Options",
+            "datatype": "JSON",
+            "primaryKey": false,
+            "required": true,
+            "description": "",
+            "defaultvalue": "",
+            "example": "",
+            "autoIncrement": false,
+            "array": false,
+            "isPII": "",
+            "secret": false,
+            "create": true,
+            "update": true,
+            "get": true,
+            "list": true,
+            "relationship": "one",
+            "parentRelationship": "table1_secure_test",
+            "childRelationship": "",
+            "meta": {
+              "kind": "json",
+              "jsonShape": "one"
+            }
+          },
+          "type": "one",
+          "complex": true
+        }
+      ],
       "lines": [],
       "keys": [
         {
@@ -2411,6 +2495,224 @@
       },
       "domainName": "",
       "parentPath": []
+    },
+    {
+      "name": "options",
+      "description": "",
+      "columns": [
+        {
+          "name": "id",
+          "type": "Record<string, unknown>",
+          "childRelationshipType": "SecureTest",
+          "parentRelationshipType": "",
+          "datatype": "JSON",
+          "primaryKey": true,
+          "required": true,
+          "description": "",
+          "defaultvalue": "",
+          "example": "",
+          "autoIncrement": false,
+          "array": false,
+          "isPII": "",
+          "secret": false,
+          "create": true,
+          "update": true,
+          "get": true,
+          "list": true,
+          "parentRelationship": "",
+          "childRelationship": "table1_secure_test",
+          "meta": {
+            "kind": "json",
+            "jsonShape": "object"
+          }
+        },
+        {
+          "name": "name",
+          "type": "string",
+          "childRelationshipType": "",
+          "parentRelationshipType": "",
+          "datatype": "VARCHAR",
+          "primaryKey": false,
+          "required": true,
+          "description": "",
+          "defaultvalue": "",
+          "example": "",
+          "autoIncrement": false,
+          "maxLength": "255",
+          "array": false,
+          "isPII": "",
+          "secret": false,
+          "create": true,
+          "update": true,
+          "get": true,
+          "list": true,
+          "parentRelationship": "",
+          "childRelationship": "",
+          "meta": {
+            "kind": "string",
+            "maxLength": 255
+          }
+        }
+      ],
+      "relationships": [
+        {
+          "name": "table1_secure_test",
+          "parentTable": "options",
+          "parentColumn": {
+            "name": "id",
+            "type": "Record<string, unknown>",
+            "childRelationshipType": "SecureTest",
+            "parentRelationshipType": "",
+            "datatype": "JSON",
+            "primaryKey": true,
+            "required": true,
+            "description": "",
+            "defaultvalue": "",
+            "example": "",
+            "autoIncrement": false,
+            "array": false,
+            "isPII": "",
+            "secret": false,
+            "create": true,
+            "update": true,
+            "get": true,
+            "list": true,
+            "parentRelationship": "",
+            "childRelationship": "table1_secure_test",
+            "meta": {
+              "kind": "json",
+              "jsonShape": "object"
+            }
+          },
+          "childTable": "secure_test",
+          "childColumn": {
+            "name": "options",
+            "type": "Record<string, unknown>",
+            "childRelationshipType": "",
+            "parentRelationshipType": "Options",
+            "datatype": "JSON",
+            "primaryKey": false,
+            "required": true,
+            "description": "",
+            "defaultvalue": "",
+            "example": "",
+            "autoIncrement": false,
+            "array": false,
+            "isPII": "",
+            "secret": false,
+            "create": true,
+            "update": true,
+            "get": true,
+            "list": true,
+            "relationship": "one",
+            "parentRelationship": "table1_secure_test",
+            "childRelationship": "",
+            "meta": {
+              "kind": "json",
+              "jsonShape": "one"
+            }
+          },
+          "type": "one",
+          "complex": true
+        }
+      ],
+      "lines": [],
+      "keys": [
+        {
+          "name": "id",
+          "type": "Record<string, unknown>",
+          "childRelationshipType": "SecureTest",
+          "parentRelationshipType": "",
+          "datatype": "JSON",
+          "primaryKey": true,
+          "required": true,
+          "description": "",
+          "defaultvalue": "",
+          "example": "",
+          "autoIncrement": false,
+          "array": false,
+          "isPII": "",
+          "secret": false,
+          "create": true,
+          "update": true,
+          "get": true,
+          "list": true,
+          "parentRelationship": "",
+          "childRelationship": "table1_secure_test",
+          "meta": {
+            "kind": "json",
+            "jsonShape": "object"
+          }
+        }
+      ],
+      "indexes": [],
+      "docs": {
+        "name": "Options",
+        "summary": "Configuration for options table",
+        "version": "1.0.0"
+      },
+      "apis": {},
+      "store": {
+        "read": "redis",
+        "write": "kurrentdb",
+        "query": "redis",
+        "projector": "redis"
+      },
+      "options": {
+        "command": true,
+        "create": true,
+        "update": true,
+        "read": "redis",
+        "write": "kurrentdb",
+        "query": "redis",
+        "projector": "redis",
+        "queue": false,
+        "softDelete": false,
+        "timestamps": true,
+        "versioning": true,
+        "logging": true,
+        "auditing": true,
+        "caching": true,
+        "eventStreaming": false
+      },
+      "cancel": {
+        "create": false,
+        "update": false,
+        "delete": false,
+        "batch": false,
+        "get": false
+      },
+      "redis": {
+        "prefix": "",
+        "version": "1.0",
+        "category": "notification:webhook-config.options.v1",
+        "ttl": 3600,
+        "hash": true,
+        "aggregate": "options"
+      },
+      "eventstream": {
+        "boundedContext": "notification",
+        "aggregate": "options",
+        "version": "v1",
+        "stream": "notification.webhookConfig.options",
+        "createdEvent": "NotificationWebhookConfigOptionsCreated.v1",
+        "updatedEvent": "NotificationWebhookConfigOptionsUpdated.v1",
+        "deletedEvent": "NotificationWebhookConfigOptionsDeleted.v1"
+      },
+      "permissions": {
+        "bulk": [
+          "update",
+          "delete",
+          "import"
+        ],
+        "adminOverride": true,
+        "auditView": true,
+        "custom": []
+      },
+      "domainName": "secure-test",
+      "parentPath": [
+        "secure_test"
+      ]
     }
   ],
   "relationships": [
@@ -2539,6 +2841,66 @@
           "kind": "string",
           "minLength": 10,
           "maxLength": 32
+        }
+      },
+      "type": "one",
+      "complex": true
+    },
+    {
+      "name": "table1_secure_test",
+      "parentTable": "options",
+      "parentColumn": {
+        "name": "id",
+        "type": "Record<string, unknown>",
+        "childRelationshipType": "SecureTest",
+        "parentRelationshipType": "",
+        "datatype": "JSON",
+        "primaryKey": true,
+        "required": true,
+        "description": "",
+        "defaultvalue": "",
+        "example": "",
+        "autoIncrement": false,
+        "array": false,
+        "isPII": "",
+        "secret": false,
+        "create": true,
+        "update": true,
+        "get": true,
+        "list": true,
+        "parentRelationship": "",
+        "childRelationship": "table1_secure_test",
+        "meta": {
+          "kind": "json",
+          "jsonShape": "object"
+        }
+      },
+      "childTable": "secure_test",
+      "childColumn": {
+        "name": "options",
+        "type": "Record<string, unknown>",
+        "childRelationshipType": "",
+        "parentRelationshipType": "Options",
+        "datatype": "JSON",
+        "primaryKey": false,
+        "required": true,
+        "description": "",
+        "defaultvalue": "",
+        "example": "",
+        "autoIncrement": false,
+        "array": false,
+        "isPII": "",
+        "secret": false,
+        "create": true,
+        "update": true,
+        "get": true,
+        "list": true,
+        "relationship": "one",
+        "parentRelationship": "table1_secure_test",
+        "childRelationship": "",
+        "meta": {
+          "kind": "json",
+          "jsonShape": "one"
         }
       },
       "type": "one",

@@ -216,7 +216,52 @@
         "signingSecret": {},
         "signatureAlgorithm": {},
         "username": {},
-        "password": {}
+        "password": {},
+        "options": {}
+      },
+      "permissions": {
+        "bulk": [
+          "update",
+          "delete",
+          "import"
+        ],
+        "adminOverride": true,
+        "auditView": true,
+        "custom": []
+      }
+    },
+    "options": {
+      "docs": {
+        "name": "Options",
+        "summary": "Configuration for options table",
+        "version": "1.0.0"
+      },
+      "apis": {},
+      "store": {
+        "read": "sql,eventstream,redis",
+        "write": "sql,eventstream,redis",
+        "query": "sql,eventstream,redis"
+      },
+      "redis": {
+        "prefix": "",
+        "version": "1.0",
+        "category": "notification:webhook-config.options.v1",
+        "ttl": 3600,
+        "hash": true,
+        "aggregate": "options"
+      },
+      "eventstream": {
+        "boundedContext": "notification",
+        "aggregate": "options",
+        "version": "v1",
+        "stream": "notification.webhookConfig.options",
+        "createdEvent": "NotificationWebhookConfigOptionsCreated.v1",
+        "updatedEvent": "NotificationWebhookConfigOptionsUpdated.v1",
+        "deletedEvent": "NotificationWebhookConfigOptionsDeleted.v1"
+      },
+      "cols": {
+        "id": {},
+        "name": {}
       },
       "permissions": {
         "bulk": [

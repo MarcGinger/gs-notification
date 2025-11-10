@@ -5,6 +5,7 @@ import type {
   SecureTestSignatureAlgorithmValue,
   SecureTestTypeValue,
 } from '../value-objects';
+import type { OptionsProps } from '../props';
 
 /**
  * SecureTest Updated Event Payload
@@ -20,6 +21,7 @@ export interface SecureTestUpdatedEventPayload {
   signatureAlgorithm?: SecureTestSignatureAlgorithmValue;
   username?: string;
   password?: string;
+  options: OptionsProps;
 }
 
 /**
@@ -69,5 +71,9 @@ export class SecureTestUpdatedEvent {
 
   get password(): string | undefined {
     return this.payload.password;
+  }
+
+  get options(): OptionsProps {
+    return this.payload.options;
   }
 }

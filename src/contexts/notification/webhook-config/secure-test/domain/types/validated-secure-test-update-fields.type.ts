@@ -5,6 +5,7 @@ import {
   SecureTestDescription,
   SecureTestId,
   SecureTestName,
+  SecureTestOptionsConfiguration,
   SecureTestPassword,
   SecureTestSignatureAlgorithm,
   SecureTestSigningSecret,
@@ -21,4 +22,5 @@ export interface ValidatedSecureTestUpdateFields {
   signatureAlgorithm?: SecureTestSignatureAlgorithm;
   username?: SecureTestUsername;
   password?: SecureTestPassword;
+  options?: SecureTestOptionsConfiguration;
 }

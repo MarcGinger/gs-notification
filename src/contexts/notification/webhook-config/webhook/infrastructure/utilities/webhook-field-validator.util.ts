@@ -61,9 +61,7 @@ export class WebhookFieldValidatorUtil {
     const targetUrl = aggregateData.targetUrl as string;
     const webhookEventType = aggregateData.webhookEventType as string;
     const method = aggregateData.method as WebhookMethodValue;
-    const signingSecret = aggregateData.signingSecret
-      ? JSON.stringify(aggregateData.signingSecret)
-      : undefined;
+    const signingSecret = aggregateData.signingSecret as string;
     const status = aggregateData.status as WebhookStatusValue;
     const verifyTls =
       aggregateData.verifyTls === 'true' || aggregateData.verifyTls === true;
