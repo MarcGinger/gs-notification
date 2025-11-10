@@ -115,6 +115,7 @@ export class ConfigProjector
       ConfigProjectionKeys.getRedisConfigKey(tenant, id),
     getRedisIndexKey: (tenant: string) =>
       ConfigProjectionKeys.getRedisConfigIndexKey(tenant),
+    getEntityId: (params) => (params as ConfigProjectionParams).webhookId,
   };
 
   constructor(

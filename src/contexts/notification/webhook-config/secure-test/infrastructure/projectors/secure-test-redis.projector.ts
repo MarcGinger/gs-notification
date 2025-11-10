@@ -108,6 +108,7 @@ export class SecureTestProjector
       SecureTestProjectionKeys.getRedisSecureTestKey(tenant, id),
     getRedisIndexKey: (tenant: string) =>
       SecureTestProjectionKeys.getRedisSecureTestIndexKey(tenant),
+    getEntityId: (params) => (params as SecureTestProjectionParams).id,
   };
 
   constructor(

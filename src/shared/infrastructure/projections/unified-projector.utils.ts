@@ -23,13 +23,15 @@ export interface UnifiedProjectionConfig {
   versionKeyPrefix: string;
   getRedisEntityKey: (tenant: string, id: string) => string;
   getRedisIndexKey: (tenant: string) => string;
+  getEntityId: (
+    params: UnifiedProjectionParams & Record<string, any>,
+  ) => string;
 }
 
 /**
  * Parameters required for unified projection operations
  */
 export interface UnifiedProjectionParams {
-  id: string;
   version: number;
   updatedAt: Date;
   deletedAt?: Date | null;
@@ -79,25 +81,28 @@ export class UnifiedProjectorUtils {
    */
   async executeProjection(
     event: ProjectionEvent,
-    params: UnifiedProjectionParams,
+    params: UnifiedProjectionParams & Record<string, any>,
     eventEncryptionFactory?: EventEncryptionFactory,
   ): Promise<ProjectionOutcome> {
     const tenant = TenantExtractor.extractTenant(event);
 
     try {
+      // Extract entity ID using the configured function
+      const entityId = this.config.getEntityId(params);
+
       // Apply version hint deduplication
       const alreadyProcessed = await CacheOptimizationUtils.checkVersionHint(
         this.redis,
         tenant,
         this.config.projectorName.toLowerCase(),
-        params.id,
+        entityId,
         params.version,
         this.config.versionKeyPrefix,
       );
 
       if (alreadyProcessed) {
         this.logger.debug(
-          `${this.config.projectorName} already processed - using version hint optimization for ${params.id} version ${params.version}`,
+          `${this.config.projectorName} already processed - using version hint optimization for ${entityId} version ${params.version}`,
         );
         return ProjectionOutcome.SKIPPED_HINT;
       }
@@ -108,7 +113,7 @@ export class UnifiedProjectorUtils {
       );
 
       // Generate cluster-safe keys
-      const entityKey = this.config.getRedisEntityKey(tenant, params.id);
+      const entityKey = this.config.getRedisEntityKey(tenant, entityId);
       const indexKey = this.config.getRedisIndexKey(tenant);
 
       // Validate hash-tag consistency for cluster safety
@@ -123,7 +128,7 @@ export class UnifiedProjectorUtils {
           pipeline,
           entityKey,
           indexKey,
-          params.id,
+          entityId,
           params.deletedAt,
         );
       } else {
@@ -131,7 +136,7 @@ export class UnifiedProjectorUtils {
           pipeline,
           entityKey,
           indexKey,
-          params.id,
+          entityId,
           params.version,
           params.updatedAt,
           fieldPairs,
@@ -150,7 +155,7 @@ export class UnifiedProjectorUtils {
         this.redis,
         tenant,
         this.config.projectorName.toLowerCase(),
-        params.id,
+        entityId,
         params.version,
         undefined, // Use default TTL
         this.config.versionKeyPrefix,
@@ -208,7 +213,7 @@ export class UnifiedProjectorUtils {
 
     for (const fieldName of secretFields) {
       if (params[fieldName] && typeof params[fieldName] === 'string') {
-        const secretRefJson = params[fieldName] as string;
+        const secretRefJson = params[fieldName];
         const inspection = EventEncryptionFactory.inspectSecretRefType(
           secretRefJson,
           availableStrategies,

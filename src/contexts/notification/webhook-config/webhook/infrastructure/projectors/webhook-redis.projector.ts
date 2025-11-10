@@ -112,6 +112,7 @@ export class WebhookProjector
       WebhookProjectionKeys.getRedisWebhookKey(tenant, id),
     getRedisIndexKey: (tenant: string) =>
       WebhookProjectionKeys.getRedisWebhookIndexKey(tenant),
+    getEntityId: (params) => (params as WebhookProjectionParams).id,
   };
 
   constructor(

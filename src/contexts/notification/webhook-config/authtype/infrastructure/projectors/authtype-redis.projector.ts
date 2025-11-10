@@ -116,6 +116,7 @@ export class AuthtypeProjector
       AuthtypeProjectionKeys.getRedisAuthtypeKey(tenant, id),
     getRedisIndexKey: (tenant: string) =>
       AuthtypeProjectionKeys.getRedisAuthtypeIndexKey(tenant),
+    getEntityId: (params) => (params as AuthtypeProjectionParams).id,
   };
 
   constructor(
