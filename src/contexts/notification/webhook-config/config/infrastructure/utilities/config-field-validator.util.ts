@@ -5,12 +5,12 @@ import {
   safeParseJSON,
   safeParseJSONArray,
 } from 'src/shared/infrastructure/repositories';
+import { EventDataProcessingUtils } from 'src/shared/infrastructure/events/utilities/event-data-processing.utils';
 import {
   ConfigOrderingValue,
   ConfigRetryStrategyValue,
   ConfigSignatureAlgorithmValue,
   ConfigStrategyValue,
-  DetailConfigResponse,
 } from '../../application/dtos';
 
 /**
@@ -26,18 +26,36 @@ import {
  */
 export class ConfigFieldValidatorUtil {
   /**
-   * Create a validated DetailConfigResponse from raw EventStore event data
+   * Create projector data with Config objects for Redis storage
    *
-   * Uses modern safeParseJSON utilities and DTOs to maintain CQRS compliance.
-   * This creates read model data for projections, not domain props.
+   * This method extracts Config objects from event data and serializes them
+   * as JSON strings for storage in Redis. The reader repository will deserialize
+   * and resolve these Config objects back to actual secret values.
    *
-   * @param aggregateData - Raw event data from EventStore
-   * @returns Validated DetailConfigResponse DTO with all required fields
-   * @throws Error if required fields are missing or invalid
+   * @param aggregateData - Raw event data from EventStore containing Config objects
+   * @returns Projector data object with Config fields as JSON strings
    */
-  static createConfigSnapshotFromEventData(
+  static createConfigProjectorDataFromEventData(
     aggregateData: Record<string, any>,
-  ): DetailConfigResponse & {
+  ): {
+    id: string;
+    webhookId?: string;
+    tenantId: string;
+    strategy: ConfigStrategyValue;
+    maxRetryAttempts: number;
+    retryBackoffSeconds: number;
+    retryStrategy?: ConfigRetryStrategyValue;
+    backoffJitterPct?: number;
+    requestTimeoutMs?: number;
+    connectTimeoutMs?: number;
+    signatureAlgorithm?: ConfigSignatureAlgorithmValue;
+    includeTimestampHeader?: boolean;
+    maxConcurrent?: number;
+    dlqEnabled?: boolean;
+    dlqMaxAgeSeconds?: number;
+    ordering?: ConfigOrderingValue;
+    defaultLocale: string;
+    metadata?: Record<string, unknown>;
     version: number;
     createdAt: Date;
     updatedAt: Date;
@@ -92,19 +110,14 @@ export class ConfigFieldValidatorUtil {
     const ordering = aggregateData.ordering as ConfigOrderingValue;
     const defaultLocale = aggregateData.defaultLocale as string;
 
+    // Store plain text values directly for now (not encrypted)
+    // This preserves the user-provided values per record
+    // Extract credentials for validation (they're handled via Config below)
+
     // Extract version and timestamps with proper type conversion
-    const version =
-      typeof aggregateData.version === 'string'
-        ? parseInt(aggregateData.version, 10)
-        : (aggregateData.version as number);
-    const createdAt =
-      typeof aggregateData.createdAt === 'string'
-        ? new Date(aggregateData.createdAt)
-        : (aggregateData.createdAt as Date);
-    const updatedAt =
-      typeof aggregateData.updatedAt === 'string'
-        ? new Date(aggregateData.updatedAt)
-        : (aggregateData.updatedAt as Date);
+    const version = EventDataProcessingUtils.extractVersion(aggregateData);
+    const { createdAt, updatedAt } =
+      EventDataProcessingUtils.extractTimestamps(aggregateData);
 
     // safeParseJSON utilities provide error handling for invalid JSON,
     // direct field access provides type safety and truthful representation

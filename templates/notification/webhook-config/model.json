@@ -2202,7 +2202,7 @@
           "secret": true,
           "security": {
             "type": "secret",
-            "classification": "sensitive"
+            "classification": "auth"
           },
           "create": true,
           "update": true,
@@ -2271,7 +2271,7 @@
           "secret": true,
           "security": {
             "type": "secret",
-            "classification": "sensitive"
+            "classification": "auth"
           },
           "create": true,
           "update": true,
@@ -2302,7 +2302,7 @@
           "secret": true,
           "security": {
             "type": "secret",
-            "classification": "sensitive"
+            "classification": "auth"
           },
           "create": true,
           "update": true,

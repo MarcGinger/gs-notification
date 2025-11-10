@@ -25,22 +25,23 @@ import {
 } from 'src/shared/infrastructure/projections/projection.utils';
 // ✅ Import webhookion-ready shared utilities
 import { registerRedisScripts } from 'src/shared/infrastructure/projections/redis-scripts';
-import {
-  CacheOptimizationUtils,
-  CacheMetricsCollector,
-} from 'src/shared/infrastructure/projections/cache-optimization';
-import { RedisPipelineBuilder } from 'src/shared/infrastructure/projections/redis-pipeline-builder';
-import { RedisClusterUtils } from 'src/shared/infrastructure/projections/redis-scripts';
+import { CacheMetricsCollector } from 'src/shared/infrastructure/projections/cache-optimization';
 import { ProjectionOutcome } from 'src/shared/infrastructure/projections/event-pipeline-processor';
 import { APP_LOGGER, Log, Logger } from 'src/shared/logging';
 import { Clock, CLOCK } from 'src/shared/infrastructure/time';
 import { withContext } from 'src/shared/errors';
 import { CacheService } from 'src/shared/application/caching/cache.service';
+import { EventEncryptionFactory } from 'src/shared/infrastructure/encryption';
 import { WEBHOOK_CONFIG_DI_TOKENS } from '../../../webhook-config.constants';
 import { NotificationSlackProjectorConfig } from '../../../projector.config';
 import { WebhookProjectionKeys } from '../../webhook-projection-keys';
 import { WebhookFieldValidatorUtil } from '../utilities/webhook-field-validator.util';
-import { DetailWebhookResponse } from '../../application/dtos';
+import {
+  UnifiedProjectorUtils,
+  UnifiedProjectionConfig,
+  UnifiedProjectionParams,
+} from 'src/shared/infrastructure/projections/unified-projector.utils';
+
 /**
  * Webhook projector error catalog using shared error definitions
  */
@@ -50,21 +51,25 @@ const WebhookProjectorErrors = createProjectorErrorCatalog(
 );
 
 /**
- * Webhook row parameters for Redis projection operations
- *
- * Extends DetailWebhookResponse DTO with projection-specific fields needed for event sourcing.
- *
- * Key Additions to DetailWebhookResponse:
- * - tenant: Multi-tenant support for Redis key generation
- * - deletedAt: Soft delete timestamp for TTL-based cleanup
- * - lastStreamRevision: Event sourcing revision tracking
+ * Webhook projection parameters for unified processing
  */
-interface WebhookProjectionParams extends DetailWebhookResponse {
-  // Projection-specific fields for Redis storage
+interface WebhookProjectionParams extends UnifiedProjectionParams {
+  // Domain-specific fields
+  id: string;
+  name: string;
+  description?: string;
+  targetUrl: string;
+  webhookEventType: string;
+  method: string;
+  headers?: Record<string, unknown>;
+  signingSecret?: string;
+  status: string;
+  verifyTls?: boolean;
+  requestTimeoutMs?: number;
+  connectTimeoutMs?: number;
+  rateLimitPerMinute?: number;
+  createdAt: Date;
   tenant: string;
-  version: number;
-  updatedAt: Date;
-  deletedAt?: Date | null;
   lastStreamRevision?: string | null;
 }
 
@@ -95,9 +100,19 @@ export class WebhookProjector
 {
   private readonly metricsCollector = new CacheMetricsCollector();
 
-  // ✅ Webhookion-ready shared utilities
-  private cacheOptimization!: CacheOptimizationUtils;
-  private pipelineBuilder!: RedisPipelineBuilder;
+  // Unified projection utilities - handles all Redis operations
+  private readonly projectorUtils: UnifiedProjectorUtils;
+
+  // Configuration for unified projection operations
+  private static readonly UNIFIED_CONFIG: UnifiedProjectionConfig = {
+    projectorName: WebhookProjectionKeys.PROJECTOR_NAME,
+    versionKeyPrefix:
+      NotificationSlackProjectorConfig.getConfig().VERSION_KEY_PREFIX,
+    getRedisEntityKey: (tenant: string, id: string) =>
+      WebhookProjectionKeys.getRedisWebhookKey(tenant, id),
+    getRedisIndexKey: (tenant: string) =>
+      WebhookProjectionKeys.getRedisWebhookIndexKey(tenant),
+  };
 
   constructor(
     @Inject(APP_LOGGER) baseLogger: Logger,
@@ -110,6 +125,7 @@ export class WebhookProjector
     private readonly redis: Redis,
     @Inject(WEBHOOK_CONFIG_DI_TOKENS.CACHE_SERVICE)
     private readonly cache: CacheService,
+    private readonly eventEncryptionFactory: EventEncryptionFactory,
   ) {
     super(
       WebhookProjectionKeys.PROJECTOR_NAME,
@@ -118,20 +134,25 @@ export class WebhookProjector
       checkpointStore,
     );
 
-    // ✅ Initialize shared utilities for webhookion-ready operations
-    this.cacheOptimization = new CacheOptimizationUtils();
-    this.pipelineBuilder = new RedisPipelineBuilder();
+    // Initialize unified projection utilities
+    this.projectorUtils = new UnifiedProjectorUtils(
+      WebhookProjector.UNIFIED_CONFIG,
+      this.redis,
+      this.logger, // Pass the logger for consistent logging
+    );
 
     Log.info(
       this.logger,
-      'WebhookProjector initialized with webhookion-ready shared utilities',
+      'WebhookProjector initialized with production-ready utilities',
       {
         method: 'constructor',
         subscriptionGroup: this.subscriptionGroup,
         redisStatus: this.redis.status,
-        sharedUtilities: true,
-        clusterSafe: true,
-        evalshaCaching: true,
+        hasUnifiedUtils: true,
+        hasEncryption: true,
+        hasMetricsCollection: true,
+        hasErrorCatalog: true,
+        productionReady: true,
       },
     );
   }
@@ -140,10 +161,14 @@ export class WebhookProjector
    * Start the projector using CatchUpRunner with webhookion-ready utilities
    */
   onModuleInit(): void {
-    Log.info(this.logger, 'Starting Webhook Projector with CatchUpRunner', {
-      method: 'onModuleInit',
-      subscriptionGroup: this.subscriptionGroup,
-    });
+    Log.info(
+      this.logger,
+      'Starting Webhook Projector with production-ready features',
+      {
+        method: 'onModuleInit',
+        subscriptionGroup: this.subscriptionGroup,
+      },
+    );
 
     try {
       // ✅ Register EVALSHA scripts for optimization
@@ -152,6 +177,7 @@ export class WebhookProjector
         method: 'onModuleInit',
         feature: 'evalsha-optimization',
       });
+
       const runOptions: RunOptions = {
         prefixes: [WebhookProjectionKeys.getEventStoreStreamPrefix()],
         batchSize: 100,
@@ -244,115 +270,42 @@ export class WebhookProjector
   }
 
   /**
-   * Project individual event using webhookion-ready EventPipelineProcessor
-   * with observable outcomes, SET NX EX optimization, and cluster-safe operations
+   * Project individual event - MUCH SIMPLER NOW!
+   *
+   * The projection logic is reduced from ~150 lines to ~20 lines.
+   * All Redis operations, caching, error handling, and logging
+   * are handled by the UnifiedProjectorUtils.
    */
   private async projectEvent(
     event: ProjectionEvent,
   ): Promise<ProjectionOutcome> {
-    const tenant = this.extractTenant(event);
+    const tenant = TenantExtractor.extractTenant(event);
 
     try {
-      // ✅ Extract webhook parameters using existing utility
+      // Extract domain-specific parameters with enhanced error context
       const params = this.extractWebhookParams(event, 'project');
 
-      // ✅ Apply version hint deduplication first (production-ready SET NX EX)
-      const config = NotificationSlackProjectorConfig.getConfig();
-      const alreadyProcessed = await CacheOptimizationUtils.checkVersionHint(
-        this.redis,
-        tenant,
-        'webhook',
-        params.id,
-        params.version,
-        config.VERSION_KEY_PREFIX,
-      );
-
-      if (alreadyProcessed) {
-        this.logger.debug(
-          'Webhook already processed - using version hint optimization for ' +
-            params.id +
-            ' version ' +
-            params.version,
-        );
-        const outcome = ProjectionOutcome.SKIPPED_HINT;
-        this.logProjectionOutcome(outcome, event, tenant);
-        return outcome;
-      }
-
-      // ✅ Build field pairs using shared utility (convert to generic Record)
-      const fieldPairs = RedisPipelineBuilder.buildFieldPairs(
-        params as unknown as Record<string, unknown>,
-      );
-
-      // ✅ Generate cluster-safe keys using centralized WebhookProjectionKeys
-      const entityKey = WebhookProjectionKeys.getRedisWebhookKey(
-        tenant,
-        params.id,
-      );
-      const indexKey = WebhookProjectionKeys.getRedisWebhookIndexKey(tenant);
-
-      // ✅ Validate hash-tag consistency for cluster safety
-      RedisClusterUtils.validateHashTagConsistency(entityKey, indexKey);
-
-      // ✅ Create pipeline for atomic operations
-      const pipeline = this.redis.pipeline();
-
-      // ✅ Route to soft delete or upsert based on deletion state
-      if (params.deletedAt) {
-        // Use shared Redis pipeline builder for cluster-safe soft delete
-        RedisPipelineBuilder.executeSoftDelete(
-          pipeline,
-          entityKey,
-          indexKey,
-          params.id,
-          params.deletedAt,
-        );
-
-        // ✅ Record soft delete operation (metrics collected by base projector)
-      } else {
-        // Use shared Redis pipeline builder for cluster-safe upsert
-        RedisPipelineBuilder.executeUpsert(
-          pipeline,
-          entityKey,
-          indexKey,
-          params.id,
-          params.version,
-          params.updatedAt,
-          fieldPairs,
-        );
-
-        // ✅ Record upsert operation (metrics collected by base projector)
-      }
-
-      // ✅ Execute pipeline and handle results
-      const results = await pipeline.exec();
-
-      // ✅ Check if operations succeeded (non-null results indicate success)
-      const operationSucceeded = results && results.every(([error]) => !error);
-      const outcome = operationSucceeded
-        ? ProjectionOutcome.APPLIED
-        : ProjectionOutcome.STALE_OCC;
-
-      // ✅ Update cache hint to prevent reprocessing (race-free SET EX)
-      await CacheOptimizationUtils.updateVersionHint(
-        this.redis,
-        tenant,
-        'webhook',
-        params.id,
-        params.version,
-        undefined, // Use default TTL
-        config.VERSION_KEY_PREFIX,
+      // Use unified utilities for all Redis operations
+      const outcome = await this.projectorUtils.executeProjection(
+        event,
+        params,
+        this.eventEncryptionFactory, // Pass encryption factory for SecretRef inspection
       );
 
       // ✅ Log observable outcomes for SLO monitoring
       this.logProjectionOutcome(outcome, event, tenant);
+
+      // Update health status on success
+      if (outcome === ProjectionOutcome.APPLIED) {
+        this.updateHealthStatusOnSuccess();
+      }
 
       return outcome;
     } catch (error) {
       const e = error as Error;
       this.updateHealthStatusOnError(e.message);
 
-      Log.error(this.logger, 'Failed to project event with shared pipeline', {
+      Log.error(this.logger, 'Failed to project event with unified utilities', {
         method: 'projectEvent',
         eventType: event.type,
         streamId: event.streamId,
@@ -405,36 +358,7 @@ export class WebhookProjector
   }
 
   /**
-   * Extract tenant ID from event using shared utility
-   */
-  private extractTenant(event: ProjectionEvent): string {
-    return TenantExtractor.extractTenant(event);
-  }
-
-  /**
-   * Generate cluster-safe Redis keys with hash-tags for locality
-   */
-  private generateClusterSafeKeys(params: WebhookProjectionParams): {
-    entityKey: string;
-    indexKey: string;
-  } {
-    // ✅ Hash-tags ensure both keys route to same Redis Cluster slot
-    const entityKey = 'webhook:{' + params.tenant + '}:' + params.id;
-    const indexKey = 'webhook:index:{' + params.tenant + '}';
-
-    Log.debug(this.logger, 'Generated cluster-safe keys with hash-tags', {
-      method: 'generateClusterSafeKeys',
-      entityKey,
-      indexKey,
-      tenant: params.tenant,
-      id: params.id,
-    });
-
-    return { entityKey, indexKey };
-  }
-
-  /**
-   * Extract webhook parameters from event data using WebhookFieldValidatorUtil
+   * Extract webhook parameters with enhanced error context
    *
    * Uses WebhookFieldValidatorUtil to create validated DetailWebhookResponse for consistent
    * validation across repository and projector, and TenantExtractor for reliable tenant identification.
@@ -446,32 +370,27 @@ export class WebhookProjector
     try {
       const eventData = event.data as Record<string, any>;
 
-      // Extract tenant using shared utility
+      // Extract tenant using existing logic
       const tenant = TenantExtractor.extractTenant(event);
 
-      // Use WebhookFieldValidatorUtil to create validated webhook snapshot
-      const webhookSnapshot =
-        WebhookFieldValidatorUtil.createWebhookSnapshotFromEventData(eventData);
+      // Use existing WebhookFieldValidatorUtil for validation
+      const webhookData =
+        WebhookFieldValidatorUtil.createWebhookProjectorDataFromEventData(
+          eventData,
+        );
 
-      // Override envelope fields with actual event envelope data
-      // The version, createdAt, updatedAt should come from event envelope, not payload
       const eventTimestamp =
         event.metadata?.occurredAt instanceof Date
           ? event.metadata.occurredAt
           : new Date();
 
-      const eventEnvelope = {
-        version: event.revision, // Use event revision as version
-        createdAt: eventTimestamp, // Use event timestamp
-        updatedAt: eventTimestamp, // Use event timestamp
-      };
-
-      // Add projector-specific fields for Redis storage
+      // Return unified parameters with all required fields
       return {
-        ...webhookSnapshot,
-        ...eventEnvelope, // Override with correct envelope data
+        ...webhookData,
         tenant,
-        deletedAt: null, // Projector handles soft deletes
+        version: event.revision,
+        updatedAt: eventTimestamp,
+        deletedAt: null,
         lastStreamRevision: event.revision.toString(),
       };
     } catch (error) {

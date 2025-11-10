@@ -5,11 +5,8 @@ import {
   safeParseJSON,
   safeParseJSONArray,
 } from 'src/shared/infrastructure/repositories';
-import {
-  DetailWebhookResponse,
-  WebhookMethodValue,
-  WebhookStatusValue,
-} from '../../application/dtos';
+import { EventDataProcessingUtils } from 'src/shared/infrastructure/events/utilities/event-data-processing.utils';
+import { WebhookMethodValue, WebhookStatusValue } from '../../application/dtos';
 
 /**
  * Webhook Field Validator Utility
@@ -24,18 +21,31 @@ import {
  */
 export class WebhookFieldValidatorUtil {
   /**
-   * Create a validated DetailWebhookResponse from raw EventStore event data
+   * Create projector data with Webhook objects for Redis storage
    *
-   * Uses modern safeParseJSON utilities and DTOs to maintain CQRS compliance.
-   * This creates read model data for projections, not domain props.
+   * This method extracts Webhook objects from event data and serializes them
+   * as JSON strings for storage in Redis. The reader repository will deserialize
+   * and resolve these Webhook objects back to actual secret values.
    *
-   * @param aggregateData - Raw event data from EventStore
-   * @returns Validated DetailWebhookResponse DTO with all required fields
-   * @throws Error if required fields are missing or invalid
+   * @param aggregateData - Raw event data from EventStore containing Webhook objects
+   * @returns Projector data object with Webhook fields as JSON strings
    */
-  static createWebhookSnapshotFromEventData(
+  static createWebhookProjectorDataFromEventData(
     aggregateData: Record<string, any>,
-  ): DetailWebhookResponse & {
+  ): {
+    id: string;
+    name: string;
+    description?: string;
+    targetUrl: string;
+    webhookEventType: string;
+    method: WebhookMethodValue;
+    headers?: Record<string, unknown>;
+    signingSecret?: string;
+    status: WebhookStatusValue;
+    verifyTls?: boolean;
+    requestTimeoutMs?: number;
+    connectTimeoutMs?: number;
+    rateLimitPerMinute?: number;
     version: number;
     createdAt: Date;
     updatedAt: Date;
@@ -52,7 +62,9 @@ export class WebhookFieldValidatorUtil {
     const targetUrl = aggregateData.targetUrl as string;
     const webhookEventType = aggregateData.webhookEventType as string;
     const method = aggregateData.method as WebhookMethodValue;
-    const signingSecret = aggregateData.signingSecret as string;
+    const signingSecret = aggregateData.signingSecret
+      ? JSON.stringify(aggregateData.signingSecret)
+      : undefined;
     const status = aggregateData.status as WebhookStatusValue;
     const verifyTls =
       aggregateData.verifyTls === 'true' || aggregateData.verifyTls === true;
@@ -69,19 +81,14 @@ export class WebhookFieldValidatorUtil {
         ? parseInt(aggregateData.rateLimitPerMinute, 10)
         : (aggregateData.rateLimitPerMinute as number);
 
+    // Store plain text values directly for now (not encrypted)
+    // This preserves the user-provided values per record
+    // Extract credentials for validation (they're handled via Webhook below)
+
     // Extract version and timestamps with proper type conversion
-    const version =
-      typeof aggregateData.version === 'string'
-        ? parseInt(aggregateData.version, 10)
-        : (aggregateData.version as number);
-    const createdAt =
-      typeof aggregateData.createdAt === 'string'
-        ? new Date(aggregateData.createdAt)
-        : (aggregateData.createdAt as Date);
-    const updatedAt =
-      typeof aggregateData.updatedAt === 'string'
-        ? new Date(aggregateData.updatedAt)
-        : (aggregateData.updatedAt as Date);
+    const version = EventDataProcessingUtils.extractVersion(aggregateData);
+    const { createdAt, updatedAt } =
+      EventDataProcessingUtils.extractTimestamps(aggregateData);
 
     // safeParseJSON utilities provide error handling for invalid JSON,
     // direct field access provides type safety and truthful representation

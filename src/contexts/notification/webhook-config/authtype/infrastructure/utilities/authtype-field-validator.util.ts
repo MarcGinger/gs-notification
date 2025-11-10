@@ -5,10 +5,10 @@ import {
   safeParseJSON,
   safeParseJSONArray,
 } from 'src/shared/infrastructure/repositories';
+import { EventDataProcessingUtils } from 'src/shared/infrastructure/events/utilities/event-data-processing.utils';
 import {
   AuthtypeSignatureAlgorithmValue,
   AuthtypeTypeValue,
-  DetailAuthtypeResponse,
 } from '../../application/dtos';
 
 /**
@@ -24,18 +24,35 @@ import {
  */
 export class AuthtypeFieldValidatorUtil {
   /**
-   * Create a validated DetailAuthtypeResponse from raw EventStore event data
+   * Create projector data with Authtype objects for Redis storage
    *
-   * Uses modern safeParseJSON utilities and DTOs to maintain CQRS compliance.
-   * This creates read model data for projections, not domain props.
+   * This method extracts Authtype objects from event data and serializes them
+   * as JSON strings for storage in Redis. The reader repository will deserialize
+   * and resolve these Authtype objects back to actual secret values.
    *
-   * @param aggregateData - Raw event data from EventStore
-   * @returns Validated DetailAuthtypeResponse DTO with all required fields
-   * @throws Error if required fields are missing or invalid
+   * @param aggregateData - Raw event data from EventStore containing Authtype objects
+   * @returns Projector data object with Authtype fields as JSON strings
    */
-  static createAuthtypeSnapshotFromEventData(
+  static createAuthtypeProjectorDataFromEventData(
     aggregateData: Record<string, any>,
-  ): DetailAuthtypeResponse & {
+  ): {
+    id: string;
+    webhookId: string;
+    type: AuthtypeTypeValue;
+    signingSecretRef?: string;
+    signatureAlgorithm?: AuthtypeSignatureAlgorithmValue;
+    usernameRef?: string;
+    passwordRef?: string;
+    apiKeyRef?: string;
+    apiKeyHeader?: string;
+    apiKeyQueryParam?: string;
+    tokenUrl?: string;
+    clientIdRef?: string;
+    clientSecretRef?: string;
+    scope?: string;
+    certRef?: string;
+    keyRef?: string;
+    caRef?: string;
     version: number;
     createdAt: Date;
     updatedAt: Date;
@@ -61,19 +78,14 @@ export class AuthtypeFieldValidatorUtil {
     const keyRef = aggregateData.keyRef as string;
     const caRef = aggregateData.caRef as string;
 
+    // Store plain text values directly for now (not encrypted)
+    // This preserves the user-provided values per record
+    // Extract credentials for validation (they're handled via Authtype below)
+
     // Extract version and timestamps with proper type conversion
-    const version =
-      typeof aggregateData.version === 'string'
-        ? parseInt(aggregateData.version, 10)
-        : (aggregateData.version as number);
-    const createdAt =
-      typeof aggregateData.createdAt === 'string'
-        ? new Date(aggregateData.createdAt)
-        : (aggregateData.createdAt as Date);
-    const updatedAt =
-      typeof aggregateData.updatedAt === 'string'
-        ? new Date(aggregateData.updatedAt)
-        : (aggregateData.updatedAt as Date);
+    const version = EventDataProcessingUtils.extractVersion(aggregateData);
+    const { createdAt, updatedAt } =
+      EventDataProcessingUtils.extractTimestamps(aggregateData);
 
     // safeParseJSON utilities provide error handling for invalid JSON,
     // direct field access provides type safety and truthful representation
