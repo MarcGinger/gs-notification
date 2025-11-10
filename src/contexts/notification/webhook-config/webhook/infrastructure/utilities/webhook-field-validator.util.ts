@@ -50,7 +50,6 @@ export class WebhookFieldValidatorUtil {
     createdAt: Date;
     updatedAt: Date;
   } {
-    // Parse array fields using safeParseJSONArray utility
     const headers = safeParseJSON<Record<string, unknown>>(
       aggregateData.headers,
       'headers',
@@ -81,17 +80,11 @@ export class WebhookFieldValidatorUtil {
         ? parseInt(aggregateData.rateLimitPerMinute, 10)
         : (aggregateData.rateLimitPerMinute as number);
 
-    // Store plain text values directly for now (not encrypted)
-    // This preserves the user-provided values per record
-    // Extract credentials for validation (they're handled via Webhook below)
-
     // Extract version and timestamps with proper type conversion
     const version = EventDataProcessingUtils.extractVersion(aggregateData);
     const { createdAt, updatedAt } =
       EventDataProcessingUtils.extractTimestamps(aggregateData);
 
-    // safeParseJSON utilities provide error handling for invalid JSON,
-    // direct field access provides type safety and truthful representation
     return {
       id,
       name,
