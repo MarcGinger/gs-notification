@@ -45,28 +45,22 @@ export class SecureTestFieldValidatorUtil {
     createdAt: Date;
     updatedAt: Date;
   } {
-    // Extract simple fields directly from event data
     const id = aggregateData.id as string;
     const name = aggregateData.name as string;
     const description = aggregateData.description as string;
     const type = aggregateData.type as SecureTestTypeValue;
-    const signatureAlgorithm =
-      aggregateData.signatureAlgorithm as SecureTestSignatureAlgorithmValue;
-
-    // Handle complex objects from event data - serialize for Redis storage
-    const signingSecretRef = aggregateData.signingSecret
+    const signingSecret = aggregateData.signingSecret
       ? JSON.stringify(aggregateData.signingSecret)
       : undefined;
-
-    const usernameRef = aggregateData.username
+    const signatureAlgorithm =
+      aggregateData.signatureAlgorithm as SecureTestSignatureAlgorithmValue;
+    const username = aggregateData.username
       ? JSON.stringify(aggregateData.username)
       : undefined;
-
-    const passwordRef = aggregateData.password
+    const password = aggregateData.password
       ? JSON.stringify(aggregateData.password)
       : undefined;
-
-    const optionsRef = aggregateData.options
+    const options = aggregateData.options
       ? JSON.stringify(aggregateData.options)
       : undefined;
 
@@ -80,11 +74,11 @@ export class SecureTestFieldValidatorUtil {
       name,
       description,
       type,
-      signingSecret: signingSecretRef,
+      signingSecret,
       signatureAlgorithm,
-      username: usernameRef,
-      password: passwordRef,
-      options: optionsRef,
+      username,
+      password,
+      options,
       version,
       createdAt,
       updatedAt,

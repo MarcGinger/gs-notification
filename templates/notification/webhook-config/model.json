@@ -435,8 +435,8 @@
             "childRelationshipType": "",
             "parentRelationshipType": "Webhook",
             "datatype": "VARCHAR",
-            "primaryKey": false,
-            "required": false,
+            "primaryKey": true,
+            "required": true,
             "description": "Optional reference to a specific webhook for per-webhook configuration overrides. Leave empty for tenant-level or global configurations.",
             "defaultvalue": "NULL",
             "example": "",
@@ -688,40 +688,13 @@
       "description": "# 🧩 Core Webhook Config — General Overview\n\nThe **Core Webhook Config** service is part of the broader **Notification Bounded Context**, responsible for managing all configuration aspects required to send outbound webhooks within the platform. It provides the infrastructure and domain logic that connects a tenant’s webhook endpoints to the notification ecosystem, ensuring secure, structured, and compliant communication between services and external systems.\n\n---\n\n## 🎯 Purpose\n\nThe primary purpose of **Core Webhook Config** is to manage the lifecycle of webhook-related configuration for each tenant. It defines *where*, *how*, and *under what conditions* webhook payloads are sent. By maintaining configurations in a domain-driven, event-sourced model, the service guarantees auditability, tenant isolation, and consistency across all webhook-related operations.\n\n---\n\n## 🧱 Architectural Role\n\n**Core Webhook Config** acts as the **configuration source of truth** for all webhook integrations in the system. It is not responsible for executing HTTP requests (that’s handled by the **Core Webhook Execute** service), but instead manages the metadata, headers, secrets, retry strategies, and operational policies that determine how webhooks are delivered and authorized.\n\n### Key Roles:\n\n* Acts as the *control plane* for webhook delivery configuration.\n* Provides secure storage and reference handling for signing secrets.\n* Defines approved target URLs and subscribed event types.\n* Publishes domain events consumed by other services (e.g., executors, auditors, or workflow engines).\n* Ensures compliance with audit and retry policies via event sourcing.\n\n---\n\n## ⚙️ Core Components\n\n| Aggregate   | Description                                                                                                     |\n| ----------- | --------------------------------------------------------------------------------------------------------------- |\n| **Webhook** | Represents an outbound webhook endpoint, including target URL, subscribed event types, HTTP method, and status. |\n| **Config**  | Defines retry/backoff strategies, timeout settings, and operational parameters controlling webhook execution.   |\n\nEach aggregate is event-sourced and projected into Redis for fast reads. The system follows a **CQRS pattern**, separating command writes (EventStoreDB) from queries (Redis projections).\n\n---\n\n## 🧩 Data Flow Summary\n\n\\`\\`\\`\n[API Command] → [Use Case] → [ESDB Writer Repository] → [EventStoreDB]\n       ↓\n[Central Projection Service] → [Redis Snapshot] + [Redis Query Index]\n       ↓\n[Query API] → [Executor / UI / Workflow Consumers]\n\\`\\`\\`\n\nThis architecture provides full event auditability in **EventStoreDB**, real-time read performance in **Redis**, and flexible event-driven synchronization via **BullMQ** projectors.\n\n---\n\n## 🛡️ Security and Compliance\n\n* **Authentication:** Managed via Keycloak (OAuth2 / OpenID Connect).\n* **Authorization:** Governed by Open Policy Agent (OPA) Rego policies.\n* **Secret Management:** Signing secrets are stored securely using Doppler or another approved secret manager.\n* **Auditability:** Every configuration change emits domain events stored in EventStoreDB, ensuring immutable history and traceability.\n\n---\n\n## 🚀 Example Use Cases\n\n| Use Case                 | Description                                                                                                         |\n| ------------------------ | ------------------------------------------------------------------------------------------------------------------- |\n| **Webhook Registration** | When a new webhook is added for a tenant, \\`WebhookRegistered.v1\\` and \\`ConfigUpdated.v1\\` events are emitted.         |\n| **Retry Policy Update**  | Admins can update retry and timeout parameters, triggering \\`ConfigUpdated.v1\\` for executor synchronization.         |\n| **Secret Rotation**      | When a signing secret is rotated, the service emits a new versioned event and updates downstream projections.       |\n| **Subscription Change**  | Tenants can modify the event types their webhook subscribes to, updating routing and executor behavior dynamically. |\n\n---\n\n## ✅ Benefits\n\n* **Event-Sourced Reliability:** Every change is versioned, replayable, and fully auditable.\n* **Tenant Isolation:** Each webhook configuration is scoped to a tenant.\n* **High Performance:** Read models are served from Redis with millisecond-level latency.\n* **Extensible Design:** Supports additional delivery settings (e.g., per-event policies, delivery headers) in future iterations.\n* **Integration Friendly:** Provides consistent event naming and structure compatible with other notification channels (Slack, Email, SMS).\n\n---\n\n## 🧩 Summary\n\nThe **Core Webhook Config** service provides the configuration backbone for all webhook-based notifications. It ensures that every outbound webhook:\n\n* Is securely configured and authorized.\n* Uses approved and auditable endpoints.\n* Follows consistent retry and timeout policies.\n* Operates under event-sourced, tenant-aware control.\n\nThis service is a critical component of the Notification Bounded Context, enabling scalable, reliable, and compliant webhook integration within a modern, event-driven architecture.\n\n---\n\n## 🔗 Webhook\n\n### **Purpose**\n\nThe \\`Webhook\\` aggregate represents a webhook endpoint configuration for delivering events to external systems. It acts as the foundational configuration point that defines how, where, and under what conditions webhook notifications are sent.\n\nThis aggregate holds delivery configuration including target URLs, HTTP methods, headers, signing secrets, and operational settings. It ensures webhook deliveries are properly configured and can be managed independently.\n\n### **Responsibilities**\n\n* Define webhook endpoint details (URL, method, headers).\n* Manage webhook operational status (active, paused, disabled).\n* Store webhook-specific timeout and TLS verification settings.\n* Reference signing secrets for webhook authentication.\n* Emit events when webhook configuration changes occur.\n\n### **Why It Matters**\n\nThe \\`Webhook\\` aggregate provides the essential configuration for reliable event delivery to external systems. It ensures proper authentication, timeout handling, and operational control over webhook endpoints.\n\n---\n\n## ⚙️ Config\n\n### **Purpose**\n\nThe \\`Config\\` aggregate manages system-wide operational parameters for webhook delivery within a tenant’s environment. It defines how webhook executions behave under various runtime conditions, such as retries, backoff, timeouts, and logging.\n\nThis configuration ensures webhook delivery is resilient and aligned with organizational policies (e.g., retry intervals, maximum attempts, request timeouts, or whether to include audit metadata in headers).\n\n### **Responsibilities**\n\n* Manage retry and backoff policies for webhook execution.\n* Control request timeout and connection settings for external calls.\n* Define signature and security parameters for webhook authentication.\n* Maintain default locale, metadata, and operational strategies (e.g., per-tenant or global).\n* Emit configuration change events for synchronization across executor services.\n\n### **Why It Matters**\n\n\\`Config\\` provides the **operational backbone** for webhook execution. It ensures reliability, observability, and compliance — allowing organizations to define consistent behavior for webhook notifications at scale and under failure conditions.\n",
       "columns": [
         {
-          "name": "id",
-          "type": "string",
-          "childRelationshipType": "",
-          "parentRelationshipType": "",
-          "datatype": "VARCHAR",
-          "primaryKey": true,
-          "required": true,
-          "description": "Unique identifier for this configuration set. Auto-generated UUID that serves as the primary key for webhook configuration management policies.",
-          "defaultvalue": "",
-          "example": "",
-          "autoIncrement": false,
-          "maxLength": "32",
-          "array": false,
-          "isPII": "",
-          "secret": false,
-          "create": true,
-          "update": true,
-          "get": true,
-          "list": true,
-          "parentRelationship": "",
-          "childRelationship": "",
-          "meta": {
-            "kind": "string",
-            "maxLength": 32
-          }
-        },
-        {
           "name": "webhookId",
           "type": "string",
           "childRelationshipType": "",
           "parentRelationshipType": "Webhook",
           "datatype": "VARCHAR",
-          "primaryKey": false,
-          "required": false,
+          "primaryKey": true,
+          "required": true,
           "description": "Optional reference to a specific webhook for per-webhook configuration overrides. Leave empty for tenant-level or global configurations.",
           "defaultvalue": "NULL",
           "example": "",
@@ -736,33 +709,6 @@
           "list": true,
           "relationship": "one",
           "parentRelationship": "webhook_config",
-          "childRelationship": "",
-          "meta": {
-            "kind": "string",
-            "maxLength": 32
-          }
-        },
-        {
-          "name": "tenantId",
-          "type": "string",
-          "childRelationshipType": "",
-          "parentRelationshipType": "",
-          "datatype": "VARCHAR",
-          "primaryKey": false,
-          "required": true,
-          "description": "Tenant identifier for multi-tenant support. Every configuration must belong to a tenant for proper isolation and access control.",
-          "defaultvalue": "",
-          "example": "",
-          "autoIncrement": false,
-          "maxLength": "32",
-          "array": false,
-          "isPII": "",
-          "secret": false,
-          "create": true,
-          "update": true,
-          "get": true,
-          "list": true,
-          "parentRelationship": "",
           "childRelationship": "",
           "meta": {
             "kind": "string",
@@ -1255,8 +1201,8 @@
             "childRelationshipType": "",
             "parentRelationshipType": "Webhook",
             "datatype": "VARCHAR",
-            "primaryKey": false,
-            "required": false,
+            "primaryKey": true,
+            "required": true,
             "description": "Optional reference to a specific webhook for per-webhook configuration overrides. Leave empty for tenant-level or global configurations.",
             "defaultvalue": "NULL",
             "example": "",
@@ -1284,15 +1230,15 @@
       "lines": [],
       "keys": [
         {
-          "name": "id",
+          "name": "webhookId",
           "type": "string",
           "childRelationshipType": "",
-          "parentRelationshipType": "",
+          "parentRelationshipType": "Webhook",
           "datatype": "VARCHAR",
           "primaryKey": true,
           "required": true,
-          "description": "Unique identifier for this configuration set. Auto-generated UUID that serves as the primary key for webhook configuration management policies.",
-          "defaultvalue": "",
+          "description": "Optional reference to a specific webhook for per-webhook configuration overrides. Leave empty for tenant-level or global configurations.",
+          "defaultvalue": "NULL",
           "example": "",
           "autoIncrement": false,
           "maxLength": "32",
@@ -1303,7 +1249,8 @@
           "update": true,
           "get": true,
           "list": true,
-          "parentRelationship": "",
+          "relationship": "one",
+          "parentRelationship": "webhook_config",
           "childRelationship": "",
           "meta": {
             "kind": "string",
@@ -2330,12 +2277,12 @@
           "update": true,
           "get": true,
           "list": true,
-          "relationship": "one",
+          "relationship": "object",
           "parentRelationship": "table1_secure_test",
           "childRelationship": "",
           "meta": {
             "kind": "json",
-            "jsonShape": "one"
+            "jsonShape": "object"
           }
         }
       ],
@@ -2362,6 +2309,7 @@
             "update": true,
             "get": true,
             "list": true,
+            "relationship": "object",
             "parentRelationship": "",
             "childRelationship": "table1_secure_test",
             "meta": {
@@ -2389,15 +2337,15 @@
             "update": true,
             "get": true,
             "list": true,
-            "relationship": "one",
+            "relationship": "object",
             "parentRelationship": "table1_secure_test",
             "childRelationship": "",
             "meta": {
               "kind": "json",
-              "jsonShape": "one"
+              "jsonShape": "object"
             }
           },
-          "type": "one",
+          "type": "object",
           "complex": true
         }
       ],
@@ -2519,6 +2467,7 @@
           "update": true,
           "get": true,
           "list": true,
+          "relationship": "object",
           "parentRelationship": "",
           "childRelationship": "table1_secure_test",
           "meta": {
@@ -2577,6 +2526,7 @@
             "update": true,
             "get": true,
             "list": true,
+            "relationship": "object",
             "parentRelationship": "",
             "childRelationship": "table1_secure_test",
             "meta": {
@@ -2604,15 +2554,15 @@
             "update": true,
             "get": true,
             "list": true,
-            "relationship": "one",
+            "relationship": "object",
             "parentRelationship": "table1_secure_test",
             "childRelationship": "",
             "meta": {
               "kind": "json",
-              "jsonShape": "one"
+              "jsonShape": "object"
             }
           },
-          "type": "one",
+          "type": "object",
           "complex": true
         }
       ],
@@ -2637,6 +2587,7 @@
           "update": true,
           "get": true,
           "list": true,
+          "relationship": "object",
           "parentRelationship": "",
           "childRelationship": "table1_secure_test",
           "meta": {
@@ -2755,8 +2706,8 @@
         "childRelationshipType": "",
         "parentRelationshipType": "Webhook",
         "datatype": "VARCHAR",
-        "primaryKey": false,
-        "required": false,
+        "primaryKey": true,
+        "required": true,
         "description": "Optional reference to a specific webhook for per-webhook configuration overrides. Leave empty for tenant-level or global configurations.",
         "defaultvalue": "NULL",
         "example": "",
@@ -2868,6 +2819,7 @@
         "update": true,
         "get": true,
         "list": true,
+        "relationship": "object",
         "parentRelationship": "",
         "childRelationship": "table1_secure_test",
         "meta": {
@@ -2895,15 +2847,15 @@
         "update": true,
         "get": true,
         "list": true,
-        "relationship": "one",
+        "relationship": "object",
         "parentRelationship": "table1_secure_test",
         "childRelationship": "",
         "meta": {
           "kind": "json",
-          "jsonShape": "one"
+          "jsonShape": "object"
         }
       },
-      "type": "one",
+      "type": "object",
       "complex": true
     }
   ],

@@ -45,5 +45,5 @@ export class CreateSecureTestRequest implements CreateSecureTestProps {
   password?: string;
 
   @ApiSecureTestOptionsRequest()
-  options: CreateOptionsRequest;
+  options: Record<string, CreateOptionsRequest>;
 }

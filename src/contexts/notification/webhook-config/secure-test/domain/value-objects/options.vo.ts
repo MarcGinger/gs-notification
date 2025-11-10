@@ -9,9 +9,9 @@ import { CreateOptionsProps, UpdateOptionsProps } from '../props';
  * Since options is a single configuration object, not a collection
  */
 export const SecureTestOptions = {
-  create: (config: CreateOptionsProps) =>
+  create: (config: Record<string, CreateOptionsProps>) =>
     SecureTestOptionsConfiguration.from(config),
-  update: (config: UpdateOptionsProps) =>
+  update: (config: Record<string, UpdateOptionsProps>) =>
     SecureTestOptionsConfiguration.from(config),
   from: (v: unknown) => SecureTestOptionsConfiguration.from(v),
 };

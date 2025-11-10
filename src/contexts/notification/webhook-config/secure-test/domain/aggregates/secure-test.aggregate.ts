@@ -203,7 +203,7 @@ export class SecureTestAggregate extends AggregateRootBase {
           signatureAlgorithm?: SecureTestSignatureAlgorithmValue;
           username?: string;
           password?: string;
-          options: OptionsProps;
+          options: Record<string, OptionsProps>;
         };
 
         // For event replay, we need to reconstruct the full snapshot

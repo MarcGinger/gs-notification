@@ -55,9 +55,7 @@ const ConfigProjectorErrors = createProjectorErrorCatalog(
  */
 interface ConfigProjectionParams extends UnifiedProjectionParams {
   // Domain-specific fields
-  id: string;
-  webhookId?: string;
-  tenantId: string;
+  webhookId: string;
   strategy: string;
   maxRetryAttempts: number;
   retryBackoffSeconds: number;
@@ -72,7 +70,7 @@ interface ConfigProjectionParams extends UnifiedProjectionParams {
   dlqMaxAgeSeconds?: number;
   ordering?: string;
   defaultLocale: string;
-  metadata?: Record<string, unknown>;
+  metadata?: string;
   createdAt: Date;
   tenant: string;
   lastStreamRevision?: string | null;
@@ -86,7 +84,7 @@ interface ConfigProjectionParams extends UnifiedProjectionParams {
  * Implements projection function pattern for event handling with Redis backend
  *
  * Redis Data Structure (managed by ConfigProjectionKeys domain value object):
- * - Config Hash: `config:projection:{tenant}:id` - stores all config fields
+ * - Config Hash: `config:projection:{tenant}:webhookId` - stores all config fields
  * - Tenant Index: `config:index:by_tenant:{tenant}` - sorted set by updated timestamp
  *
  * Key Features:

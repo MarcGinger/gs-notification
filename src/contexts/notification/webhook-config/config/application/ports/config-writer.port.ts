@@ -5,7 +5,7 @@ import { Result, DomainError } from 'src/shared/errors';
 import { ActorContext } from 'src/shared/application/context';
 import { SaveReceipt } from 'src/shared/infrastructure/repositories';
 import { ConfigAggregate } from '../../domain/aggregates';
-import { ConfigId } from '../../domain/value-objects';
+import { ConfigWebhookId } from '../../domain/value-objects';
 
 /**
  * Token for injecting IConfigWriter port implementation
@@ -45,11 +45,11 @@ export interface IConfigWriter {
   /**
    * Delete a Config by its unique identifier
    * @param user - The authenticated user context
-   * @param id - The unique identifier of the Config to delete
+   * @param webhookId - The unique identifier of the Config to delete
    * @returns Result indicating success or domain error
    */
   delete(
     actor: ActorContext,
-    id: ConfigId,
+    webhookId: ConfigWebhookId,
   ): Promise<Result<SaveReceipt, DomainError>>;
 }

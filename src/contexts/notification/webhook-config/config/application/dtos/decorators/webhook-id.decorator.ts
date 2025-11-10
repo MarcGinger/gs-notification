@@ -18,7 +18,7 @@ interface PropOptions {
  * @returns {PropertyDecorator}
  */
 export function ApiConfigWebhookId(options: PropOptions = {}) {
-  const { required = false } = options;
+  const { required = true } = options;
 
   return applyDecorators(
     ApiProperty({

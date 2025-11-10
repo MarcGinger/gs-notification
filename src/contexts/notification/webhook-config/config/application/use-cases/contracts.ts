@@ -16,7 +16,7 @@ import type { DetailConfigResponse } from '../dtos';
 export abstract class IUpsertConfigUseCase {
   abstract execute(params: {
     user: IUserToken;
-    id: string;
+    webhookId: string;
     props: UpsertConfigProps;
     correlationId: string;
     authorizationReason: string;
@@ -26,7 +26,7 @@ export abstract class IUpsertConfigUseCase {
 export abstract class IGetConfigUseCase {
   abstract execute(params: {
     user: IUserToken;
-    id: string;
+    webhookId: string;
     correlationId: string;
   }): Promise<Result<DetailConfigResponse, DomainError>>;
 }

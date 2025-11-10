@@ -2,9 +2,15 @@
 // REMOVE THIS COMMENT TO STOP AUTOMATIC UPDATES TO THIS BLOCK
 
 import { applyDecorators } from '@nestjs/common';
-import { ApiProperty } from '@nestjs/swagger';
-import { IsObject, IsOptional, IsNotEmpty } from 'class-validator';
-import { Type } from 'class-transformer';
+import { ApiProperty, getSchemaPath } from '@nestjs/swagger';
+import { transformAndValidateRecord } from 'src/shared/application/decorators';
+import { Transform } from 'class-transformer';
+import {
+  IsOptional,
+  IsNotEmpty,
+  ValidateNested,
+  IsObject,
+} from 'class-validator';
 import { DetailOptionsResponse } from '../../dtos/options';
 
 /**
@@ -24,10 +30,14 @@ export function ApiSecureTestOptions(options: PropOptions = {}) {
   return applyDecorators(
     ApiProperty({
       description: `Secure test Options`,
-      type: () => DetailOptionsResponse,
-      required,
+      type: 'object',
+      additionalProperties: { $ref: getSchemaPath(DetailOptionsResponse) },
+      required: [],
     }),
-    Type(() => DetailOptionsResponse),
+    Transform(({ value }) =>
+      transformAndValidateRecord(value, DetailOptionsResponse),
+    ),
+    ValidateNested({ each: true }),
     IsObject(),
     required ? IsNotEmpty() : IsOptional(),
   );

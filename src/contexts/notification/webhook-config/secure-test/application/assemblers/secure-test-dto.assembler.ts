@@ -39,9 +39,7 @@ export class SecureTestDtoAssembler {
     dto.password = domainState.password?.value;
 
     // Use existing mappers for complex configurations
-    dto.options = mapOptionsConfigurationToDto<DetailOptionsResponse>(
-      domainState.options,
-    );
+    dto.options = mapOptionsConfigurationToDto(domainState.options);
 
     return dto;
   }

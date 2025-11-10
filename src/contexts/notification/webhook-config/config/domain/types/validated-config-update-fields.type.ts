@@ -7,7 +7,6 @@ import {
   ConfigDefaultLocale,
   ConfigDlqEnabled,
   ConfigDlqMaxAgeSeconds,
-  ConfigId,
   ConfigIncludeTimestampHeader,
   ConfigMaxConcurrent,
   ConfigMaxRetryAttempts,
@@ -18,14 +17,11 @@ import {
   ConfigRetryStrategy,
   ConfigSignatureAlgorithm,
   ConfigStrategy,
-  ConfigTenantId,
   ConfigWebhookId,
 } from '../value-objects';
 
 export interface ValidatedConfigUpdateFields {
-  id?: ConfigId;
   webhookId?: ConfigWebhookId;
-  tenantId?: ConfigTenantId;
   strategy?: ConfigStrategy;
   maxRetryAttempts?: ConfigMaxRetryAttempts;
   retryBackoffSeconds?: ConfigRetryBackoffSeconds;

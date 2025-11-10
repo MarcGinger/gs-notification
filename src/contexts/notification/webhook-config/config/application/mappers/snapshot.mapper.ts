@@ -16,9 +16,7 @@ export const mapConfigSnapshotToDto = (
   snapshot: ConfigSnapshotProps,
 ): DetailConfigResponse => {
   return {
-    id: snapshot.id,
     webhookId: snapshot.webhookId,
-    tenantId: snapshot.tenantId,
     strategy: snapshot.strategy,
     maxRetryAttempts: snapshot.maxRetryAttempts,
     retryBackoffSeconds: snapshot.retryBackoffSeconds,

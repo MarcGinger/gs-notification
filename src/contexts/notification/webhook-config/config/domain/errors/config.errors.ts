@@ -3,8 +3,6 @@
 import { DomainError } from 'src/shared/errors';
 
 export interface ConfigContext extends Record<string, unknown> {
-  id: string;
-  tenantId: string;
   strategy: string;
   maxRetryAttempts: number;
   retryBackoffSeconds: number;
@@ -215,20 +213,6 @@ export const ConfigErrors = {
     category: 'validation',
     retryable: false,
   } as DomainError<'CONFIG.INVALID_DLQ_MAX_AGE_SECONDS_DATA', ConfigContext>,
-  INVALID_ID: {
-    code: 'CONFIG.INVALID_ID',
-    title: 'Value Required',
-    detail: 'Id is required for Config.',
-    category: 'validation',
-    retryable: false,
-  } as DomainError<'CONFIG.INVALID_ID', ConfigContext>,
-  INVALID_ID_DATA: {
-    code: 'CONFIG.INVALID_ID_DATA',
-    title: 'Value Required',
-    detail: 'Id is required for Config.',
-    category: 'validation',
-    retryable: false,
-  } as DomainError<'CONFIG.INVALID_ID_DATA', ConfigContext>,
   INVALID_INCLUDE_TIMESTAMP_HEADER: {
     code: 'CONFIG.INVALID_INCLUDE_TIMESTAMP_HEADER',
     title: 'Value Required',
@@ -403,20 +387,6 @@ export const ConfigErrors = {
     category: 'validation',
     retryable: false,
   } as DomainError<'CONFIG.INVALID_STRATEGY_TRANSITION', ConfigContext>,
-  INVALID_TENANT_ID: {
-    code: 'CONFIG.INVALID_TENANT_ID',
-    title: 'Value Required',
-    detail: 'Tenant id is required for Config.',
-    category: 'validation',
-    retryable: false,
-  } as DomainError<'CONFIG.INVALID_TENANT_ID', ConfigContext>,
-  INVALID_TENANT_ID_DATA: {
-    code: 'CONFIG.INVALID_TENANT_ID_DATA',
-    title: 'Value Required',
-    detail: 'Tenant id is required for Config.',
-    category: 'validation',
-    retryable: false,
-  } as DomainError<'CONFIG.INVALID_TENANT_ID_DATA', ConfigContext>,
   INVALID_WEBHOOK_ID: {
     code: 'CONFIG.INVALID_WEBHOOK_ID',
     title: 'Value Required',

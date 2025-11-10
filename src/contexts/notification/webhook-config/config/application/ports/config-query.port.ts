@@ -32,13 +32,13 @@ export interface IConfigQuery {
   /**
    * Find a single Config by its unique identifier (for CQRS query operations)
    * @param actor - The actor context containing authentication and request metadata
-   * @param id - The unique identifier of the Config
+   * @param webhookId - The unique identifier of the Config
    * @param options - Optional repository options
    * @returns A promise resolving to a Result containing the Config or null if not found
    */
   findById(
     actor: ActorContext,
-    id: string,
+    webhookId: string,
     options?: RepositoryOptions,
   ): Promise<Result<Option<DetailConfigResponse>, DomainError>>;
 }

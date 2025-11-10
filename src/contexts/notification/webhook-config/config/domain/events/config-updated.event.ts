@@ -14,9 +14,7 @@ import type {
  * Same shape as Created event for consistent replayability
  */
 export interface ConfigUpdatedEventPayload {
-  id: string;
-  webhookId?: string;
-  tenantId: string;
+  webhookId: string;
   strategy: ConfigStrategyValue;
   maxRetryAttempts: number;
   retryBackoffSeconds: number;
@@ -51,16 +49,8 @@ export class ConfigUpdatedEvent {
     return new ConfigUpdatedEvent(data);
   }
 
-  get id(): string {
-    return this.payload.id;
-  }
-
-  get webhookId(): string | undefined {
+  get webhookId(): string {
     return this.payload.webhookId;
-  }
-
-  get tenantId(): string {
-    return this.payload.tenantId;
   }
 
   get strategy(): ConfigStrategyValue {

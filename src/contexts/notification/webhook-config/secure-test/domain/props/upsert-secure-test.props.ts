@@ -16,5 +16,5 @@ export interface UpsertSecureTestProps {
   signatureAlgorithm?: SecureTestSignatureAlgorithmValue;
   username?: string;
   password?: string;
-  options?: UpsertOptionsProps;
+  options?: Record<string, UpsertOptionsProps>;
 }

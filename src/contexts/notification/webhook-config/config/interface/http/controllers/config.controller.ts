@@ -51,7 +51,7 @@ export class ConfigController {
     private readonly configApplicationService: ConfigApplicationService,
   ) {}
 
-  @Get(':id')
+  @Get(':webhookId')
   @ConfigReadResource()
   @ApiOperation({
     summary: 'Get Config by ID',
@@ -59,7 +59,7 @@ export class ConfigController {
       'Retrieves a single Config by its unique identifier. Requires READ permission (LOW risk).',
   })
   @ApiParam({
-    name: 'id',
+    name: 'webhookId',
     type: 'string',
     description: 'Config unique identifier',
   })
@@ -70,9 +70,12 @@ export class ConfigController {
   @ApiCommonErrors()
   async get(
     @CurrentUser() user: IUserToken,
-    @Param('id') id: string,
+    @Param('webhookId') webhookId: string,
   ): Promise<Result<DetailConfigResponse, DomainError>> {
-    const result = await this.configApplicationService.getConfigById(user, id);
+    const result = await this.configApplicationService.getConfigById(
+      user,
+      webhookId,
+    );
 
     return result;
   }
@@ -129,7 +132,7 @@ export class ConfigController {
     return result;
   }
 
-  @Put(':id')
+  @Put(':webhookId')
   @ConfigUpdateResource()
   @ApiOperation({
     summary: 'Update a Config',
@@ -137,7 +140,7 @@ export class ConfigController {
       'Updates an existing Config with new data. Supports partial updates. Requires UPDATE permission (MEDIUM risk).',
   })
   @ApiParam({
-    name: 'id',
+    name: 'webhookId',
     type: 'string',
     description: 'Config unique identifier',
   })
@@ -159,12 +162,12 @@ export class ConfigController {
   })
   async update(
     @CurrentUser() user: IUserToken,
-    @Param('id') id: string,
+    @Param('webhookId') webhookId: string,
     @Body() updateConfigRequest: UpdateConfigRequest,
   ): Promise<Result<DetailConfigResponse, DomainError>> {
     const result = await this.configApplicationService.updateConfig(
       user,
-      id,
+      webhookId,
       updateConfigRequest,
     );
 

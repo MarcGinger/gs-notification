@@ -35,8 +35,18 @@ export const mapSecureTestSnapshotToDto = (
  *
  * This application-layer function uses domain extraction and transforms
  * the data to match the required DTO structure without business defaults.
+ *
+ * @param optionsConfiguration - Domain value object containing options configurations
+ * @returns Record<string, T> where T is typically DetailOptionsResponse
+ *
+ * @example
+ * ```typescript
+ * // Typical usage:
+ * const optionsDto = mapOptionsConfigurationToDto<DetailOptionsResponse>(rulesConfig);
+ * // Result: Record<string, DetailOptionsResponse>
+ * ```
  */
-
 export const mapOptionsConfigurationToDto = <T>(
   optionsConfiguration: SecureTestOptionsConfiguration,
-): T => extractOptionsConfigurationData<T>(optionsConfiguration);
+): Record<string, T> =>
+  extractOptionsConfigurationData<T>(optionsConfiguration);

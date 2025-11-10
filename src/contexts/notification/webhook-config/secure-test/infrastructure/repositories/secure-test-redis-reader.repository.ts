@@ -104,7 +104,10 @@ export class SecureTestReaderRepository implements ISecureTestReader {
       // Parse array fields using safeParseJSONArray utility
 
       // Parse object fields using safeParseJSON utility
-      const options = safeParseJSON<OptionsProps>(hashData.options, 'options');
+      const options = safeParseJSON<Record<string, OptionsProps>>(
+        hashData.options,
+        'options',
+      );
       // Extract basic fields directly from hash data
 
       // Type assertion for type - cached data should already be validated

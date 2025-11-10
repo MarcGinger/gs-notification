@@ -16,7 +16,7 @@ export class GetConfigHandler implements IQueryHandler<GetConfigQuery> {
   ): Promise<Result<DetailConfigResponse | null, DomainError>> {
     return this.getConfigUseCase.execute({
       user: query.user,
-      id: query.id,
+      webhookId: query.webhookId,
       correlationId: query.correlationId || 'query-handler',
     });
   }

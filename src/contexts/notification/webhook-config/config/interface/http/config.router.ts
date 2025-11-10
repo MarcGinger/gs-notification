@@ -45,7 +45,7 @@ const configRoutes: Routes = [
  * the nested route structure.
  *
  * Routes configured:
- * - /notification/webhook-config/api/v1/configs/:id (GET, PUT)
+ * - /notification/webhook-config/api/v1/configs/:webhookId (GET, PUT)
  * - /notification/webhook-config/health/projectors/config (GET)
  * - /notification/webhook-config/health/projectors/config/metrics (GET)
  */

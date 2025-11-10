@@ -61,7 +61,7 @@ interface WebhookProjectionParams extends UnifiedProjectionParams {
   targetUrl: string;
   webhookEventType: string;
   method: string;
-  headers?: Record<string, unknown>;
+  headers?: string;
   signingSecret?: string;
   status: string;
   verifyTls?: boolean;

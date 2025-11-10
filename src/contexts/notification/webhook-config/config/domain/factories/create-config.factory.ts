@@ -11,9 +11,7 @@ import {
   ConfigCreatedAt,
   ConfigUpdatedAt,
   ConfigVersion,
-  ConfigId,
   ConfigWebhookId,
-  ConfigTenantId,
   createConfigStrategy,
   ConfigMaxRetryAttempts,
   ConfigRetryBackoffSeconds,
@@ -44,19 +42,6 @@ export function createConfigAggregateFromProps(
   // },
 ): Result<ConfigAggregate, DomainError> {
   // Validate each property by creating value objects
-  const idResult = ConfigId.from(props.id);
-  if (!idResult.ok) {
-    return err(
-      withContext(idResult.error, {
-        ...idResult.error.context,
-        correlationId: metadata.correlationId,
-        userId: metadata.userId,
-        operation: 'create_config',
-        id: props.id,
-      }),
-    );
-  }
-
   const webhookIdResult = ConfigWebhookId.from(props.webhookId);
   if (!webhookIdResult.ok) {
     return err(
@@ -66,19 +51,6 @@ export function createConfigAggregateFromProps(
         userId: metadata.userId,
         operation: 'create_config',
         webhookId: props.webhookId,
-      }),
-    );
-  }
-
-  const tenantIdResult = ConfigTenantId.from(props.tenantId);
-  if (!tenantIdResult.ok) {
-    return err(
-      withContext(tenantIdResult.error, {
-        ...tenantIdResult.error.context,
-        correlationId: metadata.correlationId,
-        userId: metadata.userId,
-        operation: 'create_config',
-        tenantId: props.tenantId,
       }),
     );
   }
@@ -311,9 +283,7 @@ export function createConfigAggregateFromProps(
 
   // Create the entity properties with validated value objects
   const entityProps: ConfigDomainState = {
-    id: idResult.value,
     webhookId: webhookIdResult.value,
-    tenantId: tenantIdResult.value,
     strategy: strategyResult.value,
     maxRetryAttempts: maxRetryAttemptsResult.value,
     retryBackoffSeconds: retryBackoffSecondsResult.value,

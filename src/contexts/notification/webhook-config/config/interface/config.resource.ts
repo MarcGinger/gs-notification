@@ -35,14 +35,12 @@ export const ConfigResource = (permission: ConfigPermission) =>
   Resource({
     type: 'config',
     action: permission,
-    extractId: (req: Request) => req.params?.id || req.params?.id,
+    extractId: (req: Request) => req.params?.webhookId || req.params?.id,
     extractAttributes: (req: Request) => {
       const body = req.body as Record<string, unknown> | undefined;
       const query = req.query as Record<string, unknown> | undefined;
 
       // Business data extraction
-      const webhookId = body?.webhookId || query?.webhookId;
-      const tenantId = body?.tenantId || query?.tenantId;
       const strategy = body?.strategy || query?.strategy;
       const maxRetryAttempts =
         body?.maxRetryAttempts || query?.maxRetryAttempts;
@@ -67,8 +65,6 @@ export const ConfigResource = (permission: ConfigPermission) =>
       const defaultLocale = body?.defaultLocale || query?.defaultLocale;
 
       const baseAttributes = {
-        webhookId,
-        tenantId,
         strategy,
         maxRetryAttempts,
         retryBackoffSeconds,

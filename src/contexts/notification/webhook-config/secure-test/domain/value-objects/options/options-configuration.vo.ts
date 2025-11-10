@@ -23,6 +23,9 @@ import { OptionsName } from './';
 export const SecureTestOptionsConfiguration = createRecordVO({
   name: 'SecureTestOptionsConfiguration',
 
+  // JSON key validation - must start with letter/underscore, contain only alphanumeric, underscore
+  keyPattern: /^[a-zA-Z_][a-zA-Z0-9_]*$/,
+
   // Basic validation will be handled at the application level
   // Advanced validation can be added via refinements if needed
   errors: createRecordVOErrors(
@@ -42,10 +45,10 @@ export const optionsConfigurationFrom = (v: unknown) =>
   SecureTestOptionsConfiguration.from(v);
 
 /**
- * Converts SecureTestOptionsConfiguration to OptionsProps
+ * Converts SecureTestOptionsConfiguration to Record<string, OptionsProps>
  */
 export const optionsConfigurationToSnapshotProps = (
   config: SecureTestOptionsConfiguration,
-): OptionsProps => {
-  return config.value as unknown as OptionsProps;
+): Record<string, OptionsProps> => {
+  return config.value as unknown as Record<string, OptionsProps>;
 };

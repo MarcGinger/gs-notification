@@ -90,9 +90,7 @@
         "deletedEvent": "NotificationWebhookConfigConfigDeleted.v1"
       },
       "cols": {
-        "id": {},
         "webhookId": {},
-        "tenantId": {},
         "strategy": {},
         "maxRetryAttempts": {},
         "retryBackoffSeconds": {},

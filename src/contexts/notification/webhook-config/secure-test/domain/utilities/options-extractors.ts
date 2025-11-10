@@ -16,11 +16,31 @@ import { SecureTestOptionsConfiguration } from '../value-objects';
  *
  * This function knows the internal structure of SecureTestOptionsConfiguration
  * but remains pure domain logic without DTO knowledge.
+ *
+ * Expected input structure: SecureTestOptionsConfiguration with nested options configurations
+ * Expected output: Record<string, T> where T contains options properties
  */
 export const extractOptionsConfigurationData = <T>(
-  config: SecureTestOptionsConfiguration,
-): T => {
-  return {
-    name: extractPropertyValue<string>(config, 'name'),
-  } as T;
+  mapConfig: SecureTestOptionsConfiguration,
+): Record<string, T> => {
+  if (!mapConfig || !mapConfig.value) {
+    return {};
+  }
+
+  const result: Record<string, T> = {};
+  const configValue = mapConfig.value;
+
+  // Iterate over each item configuration in the value
+  Object.keys(configValue).forEach((key) => {
+    const config = configValue[key];
+    if (config && typeof config === 'object') {
+      // Handle both value objects and plain objects
+      const extractedValue = {
+        name: extractPropertyValue<string>(config, 'name'),
+      };
+      result[key] = extractedValue as T;
+    }
+  });
+
+  return result;
 };

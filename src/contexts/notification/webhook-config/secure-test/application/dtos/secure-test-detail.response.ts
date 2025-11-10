@@ -44,5 +44,5 @@ export class DetailSecureTestResponse {
   password?: string;
 
   @ApiSecureTestOptions()
-  options: DetailOptionsResponse;
+  options: Record<string, DetailOptionsResponse>;
 }

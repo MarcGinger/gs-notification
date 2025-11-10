@@ -13,7 +13,6 @@ import {
   ApiConfigDefaultLocale,
   ApiConfigDlqEnabled,
   ApiConfigDlqMaxAgeSeconds,
-  ApiConfigId,
   ApiConfigIncludeTimestampHeader,
   ApiConfigMaxConcurrent,
   ApiConfigMaxRetryAttempts,
@@ -24,19 +23,12 @@ import {
   ApiConfigRetryStrategy,
   ApiConfigSignatureAlgorithm,
   ApiConfigStrategy,
-  ApiConfigTenantId,
   ApiConfigWebhookId,
 } from './decorators';
 
 export class DetailConfigResponse {
-  @ApiConfigId()
-  id: string;
-
-  @ApiConfigWebhookId({ required: false })
-  webhookId?: string;
-
-  @ApiConfigTenantId()
-  tenantId: string;
+  @ApiConfigWebhookId()
+  webhookId: string;
 
   @ApiConfigStrategy()
   strategy: ConfigStrategyValue;

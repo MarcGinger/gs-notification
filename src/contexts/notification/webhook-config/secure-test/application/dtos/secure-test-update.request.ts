@@ -45,5 +45,5 @@ export class UpdateSecureTestRequest implements UpdateSecureTestProps {
   password?: string;
 
   @ApiSecureTestOptionsRequest()
-  options?: UpdateOptionsRequest;
+  options?: Record<string, UpdateOptionsRequest>;
 }

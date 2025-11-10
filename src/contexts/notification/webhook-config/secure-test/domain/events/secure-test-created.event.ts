@@ -19,7 +19,7 @@ export interface SecureTestCreatedEventPayload {
   signatureAlgorithm?: SecureTestSignatureAlgorithmValue;
   username?: string;
   password?: string;
-  options: OptionsProps;
+  options: Record<string, OptionsProps>;
 }
 
 /**
@@ -72,7 +72,7 @@ export class SecureTestCreatedEvent {
     return this.payload.password;
   }
 
-  get options(): OptionsProps {
+  get options(): Record<string, OptionsProps> {
     return this.payload.options;
   }
 }

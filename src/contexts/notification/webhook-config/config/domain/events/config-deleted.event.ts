@@ -8,7 +8,7 @@ import { EventMetadata } from 'src/shared/domain/events';
  * Contains identifying information about the deleted config
  */
 export interface ConfigDeletedEventPayload {
-  id: string;
+  webhookId: string;
   deletedAt: Date;
   version: number;
   metadata: EventMetadata;
@@ -43,8 +43,8 @@ export class ConfigDeletedEvent {
     });
   }
 
-  get id(): string {
-    return this.payload.id;
+  get webhookId(): string {
+    return this.payload.webhookId;
   }
 
   get deletedAt(): Date {

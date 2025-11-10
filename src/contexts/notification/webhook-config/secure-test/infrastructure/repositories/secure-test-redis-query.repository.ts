@@ -280,7 +280,7 @@ export class SecureTestQueryRepository implements ISecureTestQuery {
       // Parse array fields using safeParseJSONArray utility
 
       // Parse object fields using safeParseJSON utility
-      const options = safeParseJSON<DetailOptionsResponse>(
+      const options = safeParseJSON<Record<string, DetailOptionsResponse>>(
         hashData.options,
         'options',
       );

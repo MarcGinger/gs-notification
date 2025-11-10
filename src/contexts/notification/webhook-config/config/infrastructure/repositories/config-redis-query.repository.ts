@@ -50,7 +50,7 @@ interface ConfigCacheData extends DetailConfigResponse {
  * Redis Features Used:
  * - Hash-based config storage with cluster-safe keys
  * - Sorted set indexing for efficient pagination and sorting
- * - Pattern matching for id and name filtering
+ * - Pattern matching for webhookId and name filtering
  * - SCAN operations for tenant isolation
  * - Production-ready caching with metrics collection
  *
@@ -89,7 +89,7 @@ export class ConfigQueryRepository implements IConfigQuery {
   }
 
   /**
-   * Find a single config by id using Redis hash lookup
+   * Find a single config by webhookId using Redis hash lookup
    *
    * Leverages the established Redis patterns from ConfigProjector
    * with cluster-safe keys and production-ready caching.
@@ -103,13 +103,13 @@ export class ConfigQueryRepository implements IConfigQuery {
    * - Soft delete awareness
    *
    * @param actor - The actor context containing authentication and request metadata.
-   * @param id - The config id to search for.
+   * @param webhookId - The config webhookId to search for.
    * @param options - Optional repository options (e.g., timeout, correlation).
    * @returns A promise resolving to a Result containing the Config response or a DomainError.
    */
   async findById(
     actor: ActorContext,
-    id: string,
+    webhookId: string,
     options?: RepositoryOptions,
   ): Promise<Result<Option<DetailConfigResponse>, DomainError>> {
     const operation = 'findById';
@@ -118,7 +118,7 @@ export class ConfigQueryRepository implements IConfigQuery {
       CorrelationUtil.generateForOperation('config-query-findById');
 
     const logContext = this.createLogContext(operation, correlationId, actor, {
-      configId: id,
+      configWebhookId: webhookId,
       dataSource: 'redis-projector',
     });
 
@@ -151,7 +151,7 @@ export class ConfigQueryRepository implements IConfigQuery {
 
     try {
       // Generate cluster-safe Redis key
-      const configKey = this.generateConfigKey(actor.tenant, id);
+      const configKey = this.generateConfigKey(actor.tenant, webhookId);
 
       Log.debug(this.logger, 'Executing Redis hash lookup', {
         ...logContext,
@@ -189,9 +189,7 @@ export class ConfigQueryRepository implements IConfigQuery {
 
       // Transform to DetailConfigResponse DTO (excluding internal fields)
       const detailResponse: DetailConfigResponse = {
-        id: config.id,
         webhookId: config.webhookId,
-        tenantId: config.tenantId,
         strategy: config.strategy,
         maxRetryAttempts: config.maxRetryAttempts,
         retryBackoffSeconds: config.retryBackoffSeconds,
@@ -212,7 +210,7 @@ export class ConfigQueryRepository implements IConfigQuery {
       Log.debug(this.logger, 'Config found successfully in Redis', {
         ...logContext,
         resultData: {
-          configId: detailResponse.id,
+          configWebhookId: detailResponse.webhookId,
           cacheHit: true,
         },
       });
@@ -290,9 +288,7 @@ export class ConfigQueryRepository implements IConfigQuery {
       const ordering = hashData.ordering as DetailConfigResponse['ordering'];
 
       return {
-        id: hashData.id,
-        webhookId: hashData.webhookId || undefined,
-        tenantId: hashData.tenantId,
+        webhookId: hashData.webhookId,
         strategy,
         maxRetryAttempts: parseInt(hashData.maxRetryAttempts || '0', 10),
         retryBackoffSeconds: parseInt(hashData.retryBackoffSeconds || '0', 10),
@@ -319,7 +315,7 @@ export class ConfigQueryRepository implements IConfigQuery {
         {
           method: 'parseRedisHashToConfig',
           error: (error as Error).message,
-          id: hashData?.id,
+          webhookId: hashData?.webhookId,
         },
       );
       return null;

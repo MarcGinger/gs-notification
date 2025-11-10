@@ -83,7 +83,7 @@ export class ConfigAuthorizationAdapter
       return err({
         ...ConfigErrors.NOT_IMPLEMENTED,
         context: {
-          ids: resourceId,
+          webhookIds: resourceId,
           userId,
           correlationId,
           operation,
@@ -108,22 +108,22 @@ export class ConfigAuthorizationAdapter
    * Useful for list operations where you need to filter results.
    *
    * @param userId - User identifier
-   * @param ids - Array of config ids to authorize
+   * @param webhookIds - Array of config webhookIds to authorize
    * @param correlationId - Request correlation ID
    * @param operation - Operation type (read, update, delete)
    * @param context - Config authorization context
-   * @returns Result containing authorized and denied config ids
+   * @returns Result containing authorized and denied config webhookIds
    */
   async authorizeConfigList(
     userId: string,
-    ids: string[],
+    webhookIds: string[],
     correlationId: string,
     operation: BatchOperation = 'read',
     context?: ConfigAuthContext,
   ): Promise<Result<{ authorized: string[]; denied: string[] }, DomainError>> {
     return this.configAuthorizationService.authorizeConfigList(
       userId,
-      ids,
+      webhookIds,
       correlationId,
       operation,
       context,

@@ -16,5 +16,5 @@ export interface UpdateSecureTestProps {
   signatureAlgorithm?: SecureTestSignatureAlgorithmValue;
   username?: string;
   password?: string;
-  options?: UpdateOptionsProps;
+  options?: Record<string, UpdateOptionsProps>;
 }

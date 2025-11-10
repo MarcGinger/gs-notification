@@ -9,9 +9,7 @@ import {
 } from '../value-objects';
 
 export interface ConfigProps {
-  id: string;
-  webhookId?: string;
-  tenantId: string;
+  webhookId: string;
   strategy: ConfigStrategyValue;
   maxRetryAttempts: number;
   retryBackoffSeconds: number;

@@ -12,9 +12,7 @@ import type {
  * Contains only business facts - no envelope metadata, timestamps, or versioning
  */
 export interface ConfigCreatedEventPayload {
-  id: string;
-  webhookId?: string;
-  tenantId: string;
+  webhookId: string;
   strategy: ConfigStrategyValue;
   maxRetryAttempts: number;
   retryBackoffSeconds: number;
@@ -50,16 +48,8 @@ export class ConfigCreatedEvent {
     return new ConfigCreatedEvent(data);
   }
 
-  get id(): string {
-    return this.payload.id;
-  }
-
-  get webhookId(): string | undefined {
+  get webhookId(): string {
     return this.payload.webhookId;
-  }
-
-  get tenantId(): string {
-    return this.payload.tenantId;
   }
 
   get strategy(): ConfigStrategyValue {

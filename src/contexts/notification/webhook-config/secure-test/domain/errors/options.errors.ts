@@ -3,7 +3,6 @@
 import { DomainError } from 'src/shared/errors';
 
 export interface OptionsContext extends Record<string, unknown> {
-  id: Record<string, unknown>;
   name: string;
   userId?: string;
   correlationId?: string;

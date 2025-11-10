@@ -9,9 +9,7 @@ import type {
 } from '../value-objects';
 
 export interface UpsertConfigProps {
-  id: string;
-  webhookId?: string;
-  tenantId?: string;
+  webhookId: string;
   strategy?: ConfigStrategyValue;
   maxRetryAttempts?: number;
   retryBackoffSeconds?: number;

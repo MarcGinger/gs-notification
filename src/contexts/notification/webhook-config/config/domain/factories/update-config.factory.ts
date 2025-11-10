@@ -9,8 +9,6 @@ import { ConfigEntity } from '../entities';
 import { ConfigSnapshotProps, UpdateConfigProps } from '../props';
 import { ValidatedConfigUpdateFields } from '../types';
 import {
-  ConfigWebhookId,
-  ConfigTenantId,
   createConfigStrategy,
   ConfigMaxRetryAttempts,
   ConfigRetryBackoffSeconds,
@@ -69,38 +67,6 @@ export function updateConfigAggregateFromSnapshot(
 
   // 2. Validate and apply updates for each provided field
   const validatedFields: ValidatedConfigUpdateFields = {};
-
-  // Validate webhookId if provided
-  if (updateProps.webhookId !== undefined) {
-    const webhookIdResult = ConfigWebhookId.from(updateProps.webhookId);
-    if (!webhookIdResult.ok) {
-      return err(
-        withContext(webhookIdResult.error, {
-          operation: 'update_config_webhook_id_validation',
-          correlationId: metadata.correlationId,
-          userId: metadata.actor?.userId,
-          providedWebhookId: updateProps.webhookId,
-        }),
-      );
-    }
-    validatedFields.webhookId = webhookIdResult.value;
-  }
-
-  // Validate tenantId if provided
-  if (updateProps.tenantId !== undefined) {
-    const tenantIdResult = ConfigTenantId.from(updateProps.tenantId);
-    if (!tenantIdResult.ok) {
-      return err(
-        withContext(tenantIdResult.error, {
-          operation: 'update_config_tenant_id_validation',
-          correlationId: metadata.correlationId,
-          userId: metadata.actor?.userId,
-          providedTenantId: updateProps.tenantId,
-        }),
-      );
-    }
-    validatedFields.tenantId = tenantIdResult.value;
-  }
 
   // Validate strategy if provided
   if (updateProps.strategy !== undefined) {

@@ -16,5 +16,5 @@ export interface CreateSecureTestProps {
   signatureAlgorithm?: SecureTestSignatureAlgorithmValue;
   username?: string;
   password?: string;
-  options: CreateOptionsProps;
+  options: Record<string, CreateOptionsProps>;
 }

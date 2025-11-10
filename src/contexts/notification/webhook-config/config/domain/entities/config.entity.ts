@@ -15,7 +15,6 @@ import {
   ConfigDefaultLocale,
   ConfigDlqEnabled,
   ConfigDlqMaxAgeSeconds,
-  ConfigId,
   ConfigIncludeTimestampHeader,
   ConfigMaxConcurrent,
   ConfigMaxRetryAttempts,
@@ -30,7 +29,6 @@ import {
   ConfigSignatureAlgorithmLogic,
   ConfigStrategy,
   ConfigStrategyLogic,
-  ConfigTenantId,
   ConfigWebhookId,
   createConfigOrdering,
   createConfigRetryStrategy,
@@ -45,7 +43,7 @@ import {
  * Encapsulates config data, identity, and basic entity behavior.
  *
  * This entity follows DDD principles:
- * - Identity: Id as unique identifier
+ * - Identity: WebhookId as unique identifier
  * - Immutability: Changes create new instances
  * - Encapsulation: Private state with controlled access
  * - Business validation: Domain rules enforced
@@ -60,7 +58,10 @@ import {
  * Core domain entity representing a config in the notification.
  * Handles config identity, validation, and state management.
  */
-export class ConfigEntity extends EntityIdBase<ConfigDomainState, ConfigId> {
+export class ConfigEntity extends EntityIdBase<
+  ConfigDomainState,
+  ConfigWebhookId
+> {
   private static clock: { now: () => Date } = { now: () => new Date() };
 
   public static setClock(c: { now: () => Date }) {
@@ -128,7 +129,7 @@ export class ConfigEntity extends EntityIdBase<ConfigDomainState, ConfigId> {
   }
 
   private constructor(props: ConfigDomainState) {
-    super(props, props.id);
+    super(props, props.webhookId);
   }
 
   /**
@@ -168,17 +169,9 @@ export class ConfigEntity extends EntityIdBase<ConfigDomainState, ConfigId> {
   public static fromSnapshot(
     snapshot: ConfigSnapshotProps,
   ): Result<ConfigEntity, DomainError> {
-    const idResult = ConfigId.from(snapshot.id);
-    if (!idResult.ok) {
-      return err(idResult.error);
-    }
     const webhookIdResult = ConfigWebhookId.from(snapshot.webhookId);
     if (!webhookIdResult.ok) {
       return err(webhookIdResult.error);
-    }
-    const tenantIdResult = ConfigTenantId.from(snapshot.tenantId);
-    if (!tenantIdResult.ok) {
-      return err(tenantIdResult.error);
     }
     const strategyResult = createConfigStrategy(snapshot.strategy);
     if (!strategyResult.ok) {
@@ -278,9 +271,7 @@ export class ConfigEntity extends EntityIdBase<ConfigDomainState, ConfigId> {
     }
 
     const props: ConfigDomainState = {
-      id: idResult.value,
       webhookId: webhookIdResult.value,
-      tenantId: tenantIdResult.value,
       strategy: strategyResult.value,
       maxRetryAttempts: maxRetryAttemptsResult.value,
       retryBackoffSeconds: retryBackoffSecondsResult.value,
@@ -312,11 +303,8 @@ export class ConfigEntity extends EntityIdBase<ConfigDomainState, ConfigId> {
    */
   private static validate(props: ConfigDomainState): Result<void, DomainError> {
     // Basic validation
-    if (!props.id) {
-      return err(ConfigErrors.INVALID_ID_DATA);
-    }
-    if (!props.tenantId) {
-      return err(ConfigErrors.INVALID_TENANT_ID_DATA);
+    if (!props.webhookId) {
+      return err(ConfigErrors.INVALID_WEBHOOK_ID_DATA);
     }
     if (!props.strategy) {
       return err(ConfigErrors.INVALID_STRATEGY_DATA);
@@ -338,16 +326,8 @@ export class ConfigEntity extends EntityIdBase<ConfigDomainState, ConfigId> {
   // Getters (Public API)
   // ======================
 
-  public get id(): ConfigId {
-    return this.props.id;
-  }
-
-  public get webhookId(): ConfigWebhookId | undefined {
+  public get webhookId(): ConfigWebhookId {
     return this.props.webhookId;
-  }
-
-  public get tenantId(): ConfigTenantId {
-    return this.props.tenantId;
   }
 
   public get strategy(): ConfigStrategy {
@@ -427,36 +407,6 @@ export class ConfigEntity extends EntityIdBase<ConfigDomainState, ConfigId> {
   // ======================
   // Simple Update Methods (No Business Logic)
   // ======================
-
-  /**
-   * Creates a new entity with updated webhookId (pure state transition)
-   *
-   * @param webhookId - New webhookId value
-   * @param updatedAt - Optional timestamp (uses clock if not provided)
-   * @returns Result<ConfigEntity, DomainError>
-   */
-  public withWebhookId(
-    webhookId: ConfigWebhookId,
-    updatedAt?: Date,
-    version?: number,
-  ): Result<ConfigEntity, DomainError> {
-    return this.createUpdatedEntity({ webhookId }, updatedAt, version);
-  }
-
-  /**
-   * Creates a new entity with updated tenantId (pure state transition)
-   *
-   * @param tenantId - New tenantId value
-   * @param updatedAt - Optional timestamp (uses clock if not provided)
-   * @returns Result<ConfigEntity, DomainError>
-   */
-  public withTenantId(
-    tenantId: ConfigTenantId,
-    updatedAt?: Date,
-    version?: number,
-  ): Result<ConfigEntity, DomainError> {
-    return this.createUpdatedEntity({ tenantId }, updatedAt, version);
-  }
 
   /**
    * Creates a new entity with updated strategy (with basic transition validation)
@@ -781,7 +731,7 @@ export class ConfigEntity extends EntityIdBase<ConfigDomainState, ConfigId> {
    * @param other - Other config to compare
    */
   public sameAs(other: ConfigEntity): boolean {
-    return this.props.id.equals(other.props.id);
+    return this.props.webhookId.equals(other.props.webhookId);
   }
 
   /**
@@ -789,9 +739,7 @@ export class ConfigEntity extends EntityIdBase<ConfigDomainState, ConfigId> {
    */
   public toSnapshot(): ConfigSnapshotProps {
     return {
-      id: this.props.id.value,
-      webhookId: this.props.webhookId?.value,
-      tenantId: this.props.tenantId.value,
+      webhookId: this.props.webhookId.value,
       strategy: this.props.strategy.value,
       maxRetryAttempts: this.props.maxRetryAttempts.value,
       retryBackoffSeconds: this.props.retryBackoffSeconds.value,

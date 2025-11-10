@@ -5,6 +5,7 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { INestApplication } from '@nestjs/common';
 import { SwaggerConfigUtil } from 'src/docs/swagger-config.util';
 import { SecureTestModule } from '../secure-test.module';
+import { DetailOptionsResponse } from '../application/dtos';
 
 /**
  * Options Documentation
@@ -40,7 +41,7 @@ export class OptionsDocumentation {
 
     const document = SwaggerModule.createDocument(app, config.build(), {
       include: [SecureTestModule],
-      extraModels: [],
+      extraModels: [DetailOptionsResponse],
     });
 
     SwaggerModule.setup(

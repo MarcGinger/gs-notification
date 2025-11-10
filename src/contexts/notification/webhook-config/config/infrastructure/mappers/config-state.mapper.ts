@@ -12,9 +12,7 @@ import {
   ConfigCreatedAt,
   ConfigUpdatedAt,
   ConfigVersion,
-  ConfigId,
   ConfigWebhookId,
-  ConfigTenantId,
   createConfigStrategy,
   ConfigMaxRetryAttempts,
   ConfigRetryBackoffSeconds,
@@ -67,13 +65,9 @@ export class ConfigStateMapper {
     };
 
     // Convert each primitive to its corresponding VO with error collection
-    const id = validateField('id', ConfigId.from(snapshot.id));
-    const webhookId = snapshot.webhookId
-      ? validateField('webhookId', ConfigWebhookId.from(snapshot.webhookId))
-      : undefined;
-    const tenantId = validateField(
-      'tenantId',
-      ConfigTenantId.from(snapshot.tenantId),
+    const webhookId = validateField(
+      'webhookId',
+      ConfigWebhookId.from(snapshot.webhookId),
     );
     const strategy = validateField(
       'strategy',
@@ -172,16 +166,14 @@ export class ConfigStateMapper {
             errorCode: e.error.code,
             errorMessage: e.error.detail,
           })),
-          snapshotCode: snapshot.id,
+          snapshotCode: snapshot.webhookId,
         },
       });
     }
 
     // All validations passed, construct the rich domain state
     const domainState: ConfigDomainState = {
-      id: id!,
-      webhookId: webhookId || undefined,
-      tenantId: tenantId!,
+      webhookId: webhookId!,
       strategy: strategy!,
       maxRetryAttempts: maxRetryAttempts!,
       retryBackoffSeconds: retryBackoffSeconds!,
@@ -214,9 +206,7 @@ export class ConfigStateMapper {
   static toSnapshot(domainState: ConfigDomainState): ConfigSnapshotProps {
     return {
       // Extract primitive values from VOs
-      id: domainState.id.value,
-      webhookId: domainState.webhookId?.value,
-      tenantId: domainState.tenantId.value,
+      webhookId: domainState.webhookId.value,
       strategy: domainState.strategy.value,
       maxRetryAttempts: domainState.maxRetryAttempts.value,
       retryBackoffSeconds: domainState.retryBackoffSeconds.value,

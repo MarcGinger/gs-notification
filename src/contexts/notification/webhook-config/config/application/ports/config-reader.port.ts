@@ -6,7 +6,7 @@ import { RepositoryOptions } from 'src/shared/infrastructure/repositories';
 import { ActorContext } from 'src/shared/application/context';
 import { Option } from 'src/shared/domain/types';
 import { ConfigSnapshotProps } from '../../domain/props';
-import { ConfigId } from '../../domain/value-objects';
+import { ConfigWebhookId } from '../../domain/value-objects';
 
 /**
  * Token for injecting IConfigReader port implementation
@@ -33,52 +33,54 @@ export interface IConfigReader {
   /**
    * Find a Config by its unique identifier
    * @param actor - The authenticated user context
-   * @param id - The unique identifier of the Config
+   * @param webhookId - The unique identifier of the Config
    * @param options - Optional repository options
    * @returns Result containing the Config snapshot or null if not found
    */
   findById(
     actor: ActorContext,
-    id: ConfigId,
+    webhookId: ConfigWebhookId,
     options?: RepositoryOptions,
   ): Promise<Result<Option<ConfigSnapshotProps>, DomainError>>;
 
   /**
    * Check if a config exists by ID (for write-path validation)
    * @param actor - The authenticated user context
-   * @param id - The unique identifier of the Config
+   * @param webhookId - The unique identifier of the Config
    * @param options - Optional repository options
    * @returns Result containing boolean indicating existence
    */
   exists(
     actor: ActorContext,
-    id: ConfigId,
+    webhookId: ConfigWebhookId,
     options?: RepositoryOptions,
   ): Promise<Result<boolean, DomainError>>;
 
   /**
    * Get config version for optimistic concurrency control
    * @param actor - The authenticated user context
-   * @param id - The unique identifier of the Config
+   * @param webhookId - The unique identifier of the Config
    * @param options - Optional repository options
    * @returns Result containing version number or null if not found
    */
   getVersion(
     actor: ActorContext,
-    id: ConfigId,
+    webhookId: ConfigWebhookId,
     options?: RepositoryOptions,
   ): Promise<Result<Option<number>, DomainError>>;
 
   /**
    * Get minimal config data for write-path operations
    * @param actor - The authenticated user context
-   * @param id - The unique identifier of the Config
+   * @param webhookId - The unique identifier of the Config
    * @param options - Optional repository options
    * @returns Result containing minimal config data or null if not found
    */
   getMinimal(
     actor: ActorContext,
-    id: ConfigId,
+    webhookId: ConfigWebhookId,
     options?: RepositoryOptions,
-  ): Promise<Result<Option<{ id: string; version: number }>, DomainError>>;
+  ): Promise<
+    Result<Option<{ webhookId: string; version: number }>, DomainError>
+  >;
 }

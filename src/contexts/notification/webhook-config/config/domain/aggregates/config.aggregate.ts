@@ -10,7 +10,7 @@ import { ConfigEntity } from '../entities';
 import { ConfigSnapshotProps } from '../props';
 import { ValidatedConfigUpdateFields } from '../types';
 import {
-  ConfigId,
+  ConfigWebhookId,
   ConfigStrategyValue,
   createConfigStrategy,
   ConfigRetryStrategyValue,
@@ -143,9 +143,7 @@ export class ConfigAggregate extends AggregateRootBase {
 
     // Create typed ConfigCreatedEvent with only business data
     const createdEvent = ConfigCreatedEvent.create({
-      id: entityProps.id.value,
-      webhookId: entityProps.webhookId?.value,
-      tenantId: entityProps.tenantId.value,
+      webhookId: entityProps.webhookId.value,
       strategy: entityProps.strategy.value,
       maxRetryAttempts: entityProps.maxRetryAttempts.value,
       retryBackoffSeconds: entityProps.retryBackoffSeconds.value,
@@ -168,7 +166,7 @@ export class ConfigAggregate extends AggregateRootBase {
       type: createdEvent.eventType,
       version: Number(createdEvent.eventVersion),
       occurredAt: clock.now(),
-      aggregateId: entityProps.id.value,
+      aggregateId: entityProps.webhookId.value,
       aggregateType: 'Config',
       data: createdEvent.payload,
       metadata: eventMetadata,
@@ -207,9 +205,7 @@ export class ConfigAggregate extends AggregateRootBase {
       case 'NotificationWebhookConfigConfigUpdated.v1': {
         // Both events now have the same domain shape - simple merge
         const d = event.data as {
-          id: string;
-          webhookId?: string;
-          tenantId: string;
+          webhookId: string;
           strategy: ConfigStrategyValue;
           maxRetryAttempts: number;
           retryBackoffSeconds: number;
@@ -232,9 +228,7 @@ export class ConfigAggregate extends AggregateRootBase {
         const currentSnapshot = this._entity?.toSnapshot() || {};
 
         const entityResult = ConfigEntity.fromSnapshot({
-          id: d.id,
           webhookId: d.webhookId,
-          tenantId: d.tenantId,
           strategy: d.strategy,
           maxRetryAttempts: d.maxRetryAttempts,
           retryBackoffSeconds: d.retryBackoffSeconds,
@@ -289,7 +283,7 @@ export class ConfigAggregate extends AggregateRootBase {
         retryable: false,
         context: {
           originalError: entityResult.error,
-          snapshotCode: snapshot.id,
+          snapshotCode: snapshot.webhookId,
         },
       });
     }
@@ -326,8 +320,8 @@ export class ConfigAggregate extends AggregateRootBase {
   /**
    * Get the aggregate ID (required for aggregate identity)
    */
-  public get id(): ConfigId {
-    return this._entity.id;
+  public get id(): ConfigWebhookId {
+    return this._entity.webhookId;
   }
 
   /**
@@ -349,16 +343,6 @@ export class ConfigAggregate extends AggregateRootBase {
    */
   private detectChanges(validatedFields: ValidatedConfigUpdateFields): boolean {
     // Check each field for actual value changes using value object equality
-    if (validatedFields.webhookId !== undefined) {
-      if (hasValueChanged(this._entity.webhookId, validatedFields.webhookId)) {
-        return true;
-      }
-    }
-    if (validatedFields.tenantId !== undefined) {
-      if (hasValueChanged(this._entity.tenantId, validatedFields.tenantId)) {
-        return true;
-      }
-    }
     if (validatedFields.strategy !== undefined) {
       if (hasValueChanged(this._entity.strategy, validatedFields.strategy)) {
         return true;
@@ -526,7 +510,7 @@ export class ConfigAggregate extends AggregateRootBase {
         context: {
           expected: expectedVersion,
           actual: this._entity.version.value,
-          aggregateId: this._entity.id.value,
+          aggregateId: this._entity.webhookId.value,
         },
       });
     }
@@ -566,26 +550,6 @@ export class ConfigAggregate extends AggregateRootBase {
     let currentEntity = this._entity;
 
     // Apply each validated field change with type safety
-    if (validatedFields.webhookId !== undefined) {
-      const entityResult = currentEntity.withWebhookId(
-        validatedFields.webhookId,
-        updatedAt,
-        nextVersion,
-      );
-      if (!entityResult.ok) return err(entityResult.error);
-      currentEntity = entityResult.value;
-    }
-
-    if (validatedFields.tenantId !== undefined) {
-      const entityResult = currentEntity.withTenantId(
-        validatedFields.tenantId,
-        updatedAt,
-        nextVersion,
-      );
-      if (!entityResult.ok) return err(entityResult.error);
-      currentEntity = entityResult.value;
-    }
-
     if (validatedFields.strategy !== undefined) {
       const entityResult = currentEntity.withStrategy(
         validatedFields.strategy,
@@ -741,9 +705,7 @@ export class ConfigAggregate extends AggregateRootBase {
 
     // Create domain-shaped update event (same structure as created event)
     const updatedEvent = ConfigUpdatedEvent.create({
-      id: this._entity.id.value,
-      webhookId: this._entity.webhookId?.value,
-      tenantId: this._entity.tenantId.value,
+      webhookId: this._entity.webhookId.value,
       strategy: this._entity.strategy.value,
       maxRetryAttempts: this._entity.maxRetryAttempts.value,
       retryBackoffSeconds: this._entity.retryBackoffSeconds.value,
@@ -766,7 +728,7 @@ export class ConfigAggregate extends AggregateRootBase {
       type: updatedEvent.eventType,
       version: Number(updatedEvent.eventVersion),
       occurredAt: updatedAt,
-      aggregateId: this._entity.id.value,
+      aggregateId: this._entity.webhookId.value,
       aggregateType: 'Config',
       data: updatedEvent.payload,
       metadata: this.eventMetadata,
@@ -890,7 +852,7 @@ export class ConfigAggregate extends AggregateRootBase {
       type: 'ConfigDeleted',
       version: 1,
       occurredAt: deletedAtResult.value.value, // Extract Date from VO
-      aggregateId: this._entity.id.value,
+      aggregateId: this._entity.webhookId.value,
       aggregateType: 'Config',
     };
 

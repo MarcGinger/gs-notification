@@ -10,7 +10,6 @@ import {
   ConfigDefaultLocale,
   ConfigDlqEnabled,
   ConfigDlqMaxAgeSeconds,
-  ConfigId,
   ConfigIncludeTimestampHeader,
   ConfigMaxConcurrent,
   ConfigMaxRetryAttempts,
@@ -21,7 +20,6 @@ import {
   ConfigRetryStrategy,
   ConfigSignatureAlgorithm,
   ConfigStrategy,
-  ConfigTenantId,
   ConfigWebhookId,
 } from '../value-objects';
 
@@ -39,9 +37,7 @@ import {
  */
 
 export interface ConfigDomainState {
-  id: ConfigId;
-  webhookId?: ConfigWebhookId;
-  tenantId: ConfigTenantId;
+  webhookId: ConfigWebhookId;
   strategy: ConfigStrategy;
   maxRetryAttempts: ConfigMaxRetryAttempts;
   retryBackoffSeconds: ConfigRetryBackoffSeconds;
