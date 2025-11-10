@@ -21,14 +21,14 @@ import { WebhookMethodValue, WebhookStatusValue } from '../../application/dtos';
  */
 export class WebhookFieldValidatorUtil {
   /**
-   * Create projector data with Webhook objects for Redis storage
+   * Create projector data with SecretRef objects for Redis storage
    *
-   * This method extracts Webhook objects from event data and serializes them
+   * This method extracts SecretRef objects from event data and serializes them
    * as JSON strings for storage in Redis. The reader repository will deserialize
-   * and resolve these Webhook objects back to actual secret values.
+   * and resolve these SecretRef objects back to actual secret values.
    *
-   * @param aggregateData - Raw event data from EventStore containing Webhook objects
-   * @returns Projector data object with Webhook fields as JSON strings
+   * @param aggregateData - Raw event data from EventStore containing SecretRef objects
+   * @returns Projector data object with SecretRef fields as JSON strings
    */
   static createWebhookProjectorDataFromEventData(
     aggregateData: Record<string, any>,

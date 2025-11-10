@@ -24,14 +24,14 @@ import {
  */
 export class AuthtypeFieldValidatorUtil {
   /**
-   * Create projector data with Authtype objects for Redis storage
+   * Create projector data with SecretRef objects for Redis storage
    *
-   * This method extracts Authtype objects from event data and serializes them
+   * This method extracts SecretRef objects from event data and serializes them
    * as JSON strings for storage in Redis. The reader repository will deserialize
-   * and resolve these Authtype objects back to actual secret values.
+   * and resolve these SecretRef objects back to actual secret values.
    *
-   * @param aggregateData - Raw event data from EventStore containing Authtype objects
-   * @returns Projector data object with Authtype fields as JSON strings
+   * @param aggregateData - Raw event data from EventStore containing SecretRef objects
+   * @returns Projector data object with SecretRef fields as JSON strings
    */
   static createAuthtypeProjectorDataFromEventData(
     aggregateData: Record<string, any>,

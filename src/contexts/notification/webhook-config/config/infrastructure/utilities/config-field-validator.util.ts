@@ -26,14 +26,14 @@ import {
  */
 export class ConfigFieldValidatorUtil {
   /**
-   * Create projector data with Config objects for Redis storage
+   * Create projector data with SecretRef objects for Redis storage
    *
-   * This method extracts Config objects from event data and serializes them
+   * This method extracts SecretRef objects from event data and serializes them
    * as JSON strings for storage in Redis. The reader repository will deserialize
-   * and resolve these Config objects back to actual secret values.
+   * and resolve these SecretRef objects back to actual secret values.
    *
-   * @param aggregateData - Raw event data from EventStore containing Config objects
-   * @returns Projector data object with Config fields as JSON strings
+   * @param aggregateData - Raw event data from EventStore containing SecretRef objects
+   * @returns Projector data object with SecretRef fields as JSON strings
    */
   static createConfigProjectorDataFromEventData(
     aggregateData: Record<string, any>,
