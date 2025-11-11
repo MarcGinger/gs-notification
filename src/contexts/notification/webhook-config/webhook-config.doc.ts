@@ -123,6 +123,7 @@ This service is a critical component of the Notification Bounded Context, enabli
   | [***workspace  →***](/api/docs/notification/webhook-config/workspace) |
   | [***config  →***](/api/docs/notification/webhook-config/config) |
   | [***auth  →***](/api/docs/notification/webhook-config/auth) |
+  | [***test-security  →***](/api/docs/notification/webhook-config/test-security) |
         `,
       )
       .setVersion('1.0.0')

@@ -171,6 +171,51 @@
         "auditView": true,
         "custom": []
       }
+    },
+    "testSecurity": {
+      "docs": {
+        "name": "TestSecurity",
+        "summary": "Configuration for testSecurity table",
+        "version": "1.0.0"
+      },
+      "apis": {},
+      "store": {
+        "read": "sql,eventstream,redis",
+        "write": "sql,eventstream,redis",
+        "query": "sql,eventstream,redis"
+      },
+      "redis": {
+        "prefix": "",
+        "version": "1.0",
+        "category": "notification:webhook-config.testsecurity.v1",
+        "ttl": 3600,
+        "hash": true,
+        "aggregate": "testSecurity"
+      },
+      "eventstream": {
+        "boundedContext": "notification",
+        "aggregate": "testSecurity",
+        "version": "v1",
+        "stream": "notification.webhookConfig.testSecurity",
+        "createdEvent": "NotificationWebhookConfigTestSecurityCreated.v1",
+        "updatedEvent": "NotificationWebhookConfigTestSecurityUpdated.v1",
+        "deletedEvent": "NotificationWebhookConfigTestSecurityDeleted.v1"
+      },
+      "cols": {
+        "id": {},
+        "Name": {},
+        "description": {}
+      },
+      "permissions": {
+        "bulk": [
+          "update",
+          "delete",
+          "import"
+        ],
+        "adminOverride": true,
+        "auditView": true,
+        "custom": []
+      }
     }
   },
   "docs": {

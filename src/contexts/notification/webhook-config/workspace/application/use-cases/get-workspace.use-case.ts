@@ -14,76 +14,35 @@ import {
 
 // Shared utilities and infrastructure
 import { APP_LOGGER, componentLogger, Logger } from 'src/shared/logging';
-import { Clock, CLOCK } from 'src/shared/infrastructure/time';
-import { CorrelationUtil } from 'src/shared/utilities/correlation.util';
 import { CACHE_TTL } from 'src/shared/application/caching/cache.config';
 import { RepositoryOptions } from 'src/shared/infrastructure/repositories/repository.types';
 import { Option } from 'src/shared/domain/types';
 import { ActorContextUtil } from 'src/shared/utilities/actor-context.util';
-import {
-  UseCaseLoggingUtil,
-  UseCaseLoggingConfig,
-} from 'src/shared/application/utils/use-case-logging.util';
 import { IUserToken } from 'src/shared/security';
-
-// Service configuration
-import { WebhookConfigServiceConstants } from '../../../service-constants';
 
 // Application layer
 import { IWorkspaceQuery, WORKSPACE_QUERY_TOKEN } from '../ports';
-import { WorkspaceAuthorizationAdapter } from '../services';
 import { DetailWorkspaceResponse } from '../dtos';
 import { IGetWorkspaceUseCase } from './contracts';
 import { WorkspaceErrors } from '../../domain/errors';
 
 /**
- * Get Workspace Use Case - CQRS Read Side Implementation
+ * Get Workspace Use Case - Simplified CQRS Read Side Implementation
  *
- * This use case properly follows CQRS principles by working directly with DTOs
- * from the query port, avoiding dependencies on domain value objects.
- * The query port returns read-optimized DetailWorkspaceResponse DTOs directly.
- */
-
-import {
-  PIIClassificationService,
-  PIIProtectionService,
-  DataRetentionService,
-} from 'src/shared/services/compliance';
-
-/**
- * ✅ Enhanced Get Workspace Use Case with Modern Security and Compliance
- *
- * Features:
- * - Classification-only PII approach (no domain data mutation)
- * - Safe logging contexts to prevent accidental PII disclosure
- * - Enhanced error handling with structured domain errors
- * - Cache-first strategy for optimal performance
- * - Comprehensive audit trails and compliance tracking
- * - CQRS-compliant read operations with DTO optimization
+ * Simple use case that queries for workspace data by id.
+ * Authorization is handled at the service layer.
  */
 
 @Injectable()
 export class GetWorkspaceUseCase implements IGetWorkspaceUseCase {
   private readonly logger: Logger;
-  private readonly loggingConfig: UseCaseLoggingConfig;
 
   constructor(
     @Inject(WORKSPACE_QUERY_TOKEN)
     private readonly query: IWorkspaceQuery,
-    private readonly authorizationService: WorkspaceAuthorizationAdapter,
-    @Inject(CLOCK) private readonly clock: Clock,
     @Inject(APP_LOGGER) moduleLogger: Logger,
-    private readonly piiClassificationService: PIIClassificationService,
-    private readonly piiProtectionService: PIIProtectionService,
-    private readonly dataRetentionService: DataRetentionService,
   ) {
-    this.loggingConfig = {
-      serviceName: WebhookConfigServiceConstants.SERVICE_NAME,
-      component: 'GetWorkspaceUseCase',
-      domain: 'webhook-config',
-      entityType: 'workspace',
-    };
-    this.logger = componentLogger(moduleLogger, this.loggingConfig.component);
+    this.logger = componentLogger(moduleLogger, 'GetWorkspaceUseCase');
   }
 
   async execute(params: {
@@ -91,232 +50,76 @@ export class GetWorkspaceUseCase implements IGetWorkspaceUseCase {
     id: string;
     correlationId: string;
   }): Promise<Result<DetailWorkspaceResponse, DomainError>> {
-    const operation = 'get_workspace';
-    const startTime = this.clock.nowMs();
-    const correlationId = params.correlationId || CorrelationUtil.generate();
+    const { user, id, correlationId } = params;
 
-    // Step 1: Extract raw properties for domain logic (no PII protection at domain level)
-    const rawProps = {
-      id: params.id,
-    };
-
-    // Step 2: Create safe logging context (no PII, deferred retention metadata)
-    const safeLogContext = UseCaseLoggingUtil.createLogContext(
-      this.loggingConfig,
-      this.clock,
-      operation,
-      params as any, // Query doesn't extend BaseUseCaseCommand but has similar structure
-      {
-        workspaceId: rawProps.id,
-        operationRisk: UseCaseLoggingUtil.assessOperationRisk(operation),
-        readOperation: true,
-        cacheEnabled: true,
-      },
-    );
-
-    // Step 3: Validate query with enhanced logging
-    const validation = UseCaseLoggingUtil.validateCommand(
-      this.logger,
-      params as any, // Query validation adapted for read operations
-      safeLogContext,
-    );
-    if (!validation.ok) {
-      return err(validation.error);
-    }
-
-    // Step 1: Check authorization first
-    const authResult = await this.authorizationService.canReadResource(
-      params.user.sub,
-      params.id, // Using id as workspace identifier
-      correlationId,
-      {
-        tenant: params.user.tenant,
-        roles: params.user.roles,
-        operationType: 'read',
-      },
-    );
-
-    if (!authResult.ok) {
-      UseCaseLoggingUtil.logOperationError(
-        this.logger,
-        operation,
-        safeLogContext,
-        authResult.error,
-        'HIGH',
-      );
-      return err(authResult.error);
-    }
-
-    if (!authResult.value) {
-      const authError = {
-        code: 'CHANNEL.READ_NOT_AUTHORIZED' as const,
-        title: 'Not authorized to read this channel',
-        category: 'security' as const,
-        context: {
-          userId: params.user.sub,
-          workspaceId: params.id,
-          operation: 'read',
-        },
-      };
-      UseCaseLoggingUtil.logOperationError(
-        this.logger,
-        operation,
-        safeLogContext,
-        authError,
-        'HIGH',
-      );
-      return err(authError);
-    }
-
-    // Step 2: Simple validation for query-side operations (CQRS compliant)
-    if (
-      !params.id ||
-      typeof params.id !== 'string' ||
-      params.id.trim().length === 0
-    ) {
-      const validationError = {
-        code: 'WORKSPACE.INVALID_THE_CODE' as const,
-        title: 'Invalid workspace id',
+    // Simple input validation
+    if (!id?.trim()) {
+      return err({
+        code: 'WORKSPACE.INVALID_ID' as const,
+        title: 'Invalid id',
         category: 'validation' as const,
-        context: {
-          id: params.id,
-          correlationId,
-          userId: params.user.sub,
-          operation: 'get_workspace',
-        },
-      };
-      UseCaseLoggingUtil.logOperationError(
-        this.logger,
-        operation,
-        safeLogContext,
-        validationError,
-        'MEDIUM',
-      );
-      return err(validationError);
+        context: { id, correlationId, userId: user.sub },
+      });
     }
 
-    // Step 3: Enhanced repository options with cache-first strategy
+    // Setup repository options with caching
     const repositoryOptions: RepositoryOptions = {
       cache: {
-        ttl: CACHE_TTL.STANDARD, // 5 minutes cache for workspace reads
-        refreshCache: false, // Don't refresh on read
+        ttl: CACHE_TTL.STANDARD,
+        refreshCache: false,
       },
       correlationId,
-      requestId: params.user.sub,
+      requestId: user.sub,
     };
 
-    // Step 4: Load the aggregate using enhanced repository with caching
-    const actorResult = ActorContextUtil.fromUserTokenSafe(params.user);
+    // Convert user token to actor context
+    const actorResult = ActorContextUtil.fromUserTokenSafe(user);
     if (!isOk(actorResult)) {
-      const contextError = withContext(actorResult.error, {
-        correlationId,
-        userId: params.user.sub,
-        operation: 'get_workspace',
-        id: params.id,
-      });
-      UseCaseLoggingUtil.logOperationError(
-        this.logger,
-        operation,
-        safeLogContext,
-        contextError,
-        'HIGH',
+      return err(
+        withContext(actorResult.error, {
+          correlationId,
+          userId: user.sub,
+          operation: 'get_workspace',
+          id,
+        }),
       );
-      return err(contextError);
     }
-    const actor = actorResult.value;
 
-    const workspaceResult = await this.query.findById(
-      actor,
-      params.id,
+    // Query for the workspace data
+    const queryResult = await this.query.findById(
+      actorResult.value,
+      id,
       repositoryOptions,
     );
 
-    if (!isOk(workspaceResult)) {
-      const contextError = withContext(workspaceResult.error, {
-        correlationId,
-        userId: params.user.sub,
-        operation: 'get_workspace',
-        id: params.id,
-      });
-      UseCaseLoggingUtil.logOperationError(
-        this.logger,
-        operation,
-        safeLogContext,
-        contextError,
-        'MEDIUM',
+    if (!isOk(queryResult)) {
+      return err(
+        withContext(queryResult.error, {
+          correlationId,
+          userId: user.sub,
+          operation: 'get_workspace',
+          id,
+        }),
       );
-      return err(contextError);
     }
 
-    // Step 5: Handle Option<DetailWorkspaceResponse> safely - query port already returns DTOs (proper CQRS)
-    const workspaceDto = Option.isNone(workspaceResult.value)
+    // Handle Option<DetailWorkspaceResponse>
+    const workspaceDto = Option.isNone(queryResult.value)
       ? null
-      : workspaceResult.value.value;
+      : queryResult.value.value;
 
-    // Step 5.1: Return 404 error if workspace not found
     if (!workspaceDto) {
-      const notFoundError = withContext(WorkspaceErrors.WORKSPACE_NOT_FOUND, {
-        id: params.id,
-        name: '', // Default values for required fields
-        targetUrl: '', // Default values for required fields
-        webhookEventType: '', // Default values for required fields
-        method: 0, // Default values for required fields
-        status: 0, // Default values for required fields
-        workspaceId: params.id,
-        correlationId,
-        userId: params.user.sub,
-        operation: 'get_workspace',
-      });
-
-      UseCaseLoggingUtil.logOperationError(
-        this.logger,
-        operation,
-        safeLogContext,
-        notFoundError,
-        'LOW',
-      );
-
-      return err(notFoundError);
-    }
-
-    // Step 6: Light compliance check for read operations (audit log only)
-    // For read operations, we only log data access for compliance audit
-    const readClassification = this.piiClassificationService.classifyData(
-      {},
-      {
-        domain: 'webhook-config',
-        tenant: params.user.tenant,
-        // entityType: 'Workspace' // Future: for entity-level rules
-      },
-    );
-
-    if (readClassification.containsPII) {
-      // Log data access for audit trail (no protection needed for reads)
-      UseCaseLoggingUtil.logComplianceCheck(
-        this.logger,
-        operation,
-        safeLogContext,
-        readClassification,
+      return err(
+        withContext(WorkspaceErrors.WORKSPACE_NOT_FOUND, {
+          id,
+          correlationId,
+          userId: user.sub,
+          operation: 'get_workspace',
+        }),
       );
     }
 
-    // Step 7: Log operation success with comprehensive metrics
-    const executionTime = this.clock.nowMs() - startTime;
-    UseCaseLoggingUtil.logOperationSuccess(
-      this.logger,
-      operation,
-      safeLogContext,
-      {
-        executionTimeMs: executionTime,
-        businessData: {
-          workspaceId: params.id,
-          found: true,
-          cacheEnabled: true,
-          cacheTtl: repositoryOptions.cache?.ttl,
-          dataAccessLogged: true,
-        },
-      },
-    );
+    // Success - no logging needed as this is handled at service layer
 
     return ok(workspaceDto);
   }

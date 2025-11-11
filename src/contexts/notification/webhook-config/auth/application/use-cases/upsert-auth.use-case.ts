@@ -47,7 +47,7 @@ import {
 } from '../services';
 import { DetailAuthResponse } from '../dtos';
 import { AuthDtoAssembler } from '../assemblers';
-// Note: PII protection and compliance handled at service/infrastructure layer
+
 type AuthSnapshot = Parameters<typeof updateAuthAggregateFromSnapshot>[0];
 
 @Injectable()
@@ -260,9 +260,6 @@ export class UpsertAuthUseCase implements IUpsertAuthUseCase {
     }
 
     const aggregate = aggregateResult.value;
-
-    // Step 7: Process successful result
-
     const domainState = aggregate.toDomainState();
     const dto = AuthDtoAssembler.toDetailResponse(domainState);
 
@@ -292,7 +289,6 @@ export class UpsertAuthUseCase implements IUpsertAuthUseCase {
 
           Ca: dto.ca,
 
-          // ... other non-PII business fields
           fieldsUpdated: Object.keys(fieldsToUpdate).length,
           upsertAction: isCreate ? 'created' : 'updated',
         },

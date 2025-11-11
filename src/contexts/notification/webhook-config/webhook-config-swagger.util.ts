@@ -8,6 +8,7 @@ import { WebhookConfigDocumentation } from './webhook-config.doc';
 import { WorkspaceDocumentation } from './workspace/docs/workspace.doc';
 import { ConfigDocumentation } from './config/docs/config.doc';
 import { AuthDocumentation } from './auth/docs/auth.doc';
+import { TestSecurityDocumentation } from './test-security/docs/test-security.doc';
 
 /**
  * Setup notification-webhook-config application/service Swagger documentation
@@ -27,11 +28,13 @@ export function setupNotificationWebhookConfigDocs(
   const workspaceUrls = WorkspaceDocumentation.setupAll(app, port);
   const configUrls = ConfigDocumentation.setupAll(app, port);
   const authUrls = AuthDocumentation.setupAll(app, port);
+  const testSecurityUrls = TestSecurityDocumentation.setupAll(app, port);
 
   return {
     ...boundedContextUrls,
     ...workspaceUrls,
     ...configUrls,
     ...authUrls,
+    ...testSecurityUrls,
   };
 }

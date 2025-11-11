@@ -1881,6 +1881,211 @@
       },
       "domainName": "",
       "parentPath": []
+    },
+    {
+      "name": "testSecurity",
+      "description": "",
+      "columns": [
+        {
+          "name": "id",
+          "type": "string",
+          "childRelationshipType": "",
+          "parentRelationshipType": "",
+          "datatype": "UUID",
+          "primaryKey": true,
+          "required": true,
+          "description": "",
+          "defaultvalue": "",
+          "example": "",
+          "autoIncrement": true,
+          "array": false,
+          "isPII": "",
+          "secret": false,
+          "create": true,
+          "update": true,
+          "get": true,
+          "list": true,
+          "parentRelationship": "",
+          "childRelationship": "",
+          "meta": {
+            "kind": "uuid",
+            "allowNil": false
+          }
+        },
+        {
+          "name": "Name",
+          "type": "string",
+          "childRelationshipType": "",
+          "parentRelationshipType": "",
+          "datatype": "VARCHAR",
+          "primaryKey": false,
+          "required": true,
+          "description": "",
+          "defaultvalue": "",
+          "example": "",
+          "autoIncrement": false,
+          "array": false,
+          "isPII": "",
+          "secret": false,
+          "create": true,
+          "update": true,
+          "get": true,
+          "list": true,
+          "parentRelationship": "",
+          "childRelationship": "",
+          "meta": {
+            "kind": "string"
+          }
+        },
+        {
+          "name": "description",
+          "type": "string",
+          "childRelationshipType": "",
+          "parentRelationshipType": "",
+          "datatype": "TEXT",
+          "primaryKey": false,
+          "required": false,
+          "description": "",
+          "defaultvalue": "",
+          "example": "",
+          "autoIncrement": false,
+          "array": false,
+          "isPII": "",
+          "secret": false,
+          "create": true,
+          "update": true,
+          "get": true,
+          "list": true,
+          "parentRelationship": "",
+          "childRelationship": "",
+          "meta": {
+            "kind": "string",
+            "maxLength": 65535
+          }
+        }
+      ],
+      "relationships": [],
+      "lines": [],
+      "keys": [
+        {
+          "name": "id",
+          "type": "string",
+          "childRelationshipType": "",
+          "parentRelationshipType": "",
+          "datatype": "UUID",
+          "primaryKey": true,
+          "required": true,
+          "description": "",
+          "defaultvalue": "",
+          "example": "",
+          "autoIncrement": true,
+          "array": false,
+          "isPII": "",
+          "secret": false,
+          "create": true,
+          "update": true,
+          "get": true,
+          "list": true,
+          "parentRelationship": "",
+          "childRelationship": "",
+          "meta": {
+            "kind": "uuid",
+            "allowNil": false
+          }
+        }
+      ],
+      "indexes": [
+        {
+          "name": "Name",
+          "type": "string",
+          "childRelationshipType": "",
+          "parentRelationshipType": "",
+          "datatype": "VARCHAR",
+          "primaryKey": false,
+          "required": true,
+          "description": "",
+          "defaultvalue": "",
+          "example": "",
+          "autoIncrement": false,
+          "array": false,
+          "isPII": "",
+          "secret": false,
+          "create": true,
+          "update": true,
+          "get": true,
+          "list": true,
+          "parentRelationship": "",
+          "childRelationship": "",
+          "meta": {
+            "kind": "string"
+          }
+        }
+      ],
+      "docs": {
+        "name": "TestSecurity",
+        "summary": "Configuration for testSecurity table",
+        "version": "1.0.0"
+      },
+      "apis": {},
+      "store": {
+        "read": "memory",
+        "write": "memory",
+        "query": "memory",
+        "projector": "memory"
+      },
+      "options": {
+        "command": true,
+        "create": true,
+        "update": true,
+        "read": "memory",
+        "write": "memory",
+        "query": "memory",
+        "projector": "memory",
+        "queue": false,
+        "softDelete": true,
+        "timestamps": true,
+        "versioning": true,
+        "logging": true,
+        "auditing": true,
+        "caching": true,
+        "eventStreaming": false
+      },
+      "cancel": {
+        "create": false,
+        "update": false,
+        "delete": false,
+        "batch": false,
+        "get": false
+      },
+      "redis": {
+        "prefix": "",
+        "version": "1.0",
+        "category": "notification:webhook-config.testsecurity.v1",
+        "ttl": 3600,
+        "hash": true,
+        "aggregate": "testSecurity"
+      },
+      "eventstream": {
+        "boundedContext": "notification",
+        "aggregate": "testSecurity",
+        "version": "v1",
+        "stream": "notification.webhookConfig.testSecurity",
+        "createdEvent": "NotificationWebhookConfigTestSecurityCreated.v1",
+        "updatedEvent": "NotificationWebhookConfigTestSecurityUpdated.v1",
+        "deletedEvent": "NotificationWebhookConfigTestSecurityDeleted.v1"
+      },
+      "permissions": {
+        "bulk": [
+          "update",
+          "delete",
+          "import"
+        ],
+        "adminOverride": true,
+        "auditView": true,
+        "custom": []
+      },
+      "domainName": "",
+      "parentPath": []
     }
   ],
   "relationships": [

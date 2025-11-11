@@ -1015,6 +1015,125 @@
 			"initautoinc": "",
 			"temporary": false,
 			"ifnotexists": false
+		},
+		"9ca5cfa9-eeb1-4d7b-bb2b-8752951882af": {
+			"id": "9ca5cfa9-eeb1-4d7b-bb2b-8752951882af",
+			"visible": true,
+			"name": "testSecurity",
+			"desc": "",
+			"estimatedSize": "",
+			"cols": [
+				{
+					"id": "2234627a-6d6c-45e7-bad3-644f921ab390",
+					"name": "id",
+					"datatype": "UUID",
+					"param": "",
+					"pk": true,
+					"nn": true,
+					"fk": false,
+					"comment": "",
+					"defaultvalue": "",
+					"data": "",
+					"after": "",
+					"autoinc": true,
+					"collation": "",
+					"charset": "",
+					"binary": false,
+					"zerofill": false,
+					"unsigned": false,
+					"enum": "",
+					"estimatedSize": ""
+				},
+				{
+					"id": "38c3dfd3-aa44-441e-ba25-252a81b0afa5",
+					"name": "Name",
+					"datatype": "VARCHAR",
+					"param": "",
+					"pk": false,
+					"nn": true,
+					"fk": false,
+					"comment": "",
+					"defaultvalue": "",
+					"data": "",
+					"after": "",
+					"autoinc": false,
+					"collation": "",
+					"charset": "",
+					"binary": false,
+					"zerofill": false,
+					"unsigned": false,
+					"enum": "",
+					"estimatedSize": ""
+				},
+				{
+					"id": "87831ab5-9550-4980-a70f-315f80ea2744",
+					"name": "description",
+					"datatype": "TEXT",
+					"param": "",
+					"pk": false,
+					"nn": false,
+					"fk": false,
+					"comment": "",
+					"defaultvalue": "",
+					"data": "",
+					"after": "",
+					"autoinc": false,
+					"collation": "",
+					"charset": "",
+					"binary": false,
+					"zerofill": false,
+					"unsigned": false,
+					"enum": "",
+					"estimatedSize": ""
+				}
+			],
+			"relations": [],
+			"lines": [],
+			"keys": [
+				{
+					"id": "6e44de3d-d945-48f7-9a1e-f3757c436e49",
+					"name": "PRIMARY",
+					"isPk": true,
+					"cols": [
+						{
+							"id": "a21b185d-0ec8-4960-b525-9bd66b7c6db0",
+							"colid": "2234627a-6d6c-45e7-bad3-644f921ab390"
+						}
+					]
+				}
+			],
+			"indexes": [
+				{
+					"id": "d4530f29-ffd9-4b10-bc60-2f45fb7e25a5",
+					"name": "testSecurity_ix_name",
+					"unique": false,
+					"fulltext": false,
+					"using": "na",
+					"algorithm": "na",
+					"lockoption": "na",
+					"cols": [
+						{
+							"id": "2a1cbe20-f2cf-456f-b7ec-0bfd60606d1a",
+							"colid": "38c3dfd3-aa44-441e-ba25-252a81b0afa5",
+							"mariadb": {
+								"desc": false
+							}
+						}
+					]
+				}
+			],
+			"embeddable": false,
+			"generate": true,
+			"generateCustomCode": true,
+			"customCode": "",
+			"tabletype": "InnoDB",
+			"collation": "utf8mb4_general_ci",
+			"charset": "utf8mb4",
+			"rowformat": "",
+			"database": "service",
+			"initautoinc": "",
+			"temporary": false,
+			"ifnotexists": false
 		}
 	},
 	"relations": {
@@ -1100,7 +1219,7 @@
 		},
 		"type": "MARIADB",
 		"version": 1,
-		"lastSaved": 1762757652361,
+		"lastSaved": 1762833140176,
 		"beforeScript": "",
 		"afterScript": "",
 		"sqlSettings": {
@@ -1146,8 +1265,8 @@
 			"diagramItems": {
 				"cd5f87d5-b86c-47eb-8bd6-6699ed90dc28": {
 					"referencedItemId": "cd5f87d5-b86c-47eb-8bd6-6699ed90dc28",
-					"x": 360,
-					"y": 228,
+					"x": 207,
+					"y": 68,
 					"gHeight": 218,
 					"gWidth": 279,
 					"color": "#ffffff",
@@ -1159,8 +1278,8 @@
 				},
 				"00829685-51b5-4cea-a843-525855771acd": {
 					"referencedItemId": "00829685-51b5-4cea-a843-525855771acd",
-					"x": 495,
-					"y": 85,
+					"x": 608,
+					"y": 159,
 					"gHeight": 315,
 					"gWidth": 291,
 					"color": "#ffffff",
@@ -1172,10 +1291,23 @@
 				},
 				"5c13801a-a520-42d2-873e-cacb30e40ec3": {
 					"referencedItemId": "5c13801a-a520-42d2-873e-cacb30e40ec3",
-					"x": 45,
-					"y": 95,
+					"x": 52,
+					"y": 382,
 					"gHeight": 333,
 					"gWidth": 278,
+					"color": "#ffffff",
+					"background": "#03a9f4",
+					"resized": false,
+					"autoExpand": true,
+					"backgroundOpacity": "10",
+					"collapsed": false
+				},
+				"9ca5cfa9-eeb1-4d7b-bb2b-8752951882af": {
+					"referencedItemId": "9ca5cfa9-eeb1-4d7b-bb2b-8752951882af",
+					"x": 375,
+					"y": 364,
+					"gHeight": 110,
+					"gWidth": 183,
 					"color": "#ffffff",
 					"background": "#03a9f4",
 					"resized": false,
@@ -1236,6 +1368,7 @@
 		"5c13801a-a520-42d2-873e-cacb30e40ec3",
 		"00829685-51b5-4cea-a843-525855771acd",
 		"cd5f87d5-b86c-47eb-8bd6-6699ed90dc28",
+		"9ca5cfa9-eeb1-4d7b-bb2b-8752951882af",
 		"51f4de80-23d4-4b99-af16-790b85e0f709",
 		"c8858001-b702-4f41-9b7a-31625fd98548"
 	],

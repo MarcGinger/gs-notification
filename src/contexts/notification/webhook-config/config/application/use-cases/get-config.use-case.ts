@@ -14,76 +14,35 @@ import {
 
 // Shared utilities and infrastructure
 import { APP_LOGGER, componentLogger, Logger } from 'src/shared/logging';
-import { Clock, CLOCK } from 'src/shared/infrastructure/time';
-import { CorrelationUtil } from 'src/shared/utilities/correlation.util';
 import { CACHE_TTL } from 'src/shared/application/caching/cache.config';
 import { RepositoryOptions } from 'src/shared/infrastructure/repositories/repository.types';
 import { Option } from 'src/shared/domain/types';
 import { ActorContextUtil } from 'src/shared/utilities/actor-context.util';
-import {
-  UseCaseLoggingUtil,
-  UseCaseLoggingConfig,
-} from 'src/shared/application/utils/use-case-logging.util';
 import { IUserToken } from 'src/shared/security';
-
-// Service configuration
-import { WebhookConfigServiceConstants } from '../../../service-constants';
 
 // Application layer
 import { IConfigQuery, CONFIG_QUERY_TOKEN } from '../ports';
-import { ConfigAuthorizationAdapter } from '../services';
 import { DetailConfigResponse } from '../dtos';
 import { IGetConfigUseCase } from './contracts';
 import { ConfigErrors } from '../../domain/errors';
 
 /**
- * Get Config Use Case - CQRS Read Side Implementation
+ * Get Config Use Case - Simplified CQRS Read Side Implementation
  *
- * This use case properly follows CQRS principles by working directly with DTOs
- * from the query port, avoiding dependencies on domain value objects.
- * The query port returns read-optimized DetailConfigResponse DTOs directly.
- */
-
-import {
-  PIIClassificationService,
-  PIIProtectionService,
-  DataRetentionService,
-} from 'src/shared/services/compliance';
-
-/**
- * ✅ Enhanced Get Config Use Case with Modern Security and Compliance
- *
- * Features:
- * - Classification-only PII approach (no domain data mutation)
- * - Safe logging contexts to prevent accidental PII disclosure
- * - Enhanced error handling with structured domain errors
- * - Cache-first strategy for optimal performance
- * - Comprehensive audit trails and compliance tracking
- * - CQRS-compliant read operations with DTO optimization
+ * Simple use case that queries for config data by webhookId.
+ * Authorization is handled at the service layer.
  */
 
 @Injectable()
 export class GetConfigUseCase implements IGetConfigUseCase {
   private readonly logger: Logger;
-  private readonly loggingConfig: UseCaseLoggingConfig;
 
   constructor(
     @Inject(CONFIG_QUERY_TOKEN)
     private readonly query: IConfigQuery,
-    private readonly authorizationService: ConfigAuthorizationAdapter,
-    @Inject(CLOCK) private readonly clock: Clock,
     @Inject(APP_LOGGER) moduleLogger: Logger,
-    private readonly piiClassificationService: PIIClassificationService,
-    private readonly piiProtectionService: PIIProtectionService,
-    private readonly dataRetentionService: DataRetentionService,
   ) {
-    this.loggingConfig = {
-      serviceName: WebhookConfigServiceConstants.SERVICE_NAME,
-      component: 'GetConfigUseCase',
-      domain: 'webhook-config',
-      entityType: 'config',
-    };
-    this.logger = componentLogger(moduleLogger, this.loggingConfig.component);
+    this.logger = componentLogger(moduleLogger, 'GetConfigUseCase');
   }
 
   async execute(params: {
@@ -91,230 +50,76 @@ export class GetConfigUseCase implements IGetConfigUseCase {
     webhookId: string;
     correlationId: string;
   }): Promise<Result<DetailConfigResponse, DomainError>> {
-    const operation = 'get_config';
-    const startTime = this.clock.nowMs();
-    const correlationId = params.correlationId || CorrelationUtil.generate();
+    const { user, webhookId, correlationId } = params;
 
-    // Step 1: Extract raw properties for domain logic (no PII protection at domain level)
-    const rawProps = {
-      webhookId: params.webhookId,
-    };
-
-    // Step 2: Create safe logging context (no PII, deferred retention metadata)
-    const safeLogContext = UseCaseLoggingUtil.createLogContext(
-      this.loggingConfig,
-      this.clock,
-      operation,
-      params as any, // Query doesn't extend BaseUseCaseCommand but has similar structure
-      {
-        configWebhookId: rawProps.webhookId,
-        operationRisk: UseCaseLoggingUtil.assessOperationRisk(operation),
-        readOperation: true,
-        cacheEnabled: true,
-      },
-    );
-
-    // Step 3: Validate query with enhanced logging
-    const validation = UseCaseLoggingUtil.validateCommand(
-      this.logger,
-      params as any, // Query validation adapted for read operations
-      safeLogContext,
-    );
-    if (!validation.ok) {
-      return err(validation.error);
-    }
-
-    // Step 1: Check authorization first
-    const authResult = await this.authorizationService.canReadResource(
-      params.user.sub,
-      params.webhookId, // Using webhookId as config identifier
-      correlationId,
-      {
-        tenant: params.user.tenant,
-        roles: params.user.roles,
-        operationType: 'read',
-      },
-    );
-
-    if (!authResult.ok) {
-      UseCaseLoggingUtil.logOperationError(
-        this.logger,
-        operation,
-        safeLogContext,
-        authResult.error,
-        'HIGH',
-      );
-      return err(authResult.error);
-    }
-
-    if (!authResult.value) {
-      const authError = {
-        code: 'CHANNEL.READ_NOT_AUTHORIZED' as const,
-        title: 'Not authorized to read this channel',
-        category: 'security' as const,
-        context: {
-          userId: params.user.sub,
-          configWebhookId: params.webhookId,
-          operation: 'read',
-        },
-      };
-      UseCaseLoggingUtil.logOperationError(
-        this.logger,
-        operation,
-        safeLogContext,
-        authError,
-        'HIGH',
-      );
-      return err(authError);
-    }
-
-    // Step 2: Simple validation for query-side operations (CQRS compliant)
-    if (
-      !params.webhookId ||
-      typeof params.webhookId !== 'string' ||
-      params.webhookId.trim().length === 0
-    ) {
-      const validationError = {
-        code: 'CONFIG.INVALID_THE_CODE' as const,
-        title: 'Invalid config webhookId',
+    // Simple input validation
+    if (!webhookId?.trim()) {
+      return err({
+        code: 'CONFIG.INVALID_WEBHOOK_ID' as const,
+        title: 'Invalid webhookId',
         category: 'validation' as const,
-        context: {
-          webhookId: params.webhookId,
-          correlationId,
-          userId: params.user.sub,
-          operation: 'get_config',
-        },
-      };
-      UseCaseLoggingUtil.logOperationError(
-        this.logger,
-        operation,
-        safeLogContext,
-        validationError,
-        'MEDIUM',
-      );
-      return err(validationError);
+        context: { webhookId, correlationId, userId: user.sub },
+      });
     }
 
-    // Step 3: Enhanced repository options with cache-first strategy
+    // Setup repository options with caching
     const repositoryOptions: RepositoryOptions = {
       cache: {
-        ttl: CACHE_TTL.STANDARD, // 5 minutes cache for config reads
-        refreshCache: false, // Don't refresh on read
+        ttl: CACHE_TTL.STANDARD,
+        refreshCache: false,
       },
       correlationId,
-      requestId: params.user.sub,
+      requestId: user.sub,
     };
 
-    // Step 4: Load the aggregate using enhanced repository with caching
-    const actorResult = ActorContextUtil.fromUserTokenSafe(params.user);
+    // Convert user token to actor context
+    const actorResult = ActorContextUtil.fromUserTokenSafe(user);
     if (!isOk(actorResult)) {
-      const contextError = withContext(actorResult.error, {
-        correlationId,
-        userId: params.user.sub,
-        operation: 'get_config',
-        webhookId: params.webhookId,
-      });
-      UseCaseLoggingUtil.logOperationError(
-        this.logger,
-        operation,
-        safeLogContext,
-        contextError,
-        'HIGH',
+      return err(
+        withContext(actorResult.error, {
+          correlationId,
+          userId: user.sub,
+          operation: 'get_config',
+          webhookId,
+        }),
       );
-      return err(contextError);
     }
-    const actor = actorResult.value;
 
-    const configResult = await this.query.findById(
-      actor,
-      params.webhookId,
+    // Query for the config data
+    const queryResult = await this.query.findById(
+      actorResult.value,
+      webhookId,
       repositoryOptions,
     );
 
-    if (!isOk(configResult)) {
-      const contextError = withContext(configResult.error, {
-        correlationId,
-        userId: params.user.sub,
-        operation: 'get_config',
-        webhookId: params.webhookId,
-      });
-      UseCaseLoggingUtil.logOperationError(
-        this.logger,
-        operation,
-        safeLogContext,
-        contextError,
-        'MEDIUM',
+    if (!isOk(queryResult)) {
+      return err(
+        withContext(queryResult.error, {
+          correlationId,
+          userId: user.sub,
+          operation: 'get_config',
+          webhookId,
+        }),
       );
-      return err(contextError);
     }
 
-    // Step 5: Handle Option<DetailConfigResponse> safely - query port already returns DTOs (proper CQRS)
-    const configDto = Option.isNone(configResult.value)
+    // Handle Option<DetailConfigResponse>
+    const configDto = Option.isNone(queryResult.value)
       ? null
-      : configResult.value.value;
+      : queryResult.value.value;
 
-    // Step 5.1: Return 404 error if config not found
     if (!configDto) {
-      const notFoundError = withContext(ConfigErrors.CONFIG_NOT_FOUND, {
-        webhookId: params.webhookId,
-        maxRetryAttempts: 0, // Default values for required fields
-        retryBackoffSeconds: 0, // Default values for required fields
-        defaultLocale: '', // Default values for required fields
-        configWebhookId: params.webhookId,
-        correlationId,
-        userId: params.user.sub,
-        operation: 'get_config',
-      });
-
-      UseCaseLoggingUtil.logOperationError(
-        this.logger,
-        operation,
-        safeLogContext,
-        notFoundError,
-        'LOW',
-      );
-
-      return err(notFoundError);
-    }
-
-    // Step 6: Light compliance check for read operations (audit log only)
-    // For read operations, we only log data access for compliance audit
-    const readClassification = this.piiClassificationService.classifyData(
-      {},
-      {
-        domain: 'webhook-config',
-        tenant: params.user.tenant,
-        // entityType: 'Config' // Future: for entity-level rules
-      },
-    );
-
-    if (readClassification.containsPII) {
-      // Log data access for audit trail (no protection needed for reads)
-      UseCaseLoggingUtil.logComplianceCheck(
-        this.logger,
-        operation,
-        safeLogContext,
-        readClassification,
+      return err(
+        withContext(ConfigErrors.CONFIG_NOT_FOUND, {
+          webhookId,
+          correlationId,
+          userId: user.sub,
+          operation: 'get_config',
+        }),
       );
     }
 
-    // Step 7: Log operation success with comprehensive metrics
-    const executionTime = this.clock.nowMs() - startTime;
-    UseCaseLoggingUtil.logOperationSuccess(
-      this.logger,
-      operation,
-      safeLogContext,
-      {
-        executionTimeMs: executionTime,
-        businessData: {
-          configWebhookId: params.webhookId,
-          found: true,
-          cacheEnabled: true,
-          cacheTtl: repositoryOptions.cache?.ttl,
-          dataAccessLogged: true,
-        },
-      },
-    );
+    // Success - no logging needed as this is handled at service layer
 
     return ok(configDto);
   }
