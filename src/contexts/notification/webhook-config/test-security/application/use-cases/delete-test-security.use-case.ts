@@ -37,8 +37,6 @@ import {
 } from '../ports';
 import { TestSecurityAuthorizationAdapter } from '../services';
 
-// Note: PII protection and compliance handled at service/infrastructure layer
-
 type TestSecuritySnapshot = Parameters<
   typeof deleteTestSecurityAggregateFromSnapshot
 >[0];

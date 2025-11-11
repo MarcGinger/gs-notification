@@ -32,23 +32,14 @@ import { WorkspaceAuthorizationAdapter } from '../services';
 import { ListWorkspaceFilterRequest, WorkspacePageResponse } from '../dtos';
 import { IListWorkspaceUseCase } from './contracts';
 
-// Shared compliance services (lightweight for list operations)
-import {
-  PIIClassificationService,
-  PIIProtectionService,
-  DataRetentionService,
-} from 'src/shared/services/compliance';
-
 /**
- * ✅ Enhanced List Workspace Use Case with Enterprise Logging and Compliance
+ * List Workspace Use Case
  *
  * Features:
- * - Classification-only PII approach (no domain data mutation)
- * - Safe logging contexts to prevent accidental PII disclosure
- * - Enhanced error handling with structured domain errors
  * - Authorization-based filtering with batch processing
- * - Comprehensive audit trails and compliance tracking
  * - Pagination validation and security controls
+ * - Essential audit trails and error handling
+ * - Query validation and execution
  */
 @Injectable()
 export class ListWorkspaceUseCase implements IListWorkspaceUseCase {
@@ -61,9 +52,6 @@ export class ListWorkspaceUseCase implements IListWorkspaceUseCase {
     private readonly authorizationService: WorkspaceAuthorizationAdapter,
     @Inject(APP_LOGGER) moduleLogger: Logger,
     @Inject(CLOCK) private readonly clock: Clock,
-    private readonly piiClassificationService: PIIClassificationService,
-    private readonly piiProtectionService: PIIProtectionService,
-    private readonly dataRetentionService: DataRetentionService,
   ) {
     this.loggingConfig = {
       serviceName: WebhookConfigServiceConstants.SERVICE_NAME,
@@ -196,30 +184,8 @@ export class ListWorkspaceUseCase implements IListWorkspaceUseCase {
         return err(authorizedWorkspaceResult.error);
       }
 
-      // Step 5: Light compliance check for list operations (audit log only)
+      // Step 5: Log successful data access for audit trail
       const finalResult = authorizedWorkspaceResult.value;
-      if (finalResult.data && finalResult.data.length > 0) {
-        // For list operations, we log bulk data access for compliance audit
-        const sampleData = finalResult.data[0]; // Use first item for classification
-        const listClassification = this.piiClassificationService.classifyData(
-          {},
-          {
-            domain: 'webhook-config',
-            tenant: query.user.tenant,
-            // entityType: 'Workspace' // Future: for entity-level rules
-          },
-        );
-
-        if (listClassification.containsPII) {
-          // Log bulk data access for audit trail
-          UseCaseLoggingUtil.logComplianceCheck(
-            this.logger,
-            operation,
-            safeLogContext,
-            listClassification,
-          );
-        }
-      }
 
       // Step 6: Log operation success with comprehensive metrics
       const executionTime = this.clock.nowMs() - startTime;

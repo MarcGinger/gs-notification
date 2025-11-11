@@ -40,7 +40,7 @@ import { TestSecurityAuthorizationAdapter } from '../services';
 import { DetailTestSecurityResponse } from '../dtos';
 import { TestSecurityDtoAssembler } from '../assemblers';
 import { IUpdateTestSecurityUseCase } from './contracts';
-// Note: PII protection and compliance handled at service/infrastructure layer
+
 type TestSecuritySnapshot = Parameters<
   typeof updateTestSecurityAggregateFromSnapshot
 >[0];

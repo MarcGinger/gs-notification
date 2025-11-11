@@ -38,8 +38,6 @@ import { DetailTestSecurityResponse } from '../dtos';
 import { TestSecurityDtoAssembler } from '../assemblers';
 import { ICreateTestSecurityUseCase } from './contracts';
 
-// Note: PII protection and compliance handled at service/infrastructure layer
-
 @Injectable()
 export class CreateTestSecurityUseCase implements ICreateTestSecurityUseCase {
   private readonly logger: Logger;
