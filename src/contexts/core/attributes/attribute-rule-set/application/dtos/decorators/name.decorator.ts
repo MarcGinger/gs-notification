@@ -22,7 +22,7 @@ export function ApiAttributeRuleSetName(options: PropOptions = {}) {
 
   return applyDecorators(
     ApiProperty({
-      description: `Human-readable display name for the lookup type. Used in administrative interfaces and documentation to describe the purpose of this lookup category.`,
+      description: `Human-readable display name for the attribute rule set. Used in administrative interfaces and documentation to describe the purpose of this rule set category.`,
       example: `Countries`,
       type: String,
       required,

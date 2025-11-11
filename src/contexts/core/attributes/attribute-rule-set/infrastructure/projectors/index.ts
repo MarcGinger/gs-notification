@@ -1,1 +1,1 @@
-export * from './attribute-rule-set-memory.projector';
+export * from './attribute-rule-set-redis.projector';

@@ -39,7 +39,6 @@ import { AttributeRuleSetAuthContext } from '../types/attribute-rule-set-auth-co
 // Use case contracts
 import {
   IUpsertAttributeRuleSetUseCase,
-  IDeleteAttributeRuleSetUseCase,
   IGetAttributeRuleSetUseCase,
   IListAttributeRuleSetUseCase,
 } from '../use-cases/contracts';
@@ -54,7 +53,6 @@ export class AttributeRuleSetApplicationService {
   constructor(
     private readonly attributeRuleSetAuthorizationService: AttributeRuleSetAuthorizationService,
     private readonly upsertAttributeRuleSetUseCase: IUpsertAttributeRuleSetUseCase,
-    private readonly deleteAttributeRuleSetUseCase: IDeleteAttributeRuleSetUseCase,
     private readonly getAttributeRuleSetUseCase: IGetAttributeRuleSetUseCase,
     private readonly listAttributeRuleSetUseCase: IListAttributeRuleSetUseCase,
     @Inject(CLOCK) private readonly clock: Clock,
@@ -131,7 +129,7 @@ export class AttributeRuleSetApplicationService {
    * Centralized auth → log → execute → catch pattern
    */
   private async authorizeThenExecute<T>(args: {
-    operation: 'create' | 'update' | 'delete' | 'read';
+    operation: 'create' | 'update' | 'read';
     user: IUserToken;
     code?: string;
     correlationIdPrefix: string;
@@ -313,59 +311,6 @@ export class AttributeRuleSetApplicationService {
           }),
         }),
       logContext: { code: validatedcode },
-    });
-  }
-
-  /**
-   * Delete an attributeRuleSet with authorization
-   */
-  async deleteAttributeRuleSet(
-    user: IUserToken,
-    code: string,
-  ): Promise<Result<void, DomainError>> {
-    // Early input validation
-    const codeValidation = this.validateCode(code, 'delete');
-    if (!codeValidation.ok) {
-      return err(codeValidation.error);
-    }
-
-    const validatedcode = codeValidation.value;
-    const authContext = this.createAuthContext(user, 'delete');
-
-    return this.authorizeThenExecute<void>({
-      operation: 'delete',
-      user,
-      code: validatedcode,
-      correlationIdPrefix: 'attribute-rule-set-delete',
-      doAuthorize: () =>
-        this.attributeRuleSetAuthorizationService.canDeleteAttributeRuleSet(
-          user.sub,
-          validatedcode,
-          CorrelationUtil.generateForOperation('attribute-rule-set-delete'),
-          authContext,
-        ),
-      doExecute: () => {
-        // Log high-risk operation before execution
-        Log.warn(
-          this.logger,
-          'AttributeRuleSet deletion authorized - HIGH RISK OPERATION',
-          {
-            code: validatedcode,
-            userId: user.sub,
-            riskLevel: 'HIGH',
-            operation: 'delete_attribute_rule_set',
-          },
-        );
-        return this.deleteAttributeRuleSetUseCase.execute({
-          user,
-          code: validatedcode,
-          correlationId: CorrelationUtil.generateForOperation(
-            'attribute-rule-set-delete',
-          ),
-          authorizationReason: 'delete_attribute_rule_set',
-        });
-      },
-      logContext: { code: validatedcode, riskLevel: 'HIGH' },
     });
   }
 

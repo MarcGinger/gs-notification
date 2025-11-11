@@ -22,7 +22,7 @@ export function ApiAttributeRuleSetDescription(options: PropOptions = {}) {
 
   return applyDecorators(
     ApiProperty({
-      description: `Detailed description explaining the purpose, usage, and business context of this lookup type. May include formatting guidelines and data governance notes.`,
+      description: `Detailed description explaining the purpose, usage, and business context of this attribute rule set. May include formatting guidelines and data governance notes.`,
       example: `ISO 3166 country codes and names for international address validation`,
       type: String,
       required,

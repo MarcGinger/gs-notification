@@ -33,9 +33,8 @@
           "update": true,
           "get": true,
           "list": true,
-          "relationship": "object",
           "parentRelationship": "",
-          "childRelationship": "attributerule_lookup_type",
+          "childRelationship": "attribute_rule_attribute_rule_set",
           "meta": {
             "kind": "json",
             "jsonShape": "object"
@@ -390,7 +389,7 @@
       ],
       "relationships": [
         {
-          "name": "attributerule_lookup_type",
+          "name": "attribute_rule_attribute_rule_set",
           "parentTable": "attribute_rule",
           "parentColumn": {
             "name": "id",
@@ -411,9 +410,8 @@
             "update": true,
             "get": true,
             "list": true,
-            "relationship": "object",
             "parentRelationship": "",
-            "childRelationship": "attributerule_lookup_type",
+            "childRelationship": "attribute_rule_attribute_rule_set",
             "meta": {
               "kind": "json",
               "jsonShape": "object"
@@ -428,9 +426,9 @@
             "datatype": "JSON",
             "primaryKey": false,
             "required": true,
-            "description": "Map of attribute rule definitions keyed by attribute code. Each entry defines the validation and behavior for that attribute.",
+            "description": "JSON object containing the collection of attribute rules that belong to this rule set. Each rule defines validation constraints, types, and behavior for specific attributes.",
             "defaultvalue": "",
-            "example": "[{\"tenant\": \"default\", \"rule_id\": \"iso_code\"}]",
+            "example": "{\"tenant\": \"default\", \"rule_id\": \"email_validation\"}",
             "autoIncrement": false,
             "array": false,
             "isPII": "",
@@ -439,15 +437,15 @@
             "update": true,
             "get": true,
             "list": true,
-            "relationship": "object",
-            "parentRelationship": "attributerule_lookup_type",
+            "relationship": "one",
+            "parentRelationship": "attribute_rule_attribute_rule_set",
             "childRelationship": "",
             "meta": {
               "kind": "json",
-              "jsonShape": "object"
+              "jsonShape": "one"
             }
           },
-          "type": "object",
+          "type": "one",
           "complex": true
         }
       ],
@@ -472,9 +470,8 @@
           "update": true,
           "get": true,
           "list": true,
-          "relationship": "object",
           "parentRelationship": "",
-          "childRelationship": "attributerule_lookup_type",
+          "childRelationship": "attribute_rule_attribute_rule_set",
           "meta": {
             "kind": "json",
             "jsonShape": "object"
@@ -517,21 +514,21 @@
       },
       "apis": {},
       "store": {
-        "read": "memory",
-        "write": "memory",
-        "query": "memory",
-        "projector": "memory"
+        "read": "redis",
+        "write": "kurrentdb",
+        "query": "redis",
+        "projector": "redis"
       },
       "options": {
         "command": true,
         "create": true,
         "update": true,
-        "read": "memory",
-        "write": "memory",
-        "query": "memory",
-        "projector": "memory",
+        "read": "redis",
+        "write": "kurrentdb",
+        "query": "redis",
+        "projector": "redis",
         "queue": false,
-        "softDelete": true,
+        "softDelete": false,
         "timestamps": true,
         "versioning": true,
         "logging": true,
@@ -590,7 +587,7 @@
           "datatype": "VARCHAR",
           "primaryKey": true,
           "required": true,
-          "description": "Primary key and unique identifier for the lookup type. Defines the category or classification that groups related lookup entries together.",
+          "description": "Primary key and unique identifier for the attribute rule set. Defines the category or classification that groups related attribute rules together.",
           "defaultvalue": "",
           "example": "COUNTRY",
           "autoIncrement": false,
@@ -617,7 +614,7 @@
           "datatype": "VARCHAR",
           "primaryKey": false,
           "required": true,
-          "description": "Human-readable display name for the lookup type. Used in administrative interfaces and documentation to describe the purpose of this lookup category.",
+          "description": "Human-readable display name for the attribute rule set. Used in administrative interfaces and documentation to describe the purpose of this rule set category.",
           "defaultvalue": "",
           "example": "Countries",
           "autoIncrement": false,
@@ -644,7 +641,7 @@
           "datatype": "TEXT",
           "primaryKey": false,
           "required": false,
-          "description": "Detailed description explaining the purpose, usage, and business context of this lookup type. May include formatting guidelines and data governance notes.",
+          "description": "Detailed description explaining the purpose, usage, and business context of this attribute rule set. May include formatting guidelines and data governance notes.",
           "defaultvalue": "",
           "example": "ISO 3166 country codes and names for international address validation",
           "autoIncrement": false,
@@ -670,7 +667,7 @@
           "datatype": "BOOLEAN",
           "primaryKey": false,
           "required": false,
-          "description": "Controls whether this lookup type is active and available for use. When disabled, the type and its associated lookup entries are hidden from selection interfaces.",
+          "description": "Controls whether this attribute rule set is active and available for use. When disabled, the rule set and its associated attribute rules are hidden from validation interfaces.",
           "defaultvalue": "",
           "example": "true",
           "autoIncrement": false,
@@ -695,9 +692,9 @@
           "datatype": "JSON",
           "primaryKey": false,
           "required": true,
-          "description": "Map of attribute rule definitions keyed by attribute code. Each entry defines the validation and behavior for that attribute.",
+          "description": "JSON object containing the collection of attribute rules that belong to this rule set. Each rule defines validation constraints, types, and behavior for specific attributes.",
           "defaultvalue": "",
-          "example": "[{\"tenant\": \"default\", \"rule_id\": \"iso_code\"}]",
+          "example": "{\"tenant\": \"default\", \"rule_id\": \"email_validation\"}",
           "autoIncrement": false,
           "array": false,
           "isPII": "",
@@ -706,18 +703,18 @@
           "update": true,
           "get": true,
           "list": true,
-          "relationship": "object",
-          "parentRelationship": "attributerule_lookup_type",
+          "relationship": "one",
+          "parentRelationship": "attribute_rule_attribute_rule_set",
           "childRelationship": "",
           "meta": {
             "kind": "json",
-            "jsonShape": "object"
+            "jsonShape": "one"
           }
         }
       ],
       "relationships": [
         {
-          "name": "attributerule_lookup_type",
+          "name": "attribute_rule_attribute_rule_set",
           "parentTable": "attribute_rule",
           "parentColumn": {
             "name": "id",
@@ -738,9 +735,8 @@
             "update": true,
             "get": true,
             "list": true,
-            "relationship": "object",
             "parentRelationship": "",
-            "childRelationship": "attributerule_lookup_type",
+            "childRelationship": "attribute_rule_attribute_rule_set",
             "meta": {
               "kind": "json",
               "jsonShape": "object"
@@ -755,9 +751,9 @@
             "datatype": "JSON",
             "primaryKey": false,
             "required": true,
-            "description": "Map of attribute rule definitions keyed by attribute code. Each entry defines the validation and behavior for that attribute.",
+            "description": "JSON object containing the collection of attribute rules that belong to this rule set. Each rule defines validation constraints, types, and behavior for specific attributes.",
             "defaultvalue": "",
-            "example": "[{\"tenant\": \"default\", \"rule_id\": \"iso_code\"}]",
+            "example": "{\"tenant\": \"default\", \"rule_id\": \"email_validation\"}",
             "autoIncrement": false,
             "array": false,
             "isPII": "",
@@ -766,15 +762,15 @@
             "update": true,
             "get": true,
             "list": true,
-            "relationship": "object",
-            "parentRelationship": "attributerule_lookup_type",
+            "relationship": "one",
+            "parentRelationship": "attribute_rule_attribute_rule_set",
             "childRelationship": "",
             "meta": {
               "kind": "json",
-              "jsonShape": "object"
+              "jsonShape": "one"
             }
           },
-          "type": "object",
+          "type": "one",
           "complex": true
         }
       ],
@@ -788,7 +784,7 @@
           "datatype": "VARCHAR",
           "primaryKey": true,
           "required": true,
-          "description": "Primary key and unique identifier for the lookup type. Defines the category or classification that groups related lookup entries together.",
+          "description": "Primary key and unique identifier for the attribute rule set. Defines the category or classification that groups related attribute rules together.",
           "defaultvalue": "",
           "example": "COUNTRY",
           "autoIncrement": false,
@@ -817,7 +813,7 @@
           "datatype": "VARCHAR",
           "primaryKey": true,
           "required": true,
-          "description": "Primary key and unique identifier for the lookup type. Defines the category or classification that groups related lookup entries together.",
+          "description": "Primary key and unique identifier for the attribute rule set. Defines the category or classification that groups related attribute rules together.",
           "defaultvalue": "",
           "example": "COUNTRY",
           "autoIncrement": false,
@@ -844,7 +840,7 @@
           "datatype": "VARCHAR",
           "primaryKey": false,
           "required": true,
-          "description": "Human-readable display name for the lookup type. Used in administrative interfaces and documentation to describe the purpose of this lookup category.",
+          "description": "Human-readable display name for the attribute rule set. Used in administrative interfaces and documentation to describe the purpose of this rule set category.",
           "defaultvalue": "",
           "example": "Countries",
           "autoIncrement": false,
@@ -871,21 +867,21 @@
       },
       "apis": {},
       "store": {
-        "read": "memory",
-        "write": "memory",
-        "query": "memory",
-        "projector": "memory"
+        "read": "redis",
+        "write": "kurrentdb",
+        "query": "redis",
+        "projector": "redis"
       },
       "options": {
         "command": true,
         "create": true,
         "update": true,
-        "read": "memory",
-        "write": "memory",
-        "query": "memory",
-        "projector": "memory",
+        "read": "redis",
+        "write": "kurrentdb",
+        "query": "redis",
+        "projector": "redis",
         "queue": false,
-        "softDelete": true,
+        "softDelete": false,
         "timestamps": true,
         "versioning": true,
         "logging": true,
@@ -933,7 +929,7 @@
   ],
   "relationships": [
     {
-      "name": "attributerule_lookup_type",
+      "name": "attribute_rule_attribute_rule_set",
       "parentTable": "attribute_rule",
       "parentColumn": {
         "name": "id",
@@ -954,9 +950,8 @@
         "update": true,
         "get": true,
         "list": true,
-        "relationship": "object",
         "parentRelationship": "",
-        "childRelationship": "attributerule_lookup_type",
+        "childRelationship": "attribute_rule_attribute_rule_set",
         "meta": {
           "kind": "json",
           "jsonShape": "object"
@@ -971,9 +966,9 @@
         "datatype": "JSON",
         "primaryKey": false,
         "required": true,
-        "description": "Map of attribute rule definitions keyed by attribute code. Each entry defines the validation and behavior for that attribute.",
+        "description": "JSON object containing the collection of attribute rules that belong to this rule set. Each rule defines validation constraints, types, and behavior for specific attributes.",
         "defaultvalue": "",
-        "example": "[{\"tenant\": \"default\", \"rule_id\": \"iso_code\"}]",
+        "example": "{\"tenant\": \"default\", \"rule_id\": \"email_validation\"}",
         "autoIncrement": false,
         "array": false,
         "isPII": "",
@@ -982,15 +977,15 @@
         "update": true,
         "get": true,
         "list": true,
-        "relationship": "object",
-        "parentRelationship": "attributerule_lookup_type",
+        "relationship": "one",
+        "parentRelationship": "attribute_rule_attribute_rule_set",
         "childRelationship": "",
         "meta": {
           "kind": "json",
-          "jsonShape": "object"
+          "jsonShape": "one"
         }
       },
-      "type": "object",
+      "type": "one",
       "complex": true
     }
   ],

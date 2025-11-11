@@ -12,8 +12,6 @@ import {
 import {
   IUpsertAttributeRuleSetUseCase,
   UpsertAttributeRuleSetUseCase,
-  IDeleteAttributeRuleSetUseCase,
-  DeleteAttributeRuleSetUseCase,
   IGetAttributeRuleSetUseCase,
   GetAttributeRuleSetUseCase,
   IListAttributeRuleSetUseCase,
@@ -62,10 +60,6 @@ import {
     {
       provide: IUpsertAttributeRuleSetUseCase,
       useClass: UpsertAttributeRuleSetUseCase,
-    },
-    {
-      provide: IDeleteAttributeRuleSetUseCase,
-      useClass: DeleteAttributeRuleSetUseCase,
     },
     {
       provide: IGetAttributeRuleSetUseCase,

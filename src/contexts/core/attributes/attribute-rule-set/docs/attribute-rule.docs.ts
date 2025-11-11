@@ -5,7 +5,6 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { INestApplication } from '@nestjs/common';
 import { SwaggerConfigUtil } from 'src/docs/swagger-config.util';
 import { AttributeRuleSetModule } from '../attribute-rule-set.module';
-import { DetailAttributeRuleResponse } from '../application/dtos';
 
 /**
  * AttributeRule Documentation
@@ -44,7 +43,7 @@ export class AttributeRuleDocumentation {
 
     const document = SwaggerModule.createDocument(app, config.build(), {
       include: [AttributeRuleSetModule],
-      extraModels: [DetailAttributeRuleResponse],
+      extraModels: [],
     });
 
     SwaggerModule.setup(

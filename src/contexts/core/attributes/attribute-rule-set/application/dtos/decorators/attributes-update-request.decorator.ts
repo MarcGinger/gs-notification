@@ -2,16 +2,10 @@
 // REMOVE THIS COMMENT TO STOP AUTOMATIC UPDATES TO THIS BLOCK
 
 import { applyDecorators } from '@nestjs/common';
-import { ApiProperty, getSchemaPath } from '@nestjs/swagger';
-import { transformAndValidateRecord } from 'src/shared/application/decorators';
-import { Transform } from 'class-transformer';
-import {
-  IsOptional,
-  IsNotEmpty,
-  ValidateNested,
-  IsObject,
-} from 'class-validator';
-import { UpdateAttributeRuleRequest } from '../attribute-rule';
+import { ApiProperty } from '@nestjs/swagger';
+import { IsObject, IsOptional, IsNotEmpty } from 'class-validator';
+import { Type } from 'class-transformer';
+import { UpdateAttributeRuleRequest } from '../../dtos/attribute-rule';
 
 /**
  * Options for property decorators
@@ -31,15 +25,11 @@ export function ApiAttributeRuleSetAttributesUpdateRequest(
   const { required = true } = options;
   return applyDecorators(
     ApiProperty({
-      description: `Map of attribute rule definitions keyed by attribute code. Each entry defines the validation and behavior for that attribute.`,
-      type: 'object',
-      additionalProperties: { $ref: getSchemaPath(UpdateAttributeRuleRequest) },
-      required: [],
+      description: `JSON object containing the collection of attribute rules that belong to this rule set. Each rule defines validation constraints, types, and behavior for specific attributes.`,
+      type: () => UpdateAttributeRuleRequest,
+      required,
     }),
-    Transform(({ value }) =>
-      transformAndValidateRecord(value, UpdateAttributeRuleRequest),
-    ),
-    ValidateNested({ each: true }),
+    Type(() => UpdateAttributeRuleRequest),
     IsObject(),
     required ? IsNotEmpty() : IsOptional(),
   );

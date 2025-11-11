@@ -282,7 +282,7 @@
 				}
 			],
 			"relations": [
-				"2988f81b-69ca-43ca-aa12-59cf678a5143"
+				"9b672357-8b2f-4ad8-b750-1caa0424ac61"
 			],
 			"lines": [],
 			"keys": [
@@ -356,7 +356,7 @@
 					"pk": true,
 					"nn": true,
 					"fk": false,
-					"comment": "Primary key and unique identifier for the lookup type. Defines the category or classification that groups related lookup entries together.",
+					"comment": "Primary key and unique identifier for the attribute rule set. Defines the category or classification that groups related attribute rules together.",
 					"defaultvalue": "",
 					"data": "COUNTRY",
 					"after": "",
@@ -377,7 +377,7 @@
 					"pk": false,
 					"nn": true,
 					"fk": false,
-					"comment": "Human-readable display name for the lookup type. Used in administrative interfaces and documentation to describe the purpose of this lookup category.",
+					"comment": "Human-readable display name for the attribute rule set. Used in administrative interfaces and documentation to describe the purpose of this rule set category.",
 					"defaultvalue": "",
 					"data": "Countries",
 					"after": "",
@@ -398,7 +398,7 @@
 					"pk": false,
 					"nn": false,
 					"fk": false,
-					"comment": "Detailed description explaining the purpose, usage, and business context of this lookup type. May include formatting guidelines and data governance notes.",
+					"comment": "Detailed description explaining the purpose, usage, and business context of this attribute rule set. May include formatting guidelines and data governance notes.",
 					"defaultvalue": "",
 					"data": "ISO 3166 country codes and names for international address validation",
 					"after": "",
@@ -419,7 +419,7 @@
 					"pk": false,
 					"nn": false,
 					"fk": false,
-					"comment": "Controls whether this lookup type is active and available for use. When disabled, the type and its associated lookup entries are hidden from selection interfaces.",
+					"comment": "Controls whether this attribute rule set is active and available for use. When disabled, the rule set and its associated attribute rules are hidden from validation interfaces.",
 					"defaultvalue": "",
 					"data": "true",
 					"after": "",
@@ -433,29 +433,29 @@
 					"estimatedSize": ""
 				},
 				{
-					"id": "d0b7b3ec-a9b5-4fa0-bb9a-ae881cdfd52d",
+					"id": "7c243848-decd-4594-85da-ade3baac44e1",
 					"name": "attributes",
 					"datatype": "JSON",
 					"param": "",
 					"pk": false,
 					"nn": true,
 					"fk": true,
-					"comment": "Map of attribute rule definitions keyed by attribute code. Each entry defines the validation and behavior for that attribute.",
+					"comment": "JSON object containing the collection of attribute rules that belong to this rule set. Each rule defines validation constraints, types, and behavior for specific attributes.",
 					"defaultvalue": "",
-					"data": "[{\"tenant\": \"default\", \"rule_id\": \"iso_code\"}]",
+					"data": "{\"tenant\": \"default\", \"rule_id\": \"email_validation\"}",
 					"after": "object()",
 					"autoinc": false,
 					"collation": "",
 					"charset": "",
 					"binary": false,
 					"zerofill": false,
-					"unsigned": true,
+					"unsigned": false,
 					"enum": "",
 					"estimatedSize": ""
 				}
 			],
 			"relations": [
-				"2988f81b-69ca-43ca-aa12-59cf678a5143"
+				"9b672357-8b2f-4ad8-b750-1caa0424ac61"
 			],
 			"lines": [],
 			"keys": [
@@ -474,7 +474,7 @@
 			"indexes": [
 				{
 					"id": "6ad6cd32-3f2e-4a1f-8b8c-d2d3671684a8",
-					"name": "lookup_type_ix_code",
+					"name": "attribute_rule_set_ix_code",
 					"unique": false,
 					"fulltext": false,
 					"using": "na",
@@ -492,7 +492,7 @@
 				},
 				{
 					"id": "0596b23b-34b0-4d7f-affe-1c9e3cf0c1e6",
-					"name": "lookup_type_ix_name",
+					"name": "attribute_rule_set_x_name",
 					"unique": false,
 					"fulltext": false,
 					"using": "na",
@@ -511,8 +511,8 @@
 			],
 			"embeddable": false,
 			"generate": true,
-			"generateCustomCode": true,
-			"customCode": "",
+			"generateCustomCode": false,
+			"customCode": "write('kurrentdb')\nread('redis')\nquery('redis')\nprojector('redis')\nsoftDelete(false)",
 			"tabletype": "InnoDB",
 			"collation": "utf8mb4_general_ci",
 			"charset": "utf8mb4",
@@ -524,9 +524,9 @@
 		}
 	},
 	"relations": {
-		"2988f81b-69ca-43ca-aa12-59cf678a5143": {
-			"id": "2988f81b-69ca-43ca-aa12-59cf678a5143",
-			"name": "attributerule_lookup_type",
+		"9b672357-8b2f-4ad8-b750-1caa0424ac61": {
+			"id": "9b672357-8b2f-4ad8-b750-1caa0424ac61",
+			"name": "attribute_rule_attribute_rule_set",
 			"desc": "",
 			"type": "identifying",
 			"parent_key": "0a3e37e9-985f-4070-8a93-1f7b3c82f508",
@@ -534,15 +534,15 @@
 			"child": "26cdf662-b910-43c0-8541-2cff7760e849",
 			"c_mp": "true",
 			"c_mch": "true",
-			"c_p": "many",
+			"c_p": "one",
 			"c_ch": "many",
 			"c_cp": "",
 			"c_cch": "",
 			"cols": [
 				{
-					"id": "5c445234-a045-46a4-adfb-9733748fb8fa",
+					"id": "5341bb26-deb0-467f-b04a-1b458e60aa1c",
 					"parentcol": "3a40a745-2e81-4256-8d7e-9895a3837920",
-					"childcol": "d0b7b3ec-a9b5-4fa0-bb9a-ae881cdfd52d"
+					"childcol": "7c243848-decd-4594-85da-ade3baac44e1"
 				}
 			],
 			"generate": true,
@@ -566,7 +566,7 @@
 		"def_database": "gscore-lookup",
 		"desc": "# 📘 Attribute Rule Set Service — Detailed Description\n\n## 1. Purpose and Overview\n\nThe **Attribute Rule Set Service** is a foundational microservice responsible for defining, governing, and exposing **reusable sets of attribute rules** that can be applied across multiple domains. Instead of each bounded context inventing its own way of describing dynamic fields, this service provides a **central catalog of rule sets** that describe *how attributes should behave* (type, constraints, validation messages, etc.).\n\nWhere other services manage concrete entities (Lookup, Person, Company, Customer, Supplier, Employer, etc.), the Attribute Rule Set Service manages **metadata about attributes**:\n\n* What fields exist (by code and name)\n* What type each field is (string, boolean, integer, currency, date, datetime, other)\n* Which fields are required or unique\n* Which fields must match a regex pattern\n* Which fields are reserved or used as references\n\nBy centralizing attribute rule sets, the service ensures that all domains implement their dynamic attributes **consistently and with shared validation logic**.\n\n---\n\n## 2. Core Responsibilities\n\n### 2.1 Attribute Rule Set Management\n\n* Define reusable **attribute rule sets**, each identified by a unique `code`.\n* Each rule set contains a **map of attribute rules**, keyed by attribute code.\n* Manage lifecycle operations:\n\n  * Create, update, enable/disable, and (soft) delete rule sets.\n* Support per-tenant customization of rule sets where needed.\n\n### 2.2 Attribute Rule Definition\n\nFor each attribute in a rule set, the service defines:\n\n* **Identity & description**\n\n  * `code` — technical identifier for the attribute (e.g. `email`, `risk_level`).\n  * `name` — user-facing label (e.g. \"Email\", \"Risk Level\").\n  * `description` — human-readable explanation and business context.\n\n* **Type & behavior**\n\n  * `type` — one of `string | boolean | integer | currency | date | datetime | other`.\n  * `reference` — whether this field is a reference/search key.\n  * `reserved` — protects attributes that must not be removed or radically changed.\n\n* **Validation rules**\n\n  * `required` — whether the field must always be present.\n  * `requiredError` — error message shown when required validation fails.\n  * `unique` — whether the field must be unique in its scope.\n  * `uniqueError` — error message when uniqueness is violated.\n  * `regex` — optional pattern for format validation.\n  * `regexError` — error message when the value doesn't match the pattern.\n\nThese rules are **pure metadata**; the actual data (lookup entities, people, companies, etc.) lives in other services.\n\n### 2.3 Validation-as-a-Service (via metadata)\n\nThe Attribute Rule Set Service itself does not validate entity payloads directly; instead, it provides:\n\n* A **canonical description** of attribute rules.\n* A contract that other services use to validate their own dynamic attributes.\n\nOther microservices can:\n\n* Query an attribute rule set by `code`.\n* Retrieve all rules for a given set.\n* Use those rules to perform client-side or server-side validation.\n\nThis turns validation into a **shared capability**, while keeping entity-specific logic in the owning bounded context.\n\n### 2.4 Multi-Domain Reuse\n\nAny domain that manages entities with flexible attributes can **bind to one or more attribute rule sets**, for example:\n\n* **Lookup** entries using rule sets like `COUNTRY_ATTRIBUTES`, `ACCOUNT_STATUS_ATTRIBUTES`.\n* **Person** domain using rule sets like `PERSON_PROFILE_ATTRIBUTES`.\n* **Customer** domain using rule sets like `CUSTOMER_CLASSIFICATION_ATTRIBUTES`.\n\nThis eliminates duplicated schema logic and promotes governance: rule sets are changed once and reflected everywhere they are used.\n\n---\n\n## 3. Domain Model\n\n### 3.1 AttributeRuleSet Aggregate\n\n**Purpose:** Represents a named collection of attribute rules.\n\n**Attributes:**\n\n* `code` — Unique technical identifier for the rule set (immutable), e.g. `PERSON_PROFILE_ATTRIBUTES`.\n* `name` — Human-readable label, e.g. \"Person Profile Attributes\".\n* `description` — Optional detailed explanation and business context.\n* `enabled` — Whether this rule set is active and should be used by consuming services.\n* `rules` — A map of `AttributeRule` value objects keyed by attribute code.\n\n**Responsibilities:**\n\n* Create, update, and deactivate rule sets.\n* Add, update, and remove individual attribute rules.\n* Enforce invariants between rules (no duplicate codes, reserved rules protected, valid types and regex patterns, etc.).\n\n**Example Structure:**\n\n```json\n{\n  \"code\": \"CUSTOMER_CLASSIFICATION_ATTRIBUTES\",\n  \"name\": \"Customer Classification Attributes\",\n  \"rules\": {\n    \"riskLevel\": {\n      \"type\": \"string\",\n      \"required\": true\n    },\n    \"creditScore\": {\n      \"type\": \"integer\",\n      \"required\": false\n    }\n  }\n}\n```\n\n**Domain Events (examples):**\n\n* `AttributeRuleSetCreated`\n* `AttributeRuleSetUpdated`\n* `AttributeRuleSetEnabled`\n* `AttributeRuleSetDisabled`\n* `AttributeRuleAdded`\n* `AttributeRuleUpdated`\n* `AttributeRuleRemoved`\n\n### 3.2 AttributeRule Value Object\n\n**Purpose:** Describes the behavior and constraints of a single attribute field inside a rule set.\n\n**Attributes:**\n\n* `code` — Unique code of the attribute within the rule set.\n* `name` — Human-readable label.\n* `description` — What the attribute represents and how it's used.\n* `type` — Data type (`string`, `integer`, `boolean`, `currency`, `date`, `datetime`, `other`).\n* `required` — Whether this attribute must always be present when the rule set is applied.\n* `unique` — Whether the attribute value must be unique in the scope defined by the consuming service.\n* `regex` — Optional pattern to validate the data format.\n* `reference` — Whether this attribute can be used as a reference/search key.\n* `reserved` — Whether this attribute is protected from deletion or incompatible changes.\n* `requiredError`, `uniqueError`, `regexError` — User-facing error messages for validation failures.\n\n**Validation Behavior (as metadata):**\n\n* Defines which attributes are mandatory.\n* Defines uniqueness and format rules.\n* Supplies message templates that consuming services can reuse when returning errors.\n\n---\n\n## 4. Integration and Implementation Model\n\n### 4.1 API Integration\n\nOther domains use the Attribute Rule Set Service via REST or internal service calls, typically:\n\n#### Query APIs\n\n* `GET /api/v1/attribute-rule-sets` — List available rule sets.\n* `GET /api/v1/attribute-rule-sets/{code}` — Retrieve a specific rule set with all attribute rules.\n\n#### Command APIs\n\n* `POST /api/v1/attribute-rule-sets` — Create a new rule set.\n* `PUT /api/v1/attribute-rule-sets/{code}` — Replace an existing rule set definition (full update), or\n* `PATCH /api/v1/attribute-rule-sets/{code}` — Apply partial changes (if supported).\n\nEach domain can cache or project rule sets locally for fast runtime validation.\n\n### 4.2 Domain Integration Pattern\n\nEach bounded context that supports dynamic attributes (Person, Company, Lookup, etc.) typically implements an **AttributeRuleSetAdapter** or **AttributeRuleValidator**:\n\n1. On entity create/update, the service determines which rule set(s) apply to the entity.\n2. It loads the attribute rule set definition (from a local projection or via the Attribute Rule Set Service API).\n3. The validator applies type, required, unique, and regex rules to the entity's attribute payload.\n4. If validation passes, the entity is persisted and events are emitted.\n5. If validation fails, domain-specific validation errors are produced using the error messages defined in the rule set.\n\n### 4.3 Event-Driven Synchronization\n\n* Attribute rule sets and their rules are stored as events (e.g. in EventStoreDB) and exposed via read models.\n* Changes to rule sets are published as **domain events**.\n* Consuming services subscribe to these events and update their local projections or caches, so validation rules stay in sync without tight coupling.\n\n---\n\n## 5. Architectural Role\n\n### 5.1 Shared Governance Layer\n\n* Acts as a **single point of truth** for attribute rule sets across the platform.\n* Prevents each service from recreating similar validation logic.\n* Provides auditability: every rule set change is recorded as a domain event.\n\n### 5.2 Enabler for Dynamic Schemas\n\nBy decoupling attribute rules from persistence schemas:\n\n* Entities can gain new attributes without database migrations.\n* Front-end forms (e.g. FEML-driven UIs) can render fields and validation dynamically based on a rule set.\n* Admin tools can allow configuration of which rule sets apply to which entity types.\n\n### 5.3 Multi-Tenant Support\n\nEach `AttributeRuleSet` can be **scoped per tenant**, enabling custom metadata per tenant or organization.\n\nKey identifier pattern (example):\n\n```text\ncore-attributes:v1:{tenant}:rule-set:{ruleSetCode}\ncore-attributes:v1:{tenant}:rule:{ruleSetCode}:{attributeCode}\n```\n\n---\n\n## 6. Example Use Cases\n\n### 6.1 Lookup Domain\n\nDefine a rule set for account status metadata:\n\n```json\n{\n  \"code\": \"ACCOUNT_STATUS_ATTRIBUTES\",\n  \"name\": \"Account Status Attributes\",\n  \"rules\": {\n    \"category\": { \"type\": \"string\", \"required\": true },\n    \"terminal\": { \"type\": \"boolean\", \"required\": true }\n  }\n}\n```\n\nThe Lookup service applies this rule set to all lookup entries of type `ACCOUNT_STATUS` when validating their `attributes` payload.\n\n### 6.2 Person Domain\n\nDefine a rule set for optional profile attributes:\n\n```json\n{\n  \"code\": \"PERSON_PROFILE_ATTRIBUTES\",\n  \"name\": \"Person Profile Attributes\",\n  \"rules\": {\n    \"maritalStatus\": { \"type\": \"string\" },\n    \"employmentType\": { \"type\": \"string\" }\n  }\n}\n```\n\nThe Person service uses this rule set to validate additional profile data stored in a flexible `attributes` structure.\n\n### 6.3 Customer Domain\n\nDefine a rule set for customer classification:\n\n```json\n{\n  \"code\": \"CUSTOMER_CLASSIFICATION_ATTRIBUTES\",\n  \"name\": \"Customer Classification Attributes\",\n  \"rules\": {\n    \"riskLevel\": { \"type\": \"string\", \"required\": true },\n    \"creditScore\": { \"type\": \"integer\" }\n  }\n}\n```\n\nThe Customer service uses this to validate classification metadata and enforce that `riskLevel` is always present.\n\n---\n\n## 7. Benefits\n\n* **Centralized validation and governance** for all dynamic attributes.\n* **Reduced coupling** — domains depend on rule sets, not hard-coded schemas.\n* **Dynamic extensibility** — adding new attributes is a configuration change, not a migration.\n* **Auditability** — every rule set and rule change is captured as an event.\n* **Front-end flexibility** — UIs can render fields and validation dynamically from rule sets.\n\n---\n\n## 8. Summary\n\nThe **Attribute Rule Set Service** provides an event-driven, tenant-aware framework for defining and managing attribute rule sets across the platform. It acts as the **metadata backbone** for any domain requiring dynamic, extensible, and validated attributes.\n\nBy consolidating attribute rules into shared, reusable rule sets, it transforms attribute handling from ad-hoc, per-service logic into a governed, composable capability — improving consistency, adaptability, and developer productivity across the ecosystem.\n",
 		"id": "6645c9b2-33b9-4cef-bcf6-5f382e5ff3a6",
-		"isDirty": false,
+		"isDirty": true,
 		"name": "Attribute rule set management",
 		"parentTableInFkCols": true,
 		"path": "",
@@ -579,7 +579,7 @@
 		},
 		"type": "MARIADB",
 		"version": 1,
-		"lastSaved": 1762899475465,
+		"lastSaved": 1762903566303,
 		"beforeScript": "",
 		"afterScript": "",
 		"sqlSettings": {
@@ -625,8 +625,8 @@
 			"diagramItems": {
 				"172126ee-01dd-4c68-93b1-6084ca2e4c20": {
 					"referencedItemId": "172126ee-01dd-4c68-93b1-6084ca2e4c20",
-					"x": 393,
-					"y": 251,
+					"x": 354,
+					"y": 202,
 					"gHeight": 261,
 					"gWidth": 252,
 					"color": "#ffffff",
@@ -637,7 +637,7 @@
 				},
 				"26cdf662-b910-43c0-8541-2cff7760e849": {
 					"referencedItemId": "26cdf662-b910-43c0-8541-2cff7760e849",
-					"x": 397,
+					"x": 310,
 					"y": 40,
 					"gHeight": 117,
 					"gWidth": 202,
@@ -700,7 +700,7 @@
 	"order": [
 		"172126ee-01dd-4c68-93b1-6084ca2e4c20",
 		"26cdf662-b910-43c0-8541-2cff7760e849",
-		"2988f81b-69ca-43ca-aa12-59cf678a5143"
+		"9b672357-8b2f-4ad8-b750-1caa0424ac61"
 	],
 	"collapsedTreeItems": [],
 	"reverseStats": {}

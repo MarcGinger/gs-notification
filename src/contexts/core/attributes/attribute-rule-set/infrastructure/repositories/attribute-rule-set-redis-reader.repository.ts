@@ -2,6 +2,8 @@
 // REMOVE THIS COMMENT TO STOP AUTOMATIC UPDATES TO THIS BLOCK
 
 import { Injectable, Inject } from '@nestjs/common';
+import { Redis } from 'ioredis';
+import { CacheMetricsCollector } from 'src/shared/infrastructure/projections/cache-optimization';
 import { APP_LOGGER, Log, componentLogger, Logger } from 'src/shared/logging';
 import { CorrelationUtil } from 'src/shared/utilities/correlation.util';
 import { Clock, CLOCK } from 'src/shared/infrastructure/time';
@@ -9,34 +11,40 @@ import {
   RepositoryLoggingUtil,
   RepositoryLoggingConfig,
   handleRepositoryError,
+  safeParseJSON,
+  safeParseJSONArray,
   RepositoryOptions,
 } from 'src/shared/infrastructure/repositories';
 import { Result, DomainError, err, ok } from 'src/shared/errors';
 import { Option } from 'src/shared/domain/types';
 import { ActorContext } from 'src/shared/application/context';
 import { RepositoryErrorFactory } from 'src/shared/domain/errors/repository.error';
-import { AttributeRuleSetSnapshotProps } from '../../domain/props';
+import { ATTRIBUTES_DI_TOKENS } from '../../../attributes.constants';
+import { AttributeRuleSetProjectionKeys } from '../../attribute-rule-set-projection-keys';
+import {
+  AttributeRuleProps,
+  AttributeRuleSetSnapshotProps,
+} from '../../domain/props';
 import { AttributeRuleSetCode } from '../../domain/value-objects';
 import { IAttributeRuleSetReader } from '../../application/ports';
-import { attributeRuleSetStore } from '../stores/attribute-rule-set.store';
 
 /**
- * AttributeRuleSet Reader Repository - In-Memory Implementation
+ * AttributeRuleSet Reader Repository - Redis Implementation
  *
  * Bounded Context: Core/AttributeRuleSet
- * Handles basic read operations for AttributeRuleSet aggregates using in-memory projector
- * as the data source instead of SQL queries.
+ * Handles basic read operations for AttributeRuleSet aggregates using Redis projections
+ * as the data source with cluster-safe operations.
  *
  * Benefits:
- * - Zero external database dependencies
- * - Ultra-fast read operations (LRU cache)
- * - Perfect for testing, prototyping, and shadow validation
+ * - High-performance Redis backend
+ * - Cluster-safe operations with hash tags
+ * - Version hint optimization for cache efficiency
  * - Maintains same interface as SQL-based implementation
  * - Comprehensive logging and error handling
  *
- * @domain Core Context - AttributeRuleSet Reader Repository (In-Memory)
+ * @domain Core Context - AttributeRuleSet Reader Repository (Redis)
  * @layer Infrastructure
- * @pattern Repository Pattern + In-Memory Projector
+ * @pattern Repository Pattern + Redis Projector
  */
 @Injectable()
 export class AttributeRuleSetReaderRepository
@@ -44,16 +52,91 @@ export class AttributeRuleSetReaderRepository
 {
   private readonly logger: Logger;
   private readonly loggingConfig: RepositoryLoggingConfig;
+  private readonly metricsCollector = new CacheMetricsCollector();
 
   constructor(
     @Inject(APP_LOGGER) baseLogger: Logger,
     @Inject(CLOCK) private readonly clock: Clock,
+    @Inject(ATTRIBUTES_DI_TOKENS.IO_REDIS)
+    private readonly redis: Redis,
   ) {
     this.loggingConfig = {
       serviceName: 'AttributesService',
       component: 'AttributeRuleSetReaderRepository',
     };
     this.logger = componentLogger(baseLogger, this.loggingConfig.component);
+
+    Log.info(
+      this.logger,
+      'AttributeRuleSetReaderRepository initialized with Redis backend',
+      {
+        component: this.loggingConfig.component,
+        redisStatus: this.redis.status,
+        clusterSafe: true,
+        cacheOptimized: true,
+      },
+    );
+  }
+
+  /**
+   * Generate cluster-safe Redis keys using centralized AttributeRuleSetProjectionKeys
+   * Ensures consistency with projector key patterns
+   */
+  private generateAttributeRuleSetKey(tenant: string, id: string): string {
+    // ✅ Use centralized key generation for consistency
+    return AttributeRuleSetProjectionKeys.getRedisAttributeRuleSetKey(
+      tenant,
+      id,
+    );
+  }
+
+  /**
+   * Parse Redis hash data into AttributeRuleSetSnapshotProps
+   */
+  private parseRedisHashToAttributeRuleSet(
+    hashData: Record<string, string>,
+  ): AttributeRuleSetSnapshotProps | null {
+    try {
+      if (!hashData || Object.keys(hashData).length === 0) {
+        return null;
+      }
+
+      // Check for soft deletion
+      if (hashData.deletedAt) {
+        return null;
+      }
+
+      // Parse array fields using safeParseJSONArray utility
+
+      // Parse object fields using safeParseJSON utility
+      const attributes = safeParseJSON<AttributeRuleProps>(
+        hashData.attributes,
+        'attributes',
+      );
+      // Extract basic fields directly from hash data
+
+      return {
+        code: hashData.code,
+        name: hashData.name,
+        description: hashData.description || undefined,
+        enabled: hashData.enabled === 'true',
+        attributes,
+        version: parseInt(hashData.version, 10),
+        createdAt: new Date(hashData.createdAt),
+        updatedAt: new Date(hashData.updatedAt),
+      };
+    } catch (error) {
+      Log.error(
+        this.logger,
+        'Failed to parse Redis hash data to AttributeRuleSetSnapshot',
+        {
+          method: 'parseRedisHashToAttributeRuleSet',
+          error: (error as Error).message,
+          code: hashData?.code,
+        },
+      );
+      return null;
+    }
   }
 
   /**
@@ -106,7 +189,7 @@ export class AttributeRuleSetReaderRepository
       customCorrelationId: !!options?.correlationId,
       source: options?.source,
       requestId: options?.requestId,
-      dataSource: 'in-memory-projector',
+      dataSource: 'redis-projector',
     });
 
     // Validate actor context with enhanced security logging
@@ -131,26 +214,30 @@ export class AttributeRuleSetReaderRepository
       this.logger,
       operation,
       logContext,
-      { queryType: 'attribute-rule-set_lookup', scope: 'in_memory_projection' },
+      { queryType: 'attribute-rule-set_lookup', scope: 'redis_projection' },
     );
 
     try {
-      Log.debug(
-        this.logger,
-        'Finding attribute-rule-set by code in shared store',
-        {
-          ...logContext,
-          queryDetails: {
-            scope: 'shared_attribute_rule_set_store',
-            method: 'attributeRuleSetStore.get',
-          },
-        },
+      // Generate cluster-safe Redis key
+      const redisKey = this.generateAttributeRuleSetKey(
+        actor.tenant,
+        code.value,
       );
 
-      // Get projection from shared attribute-rule-set store
-      const projection = attributeRuleSetStore.get(actor.tenant, code.value);
+      Log.debug(this.logger, 'Finding attribute-rule-set by code in Redis', {
+        ...logContext,
+        queryDetails: {
+          scope: 'redis_hash',
+          method: 'redis.hgetall',
+          key: redisKey,
+          clusterSafe: true,
+        },
+      });
 
-      if (!projection) {
+      // Get attribute-rule-set hash from Redis
+      const hashData = await this.redis.hgetall(redisKey);
+
+      if (!hashData || Object.keys(hashData).length === 0) {
         RepositoryLoggingUtil.logQueryMetrics(
           this.logger,
           operation,
@@ -160,32 +247,25 @@ export class AttributeRuleSetReaderRepository
             dataQuality: 'empty',
           },
         );
-        return Promise.resolve(ok(Option.none()));
+        return ok(Option.none());
       }
 
-      // Validate that we have all required fields
-      if (!projection.attributes) {
-        return Promise.resolve(
-          err(
-            RepositoryErrorFactory.validationError(
-              'attributes',
-              'Missing required attributes configuration in projection',
-            ),
-          ),
+      // Parse Redis hash to AttributeRuleSetSnapshot
+      const attributeRuleSetSnapshot =
+        this.parseRedisHashToAttributeRuleSet(hashData);
+
+      if (!attributeRuleSetSnapshot) {
+        RepositoryLoggingUtil.logQueryMetrics(
+          this.logger,
+          operation,
+          logContext,
+          {
+            resultCount: 0,
+            dataQuality: 'error',
+          },
         );
+        return ok(Option.none());
       }
-
-      // Map projection to AttributeRuleSetSnapshot
-      const attributeRuleSetSnapshot: AttributeRuleSetSnapshotProps = {
-        code: projection.code,
-        name: projection.name,
-        description: projection.description,
-        enabled: projection.enabled,
-        attributes: projection.attributes,
-        version: projection.version,
-        createdAt: projection.createdAt,
-        updatedAt: projection.updatedAt,
-      };
 
       // Log query metrics using shared utility
       RepositoryLoggingUtil.logQueryMetrics(
@@ -202,7 +282,7 @@ export class AttributeRuleSetReaderRepository
         },
       );
 
-      return Promise.resolve(ok(Option.some(attributeRuleSetSnapshot)));
+      return ok(Option.some(attributeRuleSetSnapshot));
     } catch (error) {
       // Log operation error using shared utility
       RepositoryLoggingUtil.logOperationError(
@@ -242,7 +322,7 @@ export class AttributeRuleSetReaderRepository
       customCorrelationId: !!options?.correlationId,
       source: options?.source,
       requestId: options?.requestId,
-      dataSource: 'in-memory-projector',
+      dataSource: 'redis-projector',
     });
 
     // Validate actor context
@@ -258,25 +338,35 @@ export class AttributeRuleSetReaderRepository
       this.logger,
       operation,
       logContext,
-      { queryType: 'existence_check', scope: 'in_memory_projection' },
+      { queryType: 'existence_check', scope: 'redis_projection' },
     );
 
     try {
-      Log.debug(
-        this.logger,
-        'Checking attribute-rule-set existence in shared store',
-        {
-          ...logContext,
-          queryDetails: {
-            scope: 'shared_attribute_rule_set_store',
-            method: 'attributeRuleSetStore.has',
-            optimized: true,
-          },
-        },
+      // Generate cluster-safe Redis key
+      const redisKey = this.generateAttributeRuleSetKey(
+        actor.tenant,
+        code.value,
       );
 
-      // Check existence in shared attribute-rule-set store
-      const exists = attributeRuleSetStore.has(actor.tenant, code.value);
+      Log.debug(this.logger, 'Checking attribute-rule-set existence in Redis', {
+        ...logContext,
+        queryDetails: {
+          scope: 'redis_hash',
+          method: 'redis.exists',
+          key: redisKey,
+          optimized: true,
+        },
+      });
+
+      // Check existence in Redis and verify not soft-deleted
+      const exists = await this.redis.exists(redisKey);
+      let isActive = false;
+
+      if (exists) {
+        // Additional check for soft deletion
+        const deletedAt = await this.redis.hget(redisKey, 'deletedAt');
+        isActive = !deletedAt;
+      }
 
       // Log query metrics using shared utility
       RepositoryLoggingUtil.logQueryMetrics(
@@ -284,13 +374,13 @@ export class AttributeRuleSetReaderRepository
         operation,
         logContext,
         {
-          resultCount: exists ? 1 : 0,
+          resultCount: isActive ? 1 : 0,
           dataQuality: 'good',
-          sampleData: { exists, code: code.value },
+          sampleData: { exists: isActive, code: code.value },
         },
       );
 
-      return Promise.resolve(ok(exists));
+      return ok(isActive);
     } catch (error) {
       // Log operation error using shared utility
       RepositoryLoggingUtil.logOperationError(
@@ -330,7 +420,7 @@ export class AttributeRuleSetReaderRepository
       customCorrelationId: !!options?.correlationId,
       source: options?.source,
       requestId: options?.requestId,
-      dataSource: 'in-memory-projector',
+      dataSource: 'redis-projector',
     });
 
     // Validate actor context
@@ -346,27 +436,35 @@ export class AttributeRuleSetReaderRepository
       this.logger,
       operation,
       logContext,
-      { queryType: 'version_lookup', scope: 'in_memory_projection' },
+      { queryType: 'version_lookup', scope: 'redis_projection' },
     );
 
     try {
-      Log.debug(
-        this.logger,
-        'Getting attribute-rule-set version from shared store',
-        {
-          ...logContext,
-          queryDetails: {
-            scope: 'shared_attribute_rule_set_store',
-            method: 'attributeRuleSetStore.get',
-            optimized: true,
-          },
-        },
+      // Generate cluster-safe Redis key
+      const redisKey = this.generateAttributeRuleSetKey(
+        actor.tenant,
+        code.value,
       );
 
-      // Get projection from shared attribute-rule-set store
-      const projection = attributeRuleSetStore.get(actor.tenant, code.value);
+      Log.debug(this.logger, 'Getting attribute-rule-set version from Redis', {
+        ...logContext,
+        queryDetails: {
+          scope: 'redis_hash',
+          method: 'redis.hmget',
+          key: redisKey,
+          fields: ['version', 'deletedAt'],
+          optimized: true,
+        },
+      });
 
-      if (!projection || projection.deletedAt) {
+      // Get version and deletion status from Redis efficiently
+      const [versionStr, deletedAt] = await this.redis.hmget(
+        redisKey,
+        'version',
+        'deletedAt',
+      );
+
+      if (!versionStr || deletedAt) {
         RepositoryLoggingUtil.logQueryMetrics(
           this.logger,
           operation,
@@ -376,10 +474,10 @@ export class AttributeRuleSetReaderRepository
             dataQuality: 'empty',
           },
         );
-        return Promise.resolve(ok(Option.none()));
+        return ok(Option.none());
       }
 
-      const version = projection.version;
+      const version = parseInt(versionStr, 10);
 
       // Log query metrics using shared utility
       RepositoryLoggingUtil.logQueryMetrics(
@@ -393,7 +491,7 @@ export class AttributeRuleSetReaderRepository
         },
       );
 
-      return Promise.resolve(ok(Option.some(version)));
+      return ok(Option.some(version));
     } catch (error) {
       // Log operation error using shared utility
       RepositoryLoggingUtil.logOperationError(
@@ -433,7 +531,7 @@ export class AttributeRuleSetReaderRepository
       customCorrelationId: !!options?.correlationId,
       source: options?.source,
       requestId: options?.requestId,
-      dataSource: 'in-memory-projector',
+      dataSource: 'redis-projector',
     });
 
     // Validate actor context
@@ -449,27 +547,40 @@ export class AttributeRuleSetReaderRepository
       this.logger,
       operation,
       logContext,
-      { queryType: 'minimal_lookup', scope: 'in_memory_projection' },
+      { queryType: 'minimal_lookup', scope: 'redis_projection' },
     );
 
     try {
+      // Generate cluster-safe Redis key
+      const redisKey = this.generateAttributeRuleSetKey(
+        actor.tenant,
+        code.value,
+      );
+
       Log.debug(
         this.logger,
-        'Getting minimal attribute-rule-set data from shared store',
+        'Getting minimal attribute-rule-set data from Redis',
         {
           ...logContext,
           queryDetails: {
-            scope: 'shared_attribute_rule_set_store',
-            method: 'attributeRuleSetStore.get',
+            scope: 'redis_hash',
+            method: 'redis.hmget',
+            key: redisKey,
+            fields: ['code', 'version', 'deletedAt'],
             optimized: true,
           },
         },
       );
 
-      // Get projection from shared attribute-rule-set store
-      const projection = attributeRuleSetStore.get(actor.tenant, code.value);
+      // Get minimal fields from Redis efficiently
+      const [codeStr, versionStr, deletedAt] = await this.redis.hmget(
+        redisKey,
+        'code',
+        'version',
+        'deletedAt',
+      );
 
-      if (!projection || projection.deletedAt) {
+      if (!codeStr || !versionStr || deletedAt) {
         RepositoryLoggingUtil.logQueryMetrics(
           this.logger,
           operation,
@@ -483,8 +594,8 @@ export class AttributeRuleSetReaderRepository
       }
 
       const minimal = {
-        code: projection.code,
-        version: projection.version,
+        code: codeStr,
+        version: parseInt(versionStr, 10),
       };
 
       // Log query metrics using shared utility
@@ -499,7 +610,7 @@ export class AttributeRuleSetReaderRepository
         },
       );
 
-      return Promise.resolve(ok(Option.some(minimal)));
+      return ok(Option.some(minimal));
     } catch (error) {
       // Log operation error using shared utility
       RepositoryLoggingUtil.logOperationError(
@@ -511,7 +622,7 @@ export class AttributeRuleSetReaderRepository
       );
 
       // Handle and return the classified error using shared utility
-      return Promise.resolve(handleRepositoryError(error));
+      return handleRepositoryError(error);
     }
   }
 }

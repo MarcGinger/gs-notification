@@ -22,7 +22,7 @@ export function ApiAttributeRuleSetCode(options: PropOptions = {}) {
 
   return applyDecorators(
     ApiProperty({
-      description: `Primary key and unique identifier for the lookup type. Defines the category or classification that groups related lookup entries together.`,
+      description: `Primary key and unique identifier for the attribute rule set. Defines the category or classification that groups related attribute rules together.`,
       example: `COUNTRY`,
       type: String,
       required,

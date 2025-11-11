@@ -22,7 +22,7 @@ export function ApiAttributeRuleSetEnabled(options: PropOptions = {}) {
 
   return applyDecorators(
     ApiProperty({
-      description: `Controls whether this lookup type is active and available for use. When disabled, the type and its associated lookup entries are hidden from selection interfaces.`,
+      description: `Controls whether this attribute rule set is active and available for use. When disabled, the rule set and its associated attribute rules are hidden from validation interfaces.`,
       example: true,
       type: Boolean,
       required,

@@ -36,9 +36,6 @@ import {
 export const AttributeRuleSetAttributeRuleConfiguration = createRecordVO({
   name: 'AttributeRuleSetAttributeRuleConfiguration',
 
-  // JSON key validation - must start with letter/underscore, contain only alphanumeric, underscore
-  keyPattern: /^[a-zA-Z_][a-zA-Z0-9_]*$/,
-
   // Basic validation will be handled at the application level
   // Advanced validation can be added via refinements if needed
   errors: createRecordVOErrors(
@@ -70,10 +67,10 @@ export const attributeRuleConfigurationFrom = (v: unknown) =>
   AttributeRuleSetAttributeRuleConfiguration.from(v);
 
 /**
- * Converts AttributeRuleSetAttributeRuleConfiguration to Record<string, AttributeRuleProps>
+ * Converts AttributeRuleSetAttributeRuleConfiguration to AttributeRuleProps
  */
 export const attributeRuleConfigurationToSnapshotProps = (
   config: AttributeRuleSetAttributeRuleConfiguration,
-): Record<string, AttributeRuleProps> => {
-  return config.value as unknown as Record<string, AttributeRuleProps>;
+): AttributeRuleProps => {
+  return config.value as unknown as AttributeRuleProps;
 };
