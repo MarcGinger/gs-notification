@@ -31,12 +31,20 @@ import {
   ProjectionMetricsCollector,
 } from 'src/shared/infrastructure/stores';
 import { LookupTypeProjectionKeys } from '../../lookup-type-projection-keys';
-import { DetailLookupTypeResponse } from '../../application/dtos';
+import {
+  DetailAttributeruleResponse,
+  DetailLookupTypeResponse,
+} from '../../application/dtos';
 import {
   lookupTypeStore,
   LookupTypeProjection,
 } from '../stores/lookup-type.store';
 import { LookupTypeFieldValidatorUtil } from '../utilities/lookup-type-field-validator.util';
+import {
+  isString,
+  safeParseJSON,
+  safeParseJSONArray,
+} from 'src/shared/infrastructure/repositories';
 
 /**
  * LookupType projector error catalog using shared error definitions
@@ -698,10 +706,14 @@ export class LookupTypeProjector
         LookupTypeFieldValidatorUtil.createLookupTypeProjectorDataFromEventData(
           eventData,
         );
-
+      const attributeruleId = safeParseJSON<DetailAttributeruleResponse[]>(
+        lookupTypeSnapshot.attributeruleId,
+        'attributeruleId',
+      );
       // Add projector-specific fields for in-memory storage
       return {
         ...lookupTypeSnapshot,
+        attributeruleId,
         tenant,
       };
     } catch (error) {
