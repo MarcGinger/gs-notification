@@ -22,17 +22,27 @@ export const mapLookupTypeSnapshotToDto = (
     name: snapshot.name,
     description: snapshot.description,
     enabled: snapshot.enabled,
-    attributeruleId: snapshot.attributeruleId,
+    attributerules: snapshot.attributerules,
   };
 };
 
 /**
- * Map attributeruleId configuration to DTO
+ * Map attributerules configuration to DTO
  *
  * This application-layer function uses domain extraction and transforms
  * the data to match the required DTO structure without business defaults.
+ *
+ * @param attributeruleConfiguration - Domain value object containing attributerule configurations
+ * @returns Record<string, T> where T is typically DetailAttributeruleResponse
+ *
+ * @example
+ * ```typescript
+ * // Typical usage:
+ * const attributeruleDto = mapAttributeruleConfigurationToDto<DetailAttributeruleResponse>(rulesConfig);
+ * // Result: Record<string, DetailAttributeruleResponse>
+ * ```
  */
-
 export const mapAttributeruleConfigurationToDto = <T>(
   attributeruleConfiguration: LookupTypeAttributeruleConfiguration,
-): T => extractAttributeruleConfigurationData<T>(attributeruleConfiguration);
+): Record<string, T> =>
+  extractAttributeruleConfigurationData<T>(attributeruleConfiguration);

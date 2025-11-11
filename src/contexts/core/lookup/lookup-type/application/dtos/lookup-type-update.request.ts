@@ -3,7 +3,7 @@
 
 import { UpdateLookupTypeProps } from '../../domain/props';
 import {
-  ApiLookupTypeAttributeruleIdRequest,
+  ApiLookupTypeAttributerulesRequest,
   ApiLookupTypeCode,
   ApiLookupTypeDescription,
   ApiLookupTypeEnabled,
@@ -24,6 +24,6 @@ export class UpdateLookupTypeRequest implements UpdateLookupTypeProps {
   @ApiLookupTypeEnabled({ required: false })
   enabled?: boolean;
 
-  @ApiLookupTypeAttributeruleIdRequest()
-  attributeruleId?: UpdateAttributeruleRequest[];
+  @ApiLookupTypeAttributerulesRequest()
+  attributerules?: Record<string, UpdateAttributeruleRequest>;
 }

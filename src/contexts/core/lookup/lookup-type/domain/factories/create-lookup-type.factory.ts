@@ -15,7 +15,7 @@ import {
   LookupTypeName,
   LookupTypeDescription,
   LookupTypeEnabled,
-  LookupTypeAttributeruleId,
+  LookupTypeAttributerules,
 } from '../value-objects';
 
 /**
@@ -83,12 +83,12 @@ export function createLookupTypeAggregateFromProps(
     );
   }
 
-  // Create attributeruleId configuration using specialized factory
-  const attributeruleIdResult = LookupTypeAttributeruleId.from(
-    props.attributeruleId,
+  // Create attributerules configuration using specialized factory
+  const attributerulesResult = LookupTypeAttributerules.from(
+    props.attributerules,
   );
-  if (!attributeruleIdResult.ok) {
-    return err(attributeruleIdResult.error);
+  if (!attributerulesResult.ok) {
+    return err(attributerulesResult.error);
   }
 
   const createdAtResult = LookupTypeCreatedAt.create(clock.now());
@@ -112,7 +112,7 @@ export function createLookupTypeAggregateFromProps(
     name: nameResult.value,
     description: descriptionResult.value,
     enabled: enabledResult.value,
-    attributeruleId: attributeruleIdResult.value,
+    attributerules: attributerulesResult.value,
     createdAt: createdAtResult.value,
     updatedAt: updatedAtResult.value,
     version: versionResult.value,

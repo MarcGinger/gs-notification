@@ -8,5 +8,5 @@ export interface UpdateLookupTypeProps {
   name?: string;
   description?: string;
   enabled?: boolean;
-  attributeruleId?: UpdateAttributeruleProps[];
+  attributerules?: Record<string, UpdateAttributeruleProps>;
 }

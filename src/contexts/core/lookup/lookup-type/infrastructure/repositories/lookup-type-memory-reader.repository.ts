@@ -158,12 +158,12 @@ export class LookupTypeReaderRepository implements ILookupTypeReader {
       }
 
       // Validate that we have all required fields
-      if (!projection.attributeruleId) {
+      if (!projection.attributerules) {
         return Promise.resolve(
           err(
             RepositoryErrorFactory.validationError(
-              'attributeruleId',
-              'Missing required attributeruleId configuration in projection',
+              'attributerules',
+              'Missing required attributerules configuration in projection',
             ),
           ),
         );
@@ -175,7 +175,7 @@ export class LookupTypeReaderRepository implements ILookupTypeReader {
         name: projection.name,
         description: projection.description,
         enabled: projection.enabled,
-        attributeruleId: projection.attributeruleId,
+        attributerules: projection.attributerules,
         version: projection.version,
         createdAt: projection.createdAt,
         updatedAt: projection.updatedAt,

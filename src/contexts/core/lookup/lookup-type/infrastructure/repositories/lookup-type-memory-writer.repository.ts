@@ -17,10 +17,7 @@ import {
   RepositoryLoggingConfig,
 } from 'src/shared/infrastructure/repositories';
 import { LookupTypeAggregate } from '../../domain/aggregates';
-import {
-  LookupTypeCode,
-  LookupTypeAttributeruleConfiguration,
-} from '../../domain/value-objects';
+import { LookupTypeCode } from '../../domain/value-objects';
 import { ILookupTypeWriter } from '../../application/ports';
 import {
   lookupTypeStore,
@@ -253,13 +250,9 @@ export class LookupTypeWriterRepository implements ILookupTypeWriter {
         name: lookupType.entity.name.value,
         description: lookupType.entity.description?.value,
         enabled: lookupType.entity.enabled?.value,
-        attributeruleId: lookupType.entity.attributeruleId
-          .toArray()
-          .map((item) =>
-            extractAttributeruleConfigurationData(
-              item as LookupTypeAttributeruleConfiguration,
-            ),
-          ),
+        attributerules: extractAttributeruleConfigurationData(
+          lookupType.entity.attributerules,
+        ),
         // BaseProjection fields
         tenant: actor.tenant,
         version: lookupType.version,

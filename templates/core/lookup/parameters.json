@@ -142,7 +142,7 @@
         "name": {},
         "description": {},
         "enabled": {},
-        "attributerule_id": {}
+        "attributerules": {}
       },
       "permissions": {
         "bulk": [

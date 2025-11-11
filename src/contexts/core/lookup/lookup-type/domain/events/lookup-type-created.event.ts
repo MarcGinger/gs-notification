@@ -11,7 +11,7 @@ export interface LookupTypeCreatedEventPayload {
   name: string;
   description?: string;
   enabled?: boolean;
-  attributeruleId: AttributeruleProps[];
+  attributerules: Record<string, AttributeruleProps>;
 }
 
 /**
@@ -48,7 +48,7 @@ export class LookupTypeCreatedEvent {
     return this.payload.enabled;
   }
 
-  get attributeruleId(): AttributeruleProps[] {
-    return this.payload.attributeruleId;
+  get attributerules(): Record<string, AttributeruleProps> {
+    return this.payload.attributerules;
   }
 }

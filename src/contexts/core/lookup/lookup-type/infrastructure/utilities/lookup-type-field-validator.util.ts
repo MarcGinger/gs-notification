@@ -32,7 +32,7 @@ export class LookupTypeFieldValidatorUtil {
     name: string;
     description?: string;
     enabled?: boolean;
-    attributeruleId?: string;
+    attributerules?: string;
     version: number;
     createdAt: Date;
     updatedAt: Date;
@@ -42,8 +42,8 @@ export class LookupTypeFieldValidatorUtil {
     const description = aggregateData.description as string;
     const enabled =
       aggregateData.enabled === 'true' || aggregateData.enabled === true;
-    const attributeruleId = aggregateData.attributeruleId
-      ? JSON.stringify(aggregateData.attributeruleId)
+    const attributerules = aggregateData.attributerules
+      ? JSON.stringify(aggregateData.attributerules)
       : undefined;
 
     // Extract version and timestamps with proper type conversion
@@ -56,7 +56,7 @@ export class LookupTypeFieldValidatorUtil {
       name,
       description,
       enabled,
-      attributeruleId,
+      attributerules,
       version,
       createdAt,
       updatedAt,

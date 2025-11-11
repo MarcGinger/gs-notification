@@ -10,7 +10,7 @@ import { SwaggerConfigUtil } from 'src/docs/swagger-config.util';
  * This module handles the Swagger documentation for cores
  *
  */
-export class LookupDocumentation {
+export class LookupApplicationDocumentation {
   static setup(app: INestApplication, port: string | number): void {
     const config = new DocumentBuilder()
       .addBearerAuth(
@@ -63,13 +63,13 @@ This is the decription for this domain
     port: string | number,
   ): Record<string, string> {
     // Setup main core documentation
-    LookupDocumentation.setup(app, port);
+    LookupApplicationDocumentation.setup(app, port);
 
     // Setup sub-module documentation
 
     // Return all endpoint URLs
     return {
-      core: LookupDocumentation.getEndpoint(port),
+      core: LookupApplicationDocumentation.getEndpoint(port),
     };
   }
 

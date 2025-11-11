@@ -6,5 +6,5 @@ export interface LookupTypeReference {
   name: string;
   description?: string;
   enabled?: boolean;
-  attributeruleId: Record<string, unknown>[];
+  attributerules: Record<string, unknown>;
 }

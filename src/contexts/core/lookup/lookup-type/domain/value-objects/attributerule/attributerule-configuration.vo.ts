@@ -36,6 +36,9 @@ import {
 export const LookupTypeAttributeruleConfiguration = createRecordVO({
   name: 'LookupTypeAttributeruleConfiguration',
 
+  // JSON key validation - must start with letter/underscore, contain only alphanumeric, underscore
+  keyPattern: /^[a-zA-Z_][a-zA-Z0-9_]*$/,
+
   // Basic validation will be handled at the application level
   // Advanced validation can be added via refinements if needed
   errors: createRecordVOErrors(
@@ -67,10 +70,10 @@ export const attributeruleConfigurationFrom = (v: unknown) =>
   LookupTypeAttributeruleConfiguration.from(v);
 
 /**
- * Converts LookupTypeAttributeruleConfiguration to AttributeruleProps
+ * Converts LookupTypeAttributeruleConfiguration to Record<string, AttributeruleProps>
  */
 export const attributeruleConfigurationToSnapshotProps = (
   config: LookupTypeAttributeruleConfiguration,
-): AttributeruleProps => {
-  return config.value as unknown as AttributeruleProps;
+): Record<string, AttributeruleProps> => {
+  return config.value as unknown as Record<string, AttributeruleProps>;
 };

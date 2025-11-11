@@ -5,7 +5,7 @@ import {
   LookupTypeCreatedAt,
   LookupTypeUpdatedAt,
   LookupTypeVersion,
-  LookupTypeAttributeruleId,
+  LookupTypeAttributeruleConfiguration,
   LookupTypeCode,
   LookupTypeDescription,
   LookupTypeEnabled,
@@ -30,7 +30,7 @@ export interface LookupTypeDomainState {
   name: LookupTypeName;
   description?: LookupTypeDescription;
   enabled?: LookupTypeEnabled;
-  attributeruleId: LookupTypeAttributeruleId;
+  attributerules: LookupTypeAttributeruleConfiguration;
   version: LookupTypeVersion;
   createdAt: LookupTypeCreatedAt;
   updatedAt: LookupTypeUpdatedAt;

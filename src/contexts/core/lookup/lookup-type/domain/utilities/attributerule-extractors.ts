@@ -19,22 +19,42 @@ import {
  *
  * This function knows the internal structure of LookupTypeAttributeruleConfiguration
  * but remains pure domain logic without DTO knowledge.
+ *
+ * Expected input structure: LookupTypeAttributeruleConfiguration with nested attributerule configurations
+ * Expected output: Record<string, T> where T contains attributerule properties
  */
 export const extractAttributeruleConfigurationData = <T>(
-  config: LookupTypeAttributeruleConfiguration,
-): T => {
-  return {
-    code: extractPropertyValue<string>(config, 'code'),
-    name: extractPropertyValue<string>(config, 'name'),
-    description: extractPropertyValue<string>(config, 'description'),
-    type: extractPropertyValue<AttributeruleTypeValue>(config, 'type'),
-    reference: extractPropertyValue<boolean>(config, 'reference'),
-    reserved: extractPropertyValue<boolean>(config, 'reserved'),
-    unique: extractPropertyValue<boolean>(config, 'unique'),
-    uniqueError: extractPropertyValue<string>(config, 'uniqueError'),
-    required: extractPropertyValue<boolean>(config, 'required'),
-    requiredError: extractPropertyValue<string>(config, 'requiredError'),
-    regex: extractPropertyValue<string>(config, 'regex'),
-    regexError: extractPropertyValue<string>(config, 'regexError'),
-  } as T;
+  mapConfig: LookupTypeAttributeruleConfiguration,
+): Record<string, T> => {
+  if (!mapConfig || !mapConfig.value) {
+    return {};
+  }
+
+  const result: Record<string, T> = {};
+  const configValue = mapConfig.value;
+
+  // Iterate over each item configuration in the value
+  Object.keys(configValue).forEach((key) => {
+    const config = configValue[key];
+    if (config && typeof config === 'object') {
+      // Handle both value objects and plain objects
+      const extractedValue = {
+        code: extractPropertyValue<string>(config, 'code'),
+        name: extractPropertyValue<string>(config, 'name'),
+        description: extractPropertyValue<string>(config, 'description'),
+        type: extractPropertyValue<AttributeruleTypeValue>(config, 'type'),
+        reference: extractPropertyValue<boolean>(config, 'reference'),
+        reserved: extractPropertyValue<boolean>(config, 'reserved'),
+        unique: extractPropertyValue<boolean>(config, 'unique'),
+        uniqueError: extractPropertyValue<string>(config, 'uniqueError'),
+        required: extractPropertyValue<boolean>(config, 'required'),
+        requiredError: extractPropertyValue<string>(config, 'requiredError'),
+        regex: extractPropertyValue<string>(config, 'regex'),
+        regexError: extractPropertyValue<string>(config, 'regexError'),
+      };
+      result[key] = extractedValue as T;
+    }
+  });
+
+  return result;
 };

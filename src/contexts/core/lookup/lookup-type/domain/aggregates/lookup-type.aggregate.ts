@@ -11,7 +11,6 @@ import { AttributeruleProps, LookupTypeSnapshotProps } from '../props';
 import { ValidatedLookupTypeUpdateFields } from '../types';
 import { extractAttributeruleConfigurationData } from '../utilities';
 import {
-  LookupTypeAttributeruleConfiguration,
   LookupTypeCode,
   createLookupTypeCreatedAt,
   createLookupTypeUpdatedAt,
@@ -141,13 +140,9 @@ export class LookupTypeAggregate extends AggregateRootBase {
       name: entityProps.name.value,
       description: entityProps.description?.value,
       enabled: entityProps.enabled?.value,
-      attributeruleId: entityProps.attributeruleId
-        .toArray()
-        .map((item) =>
-          extractAttributeruleConfigurationData(
-            item as LookupTypeAttributeruleConfiguration,
-          ),
-        ),
+      attributerules: extractAttributeruleConfigurationData(
+        entityProps.attributerules,
+      ),
     });
 
     // Apply as domain event with clean business data
@@ -198,7 +193,7 @@ export class LookupTypeAggregate extends AggregateRootBase {
           name: string;
           description?: string;
           enabled?: boolean;
-          attributeruleId: AttributeruleProps[];
+          attributerules: Record<string, AttributeruleProps>;
         };
 
         // For event replay, we need to reconstruct the full snapshot
@@ -210,7 +205,7 @@ export class LookupTypeAggregate extends AggregateRootBase {
           name: d.name,
           description: d.description,
           enabled: d.enabled,
-          attributeruleId: d.attributeruleId,
+          attributerules: d.attributerules,
           createdAt: currentSnapshot.createdAt || event.occurredAt,
           updatedAt: event.occurredAt, // Always update the timestamp
           version: currentSnapshot.version + 1 || 1,
@@ -329,11 +324,11 @@ export class LookupTypeAggregate extends AggregateRootBase {
         return true;
       }
     }
-    if (validatedFields.attributeruleId !== undefined) {
+    if (validatedFields.attributerules !== undefined) {
       if (
         hasValueChanged(
-          this._entity.attributeruleId,
-          validatedFields.attributeruleId,
+          this._entity.attributerules,
+          validatedFields.attributerules,
         )
       ) {
         return true;
@@ -444,9 +439,9 @@ export class LookupTypeAggregate extends AggregateRootBase {
       currentEntity = entityResult.value;
     }
 
-    if (validatedFields.attributeruleId !== undefined) {
-      const entityResult = currentEntity.withAttributeruleId(
-        validatedFields.attributeruleId,
+    if (validatedFields.attributerules !== undefined) {
+      const entityResult = currentEntity.withAttributerules(
+        validatedFields.attributerules,
         updatedAt,
         nextVersion,
       );
@@ -463,13 +458,9 @@ export class LookupTypeAggregate extends AggregateRootBase {
       name: this._entity.name.value,
       description: this._entity.description?.value,
       enabled: this._entity.enabled?.value,
-      attributeruleId: this._entity.attributeruleId
-        .toArray()
-        .map((item) =>
-          extractAttributeruleConfigurationData(
-            item as LookupTypeAttributeruleConfiguration,
-          ),
-        ),
+      attributerules: extractAttributeruleConfigurationData(
+        this._entity.attributerules,
+      ),
     });
 
     // Apply as domain event with clean business data

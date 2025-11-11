@@ -8,5 +8,5 @@ export interface UpsertLookupTypeProps {
   name?: string;
   description?: string;
   enabled?: boolean;
-  attributeruleId?: UpsertAttributeruleProps[];
+  attributerules?: Record<string, UpsertAttributeruleProps>;
 }

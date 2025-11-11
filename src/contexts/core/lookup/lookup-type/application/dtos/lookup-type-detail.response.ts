@@ -2,7 +2,7 @@
 // REMOVE THIS COMMENT TO STOP AUTOMATIC UPDATES TO THIS BLOCK
 
 import {
-  ApiLookupTypeAttributeruleId,
+  ApiLookupTypeAttributerules,
   ApiLookupTypeCode,
   ApiLookupTypeDescription,
   ApiLookupTypeEnabled,
@@ -23,6 +23,6 @@ export class DetailLookupTypeResponse {
   @ApiLookupTypeEnabled({ required: false })
   enabled?: boolean;
 
-  @ApiLookupTypeAttributeruleId()
-  attributeruleId: DetailAttributeruleResponse[];
+  @ApiLookupTypeAttributerules()
+  attributerules: Record<string, DetailAttributeruleResponse>;
 }

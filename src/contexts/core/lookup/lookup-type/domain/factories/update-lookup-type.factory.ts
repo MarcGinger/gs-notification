@@ -12,7 +12,7 @@ import {
   LookupTypeName,
   LookupTypeDescription,
   LookupTypeEnabled,
-  LookupTypeAttributeruleId,
+  LookupTypeAttributerules,
 } from '../value-objects';
 
 /**
@@ -107,23 +107,23 @@ export function updateLookupTypeAggregateFromSnapshot(
     validatedFields.enabled = enabledResult.value;
   }
 
-  // ValidateattributeruleId if provided
-  if (updateProps.attributeruleId !== undefined) {
-    const attributeruleIdResult = LookupTypeAttributeruleId.from(
-      updateProps.attributeruleId,
+  // Validateattributerules if provided
+  if (updateProps.attributerules !== undefined) {
+    const attributerulesResult = LookupTypeAttributerules.update(
+      updateProps.attributerules,
     );
-    if (!attributeruleIdResult.ok) {
+    if (!attributerulesResult.ok) {
       return err(
-        withContext(attributeruleIdResult.error, {
-          operation: 'update_lookup_type_attributerule_id_validation',
+        withContext(attributerulesResult.error, {
+          operation: 'update_lookup_type_attributerules_validation',
           correlationId: metadata.correlationId,
           userId: metadata.actor?.userId,
-          providedAttributeruleId: updateProps.attributeruleId,
+          providedAttributerules: updateProps.attributerules,
         }),
       );
     }
 
-    validatedFields.attributeruleId = attributeruleIdResult.value;
+    validatedFields.attributerules = attributerulesResult.value;
   }
 
   // 3. Apply all validated changes in single atomic operation

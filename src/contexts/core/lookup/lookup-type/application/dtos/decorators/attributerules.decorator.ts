@@ -2,14 +2,15 @@
 // REMOVE THIS COMMENT TO STOP AUTOMATIC UPDATES TO THIS BLOCK
 
 import { applyDecorators } from '@nestjs/common';
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, getSchemaPath } from '@nestjs/swagger';
+import { transformAndValidateRecord } from 'src/shared/application/decorators';
+import { Transform } from 'class-transformer';
 import {
-  IsArray,
   IsOptional,
   IsNotEmpty,
   ValidateNested,
+  IsObject,
 } from 'class-validator';
-import { Type } from 'class-transformer';
 import { DetailAttributeruleResponse } from '../../dtos/attributerule';
 
 /**
@@ -20,22 +21,26 @@ interface PropOptions {
 }
 
 /**
- * Property decorator for LookupType AttributeruleId with required option
+ * Property decorator for LookupType Attributerules with required option
  * @param {Object} options - Options for the decorator
  * @returns {PropertyDecorator}
  */
-export function ApiLookupTypeAttributeruleId(options: PropOptions = {}) {
+export function ApiLookupTypeAttributerules(options: PropOptions = {}) {
   const { required = true } = options;
   return applyDecorators(
     ApiProperty({
-      description: `Lookup type Attributerule id`,
-      type: () => DetailAttributeruleResponse,
-      isArray: true,
-      required,
+      description: `Lookup type Attributerules`,
+      type: 'object',
+      additionalProperties: {
+        $ref: getSchemaPath(DetailAttributeruleResponse),
+      },
+      required: [],
     }),
-    Type(() => DetailAttributeruleResponse),
-    IsArray(),
+    Transform(({ value }) =>
+      transformAndValidateRecord(value, DetailAttributeruleResponse),
+    ),
     ValidateNested({ each: true }),
+    IsObject(),
     required ? IsNotEmpty() : IsOptional(),
   );
 }

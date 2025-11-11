@@ -3,7 +3,6 @@
 import { DomainError } from 'src/shared/errors';
 
 export interface AttributeruleContext extends Record<string, unknown> {
-  id: Record<string, unknown>;
   code: string;
   name: string;
   description?: string;

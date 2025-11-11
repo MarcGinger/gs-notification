@@ -13,7 +13,7 @@ export interface LookupTypeUpdatedEventPayload {
   name: string;
   description?: string;
   enabled?: boolean;
-  attributeruleId: AttributeruleProps[];
+  attributerules: Record<string, Record<string, AttributeruleProps>>;
 }
 
 /**
@@ -49,7 +49,7 @@ export class LookupTypeUpdatedEvent {
     return this.payload.enabled;
   }
 
-  get attributeruleId(): AttributeruleProps[] {
-    return this.payload.attributeruleId;
+  get attributerules(): Record<string, Record<string, AttributeruleProps>> {
+    return this.payload.attributerules;
   }
 }

@@ -3,7 +3,7 @@
 
 import { CreateLookupTypeProps } from '../../domain/props';
 import {
-  ApiLookupTypeAttributeruleIdRequest,
+  ApiLookupTypeAttributerulesRequest,
   ApiLookupTypeCode,
   ApiLookupTypeDescription,
   ApiLookupTypeEnabled,
@@ -24,6 +24,6 @@ export class CreateLookupTypeRequest implements CreateLookupTypeProps {
   @ApiLookupTypeEnabled({ required: false })
   enabled?: boolean;
 
-  @ApiLookupTypeAttributeruleIdRequest()
-  attributeruleId: CreateAttributeruleRequest[];
+  @ApiLookupTypeAttributerulesRequest()
+  attributerules: Record<string, CreateAttributeruleRequest>;
 }

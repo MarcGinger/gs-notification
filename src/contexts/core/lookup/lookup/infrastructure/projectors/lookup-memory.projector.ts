@@ -26,19 +26,15 @@ import { APP_LOGGER, Log, Logger } from 'src/shared/logging';
 import { Clock, CLOCK } from 'src/shared/infrastructure/time';
 import { withContext } from 'src/shared/errors';
 import {
-  handleRepositoryError,
-  safeParseJSON,
-} from 'src/shared/infrastructure/repositories';
-import {
   InMemoryCheckpointStore,
   ProjectionMetrics,
   ProjectionMetricsCollector,
 } from 'src/shared/infrastructure/stores';
+import { safeParseJSON } from 'src/shared/infrastructure/repositories';
 import { LookupProjectionKeys } from '../../lookup-projection-keys';
 import { DetailLookupResponse } from '../../application/dtos';
 import { lookupStore, LookupProjection } from '../stores/lookup.store';
 import { LookupFieldValidatorUtil } from '../utilities/lookup-field-validator.util';
-
 /**
  * Lookup projector error catalog using shared error definitions
  */
@@ -691,10 +687,12 @@ export class LookupProjector
         LookupFieldValidatorUtil.createLookupProjectorDataFromEventData(
           eventData,
         );
+
       const attributes = safeParseJSON<Record<string, unknown>>(
         lookupSnapshot.attributes,
         'attributes',
       );
+
       // Add projector-specific fields for in-memory storage
       return {
         ...lookupSnapshot,

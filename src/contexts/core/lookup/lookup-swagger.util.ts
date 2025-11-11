@@ -4,8 +4,9 @@
 import { INestApplication } from '@nestjs/common';
 import { AppConfigUtil } from 'src/shared/config/app-config.util';
 
+import { LookupApplicationDocumentation } from './lookup.doc';
+import { LookupDocumentation } from './lookup/docs/lookup.doc';
 import { LookupTypeDocumentation } from './lookup-type/docs/lookup-type.doc';
-import { LookupDocumentation } from './lookup.doc';
 
 /**
  * Setup core-lookup application/service Swagger documentation
@@ -19,7 +20,7 @@ export function setupCoreLookupDocs(
     return {};
   }
 
-  const boundedContextUrls = LookupDocumentation.setupAll(app, port);
+  const boundedContextUrls = LookupApplicationDocumentation.setupAll(app, port);
 
   // Setup documentation for all core_lookup aggregates
   const lookupUrls = LookupDocumentation.setupAll(app, port);

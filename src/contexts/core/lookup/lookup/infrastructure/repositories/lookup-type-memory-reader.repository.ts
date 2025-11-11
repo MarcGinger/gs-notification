@@ -276,7 +276,7 @@ export class LookupTypeReaderRepository implements ILookupTypeReader {
         name: projection.name,
         description: projection.description,
         enabled: projection.enabled,
-        attributeruleId: projection.attributeruleId,
+        attributerules: projection.attributerules,
       };
 
       RepositoryLoggingUtil.logQueryMetrics(

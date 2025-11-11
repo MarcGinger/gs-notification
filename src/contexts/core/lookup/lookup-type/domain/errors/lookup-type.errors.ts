@@ -45,14 +45,14 @@ export const LookupTypeErrors = {
     category: 'validation',
     retryable: false,
   } as DomainError<'LOOKUP_TYPE.CREATED_AT_REQUIRED', LookupTypeContext>,
-  INVALID_ATTRIBUTERULE_ID_DATA: {
-    code: 'LOOKUP_TYPE.INVALID_ATTRIBUTERULE_ID_DATA',
+  INVALID_ATTRIBUTERULES_DATA: {
+    code: 'LOOKUP_TYPE.INVALID_ATTRIBUTERULES_DATA',
     title: 'Value Required',
-    detail: 'Attributerule id is required for Lookup type.',
+    detail: 'Attributerules is required for Lookup type.',
     category: 'validation',
     retryable: false,
   } as DomainError<
-    'LOOKUP_TYPE.INVALID_ATTRIBUTERULE_ID_DATA',
+    'LOOKUP_TYPE.INVALID_ATTRIBUTERULES_DATA',
     LookupTypeContext
   >,
   INVALID_CODE: {

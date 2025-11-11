@@ -8,5 +8,5 @@ export interface LookupTypeProps {
   name: string;
   description?: string;
   enabled?: boolean;
-  attributeruleId: AttributeruleProps[];
+  attributerules: Record<string, AttributeruleProps>;
 }

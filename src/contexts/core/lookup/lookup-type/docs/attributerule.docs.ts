@@ -5,6 +5,7 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { INestApplication } from '@nestjs/common';
 import { SwaggerConfigUtil } from 'src/docs/swagger-config.util';
 import { LookupTypeModule } from '../lookup-type.module';
+import { DetailAttributeruleResponse } from '../application/dtos';
 
 /**
  * Attributerule Documentation
@@ -40,7 +41,7 @@ export class AttributeruleDocumentation {
 
     const document = SwaggerModule.createDocument(app, config.build(), {
       include: [LookupTypeModule],
-      extraModels: [],
+      extraModels: [DetailAttributeruleResponse],
     });
 
     SwaggerModule.setup('api/docs/core/lookup/attributerule', app, document);

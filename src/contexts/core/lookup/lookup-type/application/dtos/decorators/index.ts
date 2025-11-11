@@ -1,5 +1,5 @@
-export * from './attributerule-id-request.decorator';
-export * from './attributerule-id.decorator';
+export * from './attributerules-request.decorator';
+export * from './attributerules.decorator';
 export * from './code.decorator';
 export * from './description.decorator';
 export * from './enabled.decorator';

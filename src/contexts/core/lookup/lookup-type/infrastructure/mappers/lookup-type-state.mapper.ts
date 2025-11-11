@@ -13,7 +13,6 @@ import {
   LookupTypeName,
   LookupTypeDescription,
   LookupTypeEnabled,
-  LookupTypeAttributeruleId,
   LookupTypeAttributeruleConfiguration,
   attributeruleConfigurationToSnapshotProps,
   LookupTypeCreatedAt,
@@ -67,9 +66,9 @@ export class LookupTypeStateMapper {
     const enabled = snapshot.enabled
       ? validateField('enabled', LookupTypeEnabled.from(snapshot.enabled))
       : undefined;
-    const attributeruleId = validateField(
-      'attributeruleId',
-      LookupTypeAttributeruleId.from(snapshot.attributeruleId),
+    const attributerules = validateField(
+      'attributerules',
+      LookupTypeAttributeruleConfiguration.from(snapshot.attributerules),
     );
     const version = validateField(
       'version',
@@ -109,7 +108,7 @@ export class LookupTypeStateMapper {
       name: name!,
       description: description || undefined,
       enabled: enabled || undefined,
-      attributeruleId: attributeruleId!,
+      attributerules: attributerules!,
       version: version!,
       createdAt: createdAt!,
       updatedAt: updatedAt!,
@@ -133,13 +132,9 @@ export class LookupTypeStateMapper {
       name: domainState.name.value,
       description: domainState.description?.value,
       enabled: domainState.enabled?.value,
-      attributeruleId: domainState.attributeruleId
-        .toArray()
-        .map((item) =>
-          attributeruleConfigurationToSnapshotProps(
-            item as LookupTypeAttributeruleConfiguration,
-          ),
-        ), // Array of complex objects
+      attributerules: attributeruleConfigurationToSnapshotProps(
+        domainState.attributerules,
+      ), // Complex object - stored as-is for now
       version: domainState.version.value,
       createdAt: domainState.createdAt.value,
       updatedAt: domainState.updatedAt.value,

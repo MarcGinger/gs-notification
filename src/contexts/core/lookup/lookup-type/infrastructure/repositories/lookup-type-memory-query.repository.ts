@@ -35,7 +35,7 @@ interface LookupTypeReadModel {
   name: string;
   description?: string;
   enabled?: boolean;
-  attributeruleId: DetailAttributeruleResponse[];
+  attributerules: Record<string, DetailAttributeruleResponse>;
   createdAt: Date;
   updatedAt: Date;
   version: number;
@@ -110,7 +110,7 @@ export class LookupTypeQueryRepository implements ILookupTypeQuery {
       name: projection.name,
       description: projection.description,
       enabled: projection.enabled,
-      attributeruleId: projection.attributeruleId,
+      attributerules: projection.attributerules,
       createdAt: projection.createdAt || this.clock.now(),
       updatedAt: projection.updatedAt || this.clock.now(),
       version: projection.version || 1,
@@ -151,7 +151,7 @@ export class LookupTypeQueryRepository implements ILookupTypeQuery {
       name: lookupType.name,
       description: lookupType.description,
       enabled: lookupType.enabled,
-      attributeruleId: lookupType.attributeruleId,
+      attributerules: lookupType.attributerules,
     } as DetailLookupTypeResponse;
   }
   /**

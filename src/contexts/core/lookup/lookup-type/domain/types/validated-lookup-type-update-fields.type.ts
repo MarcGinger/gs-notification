@@ -2,7 +2,7 @@
 // REMOVE THIS COMMENT TO STOP AUTOMATIC UPDATES TO THIS BLOCK
 
 import {
-  LookupTypeAttributeruleId,
+  LookupTypeAttributeruleConfiguration,
   LookupTypeCode,
   LookupTypeDescription,
   LookupTypeEnabled,
@@ -14,5 +14,5 @@ export interface ValidatedLookupTypeUpdateFields {
   name?: LookupTypeName;
   description?: LookupTypeDescription;
   enabled?: LookupTypeEnabled;
-  attributeruleId?: LookupTypeAttributeruleId;
+  attributerules?: LookupTypeAttributeruleConfiguration;
 }

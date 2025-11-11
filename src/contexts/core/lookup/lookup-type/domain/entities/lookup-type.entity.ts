@@ -8,7 +8,6 @@ import { LookupTypeDomainState } from '../state';
 import { LookupTypeErrors } from '../errors/lookup-type.errors';
 import {
   LookupTypeAttributeruleConfiguration,
-  LookupTypeAttributeruleId,
   LookupTypeCode,
   LookupTypeCreatedAt,
   LookupTypeUpdatedAt,
@@ -168,11 +167,11 @@ export class LookupTypeEntity extends EntityIdBase<
     if (!enabledResult.ok) {
       return err(enabledResult.error);
     }
-    const attributeruleIdResult = LookupTypeAttributeruleId.from(
-      snapshot.attributeruleId,
+    const attributerulesResult = LookupTypeAttributeruleConfiguration.from(
+      snapshot.attributerules,
     );
-    if (!attributeruleIdResult.ok) {
-      return err(attributeruleIdResult.error);
+    if (!attributerulesResult.ok) {
+      return err(attributerulesResult.error);
     }
     const createdAtResult = LookupTypeCreatedAt.from(snapshot.createdAt);
     if (!createdAtResult.ok) {
@@ -194,7 +193,7 @@ export class LookupTypeEntity extends EntityIdBase<
       name: nameResult.value,
       description: descriptionResult.value,
       enabled: enabledResult.value,
-      attributeruleId: attributeruleIdResult.value,
+      attributerules: attributerulesResult.value,
       createdAt: createdAtResult.value,
       updatedAt: updatedAtResult.value,
       version: versionResult.value,
@@ -219,8 +218,8 @@ export class LookupTypeEntity extends EntityIdBase<
     if (!props.name) {
       return err(LookupTypeErrors.INVALID_NAME_DATA);
     }
-    if (!props.attributeruleId) {
-      return err(LookupTypeErrors.INVALID_ATTRIBUTERULE_ID_DATA);
+    if (!props.attributerules) {
+      return err(LookupTypeErrors.INVALID_ATTRIBUTERULES_DATA);
     }
 
     return ok(undefined);
@@ -246,8 +245,8 @@ export class LookupTypeEntity extends EntityIdBase<
     return this.props.enabled;
   }
 
-  public get attributeruleId(): LookupTypeAttributeruleId {
-    return this.props.attributeruleId;
+  public get attributerules(): LookupTypeAttributeruleConfiguration {
+    return this.props.attributerules;
   }
 
   public get createdAt(): LookupTypeCreatedAt {
@@ -312,18 +311,18 @@ export class LookupTypeEntity extends EntityIdBase<
   }
 
   /**
-   * Creates a new entity with updated attributeruleId (pure state transition)
+   * Creates a new entity with updated attributerules (pure state transition)
    *
-   * @param attributeruleId - New attributerule_id value
+   * @param attributerules - New attributerules value
    * @param updatedAt - Optional timestamp (uses clock if not provided)
    * @returns Result<LookupTypeEntity, DomainError>
    */
-  public withAttributeruleId(
-    attributeruleId: LookupTypeAttributeruleId,
+  public withAttributerules(
+    attributerules: LookupTypeAttributeruleConfiguration,
     updatedAt?: Date,
     version?: number,
   ): Result<LookupTypeEntity, DomainError> {
-    return this.createUpdatedEntity({ attributeruleId }, updatedAt, version);
+    return this.createUpdatedEntity({ attributerules }, updatedAt, version);
   }
 
   // ======================
@@ -348,13 +347,9 @@ export class LookupTypeEntity extends EntityIdBase<
       name: this.props.name.value,
       description: this.props.description?.value,
       enabled: this.props.enabled?.value,
-      attributeruleId: this.props.attributeruleId
-        .toArray()
-        .map((item) =>
-          attributeruleConfigurationToSnapshotProps(
-            item as LookupTypeAttributeruleConfiguration,
-          ),
-        ),
+      attributerules: attributeruleConfigurationToSnapshotProps(
+        this.props.attributerules,
+      ),
       createdAt: this.props.createdAt.value,
       updatedAt: this.props.updatedAt.value,
       version: this.props.version.value,

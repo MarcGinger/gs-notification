@@ -4,7 +4,6 @@
 import { LookupTypeDomainState } from '../../domain/state';
 import { DetailAttributeruleResponse, DetailLookupTypeResponse } from '../dtos';
 import { mapAttributeruleConfigurationToDto } from '../mappers';
-import { LookupTypeAttributeruleConfiguration } from '../../domain/value-objects';
 
 /**
  * LookupType DTO Assembler
@@ -36,13 +35,9 @@ export class LookupTypeDtoAssembler {
     dto.enabled = domainState.enabled?.value;
 
     // Use existing mappers for complex configurations
-    dto.attributeruleId = domainState.attributeruleId
-      .toArray()
-      .map((item) =>
-        mapAttributeruleConfigurationToDto<DetailAttributeruleResponse>(
-          item as LookupTypeAttributeruleConfiguration,
-        ),
-      );
+    dto.attributerules = mapAttributeruleConfigurationToDto(
+      domainState.attributerules,
+    );
 
     return dto;
   }
