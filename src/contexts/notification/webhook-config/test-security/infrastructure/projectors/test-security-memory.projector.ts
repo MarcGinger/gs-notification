@@ -695,7 +695,7 @@ export class TestSecurityProjector
 
       // Use TestSecurityFieldValidatorUtil to create validated initiation fee snapshot
       const testSecuritySnapshot =
-        TestSecurityFieldValidatorUtil.createTestSecuritySnapshotFromEventData(
+        TestSecurityFieldValidatorUtil.createTestSecurityProjectorDataFromEventData(
           eventData,
         );
 

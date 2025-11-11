@@ -37,12 +37,7 @@ import {
 } from '../ports';
 import { TestSecurityAuthorizationAdapter } from '../services';
 
-// Shared compliance services
-import {
-  PIIClassificationService,
-  PIIProtectionService,
-  DataRetentionService,
-} from 'src/shared/services/compliance';
+// Note: PII protection and compliance handled at service/infrastructure layer
 
 type TestSecuritySnapshot = Parameters<
   typeof deleteTestSecurityAggregateFromSnapshot
@@ -77,9 +72,6 @@ export class DeleteTestSecurityUseCase implements IDeleteTestSecurityUseCase {
     private readonly authorizationService: TestSecurityAuthorizationAdapter,
     @Inject(CLOCK) private readonly clock: Clock,
     @Inject(APP_LOGGER) moduleLogger: Logger,
-    private readonly piiClassificationService: PIIClassificationService,
-    private readonly piiProtectionService: PIIProtectionService,
-    private readonly dataRetentionService: DataRetentionService,
   ) {
     this.loggingConfig = {
       serviceName: WebhookConfigServiceConstants.SERVICE_NAME,
@@ -148,26 +140,7 @@ export class DeleteTestSecurityUseCase implements IDeleteTestSecurityUseCase {
     }
 
     try {
-      // Step 4: PII classification for compliance analysis (raw data for domain logic)
-
-      const classification = this.piiClassificationService.classifyData(
-        rawProps,
-        {
-          domain: 'webhook-config',
-          tenant: command.user.tenant,
-          // entityType: 'TestSecurity' // Future: for entity-level rules
-        },
-      );
-
-      // Log compliance check with detailed audit trail
-      UseCaseLoggingUtil.logComplianceCheck(
-        this.logger,
-        operation,
-        safeLogContext,
-        classification,
-      );
-
-      // Step 2: Execute deletion with domain factory using runUseCaseWithSecurity
+      // Step 4: Execute deletion with domain factory using runUseCaseWithSecurity
       const aggregateResult = await runUseCaseWithSecurity<
         DeleteTestSecurityCommand,
         TestSecurityAggregate,
@@ -258,13 +231,9 @@ export class DeleteTestSecurityUseCase implements IDeleteTestSecurityUseCase {
 
         // Execute domain deletion logic via factory
         runDomain: ({ existing, metadata, clock }) => {
-          // Enhance metadata with PII classification results
+          // Mark as securely deleted in metadata
           const enhancedMetadata = {
             ...metadata,
-            piiProtected: classification.containsPII,
-            dataClassification: classification.containsPII
-              ? ('confidential' as const)
-              : ('internal' as const),
             securelyDeleted: true,
           };
 
@@ -289,48 +258,7 @@ export class DeleteTestSecurityUseCase implements IDeleteTestSecurityUseCase {
 
       const aggregate = aggregateResult.value;
 
-      // Step 3: Generate compliance audit trail for PII data if needed
-      if (classification.containsPII) {
-        const retentionMetadata =
-          await this.dataRetentionService.generateRetentionMetadata(
-            classification,
-            {
-              tenant: command.user.tenant,
-              userId: command.user.sub,
-              entityType: 'test_security',
-              entityId: rawProps.id,
-              domain: 'webhook-config',
-            },
-          );
-
-        // Generate deletion audit trail using protection audit
-        this.piiProtectionService.generateProtectionAudit([], {
-          userId: command.user.sub,
-          tenant: command.user.tenant,
-          operation: 'delete_test_security',
-          domain: 'webhook-config',
-          entityType: 'test_security',
-        });
-
-        // Log comprehensive compliance deletion details
-        UseCaseLoggingUtil.logComplianceProtection(
-          this.logger,
-          operation,
-          safeLogContext,
-          {
-            fieldsProtected: 0, // No fields protected in deletion
-            strategiesUsed: ['SECURE_DELETION'],
-            auditGenerated: true,
-            retentionApplied: true,
-            retentionExpiry: new Date(retentionMetadata.retentionExpiry),
-            legalBasis: retentionMetadata.legalBasis,
-            automaticDeletion: retentionMetadata.automaticDeletion,
-            auditRecord: retentionMetadata.auditRecord.tenant,
-          },
-        );
-      }
-
-      // Step 4: Log successful deletion with comprehensive metrics
+      // Step 3: Log successful deletion with comprehensive metrics
       const executionTime = this.clock.nowMs() - startTime;
       UseCaseLoggingUtil.logOperationSuccess(
         this.logger,
@@ -342,7 +270,6 @@ export class DeleteTestSecurityUseCase implements IDeleteTestSecurityUseCase {
           eventCount: aggregate.uncommittedEvents?.length ?? 0,
           businessData: {
             TestSecurityId: rawProps.id,
-            complianceApplied: classification.containsPII,
             securelyDeleted: true,
             domainEventsGenerated: true,
           },

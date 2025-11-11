@@ -38,12 +38,7 @@ import { DetailTestSecurityResponse } from '../dtos';
 import { TestSecurityDtoAssembler } from '../assemblers';
 import { ICreateTestSecurityUseCase } from './contracts';
 
-// Shared compliance services
-import {
-  PIIClassificationService,
-  PIIProtectionService,
-  DataRetentionService,
-} from 'src/shared/services/compliance';
+// Note: PII protection and compliance handled at service/infrastructure layer
 
 @Injectable()
 export class CreateTestSecurityUseCase implements ICreateTestSecurityUseCase {
@@ -60,9 +55,6 @@ export class CreateTestSecurityUseCase implements ICreateTestSecurityUseCase {
     readonly moduleLogger: Logger,
     @Inject(CLOCK)
     private readonly clock: Clock,
-    private readonly piiClassificationService: PIIClassificationService,
-    private readonly piiProtectionService: PIIProtectionService,
-    private readonly dataRetentionService: DataRetentionService,
   ) {
     this.loggingConfig = {
       serviceName: WebhookConfigServiceConstants.SERVICE_NAME,
@@ -106,17 +98,7 @@ export class CreateTestSecurityUseCase implements ICreateTestSecurityUseCase {
       return err(validation.error);
     }
 
-    // Step 2: Check PII compliance for input data with domain context
-    const classification = this.piiClassificationService.classifyData(
-      {},
-      {
-        domain: 'webhook-config',
-        tenant: command.user.tenant,
-        // entityType: 'TestSecurity' // Future: for entity-level rules
-      },
-    );
-
-    // Step 3: Create safe log context (no raw command that might contain PII)
+    // Step 2: Create basic log context for audit trail
     const safeLogContext = UseCaseLoggingUtil.createLogContext(
       this.loggingConfig,
       this.clock,
@@ -132,50 +114,8 @@ export class CreateTestSecurityUseCase implements ICreateTestSecurityUseCase {
       },
     );
 
-    // Log compliance check with detailed audit trail
-    UseCaseLoggingUtil.logComplianceCheck(
-      this.logger,
-      operation,
-      safeLogContext,
-      classification,
-    );
-
-    // Step 4: Mask payload for logging if PII detected (no domain mutation)
+    // Step 3: Process create operation with audit logging
     const rawProps = command.props; // Keep original for domain processing
-
-    if (classification.containsPII) {
-      const maskedForLog = this.piiProtectionService.maskForLog(
-        rawProps as unknown as Record<string, unknown>,
-        classification,
-      );
-      this.logger.debug(
-        { ...safeLogContext, payload: maskedForLog },
-        'masked input for audit',
-      );
-    }
-
-    // Step 5: Robust audit generation with error handling
-    if (classification.containsPII) {
-      try {
-        this.piiProtectionService.generateProtectionAudit(
-          [], // No protection log since we're not mutating domain data
-          {
-            userId: command.user.sub,
-            tenant: command.user.tenant,
-            operation: 'create_test_security',
-            domain: 'webhook-config',
-            entityType: 'test_security',
-          },
-        );
-      } catch (e) {
-        this.logger.warn(
-          { err: e as Error, ...safeLogContext },
-          'protection audit failed (non-fatal)',
-        );
-      }
-    }
-
-    // Step 6: Create aggregate with raw data (no domain mutation)
     const aggregateResult = await runUseCaseWithSecurity<
       CreateTestSecurityCommand,
       TestSecurityAggregate,
@@ -215,28 +155,8 @@ export class CreateTestSecurityUseCase implements ICreateTestSecurityUseCase {
         },
       },
       runDomain: ({ metadata, clock }) => {
-        // Use classification for metadata only, not to mutate props
-        const enhancedMetadata = {
-          ...metadata,
-          dataClassification: classification.containsPII
-            ? ('confidential' as const)
-            : ('internal' as const),
-          encryptionRequired:
-            classification.containsPII && classification.requiresEncryption,
-          // Include compact audit summary (no raw values)
-          dataClassificationSummary: {
-            categories: classification.piiCategories,
-            confidentiality: classification.confidentialityLevel,
-            risk: classification.riskScore ?? undefined,
-          },
-        };
-
-        // Pass raw props to aggregate (no domain mutation)
-        return createTestSecurityAggregateFromProps(
-          rawProps,
-          enhancedMetadata,
-          clock,
-        );
+        // Pass raw props to aggregate
+        return createTestSecurityAggregateFromProps(rawProps, metadata, clock);
       },
       // Authorization configuration
       authorizationService: this.authorizationService,
@@ -264,46 +184,7 @@ export class CreateTestSecurityUseCase implements ICreateTestSecurityUseCase {
 
     const aggregate = aggregateResult.value;
 
-    // Step 8: Generate retention metadata now that entityId is known
-    if (classification.containsPII) {
-      try {
-        const retention =
-          await this.dataRetentionService.generateRetentionMetadata(
-            classification,
-            {
-              tenant: command.user.tenant,
-              userId: command.user.sub,
-              entityType: 'test_security',
-              entityId: aggregate.id.toString(), // Now we have the actual ID
-              domain: 'webhook-config',
-            },
-          );
-
-        // Log comprehensive compliance protection details
-        UseCaseLoggingUtil.logComplianceProtection(
-          this.logger,
-          operation,
-          safeLogContext,
-          {
-            fieldsProtected: 0, // No fields mutated at domain level
-            strategiesUsed: ['classification-only'],
-            auditGenerated: true,
-            retentionApplied: true,
-            retentionExpiry: new Date(retention.retentionExpiry),
-            legalBasis: retention.legalBasis,
-            automaticDeletion: retention.automaticDeletion,
-            auditRecord: retention.auditRecord.tenant,
-          },
-        );
-      } catch (e) {
-        this.logger.warn(
-          { err: e as Error, ...safeLogContext },
-          'retention metadata generation failed (non-fatal)',
-        );
-      }
-    }
-
-    // Step 9: Get domain state directly from aggregate (clean architecture)
+    // Step 8: Get domain state directly from aggregate (clean architecture)
     const domainState = aggregate.toDomainState();
     const dto = TestSecurityDtoAssembler.toDetailResponse(domainState);
 
@@ -319,7 +200,6 @@ export class CreateTestSecurityUseCase implements ICreateTestSecurityUseCase {
         eventCount: aggregate.uncommittedEvents?.length ?? 0,
         businessData: {
           testSecurityCode: dto.id,
-          complianceApplied: classification.containsPII,
         },
       },
     );
