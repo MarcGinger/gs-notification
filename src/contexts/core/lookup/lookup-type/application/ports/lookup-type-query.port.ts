@@ -5,7 +5,11 @@ import { Result, DomainError } from 'src/shared/errors';
 import { RepositoryOptions } from 'src/shared/infrastructure/repositories';
 import { ActorContext } from 'src/shared/application/context';
 import { Option } from 'src/shared/domain/types';
-import { DetailLookupTypeResponse } from '../dtos';
+import {
+  DetailLookupTypeResponse,
+  LookupTypePageResponse,
+  ListLookupTypeFilterRequest,
+} from '../dtos';
 
 /**
  * Token for injecting ILookupTypeQuery port implementation
@@ -41,4 +45,17 @@ export interface ILookupTypeQuery {
     code: string,
     options?: RepositoryOptions,
   ): Promise<Result<Option<DetailLookupTypeResponse>, DomainError>>;
+
+  /**
+   * Find LookupType records with pagination and filtering.
+   * @param actor - The actor context containing authentication and request metadata.
+   * @param filter - Optional filter criteria for the product search.
+   * @param options - Optional repository options (e.g., pagination, sorting).
+   * @returns A promise resolving to a Result containing paginated LookupType responses or a DomainError.
+   */
+  findPaginated(
+    actor: ActorContext,
+    filter?: ListLookupTypeFilterRequest,
+    options?: RepositoryOptions,
+  ): Promise<Result<LookupTypePageResponse, DomainError>>;
 }

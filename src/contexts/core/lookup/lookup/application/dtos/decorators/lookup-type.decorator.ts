@@ -22,7 +22,8 @@ export function ApiLookupLookupType(options: PropOptions = {}) {
 
   return applyDecorators(
     ApiProperty({
-      description: `Lookup Lookup type`,
+      description: `Foreign key reference to lookup_type table. Defines the category or type of this lookup entry, enabling grouping and filtering of related lookup values.`,
+      example: `COUNTRY`,
       type: String,
       required,
     }),

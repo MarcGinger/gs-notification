@@ -22,7 +22,8 @@ export function ApiAttributeruleCode(options: PropOptions = {}) {
 
   return applyDecorators(
     ApiProperty({
-      description: `An identifier for the attribute rule. It is typically represented as an integer, but the specific format may vary.`,
+      description: `Unique technical identifier for the attribute rule within its scope. Used as a stable reference that doesn't change even if the display name is updated.`,
+      example: `email_validation`,
       type: String,
       required,
     }),

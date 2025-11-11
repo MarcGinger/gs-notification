@@ -22,7 +22,8 @@ export function ApiAttributeruleRegexError(options: PropOptions = {}) {
 
   return applyDecorators(
     ApiProperty({
-      description: `A string that specifies the error message to display if the field value does not match the specified regular expression pattern.`,
+      description: `Custom error message displayed when regex pattern validation fails. Should explain the expected format and provide examples.`,
+      example: `Please enter a valid email address (e.g., user@domain.com)`,
       type: String,
       required,
     }),

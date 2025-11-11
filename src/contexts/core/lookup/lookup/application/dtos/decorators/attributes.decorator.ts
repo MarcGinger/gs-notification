@@ -22,8 +22,8 @@ export function ApiLookupAttributes(options: PropOptions = {}) {
 
   return applyDecorators(
     ApiProperty({
-      description: `Lookup Attributes`,
-      example: '{ "key1": "value1", "key2": 123 }',
+      description: `Dynamic JSON object containing custom attributes specific to this lookup entry. Structure and validation rules are defined by the associated lookup_type's attributerules.`,
+      example: '{"iso_code": "USD", "symbol": "$"}',
       type: 'object',
       additionalProperties: true,
     }),

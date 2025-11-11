@@ -22,7 +22,8 @@ export function ApiLookupCode(options: PropOptions = {}) {
 
   return applyDecorators(
     ApiProperty({
-      description: `Lookup Code`,
+      description: `Primary key and unique identifier for the lookup entry. Used as the canonical reference value when this lookup is selected or referenced by other entities.`,
+      example: `USA`,
       type: String,
       required,
     }),

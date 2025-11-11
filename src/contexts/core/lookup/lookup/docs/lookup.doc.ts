@@ -37,7 +37,7 @@ export class LookupDocumentation {
       .setVersion('1.0.0')
       .addTag('Lookups', `Configuration for lookup table`);
 
-    // Add dynamic server configuration xxx
+    // Add dynamic server configuration
     SwaggerConfigUtil.addServers(config, port);
 
     const document = SwaggerModule.createDocument(app, config.build(), {

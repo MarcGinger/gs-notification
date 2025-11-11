@@ -22,7 +22,8 @@ export function ApiAttributeruleDescription(options: PropOptions = {}) {
 
   return applyDecorators(
     ApiProperty({
-      description: `Attributerule Description`,
+      description: `Detailed explanation of what this attribute rule validates, including business context, usage examples, and any special considerations for implementation.`,
+      example: `Validates email addresses using RFC 5322 standard format`,
       type: String,
       required,
     }),

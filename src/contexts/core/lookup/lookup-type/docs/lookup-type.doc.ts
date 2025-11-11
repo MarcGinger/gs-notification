@@ -7,6 +7,7 @@ import { SwaggerConfigUtil } from 'src/docs/swagger-config.util';
 import { LookupTypeModule } from '../lookup-type.module';
 import {
   DetailAttributeruleResponse,
+  CreateAttributeruleRequest,
   UpdateAttributeruleRequest,
 } from '../application/dtos';
 /**
@@ -46,7 +47,11 @@ export class LookupTypeDocumentation {
 
     const document = SwaggerModule.createDocument(app, config.build(), {
       include: [LookupTypeModule],
-      extraModels: [DetailAttributeruleResponse, UpdateAttributeruleRequest],
+      extraModels: [
+        DetailAttributeruleResponse,
+        CreateAttributeruleRequest,
+        UpdateAttributeruleRequest,
+      ],
     });
 
     SwaggerModule.setup('api/docs/core/lookup/lookup-type', app, document);

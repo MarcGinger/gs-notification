@@ -22,7 +22,8 @@ export function ApiLookupTypeCode(options: PropOptions = {}) {
 
   return applyDecorators(
     ApiProperty({
-      description: `Lookup type Code`,
+      description: `Primary key and unique identifier for the lookup type. Defines the category or classification that groups related lookup entries together.`,
+      example: `COUNTRY`,
       type: String,
       required,
     }),

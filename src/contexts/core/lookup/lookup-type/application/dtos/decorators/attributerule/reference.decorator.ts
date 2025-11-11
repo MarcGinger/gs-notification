@@ -22,7 +22,8 @@ export function ApiAttributeruleReference(options: PropOptions = {}) {
 
   return applyDecorators(
     ApiProperty({
-      description: `A boolean value that indicates whether the field is a reference field. If set to true, the attribute will be searchable.`,
+      description: `Indicates whether this attribute can be used as a searchable reference or lookup key. When true, the attribute will be indexed for efficient querying.`,
+      example: false,
       type: Boolean,
       required,
     }),

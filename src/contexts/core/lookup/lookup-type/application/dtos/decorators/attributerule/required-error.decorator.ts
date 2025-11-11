@@ -22,7 +22,8 @@ export function ApiAttributeruleRequiredError(options: PropOptions = {}) {
 
   return applyDecorators(
     ApiProperty({
-      description: `A string that specifies the error message to display if a required field is left blank.`,
+      description: `Custom error message shown when a required field is missing or empty. Should clearly indicate which field needs to be completed.`,
+      example: `Email address is required to create an account`,
       type: String,
       required,
     }),

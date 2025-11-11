@@ -22,7 +22,8 @@ export function ApiAttributeruleName(options: PropOptions = {}) {
 
   return applyDecorators(
     ApiProperty({
-      description: `A string representing the name or label of the attribute rule.`,
+      description: `Human-readable name for the attribute rule that will be displayed in forms and admin interfaces. Should be descriptive and user-friendly.`,
+      example: `Email Format Validation`,
       type: String,
       required,
     }),

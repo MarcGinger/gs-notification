@@ -22,7 +22,8 @@ export function ApiAttributeruleUnique(options: PropOptions = {}) {
 
   return applyDecorators(
     ApiProperty({
-      description: `A boolean value that indicates whether the field must have a unique value among all persons. If set to true, the field must have a unique value and the system will return an error if a duplicate value is entered.`,
+      description: `Enforces uniqueness constraint across all entities using this attribute. When true, duplicate values will be rejected with validation error.`,
+      example: true,
       type: Boolean,
       required,
     }),

@@ -22,7 +22,8 @@ export function ApiAttributeruleRegex(options: PropOptions = {}) {
 
   return applyDecorators(
     ApiProperty({
-      description: `This is a regular expression pattern field. If set, the system will validate the value against the specified regular expression pattern and return an error if there is no match.`,
+      description: `Regular expression pattern for format validation. When specified, attribute values must match this pattern or validation will fail.`,
+      example: `^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$`,
       type: String,
       required,
     }),

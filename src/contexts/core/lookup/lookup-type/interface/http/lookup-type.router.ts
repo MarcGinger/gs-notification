@@ -45,6 +45,7 @@ const lookupTypeRoutes: Routes = [
  * the nested route structure.
  *
  * Routes configured:
+ * - /core/lookup/api/v1/lookup-types (GET, POST)
  * - /core/lookup/api/v1/lookup-types/:code (GET, PUT, DELETE)
  * - /core/lookup/health/projectors/lookupType (GET)
  * - /core/lookup/health/projectors/lookup-type/metrics (GET)

@@ -22,7 +22,8 @@ export function ApiLookupTypeName(options: PropOptions = {}) {
 
   return applyDecorators(
     ApiProperty({
-      description: `Lookup type Name`,
+      description: `Human-readable display name for the lookup type. Used in administrative interfaces and documentation to describe the purpose of this lookup category.`,
+      example: `Countries`,
       type: String,
       required,
     }),

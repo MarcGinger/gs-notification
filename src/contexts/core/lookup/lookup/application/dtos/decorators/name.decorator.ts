@@ -22,7 +22,8 @@ export function ApiLookupName(options: PropOptions = {}) {
 
   return applyDecorators(
     ApiProperty({
-      description: `Lookup Name`,
+      description: `Human-readable display name for the lookup entry. This is the text that should be shown to users in forms, dropdowns, and reports rather than the technical code.`,
+      example: `United States`,
       type: String,
       required,
     }),

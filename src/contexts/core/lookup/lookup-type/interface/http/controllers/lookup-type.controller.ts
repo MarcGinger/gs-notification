@@ -4,6 +4,7 @@
 import {
   Controller,
   Get,
+  Query,
   Post,
   Body,
   Put,
@@ -34,8 +35,12 @@ import {
   DetailLookupTypeResponse,
   CreateLookupTypeRequest,
   UpdateLookupTypeRequest,
+  LookupTypePageResponse,
+  ListLookupTypeFilterRequest,
+  ListLookupTypeResponse,
 } from '../../../application/dtos';
 import { Result, ResultInterceptor, DomainError } from 'src/shared/errors';
+import { PaginatedResponse } from 'src/shared/application/dtos';
 import {
   LookupTypeReadResource,
   LookupTypeCreateResource,
@@ -54,6 +59,29 @@ export class LookupTypeController {
     private readonly lookupTypeApplicationService: LookupTypeApplicationService,
   ) {}
 
+  @Get()
+  @LookupTypeReadResource()
+  @ApiOperation({
+    summary: 'List Lookup types',
+    description:
+      'Retrieves a list of Lookup types with optional filtering. Supports pagination and filtering by name or category. Requires READ permission (LOW risk).',
+  })
+  @ApiOkResponse({
+    description: 'List of Lookup types retrieved successfully',
+    type: LookupTypePageResponse,
+  })
+  @ApiCommonErrors()
+  async list(
+    @CurrentUser() user: IUserToken,
+    @Query() pageRequest?: ListLookupTypeFilterRequest,
+  ): Promise<Result<PaginatedResponse<ListLookupTypeResponse>, DomainError>> {
+    const result = await this.lookupTypeApplicationService.listLookupTypes(
+      user,
+      pageRequest,
+    );
+    return result;
+  }
+
   @Get(':code')
   @LookupTypeReadResource()
   @ApiOperation({
@@ -65,6 +93,7 @@ export class LookupTypeController {
     name: 'code',
     type: 'string',
     description: 'LookupType unique identifier',
+    example: 'COUNTRY',
   })
   @ApiOkResponse({
     description: 'LookupType details retrieved successfully',
@@ -146,6 +175,7 @@ export class LookupTypeController {
     name: 'code',
     type: 'string',
     description: 'LookupType unique identifier',
+    example: 'COUNTRY',
   })
   @ApiResponse({
     status: HttpStatus.OK,
@@ -190,6 +220,7 @@ export class LookupTypeController {
     name: 'code',
     type: 'string',
     description: 'LookupType unique identifier',
+    example: 'COUNTRY',
   })
   @ApiCommonErrors()
   @ApiNoContentResponse({

@@ -22,7 +22,8 @@ export function ApiAttributeruleReserved(options: PropOptions = {}) {
 
   return applyDecorators(
     ApiProperty({
-      description: `A boolean value that indicates whether the field is reserved. If set to true, the system will return an error if the field is updated or deleted.`,
+      description: `Protects critical system attributes from modification or deletion. When true, attempts to update or remove this rule will be rejected to maintain system integrity.`,
+      example: false,
       type: Boolean,
       required,
     }),

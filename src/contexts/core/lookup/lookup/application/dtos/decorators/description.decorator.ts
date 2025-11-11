@@ -22,7 +22,8 @@ export function ApiLookupDescription(options: PropOptions = {}) {
 
   return applyDecorators(
     ApiProperty({
-      description: `Lookup Description`,
+      description: `Optional detailed description providing additional context, usage notes, or business rules for this lookup entry. Can include markdown formatting for rich text display.`,
+      example: `Primary currency used in the United States and its territories`,
       type: String,
       required,
     }),

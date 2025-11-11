@@ -22,7 +22,8 @@ export function ApiAttributeruleUniqueError(options: PropOptions = {}) {
 
   return applyDecorators(
     ApiProperty({
-      description: `A string that specifies the error message to display if a duplicate value is entered for a field that is required to be unique.`,
+      description: `Custom error message displayed when uniqueness validation fails. Should be user-friendly and provide clear guidance on resolution.`,
+      example: `This email address is already registered in the system`,
       type: String,
       required,
     }),

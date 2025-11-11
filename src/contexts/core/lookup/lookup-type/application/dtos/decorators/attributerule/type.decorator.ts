@@ -26,7 +26,8 @@ export function ApiAttributeruleType(options: PropOptions = {}) {
   const { required = true } = options;
   return applyDecorators(
     ApiProperty({
-      description: `Attributerule Type Values include string, boolean, integer, currency, date, datetime, other.`,
+      description: `Data type classification for the attribute field. Determines validation logic, storage format, and UI input controls to be used for this attribute. Values include string, boolean, integer, currency, date, datetime, other.`,
+      example: `string`,
       type: String,
       enum: AttributeruleTypeValues,
       required,

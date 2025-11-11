@@ -22,7 +22,8 @@ export function ApiAttributeruleRequired(options: PropOptions = {}) {
 
   return applyDecorators(
     ApiProperty({
-      description: `A boolean value that indicates whether the field is required for all persons. If set to true, the system will return an error if the field is left blank when a person is created or updated.`,
+      description: `Specifies whether this attribute must have a value. When true, empty or null values will trigger validation errors during entity creation or updates.`,
+      example: true,
       type: Boolean,
       required,
     }),

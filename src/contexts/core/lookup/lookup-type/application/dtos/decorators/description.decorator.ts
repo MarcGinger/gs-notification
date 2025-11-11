@@ -22,7 +22,8 @@ export function ApiLookupTypeDescription(options: PropOptions = {}) {
 
   return applyDecorators(
     ApiProperty({
-      description: `Lookup type Description`,
+      description: `Detailed description explaining the purpose, usage, and business context of this lookup type. May include formatting guidelines and data governance notes.`,
+      example: `ISO 3166 country codes and names for international address validation`,
       type: String,
       required,
     }),

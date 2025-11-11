@@ -16,6 +16,8 @@ import {
   DeleteLookupTypeUseCase,
   IGetLookupTypeUseCase,
   GetLookupTypeUseCase,
+  IListLookupTypeUseCase,
+  ListLookupTypeUseCase,
 } from './application/use-cases';
 
 // import { ILookupTypeRepository } from './application/ports';
@@ -68,6 +70,10 @@ import {
     {
       provide: IGetLookupTypeUseCase,
       useClass: GetLookupTypeUseCase,
+    },
+    {
+      provide: IListLookupTypeUseCase,
+      useClass: ListLookupTypeUseCase,
     },
   ],
   exports: [

@@ -29,7 +29,7 @@ export function ApiLookupTypeAttributerulesRequest(options: PropOptions = {}) {
   const { required = true } = options;
   return applyDecorators(
     ApiProperty({
-      description: `Lookup type Attributerules`,
+      description: `JSON array of attribute rule references that define the dynamic schema for lookup entries of this type. Links to attributerule table for validation logic.`,
       type: 'object',
       additionalProperties: { $ref: getSchemaPath(UpdateAttributeruleRequest) },
       required: [],

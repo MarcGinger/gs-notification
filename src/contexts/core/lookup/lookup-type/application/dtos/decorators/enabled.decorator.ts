@@ -22,7 +22,8 @@ export function ApiLookupTypeEnabled(options: PropOptions = {}) {
 
   return applyDecorators(
     ApiProperty({
-      description: `Lookup type Enabled`,
+      description: `Controls whether this lookup type is active and available for use. When disabled, the type and its associated lookup entries are hidden from selection interfaces.`,
+      example: true,
       type: Boolean,
       required,
     }),

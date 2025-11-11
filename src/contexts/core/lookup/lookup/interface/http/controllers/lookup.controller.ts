@@ -65,6 +65,7 @@ export class LookupController {
     name: 'code',
     type: 'string',
     description: 'Lookup unique identifier',
+    example: 'USA',
   })
   @ApiOkResponse({
     description: 'Lookup details retrieved successfully',
@@ -146,6 +147,7 @@ export class LookupController {
     name: 'code',
     type: 'string',
     description: 'Lookup unique identifier',
+    example: 'USA',
   })
   @ApiResponse({
     status: HttpStatus.OK,
@@ -189,6 +191,7 @@ export class LookupController {
     name: 'code',
     type: 'string',
     description: 'Lookup unique identifier',
+    example: 'USA',
   })
   @ApiCommonErrors()
   @ApiNoContentResponse({
