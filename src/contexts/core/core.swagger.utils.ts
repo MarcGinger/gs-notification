@@ -4,7 +4,7 @@
 import { INestApplication } from '@nestjs/common';
 import { AppConfigUtil } from 'src/shared/config/app-config.util';
 import { CoreDocumentation } from './core.doc';
-import { setupCoreLookupDocs } from './lookup/lookup-swagger.util';
+import { setupCoreAttributesDocs } from './attributes/attributes-swagger.util';
 
 /**
  * Setup core application/service Swagger documentation
@@ -19,10 +19,10 @@ export function setupCoreConfigDocs(
   }
 
   const coreUrls = CoreDocumentation.setupAll(app, port);
-  const coreLookupUrls = setupCoreLookupDocs(app, port);
+  const coreAttributesUrls = setupCoreAttributesDocs(app, port);
 
   return {
     ...coreUrls,
-    ...coreLookupUrls,
+    ...coreAttributesUrls,
   };
 }

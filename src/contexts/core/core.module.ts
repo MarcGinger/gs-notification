@@ -3,8 +3,8 @@
 
 import { Module } from '@nestjs/common';
 
-// Lookup Application
-import { CoreLookupModule } from './lookup/lookup.module';
+// Attributes Application
+import { CoreAttributesModule } from './attributes/attributes.module';
 
 /**
  * Core Bounded Context Module
@@ -13,12 +13,12 @@ import { CoreLookupModule } from './lookup/lookup.module';
  * all applications within this domain.
  *
  * Applications in this context:
- * - Lookup: lookup application
+ * - Attributes: attributes application
  */
 @Module({
-  imports: [CoreLookupModule],
+  imports: [CoreAttributesModule],
   controllers: [],
   providers: [],
-  exports: [CoreLookupModule],
+  exports: [CoreAttributesModule],
 })
 export class CoreModule {}

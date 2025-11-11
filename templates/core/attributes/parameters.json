@@ -1,0 +1,162 @@
+{
+  "service": {
+    "name": "core-lookup",
+    "version": "1",
+    "moduleName": ""
+  },
+  "tables": {
+    "lookup": {
+      "docs": {
+        "name": "Lookup",
+        "summary": "Configuration for lookup table",
+        "version": "1.0.0"
+      },
+      "apis": {},
+      "store": {
+        "read": "sql,eventstream,redis",
+        "write": "sql,eventstream,redis",
+        "query": "sql,eventstream,redis"
+      },
+      "redis": {
+        "prefix": "",
+        "version": "1.0",
+        "category": "core:lookup.lookup.v1",
+        "ttl": 3600,
+        "hash": true,
+        "aggregate": "lookup"
+      },
+      "eventstream": {
+        "boundedContext": "core",
+        "aggregate": "lookup",
+        "version": "v1",
+        "stream": "core.lookup.lookup",
+        "createdEvent": "CoreLookupLookupCreated.v1",
+        "updatedEvent": "CoreLookupLookupUpdated.v1",
+        "deletedEvent": "CoreLookupLookupDeleted.v1"
+      },
+      "cols": {
+        "lookup_type": {},
+        "code": {},
+        "name": {},
+        "description": {},
+        "enabled": {},
+        "attributes": {}
+      },
+      "permissions": {
+        "bulk": [
+          "update",
+          "delete",
+          "import"
+        ],
+        "adminOverride": true,
+        "auditView": true,
+        "custom": []
+      }
+    },
+    "attributerule": {
+      "docs": {
+        "name": "Attributerule",
+        "summary": "Configuration for attributerule table",
+        "version": "1.0.0"
+      },
+      "apis": {},
+      "store": {
+        "read": "sql,eventstream,redis",
+        "write": "sql,eventstream,redis",
+        "query": "sql,eventstream,redis"
+      },
+      "redis": {
+        "prefix": "",
+        "version": "1.0",
+        "category": "core:lookup.attributerule.v1",
+        "ttl": 3600,
+        "hash": true,
+        "aggregate": "attributerule"
+      },
+      "eventstream": {
+        "boundedContext": "core",
+        "aggregate": "attributerule",
+        "version": "v1",
+        "stream": "core.lookup.attributerule",
+        "createdEvent": "CoreLookupAttributeruleCreated.v1",
+        "updatedEvent": "CoreLookupAttributeruleUpdated.v1",
+        "deletedEvent": "CoreLookupAttributeruleDeleted.v1"
+      },
+      "cols": {
+        "name": {},
+        "description": {},
+        "type": {},
+        "reference": {},
+        "reserved": {},
+        "unique": {},
+        "unique_error": {},
+        "required": {},
+        "required_error": {},
+        "regex": {},
+        "regex_error": {},
+        "code": {},
+        "id": {}
+      },
+      "permissions": {
+        "bulk": [
+          "update",
+          "delete",
+          "import"
+        ],
+        "adminOverride": true,
+        "auditView": true,
+        "custom": []
+      }
+    },
+    "lookup_type": {
+      "docs": {
+        "name": "Lookup_type",
+        "summary": "Configuration and metadata definitions for lookup types, including their attribute rules and validation behavior",
+        "version": "1.0.0"
+      },
+      "apis": {},
+      "store": {
+        "read": "sql,eventstream,redis",
+        "write": "sql,eventstream,redis",
+        "query": "sql,eventstream,redis"
+      },
+      "redis": {
+        "prefix": "",
+        "version": "1.0",
+        "category": "core:lookup.lookup.type.v1",
+        "ttl": 3600,
+        "hash": true,
+        "aggregate": "lookup_type"
+      },
+      "eventstream": {
+        "boundedContext": "core",
+        "aggregate": "lookup_type",
+        "version": "v1",
+        "stream": "core.lookup.lookupType",
+        "createdEvent": "CoreLookupLookupTypeCreated.v1",
+        "updatedEvent": "CoreLookupLookupTypeUpdated.v1",
+        "deletedEvent": "CoreLookupLookupTypeDeleted.v1"
+      },
+      "cols": {
+        "code": {},
+        "name": {},
+        "description": {},
+        "enabled": {},
+        "attributes": {}
+      },
+      "permissions": {
+        "bulk": [
+          "update",
+          "delete",
+          "import"
+        ],
+        "adminOverride": true,
+        "auditView": true,
+        "custom": []
+      }
+    }
+  },
+  "docs": {
+    "summary": ""
+  }
+}

@@ -22,7 +22,7 @@ export class CoreDocumentation {
         `## bounded context: core
   | Applications/Services |
   |---------------|
-  | [**lookup**](/api/docs/core/lookup) |
+  | [**attributes**](/api/docs/core/attributes) |
 
         `,
       )
