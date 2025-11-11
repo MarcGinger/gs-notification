@@ -169,7 +169,7 @@
 		"172126ee-01dd-4c68-93b1-6084ca2e4c20": {
 			"id": "172126ee-01dd-4c68-93b1-6084ca2e4c20",
 			"visible": true,
-			"name": "attributerule",
+			"name": "rule",
 			"desc": "",
 			"estimatedSize": "",
 			"cols": [
@@ -510,7 +510,7 @@
 		"26cdf662-b910-43c0-8541-2cff7760e849": {
 			"id": "26cdf662-b910-43c0-8541-2cff7760e849",
 			"visible": true,
-			"name": "lookup_type",
+			"name": "attribute_rule",
 			"desc": "",
 			"estimatedSize": "",
 			"cols": [
@@ -773,7 +773,7 @@
 		},
 		"type": "MARIADB",
 		"version": 1,
-		"lastSaved": 1762853921066,
+		"lastSaved": 1762857931699,
 		"beforeScript": "",
 		"afterScript": "",
 		"sqlSettings": {
@@ -830,8 +830,8 @@
 				},
 				"172126ee-01dd-4c68-93b1-6084ca2e4c20": {
 					"referencedItemId": "172126ee-01dd-4c68-93b1-6084ca2e4c20",
-					"x": 525,
-					"y": 284,
+					"x": 393,
+					"y": 251,
 					"gHeight": 261,
 					"gWidth": 252,
 					"color": "#ffffff",

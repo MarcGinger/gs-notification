@@ -35,12 +35,12 @@
         "deletedEvent": "CoreLookupLookupDeleted.v1"
       },
       "cols": {
-        "lookup_type": {},
         "code": {},
         "name": {},
         "description": {},
         "enabled": {},
-        "attributes": {}
+        "attributes": {},
+        "lookup_type": {}
       },
       "permissions": {
         "bulk": [
@@ -53,10 +53,10 @@
         "custom": []
       }
     },
-    "attributerule": {
+    "rule": {
       "docs": {
-        "name": "Attributerule",
-        "summary": "Configuration for attributerule table",
+        "name": "Rule",
+        "summary": "Configuration for rule table",
         "version": "1.0.0"
       },
       "apis": {},
@@ -68,21 +68,23 @@
       "redis": {
         "prefix": "",
         "version": "1.0",
-        "category": "core:lookup.attributerule.v1",
+        "category": "core:attributes.rule.v1",
         "ttl": 3600,
         "hash": true,
-        "aggregate": "attributerule"
+        "aggregate": "rule"
       },
       "eventstream": {
         "boundedContext": "core",
-        "aggregate": "attributerule",
+        "aggregate": "rule",
         "version": "v1",
-        "stream": "core.lookup.attributerule",
-        "createdEvent": "CoreLookupAttributeruleCreated.v1",
-        "updatedEvent": "CoreLookupAttributeruleUpdated.v1",
-        "deletedEvent": "CoreLookupAttributeruleDeleted.v1"
+        "stream": "core.attributes.rule",
+        "createdEvent": "CoreAttributesRuleCreated.v1",
+        "updatedEvent": "CoreAttributesRuleUpdated.v1",
+        "deletedEvent": "CoreAttributesRuleDeleted.v1"
       },
       "cols": {
+        "id": {},
+        "code": {},
         "name": {},
         "description": {},
         "type": {},
@@ -93,9 +95,7 @@
         "required": {},
         "required_error": {},
         "regex": {},
-        "regex_error": {},
-        "code": {},
-        "id": {}
+        "regex_error": {}
       },
       "permissions": {
         "bulk": [
@@ -108,10 +108,10 @@
         "custom": []
       }
     },
-    "lookup_type": {
+    "attribute_rule": {
       "docs": {
-        "name": "Lookup_type",
-        "summary": "Configuration and metadata definitions for lookup types, including their attribute rules and validation behavior",
+        "name": "Attribute_rule",
+        "summary": "Configuration and metadata definitions for attributes, including their rules and validation behavior",
         "version": "1.0.0"
       },
       "apis": {},
@@ -123,19 +123,19 @@
       "redis": {
         "prefix": "",
         "version": "1.0",
-        "category": "core:lookup.lookup.type.v1",
+        "category": "core:attributes.attribute.rule.v1",
         "ttl": 3600,
         "hash": true,
-        "aggregate": "lookup_type"
+        "aggregate": "attribute_rule"
       },
       "eventstream": {
         "boundedContext": "core",
-        "aggregate": "lookup_type",
+        "aggregate": "attribute_rule",
         "version": "v1",
-        "stream": "core.lookup.lookupType",
-        "createdEvent": "CoreLookupLookupTypeCreated.v1",
-        "updatedEvent": "CoreLookupLookupTypeUpdated.v1",
-        "deletedEvent": "CoreLookupLookupTypeDeleted.v1"
+        "stream": "core.attributes.attributeRule",
+        "createdEvent": "CoreAttributesAttributeRuleCreated.v1",
+        "updatedEvent": "CoreAttributesAttributeRuleUpdated.v1",
+        "deletedEvent": "CoreAttributesAttributeRuleDeleted.v1"
       },
       "cols": {
         "code": {},

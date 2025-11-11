@@ -6,7 +6,7 @@ import { AppConfigUtil } from 'src/shared/config/app-config.util';
 
 import { AttributesApplicationDocumentation } from './attributes.doc';
 import { LookupDocumentation } from './lookup/docs/lookup.doc';
-import { LookupTypeDocumentation } from './lookup-type/docs/lookup-type.doc';
+import { AttributeRuleDocumentation } from './attribute-rule/docs/attribute-rule.doc';
 
 /**
  * Setup core-attributes application/service Swagger documentation
@@ -27,12 +27,12 @@ export function setupCoreAttributesDocs(
 
   // Setup documentation for all core_attributes aggregates
   const lookupUrls = LookupDocumentation.setupAll(app, port);
-  const lookupTypeUrls = LookupTypeDocumentation.setupAll(app, port);
+  const attributeRuleUrls = AttributeRuleDocumentation.setupAll(app, port);
 
   return {
     ...boundedContextUrls,
     ...lookupUrls,
 
-    ...lookupTypeUrls,
+    ...attributeRuleUrls,
   };
 }

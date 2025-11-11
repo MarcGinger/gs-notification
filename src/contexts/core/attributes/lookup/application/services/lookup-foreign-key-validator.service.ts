@@ -9,9 +9,9 @@ import { Option } from 'src/shared/domain/types';
 import { LookupErrors } from '../../domain/errors';
 import { AttributesServiceConstants } from '../../../service-constants';
 import {
-  LOOKUP_TYPE_REFERENCE_READER_TOKEN,
-  LookupTypeReference,
-  ILookupTypeReader,
+  ATTRIBUTE_RULE_REFERENCE_READER_TOKEN,
+  AttributeRuleReference,
+  IAttributeRuleReader,
 } from '../ports';
 
 export interface ForeignKeyValidationContext {
@@ -36,13 +36,13 @@ export interface ForeignKeyValidationContext {
 @Injectable()
 export class LookupForeignKeyValidatorService {
   constructor(
-    @Inject(LOOKUP_TYPE_REFERENCE_READER_TOKEN)
-    private readonly lookupTypeReader: ILookupTypeReader,
+    @Inject(ATTRIBUTE_RULE_REFERENCE_READER_TOKEN)
+    private readonly attributeRuleReader: IAttributeRuleReader,
   ) {}
   /**
    * Validates lookupType existence
    * @param actor - User context for authorization
-   * @param lookupType - LookupType code to validate
+   * @param lookupType - AttributeRule code to validate
    * @param context - Validation context for logging and error handling
    * @param logger - Logger instance for structured logging
    * @returns Result indicating validation success or failure
@@ -52,7 +52,7 @@ export class LookupForeignKeyValidatorService {
     lookupType: string | undefined,
     context: ForeignKeyValidationContext,
     logger: Logger,
-  ): Promise<Result<LookupTypeReference | undefined, DomainError>> {
+  ): Promise<Result<AttributeRuleReference | undefined, DomainError>> {
     if (!lookupType) {
       return ok(undefined);
     }
@@ -66,13 +66,11 @@ export class LookupForeignKeyValidatorService {
       operation: context.operation,
     });
 
-    const lookupTypeResult = await this.lookupTypeReader.findLookupTypeByCode(
-      actor,
-      lookupType,
-    );
+    const lookupTypeResult =
+      await this.attributeRuleReader.findAttributeRuleByCode(actor, lookupType);
 
     if (!lookupTypeResult.ok) {
-      Log.error(logger, 'LookupType lookup failed during validation', {
+      Log.error(logger, 'AttributeRule lookup failed during validation', {
         application: AttributesServiceConstants.SERVICE_NAME,
         component: context.component,
         method: 'validateLookupType',
@@ -85,10 +83,10 @@ export class LookupForeignKeyValidatorService {
       return err(lookupTypeResult.error);
     }
 
-    const _lookupType = lookupTypeResult.value;
+    const _attributeRule = lookupTypeResult.value;
 
-    if (Option.isNone(_lookupType)) {
-      Log.warn(logger, 'LookupType not found during validation', {
+    if (Option.isNone(_attributeRule)) {
+      Log.warn(logger, 'AttributeRule not found during validation', {
         application: AttributesServiceConstants.SERVICE_NAME,
         component: context.component,
         method: 'validateLookupType',
@@ -98,17 +96,17 @@ export class LookupForeignKeyValidatorService {
         operation: context.operation,
       });
       return err(
-        withContext(LookupErrors.INVALID_LOOKUP_TYPE_CODE, {
+        withContext(LookupErrors.INVALID_ATTRIBUTE_RULE_CODE, {
           correlationId: context.correlationId,
           userId: context.userId,
           operation: context.operation,
           lookupType,
-          reason: 'LookupType code does not exist in the system',
+          reason: 'AttributeRule code does not exist in the system',
         }),
       );
     }
 
-    Log.debug(logger, 'LookupType existence validation passed', {
+    Log.debug(logger, 'AttributeRule existence validation passed', {
       application: AttributesServiceConstants.SERVICE_NAME,
       component: context.component,
       method: 'validateLookupType',
@@ -118,7 +116,7 @@ export class LookupForeignKeyValidatorService {
       operation: context.operation,
     });
 
-    return ok(_lookupType.value);
+    return ok(_attributeRule.value);
   }
 
   /**
@@ -139,7 +137,7 @@ export class LookupForeignKeyValidatorService {
   ): Promise<
     Result<
       {
-        lookupType?: LookupTypeReference;
+        lookupType?: AttributeRuleReference;
       },
       DomainError
     >
@@ -178,7 +176,7 @@ export class LookupForeignKeyValidatorService {
   ): Promise<
     Result<
       {
-        lookupType?: LookupTypeReference;
+        lookupType?: AttributeRuleReference;
       },
       DomainError
     >

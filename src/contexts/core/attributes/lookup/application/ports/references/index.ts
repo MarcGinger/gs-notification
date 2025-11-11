@@ -1,1 +1,1 @@
-export * from './lookup-type.reference';
+export * from './attribute-rule.reference';
