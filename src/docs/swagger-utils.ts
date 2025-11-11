@@ -4,6 +4,7 @@
 import { INestApplication } from '@nestjs/common';
 import { AppConfigUtil } from 'src/shared/config/app-config.util';
 import { setupStandardSwaggerDocs } from './standard-swagger';
+import { setupCoreConfigDocs } from 'src/contexts/core/core.swagger.utils';
 import { setupNotificationConfigDocs } from 'src/contexts/notification/notification.swagger.utils';
 
 /**
@@ -19,10 +20,12 @@ export function setupMultipleSwaggerDocs(
 
   // Setup domain documentation (delegated to bounded context)
   const standardConfigUrls = setupStandardSwaggerDocs(app, port);
+  const coreConfigUrls = setupCoreConfigDocs(app, port);
   const notificationConfigUrls = setupNotificationConfigDocs(app, port);
 
   return {
     ...standardConfigUrls,
+    ...coreConfigUrls,
     ...notificationConfigUrls,
   };
 }

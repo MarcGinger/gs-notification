@@ -1,0 +1,1390 @@
+{
+  "service": {
+    "name": "core-lookup",
+    "boundedContext": "core",
+    "application": "lookup",
+    "moduleName": "core",
+    "version": "1",
+    "hasRedis": true,
+    "hasSql": true,
+    "hasEventStream": true
+  },
+  "tables": [
+    {
+      "name": "lookup",
+      "description": "",
+      "columns": [
+        {
+          "name": "lookup_type",
+          "type": "string",
+          "childRelationshipType": "",
+          "parentRelationshipType": "LookupType",
+          "datatype": "VARCHAR",
+          "primaryKey": false,
+          "required": true,
+          "description": "",
+          "defaultvalue": "",
+          "example": "",
+          "autoIncrement": false,
+          "maxLength": "64",
+          "array": false,
+          "isPII": "",
+          "secret": false,
+          "create": true,
+          "update": true,
+          "get": true,
+          "list": true,
+          "relationship": "one",
+          "parentRelationship": "lookup_type_lookup",
+          "childRelationship": "",
+          "meta": {
+            "kind": "string",
+            "maxLength": 64
+          }
+        },
+        {
+          "name": "code",
+          "type": "string",
+          "childRelationshipType": "",
+          "parentRelationshipType": "",
+          "datatype": "VARCHAR",
+          "primaryKey": true,
+          "required": true,
+          "description": "",
+          "defaultvalue": "",
+          "example": "",
+          "autoIncrement": false,
+          "maxLength": "64",
+          "array": false,
+          "isPII": "",
+          "secret": false,
+          "create": true,
+          "update": true,
+          "get": true,
+          "list": true,
+          "parentRelationship": "",
+          "childRelationship": "",
+          "meta": {
+            "kind": "string",
+            "maxLength": 64
+          }
+        },
+        {
+          "name": "name",
+          "type": "string",
+          "childRelationshipType": "",
+          "parentRelationshipType": "",
+          "datatype": "VARCHAR",
+          "primaryKey": false,
+          "required": true,
+          "description": "",
+          "defaultvalue": "",
+          "example": "",
+          "autoIncrement": false,
+          "maxLength": "128",
+          "array": false,
+          "isPII": "",
+          "secret": false,
+          "create": true,
+          "update": true,
+          "get": true,
+          "list": true,
+          "parentRelationship": "",
+          "childRelationship": "",
+          "meta": {
+            "kind": "string",
+            "maxLength": 128
+          }
+        },
+        {
+          "name": "description",
+          "type": "string",
+          "childRelationshipType": "",
+          "parentRelationshipType": "",
+          "datatype": "TEXT",
+          "primaryKey": false,
+          "required": false,
+          "description": "",
+          "defaultvalue": "",
+          "example": "",
+          "autoIncrement": false,
+          "array": false,
+          "isPII": "",
+          "secret": false,
+          "create": true,
+          "update": true,
+          "get": true,
+          "list": true,
+          "parentRelationship": "",
+          "childRelationship": "",
+          "meta": {
+            "kind": "string",
+            "maxLength": 65535
+          }
+        },
+        {
+          "name": "enabled",
+          "type": "boolean",
+          "childRelationshipType": "",
+          "parentRelationshipType": "",
+          "datatype": "BOOLEAN",
+          "primaryKey": false,
+          "required": false,
+          "description": "",
+          "defaultvalue": "true",
+          "example": "",
+          "autoIncrement": false,
+          "array": false,
+          "isPII": "",
+          "secret": false,
+          "create": true,
+          "update": true,
+          "get": true,
+          "list": true,
+          "parentRelationship": "",
+          "childRelationship": "",
+          "meta": {
+            "kind": "boolean"
+          }
+        },
+        {
+          "name": "attributes",
+          "type": "Record<string, unknown>",
+          "childRelationshipType": "",
+          "parentRelationshipType": "",
+          "datatype": "JSON",
+          "primaryKey": false,
+          "required": false,
+          "description": "",
+          "defaultvalue": "",
+          "example": "",
+          "autoIncrement": false,
+          "array": false,
+          "isPII": "",
+          "secret": false,
+          "create": true,
+          "update": true,
+          "get": true,
+          "list": true,
+          "parentRelationship": "",
+          "childRelationship": "",
+          "meta": {
+            "kind": "json",
+            "jsonShape": "object"
+          }
+        }
+      ],
+      "relationships": [
+        {
+          "name": "lookup_type_lookup",
+          "parentTable": "lookup_type",
+          "parentColumn": {
+            "name": "code",
+            "type": "string",
+            "childRelationshipType": "Lookup",
+            "parentRelationshipType": "",
+            "datatype": "VARCHAR",
+            "primaryKey": true,
+            "required": true,
+            "description": "",
+            "defaultvalue": "",
+            "example": "",
+            "autoIncrement": false,
+            "maxLength": "64",
+            "array": false,
+            "isPII": "",
+            "secret": false,
+            "create": true,
+            "update": true,
+            "get": true,
+            "list": true,
+            "parentRelationship": "",
+            "childRelationship": "lookup_type_lookup",
+            "meta": {
+              "kind": "string",
+              "maxLength": 64
+            }
+          },
+          "childTable": "lookup",
+          "childColumn": {
+            "name": "lookup_type",
+            "type": "string",
+            "childRelationshipType": "",
+            "parentRelationshipType": "LookupType",
+            "datatype": "VARCHAR",
+            "primaryKey": false,
+            "required": true,
+            "description": "",
+            "defaultvalue": "",
+            "example": "",
+            "autoIncrement": false,
+            "maxLength": "64",
+            "array": false,
+            "isPII": "",
+            "secret": false,
+            "create": true,
+            "update": true,
+            "get": true,
+            "list": true,
+            "relationship": "one",
+            "parentRelationship": "lookup_type_lookup",
+            "childRelationship": "",
+            "meta": {
+              "kind": "string",
+              "maxLength": 64
+            }
+          },
+          "type": "one",
+          "complex": true
+        }
+      ],
+      "lines": [],
+      "keys": [
+        {
+          "name": "code",
+          "type": "string",
+          "childRelationshipType": "",
+          "parentRelationshipType": "",
+          "datatype": "VARCHAR",
+          "primaryKey": true,
+          "required": true,
+          "description": "",
+          "defaultvalue": "",
+          "example": "",
+          "autoIncrement": false,
+          "maxLength": "64",
+          "array": false,
+          "isPII": "",
+          "secret": false,
+          "create": true,
+          "update": true,
+          "get": true,
+          "list": true,
+          "parentRelationship": "",
+          "childRelationship": "",
+          "meta": {
+            "kind": "string",
+            "maxLength": 64
+          }
+        }
+      ],
+      "indexes": [],
+      "docs": {
+        "name": "Lookup",
+        "summary": "Configuration for lookup table",
+        "version": "1.0.0"
+      },
+      "apis": {},
+      "store": {
+        "read": "memory",
+        "write": "memory",
+        "query": "memory",
+        "projector": "memory"
+      },
+      "options": {
+        "command": true,
+        "create": true,
+        "update": true,
+        "read": "memory",
+        "write": "memory",
+        "query": "memory",
+        "projector": "memory",
+        "queue": false,
+        "softDelete": true,
+        "timestamps": true,
+        "versioning": true,
+        "logging": true,
+        "auditing": true,
+        "caching": true,
+        "eventStreaming": false
+      },
+      "cancel": {
+        "create": false,
+        "update": false,
+        "delete": false,
+        "batch": false,
+        "get": false
+      },
+      "redis": {
+        "prefix": "",
+        "version": "1.0",
+        "category": "core:lookup.lookup.v1",
+        "ttl": 3600,
+        "hash": true,
+        "aggregate": "lookup"
+      },
+      "eventstream": {
+        "boundedContext": "core",
+        "aggregate": "lookup",
+        "version": "v1",
+        "stream": "core.lookup.lookup",
+        "createdEvent": "CoreLookupLookupCreated.v1",
+        "updatedEvent": "CoreLookupLookupUpdated.v1",
+        "deletedEvent": "CoreLookupLookupDeleted.v1"
+      },
+      "permissions": {
+        "bulk": [
+          "update",
+          "delete",
+          "import"
+        ],
+        "adminOverride": true,
+        "auditView": true,
+        "custom": []
+      },
+      "domainName": "",
+      "parentPath": []
+    },
+    {
+      "name": "attributerule",
+      "description": "",
+      "columns": [
+        {
+          "name": "id",
+          "type": "Record<string, unknown>",
+          "childRelationshipType": "LookupType",
+          "parentRelationshipType": "",
+          "datatype": "JSON",
+          "primaryKey": true,
+          "required": true,
+          "description": "",
+          "defaultvalue": "",
+          "example": "",
+          "autoIncrement": false,
+          "array": false,
+          "isPII": "",
+          "secret": false,
+          "create": true,
+          "update": true,
+          "get": true,
+          "list": true,
+          "parentRelationship": "",
+          "childRelationship": "attributerule_lookup_type",
+          "meta": {
+            "kind": "json",
+            "jsonShape": "object"
+          }
+        },
+        {
+          "name": "code",
+          "type": "string",
+          "childRelationshipType": "",
+          "parentRelationshipType": "",
+          "datatype": "VARCHAR",
+          "primaryKey": false,
+          "required": true,
+          "description": "An identifier for the attribute rule. It is typically represented as an integer, but the specific format may vary.",
+          "defaultvalue": "",
+          "example": "",
+          "autoIncrement": false,
+          "maxLength": "64",
+          "array": false,
+          "isPII": "",
+          "secret": false,
+          "create": true,
+          "update": true,
+          "get": true,
+          "list": true,
+          "parentRelationship": "",
+          "childRelationship": "",
+          "meta": {
+            "kind": "string",
+            "maxLength": 64
+          }
+        },
+        {
+          "name": "name",
+          "type": "string",
+          "childRelationshipType": "",
+          "parentRelationshipType": "",
+          "datatype": "VARCHAR",
+          "primaryKey": false,
+          "required": true,
+          "description": "A string representing the name or label of the attribute rule.",
+          "defaultvalue": "",
+          "example": "",
+          "autoIncrement": false,
+          "maxLength": "60",
+          "array": false,
+          "isPII": "",
+          "secret": false,
+          "create": true,
+          "update": true,
+          "get": true,
+          "list": true,
+          "parentRelationship": "",
+          "childRelationship": "",
+          "meta": {
+            "kind": "string",
+            "maxLength": 60
+          }
+        },
+        {
+          "name": "description",
+          "type": "string",
+          "childRelationshipType": "",
+          "parentRelationshipType": "",
+          "datatype": "TEXT",
+          "primaryKey": false,
+          "required": false,
+          "description": "",
+          "defaultvalue": "",
+          "example": "",
+          "autoIncrement": false,
+          "array": false,
+          "isPII": "",
+          "secret": false,
+          "create": true,
+          "update": true,
+          "get": true,
+          "list": true,
+          "parentRelationship": "",
+          "childRelationship": "",
+          "meta": {
+            "kind": "string",
+            "maxLength": 65535
+          }
+        },
+        {
+          "name": "type",
+          "type": "AttributeruleTypeEnum",
+          "childRelationshipType": "",
+          "parentRelationshipType": "",
+          "datatype": "ENUM",
+          "primaryKey": false,
+          "required": true,
+          "description": "",
+          "defaultvalue": "",
+          "example": "",
+          "autoIncrement": false,
+          "enum": [
+            {
+              "key": "string"
+            },
+            {
+              "key": "boolean"
+            },
+            {
+              "key": "integer"
+            },
+            {
+              "key": "currency"
+            },
+            {
+              "key": "date"
+            },
+            {
+              "key": "datetime"
+            },
+            {
+              "key": "other"
+            }
+          ],
+          "array": false,
+          "isPII": "",
+          "secret": false,
+          "create": true,
+          "update": true,
+          "get": true,
+          "list": true,
+          "parentRelationship": "",
+          "childRelationship": "",
+          "meta": {
+            "kind": "enum",
+            "enumValues": [
+              "string",
+              "boolean",
+              "integer",
+              "currency",
+              "date",
+              "datetime",
+              "other"
+            ],
+            "enumName": "type"
+          }
+        },
+        {
+          "name": "reference",
+          "type": "boolean",
+          "childRelationshipType": "",
+          "parentRelationshipType": "",
+          "datatype": "BOOLEAN",
+          "primaryKey": false,
+          "required": false,
+          "description": "A boolean value that indicates whether the field is a reference field. If set to true, the attribute will be searchable.",
+          "defaultvalue": "false",
+          "example": "",
+          "autoIncrement": false,
+          "array": false,
+          "isPII": "",
+          "secret": false,
+          "create": true,
+          "update": true,
+          "get": true,
+          "list": true,
+          "parentRelationship": "",
+          "childRelationship": "",
+          "meta": {
+            "kind": "boolean"
+          }
+        },
+        {
+          "name": "reserved",
+          "type": "boolean",
+          "childRelationshipType": "",
+          "parentRelationshipType": "",
+          "datatype": "BOOLEAN",
+          "primaryKey": false,
+          "required": false,
+          "description": "A boolean value that indicates whether the field is reserved. If set to true, the system will return an error if the field is updated or deleted.",
+          "defaultvalue": "false",
+          "example": "",
+          "autoIncrement": false,
+          "array": false,
+          "isPII": "",
+          "secret": false,
+          "create": true,
+          "update": true,
+          "get": true,
+          "list": true,
+          "parentRelationship": "",
+          "childRelationship": "",
+          "meta": {
+            "kind": "boolean"
+          }
+        },
+        {
+          "name": "unique",
+          "type": "boolean",
+          "childRelationshipType": "",
+          "parentRelationshipType": "",
+          "datatype": "boolean",
+          "primaryKey": false,
+          "required": false,
+          "description": "A boolean value that indicates whether the field must have a unique value among all persons. If set to true, the field must have a unique value and the system will return an error if a duplicate value is entered.",
+          "defaultvalue": "false",
+          "example": "",
+          "autoIncrement": false,
+          "array": false,
+          "isPII": "",
+          "secret": false,
+          "create": true,
+          "update": true,
+          "get": true,
+          "list": true,
+          "parentRelationship": "",
+          "childRelationship": "",
+          "meta": {
+            "kind": "boolean"
+          }
+        },
+        {
+          "name": "unique_error",
+          "type": "string",
+          "childRelationshipType": "",
+          "parentRelationshipType": "",
+          "datatype": "VARCHAR",
+          "primaryKey": false,
+          "required": false,
+          "description": "A string that specifies the error message to display if a duplicate value is entered for a field that is required to be unique.",
+          "defaultvalue": "",
+          "example": "",
+          "autoIncrement": false,
+          "maxLength": "255",
+          "array": false,
+          "isPII": "",
+          "secret": false,
+          "create": true,
+          "update": true,
+          "get": true,
+          "list": true,
+          "parentRelationship": "",
+          "childRelationship": "",
+          "meta": {
+            "kind": "string",
+            "maxLength": 255
+          }
+        },
+        {
+          "name": "required",
+          "type": "boolean",
+          "childRelationshipType": "",
+          "parentRelationshipType": "",
+          "datatype": "boolean",
+          "primaryKey": false,
+          "required": false,
+          "description": "A boolean value that indicates whether the field is required for all persons. If set to true, the system will return an error if the field is left blank when a person is created or updated.",
+          "defaultvalue": "false",
+          "example": "",
+          "autoIncrement": false,
+          "array": false,
+          "isPII": "",
+          "secret": false,
+          "create": true,
+          "update": true,
+          "get": true,
+          "list": true,
+          "parentRelationship": "",
+          "childRelationship": "",
+          "meta": {
+            "kind": "boolean"
+          }
+        },
+        {
+          "name": "required_error",
+          "type": "string",
+          "childRelationshipType": "",
+          "parentRelationshipType": "",
+          "datatype": "VARCHAR",
+          "primaryKey": false,
+          "required": false,
+          "description": "A string that specifies the error message to display if a required field is left blank.",
+          "defaultvalue": "",
+          "example": "",
+          "autoIncrement": false,
+          "maxLength": "255",
+          "array": false,
+          "isPII": "",
+          "secret": false,
+          "create": true,
+          "update": true,
+          "get": true,
+          "list": true,
+          "parentRelationship": "",
+          "childRelationship": "",
+          "meta": {
+            "kind": "string",
+            "maxLength": 255
+          }
+        },
+        {
+          "name": "regex",
+          "type": "string",
+          "childRelationshipType": "",
+          "parentRelationshipType": "",
+          "datatype": "VARCHAR",
+          "primaryKey": false,
+          "required": false,
+          "description": "This is a regular expression pattern field. If set, the system will validate the value against the specified regular expression pattern and return an error if there is no match.",
+          "defaultvalue": "",
+          "example": "",
+          "autoIncrement": false,
+          "maxLength": "120",
+          "array": false,
+          "isPII": "",
+          "secret": false,
+          "create": true,
+          "update": true,
+          "get": true,
+          "list": true,
+          "parentRelationship": "",
+          "childRelationship": "",
+          "meta": {
+            "kind": "string",
+            "maxLength": 120
+          }
+        },
+        {
+          "name": "regex_error",
+          "type": "string",
+          "childRelationshipType": "",
+          "parentRelationshipType": "",
+          "datatype": "VARCHAR",
+          "primaryKey": false,
+          "required": false,
+          "description": "A string that specifies the error message to display if the field value does not match the specified regular expression pattern.",
+          "defaultvalue": "",
+          "example": "",
+          "autoIncrement": false,
+          "maxLength": "255",
+          "array": false,
+          "isPII": "",
+          "secret": false,
+          "create": true,
+          "update": true,
+          "get": true,
+          "list": true,
+          "parentRelationship": "",
+          "childRelationship": "",
+          "meta": {
+            "kind": "string",
+            "maxLength": 255
+          }
+        }
+      ],
+      "relationships": [
+        {
+          "name": "attributerule_lookup_type",
+          "parentTable": "attributerule",
+          "parentColumn": {
+            "name": "id",
+            "type": "Record<string, unknown>",
+            "childRelationshipType": "LookupType",
+            "parentRelationshipType": "",
+            "datatype": "JSON",
+            "primaryKey": true,
+            "required": true,
+            "description": "",
+            "defaultvalue": "",
+            "example": "",
+            "autoIncrement": false,
+            "array": false,
+            "isPII": "",
+            "secret": false,
+            "create": true,
+            "update": true,
+            "get": true,
+            "list": true,
+            "parentRelationship": "",
+            "childRelationship": "attributerule_lookup_type",
+            "meta": {
+              "kind": "json",
+              "jsonShape": "object"
+            }
+          },
+          "childTable": "lookup_type",
+          "childColumn": {
+            "name": "attributerule_id",
+            "type": "Record<string, unknown>",
+            "childRelationshipType": "",
+            "parentRelationshipType": "Attributerule",
+            "datatype": "JSON",
+            "primaryKey": false,
+            "required": true,
+            "description": "",
+            "defaultvalue": "",
+            "example": "",
+            "autoIncrement": false,
+            "array": true,
+            "isPII": "",
+            "secret": false,
+            "create": true,
+            "update": true,
+            "get": true,
+            "list": true,
+            "relationship": "many",
+            "parentRelationship": "attributerule_lookup_type",
+            "childRelationship": "",
+            "meta": {
+              "kind": "json",
+              "jsonShape": "many"
+            }
+          },
+          "type": "many",
+          "complex": true
+        }
+      ],
+      "lines": [],
+      "keys": [
+        {
+          "name": "id",
+          "type": "Record<string, unknown>",
+          "childRelationshipType": "LookupType",
+          "parentRelationshipType": "",
+          "datatype": "JSON",
+          "primaryKey": true,
+          "required": true,
+          "description": "",
+          "defaultvalue": "",
+          "example": "",
+          "autoIncrement": false,
+          "array": false,
+          "isPII": "",
+          "secret": false,
+          "create": true,
+          "update": true,
+          "get": true,
+          "list": true,
+          "parentRelationship": "",
+          "childRelationship": "attributerule_lookup_type",
+          "meta": {
+            "kind": "json",
+            "jsonShape": "object"
+          }
+        }
+      ],
+      "indexes": [
+        {
+          "name": "name",
+          "type": "string",
+          "childRelationshipType": "",
+          "parentRelationshipType": "",
+          "datatype": "VARCHAR",
+          "primaryKey": false,
+          "required": true,
+          "description": "A string representing the name or label of the attribute rule.",
+          "defaultvalue": "",
+          "example": "",
+          "autoIncrement": false,
+          "maxLength": "60",
+          "array": false,
+          "isPII": "",
+          "secret": false,
+          "create": true,
+          "update": true,
+          "get": true,
+          "list": true,
+          "parentRelationship": "",
+          "childRelationship": "",
+          "meta": {
+            "kind": "string",
+            "maxLength": 60
+          }
+        }
+      ],
+      "docs": {
+        "name": "Attributerule",
+        "summary": "Configuration for attributerule table",
+        "version": "1.0.0"
+      },
+      "apis": {},
+      "store": {
+        "read": "memory",
+        "write": "memory",
+        "query": "memory",
+        "projector": "memory"
+      },
+      "options": {
+        "command": true,
+        "create": true,
+        "update": true,
+        "read": "memory",
+        "write": "memory",
+        "query": "memory",
+        "projector": "memory",
+        "queue": false,
+        "softDelete": true,
+        "timestamps": true,
+        "versioning": true,
+        "logging": true,
+        "auditing": true,
+        "caching": true,
+        "eventStreaming": false
+      },
+      "cancel": {
+        "create": false,
+        "update": false,
+        "delete": false,
+        "batch": false,
+        "get": false
+      },
+      "redis": {
+        "prefix": "",
+        "version": "1.0",
+        "category": "core:lookup.attributerule.v1",
+        "ttl": 3600,
+        "hash": true,
+        "aggregate": "attributerule"
+      },
+      "eventstream": {
+        "boundedContext": "core",
+        "aggregate": "attributerule",
+        "version": "v1",
+        "stream": "core.lookup.attributerule",
+        "createdEvent": "CoreLookupAttributeruleCreated.v1",
+        "updatedEvent": "CoreLookupAttributeruleUpdated.v1",
+        "deletedEvent": "CoreLookupAttributeruleDeleted.v1"
+      },
+      "permissions": {
+        "bulk": [
+          "update",
+          "delete",
+          "import"
+        ],
+        "adminOverride": true,
+        "auditView": true,
+        "custom": []
+      },
+      "domainName": "lookup-type",
+      "parentPath": [
+        "lookup_type"
+      ]
+    },
+    {
+      "name": "lookup_type",
+      "description": "",
+      "columns": [
+        {
+          "name": "code",
+          "type": "string",
+          "childRelationshipType": "Lookup",
+          "parentRelationshipType": "",
+          "datatype": "VARCHAR",
+          "primaryKey": true,
+          "required": true,
+          "description": "",
+          "defaultvalue": "",
+          "example": "",
+          "autoIncrement": false,
+          "maxLength": "64",
+          "array": false,
+          "isPII": "",
+          "secret": false,
+          "create": true,
+          "update": true,
+          "get": true,
+          "list": true,
+          "parentRelationship": "",
+          "childRelationship": "lookup_type_lookup",
+          "meta": {
+            "kind": "string",
+            "maxLength": 64
+          }
+        },
+        {
+          "name": "name",
+          "type": "string",
+          "childRelationshipType": "",
+          "parentRelationshipType": "",
+          "datatype": "VARCHAR",
+          "primaryKey": false,
+          "required": true,
+          "description": "",
+          "defaultvalue": "",
+          "example": "",
+          "autoIncrement": false,
+          "maxLength": "128",
+          "array": false,
+          "isPII": "",
+          "secret": false,
+          "create": true,
+          "update": true,
+          "get": true,
+          "list": true,
+          "parentRelationship": "",
+          "childRelationship": "",
+          "meta": {
+            "kind": "string",
+            "maxLength": 128
+          }
+        },
+        {
+          "name": "description",
+          "type": "string",
+          "childRelationshipType": "",
+          "parentRelationshipType": "",
+          "datatype": "TEXT",
+          "primaryKey": false,
+          "required": false,
+          "description": "",
+          "defaultvalue": "",
+          "example": "",
+          "autoIncrement": false,
+          "array": false,
+          "isPII": "",
+          "secret": false,
+          "create": true,
+          "update": true,
+          "get": true,
+          "list": true,
+          "parentRelationship": "",
+          "childRelationship": "",
+          "meta": {
+            "kind": "string",
+            "maxLength": 65535
+          }
+        },
+        {
+          "name": "enabled",
+          "type": "boolean",
+          "childRelationshipType": "",
+          "parentRelationshipType": "",
+          "datatype": "BOOLEAN",
+          "primaryKey": false,
+          "required": false,
+          "description": "",
+          "defaultvalue": "",
+          "example": "",
+          "autoIncrement": false,
+          "array": false,
+          "isPII": "",
+          "secret": false,
+          "create": true,
+          "update": true,
+          "get": true,
+          "list": true,
+          "parentRelationship": "",
+          "childRelationship": "",
+          "meta": {
+            "kind": "boolean"
+          }
+        },
+        {
+          "name": "attributerule_id",
+          "type": "Record<string, unknown>",
+          "childRelationshipType": "",
+          "parentRelationshipType": "Attributerule",
+          "datatype": "JSON",
+          "primaryKey": false,
+          "required": true,
+          "description": "",
+          "defaultvalue": "",
+          "example": "",
+          "autoIncrement": false,
+          "array": true,
+          "isPII": "",
+          "secret": false,
+          "create": true,
+          "update": true,
+          "get": true,
+          "list": true,
+          "relationship": "many",
+          "parentRelationship": "attributerule_lookup_type",
+          "childRelationship": "",
+          "meta": {
+            "kind": "json",
+            "jsonShape": "many"
+          }
+        }
+      ],
+      "relationships": [
+        {
+          "name": "attributerule_lookup_type",
+          "parentTable": "attributerule",
+          "parentColumn": {
+            "name": "id",
+            "type": "Record<string, unknown>",
+            "childRelationshipType": "LookupType",
+            "parentRelationshipType": "",
+            "datatype": "JSON",
+            "primaryKey": true,
+            "required": true,
+            "description": "",
+            "defaultvalue": "",
+            "example": "",
+            "autoIncrement": false,
+            "array": false,
+            "isPII": "",
+            "secret": false,
+            "create": true,
+            "update": true,
+            "get": true,
+            "list": true,
+            "parentRelationship": "",
+            "childRelationship": "attributerule_lookup_type",
+            "meta": {
+              "kind": "json",
+              "jsonShape": "object"
+            }
+          },
+          "childTable": "lookup_type",
+          "childColumn": {
+            "name": "attributerule_id",
+            "type": "Record<string, unknown>",
+            "childRelationshipType": "",
+            "parentRelationshipType": "Attributerule",
+            "datatype": "JSON",
+            "primaryKey": false,
+            "required": true,
+            "description": "",
+            "defaultvalue": "",
+            "example": "",
+            "autoIncrement": false,
+            "array": true,
+            "isPII": "",
+            "secret": false,
+            "create": true,
+            "update": true,
+            "get": true,
+            "list": true,
+            "relationship": "many",
+            "parentRelationship": "attributerule_lookup_type",
+            "childRelationship": "",
+            "meta": {
+              "kind": "json",
+              "jsonShape": "many"
+            }
+          },
+          "type": "many",
+          "complex": true
+        },
+        {
+          "name": "lookup_type_lookup",
+          "parentTable": "lookup_type",
+          "parentColumn": {
+            "name": "code",
+            "type": "string",
+            "childRelationshipType": "Lookup",
+            "parentRelationshipType": "",
+            "datatype": "VARCHAR",
+            "primaryKey": true,
+            "required": true,
+            "description": "",
+            "defaultvalue": "",
+            "example": "",
+            "autoIncrement": false,
+            "maxLength": "64",
+            "array": false,
+            "isPII": "",
+            "secret": false,
+            "create": true,
+            "update": true,
+            "get": true,
+            "list": true,
+            "parentRelationship": "",
+            "childRelationship": "lookup_type_lookup",
+            "meta": {
+              "kind": "string",
+              "maxLength": 64
+            }
+          },
+          "childTable": "lookup",
+          "childColumn": {
+            "name": "lookup_type",
+            "type": "string",
+            "childRelationshipType": "",
+            "parentRelationshipType": "LookupType",
+            "datatype": "VARCHAR",
+            "primaryKey": false,
+            "required": true,
+            "description": "",
+            "defaultvalue": "",
+            "example": "",
+            "autoIncrement": false,
+            "maxLength": "64",
+            "array": false,
+            "isPII": "",
+            "secret": false,
+            "create": true,
+            "update": true,
+            "get": true,
+            "list": true,
+            "relationship": "one",
+            "parentRelationship": "lookup_type_lookup",
+            "childRelationship": "",
+            "meta": {
+              "kind": "string",
+              "maxLength": 64
+            }
+          },
+          "type": "one",
+          "complex": true
+        }
+      ],
+      "lines": [],
+      "keys": [
+        {
+          "name": "code",
+          "type": "string",
+          "childRelationshipType": "Lookup",
+          "parentRelationshipType": "",
+          "datatype": "VARCHAR",
+          "primaryKey": true,
+          "required": true,
+          "description": "",
+          "defaultvalue": "",
+          "example": "",
+          "autoIncrement": false,
+          "maxLength": "64",
+          "array": false,
+          "isPII": "",
+          "secret": false,
+          "create": true,
+          "update": true,
+          "get": true,
+          "list": true,
+          "parentRelationship": "",
+          "childRelationship": "lookup_type_lookup",
+          "meta": {
+            "kind": "string",
+            "maxLength": 64
+          }
+        }
+      ],
+      "indexes": [],
+      "docs": {
+        "name": "Lookup_type",
+        "summary": "Configuration for lookup_type table",
+        "version": "1.0.0"
+      },
+      "apis": {},
+      "store": {
+        "read": "memory",
+        "write": "memory",
+        "query": "memory",
+        "projector": "memory"
+      },
+      "options": {
+        "command": true,
+        "create": true,
+        "update": true,
+        "read": "memory",
+        "write": "memory",
+        "query": "memory",
+        "projector": "memory",
+        "queue": false,
+        "softDelete": true,
+        "timestamps": true,
+        "versioning": true,
+        "logging": true,
+        "auditing": true,
+        "caching": true,
+        "eventStreaming": false
+      },
+      "cancel": {
+        "create": false,
+        "update": false,
+        "delete": false,
+        "batch": false,
+        "get": false
+      },
+      "redis": {
+        "prefix": "",
+        "version": "1.0",
+        "category": "core:lookup.lookup.type.v1",
+        "ttl": 3600,
+        "hash": true,
+        "aggregate": "lookup_type"
+      },
+      "eventstream": {
+        "boundedContext": "core",
+        "aggregate": "lookup_type",
+        "version": "v1",
+        "stream": "core.lookup.lookupType",
+        "createdEvent": "CoreLookupLookupTypeCreated.v1",
+        "updatedEvent": "CoreLookupLookupTypeUpdated.v1",
+        "deletedEvent": "CoreLookupLookupTypeDeleted.v1"
+      },
+      "permissions": {
+        "bulk": [
+          "update",
+          "delete",
+          "import"
+        ],
+        "adminOverride": true,
+        "auditView": true,
+        "custom": []
+      },
+      "domainName": "",
+      "parentPath": []
+    }
+  ],
+  "relationships": [
+    {
+      "name": "attributerule_lookup_type",
+      "parentTable": "attributerule",
+      "parentColumn": {
+        "name": "id",
+        "type": "Record<string, unknown>",
+        "childRelationshipType": "LookupType",
+        "parentRelationshipType": "",
+        "datatype": "JSON",
+        "primaryKey": true,
+        "required": true,
+        "description": "",
+        "defaultvalue": "",
+        "example": "",
+        "autoIncrement": false,
+        "array": false,
+        "isPII": "",
+        "secret": false,
+        "create": true,
+        "update": true,
+        "get": true,
+        "list": true,
+        "parentRelationship": "",
+        "childRelationship": "attributerule_lookup_type",
+        "meta": {
+          "kind": "json",
+          "jsonShape": "object"
+        }
+      },
+      "childTable": "lookup_type",
+      "childColumn": {
+        "name": "attributerule_id",
+        "type": "Record<string, unknown>",
+        "childRelationshipType": "",
+        "parentRelationshipType": "Attributerule",
+        "datatype": "JSON",
+        "primaryKey": false,
+        "required": true,
+        "description": "",
+        "defaultvalue": "",
+        "example": "",
+        "autoIncrement": false,
+        "array": true,
+        "isPII": "",
+        "secret": false,
+        "create": true,
+        "update": true,
+        "get": true,
+        "list": true,
+        "relationship": "many",
+        "parentRelationship": "attributerule_lookup_type",
+        "childRelationship": "",
+        "meta": {
+          "kind": "json",
+          "jsonShape": "many"
+        }
+      },
+      "type": "many",
+      "complex": true
+    },
+    {
+      "name": "lookup_type_lookup",
+      "parentTable": "lookup_type",
+      "parentColumn": {
+        "name": "code",
+        "type": "string",
+        "childRelationshipType": "Lookup",
+        "parentRelationshipType": "",
+        "datatype": "VARCHAR",
+        "primaryKey": true,
+        "required": true,
+        "description": "",
+        "defaultvalue": "",
+        "example": "",
+        "autoIncrement": false,
+        "maxLength": "64",
+        "array": false,
+        "isPII": "",
+        "secret": false,
+        "create": true,
+        "update": true,
+        "get": true,
+        "list": true,
+        "parentRelationship": "",
+        "childRelationship": "lookup_type_lookup",
+        "meta": {
+          "kind": "string",
+          "maxLength": 64
+        }
+      },
+      "childTable": "lookup",
+      "childColumn": {
+        "name": "lookup_type",
+        "type": "string",
+        "childRelationshipType": "",
+        "parentRelationshipType": "LookupType",
+        "datatype": "VARCHAR",
+        "primaryKey": false,
+        "required": true,
+        "description": "",
+        "defaultvalue": "",
+        "example": "",
+        "autoIncrement": false,
+        "maxLength": "64",
+        "array": false,
+        "isPII": "",
+        "secret": false,
+        "create": true,
+        "update": true,
+        "get": true,
+        "list": true,
+        "relationship": "one",
+        "parentRelationship": "lookup_type_lookup",
+        "childRelationship": "",
+        "meta": {
+          "kind": "string",
+          "maxLength": 64
+        }
+      },
+      "type": "one",
+      "complex": true
+    }
+  ],
+  "documentation": {
+    "name": "lookup management",
+    "description": "This is the decription for this domain"
+  }
+}

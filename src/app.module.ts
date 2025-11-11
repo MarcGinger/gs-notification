@@ -17,12 +17,11 @@ import { DopplerConfigModule } from './shared/config/doppler/doppler-config.modu
 import { AppConfigUtil } from './shared/config/app-config.util';
 import { InfrastructureModule } from './shared/infrastructure/infrastructure.module';
 
+import { CoreModule } from './contexts/core/core.module';
 import { NotificationModule } from './contexts/notification/notification.module';
 
 // Create service-specific logger factory for the main app
-const appLoggerFactory = createServiceLoggerFactory(
-  'notification-webhook-config',
-);
+const appLoggerFactory = createServiceLoggerFactory('core-lookup');
 
 // ✨ NEW: Dynamic Doppler Configuration Factory
 const createDopplerConfig = () => {
@@ -37,7 +36,7 @@ const createDopplerConfig = () => {
   };
 
   const config = {
-    project: process.env.DOPPLER_PROJECT || 'notification-webhook-config-api',
+    project: process.env.DOPPLER_PROJECT || 'core-lookup-api',
     config: process.env.DOPPLER_CONFIG || configMap[nodeEnv] || 'dev_main',
     enableFallback: nodeEnv !== 'production',
     enableLogging: nodeEnv === 'development',
@@ -75,11 +74,12 @@ const createDopplerConfig = () => {
     InfrastructureModule,
 
     // Import Bounded Context Modules
+    CoreModule,
     NotificationModule,
   ],
   controllers: [],
   providers: [
-    // Main app logger with 'notification-webhook-config' service name
+    // Main app logger with 'core-lookup' service name
     appLoggerFactory.createAppLoggerProvider(),
     // Enhanced trace middleware needs to be a provider due to dependency injection
     EnhancedTraceMiddleware,

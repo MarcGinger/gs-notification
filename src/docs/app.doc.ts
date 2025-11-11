@@ -43,6 +43,7 @@ export class ApiDocumentationHub {
   ## Bounded Context
   | Documentation |
   |---------------|
+  | [**Core**](/api/docs/core) |
   | [**Notification**](/api/docs/notification) |
   ---
  
