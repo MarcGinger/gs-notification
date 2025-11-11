@@ -172,7 +172,7 @@ export class AttributeRuleSetController {
   @Put(':code')
   @AttributeRuleSetUpdateResource()
   @ApiOperation({
-    summary: 'Update a Attribute rule set',
+    summary: 'Update an Attribute rule set',
     description:
       'Updates an existing Attribute rule set with new data. Supports partial updates. Requires UPDATE permission (MEDIUM risk).',
   })
@@ -218,9 +218,9 @@ export class AttributeRuleSetController {
   @AttributeRuleSetDeleteResource()
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({
-    summary: 'Delete a Attribute rule set',
+    summary: 'Delete an Attribute rule set',
     description:
-      'Soft-deletes a Attribute rule set (marks as deleted). Requires DELETE permission (HIGH risk, justification required).',
+      'Marks an Attribute rule set as deleted so it is no longer active. Implementation may use soft-delete internally. Requires DELETE permission (HIGH risk, justification required).',
   })
   @ApiParam({
     name: 'code',

@@ -317,7 +317,7 @@ export class AttributeRuleSetApplicationService {
   }
 
   /**
-   * Delete a attributeRuleSet with authorization
+   * Delete an attributeRuleSet with authorization
    */
   async deleteAttributeRuleSet(
     user: IUserToken,
@@ -370,7 +370,7 @@ export class AttributeRuleSetApplicationService {
   }
 
   /**
-   * Get a attributeRuleSet by code with authorization
+   * Get an attributeRuleSet by code with authorization
    */
   async getAttributeRuleSetById(
     user: IUserToken,

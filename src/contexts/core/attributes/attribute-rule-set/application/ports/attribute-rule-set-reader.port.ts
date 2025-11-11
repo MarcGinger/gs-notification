@@ -32,7 +32,7 @@ export const ATTRIBUTE_RULE_SET_READER_TOKEN =
  */
 export interface IAttributeRuleSetReader {
   /**
-   * Find a AttributeRuleSet by its unique identifier
+   * Find an AttributeRuleSet by its unique identifier
    * @param actor - The authenticated user context
    * @param code - The unique identifier of the AttributeRuleSet
    * @param options - Optional repository options
@@ -45,7 +45,7 @@ export interface IAttributeRuleSetReader {
   ): Promise<Result<Option<AttributeRuleSetSnapshotProps>, DomainError>>;
 
   /**
-   * Check if a attributeRuleSet exists by code (for write-path validation)
+   * Check if an attributeRuleSet exists by code (for write-path validation)
    * @param actor - The authenticated user context
    * @param code - The unique identifier of the AttributeRuleSet
    * @param options - Optional repository options

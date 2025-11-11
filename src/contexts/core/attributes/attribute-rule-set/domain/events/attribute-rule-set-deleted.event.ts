@@ -17,7 +17,7 @@ export interface AttributeRuleSetDeletedEventPayload {
 /**
  * AttributeRuleSet Deleted Domain Event
  *
- * Emitted when a attributeRuleSet is successfully deleted.
+ * Emitted when an attributeRuleSet is successfully deleted.
  * Contains identifying information and deletion metadata.
  */
 export class AttributeRuleSetDeletedEvent {

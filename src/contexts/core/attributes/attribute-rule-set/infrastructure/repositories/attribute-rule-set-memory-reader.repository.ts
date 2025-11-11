@@ -83,7 +83,7 @@ export class AttributeRuleSetReaderRepository
   }
 
   /**
-   * Find a AttributeRuleSet by its unique identifier
+   * Find an AttributeRuleSet by its unique identifier
    * @param actor - The authenticated user context
    * @param code - The unique identifier of the AttributeRuleSet
    * @param options - Optional repository options
@@ -219,7 +219,7 @@ export class AttributeRuleSetReaderRepository
   }
 
   /**
-   * Check if a attribute-rule-set exists by code (for write-path validation)
+   * Check if an attribute-rule-set exists by code (for write-path validation)
    * @param actor - The authenticated user context
    * @param code - The unique identifier of the AttributeRuleSet
    * @param options - Optional repository options

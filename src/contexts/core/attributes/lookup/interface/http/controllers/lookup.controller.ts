@@ -185,7 +185,7 @@ export class LookupController {
   @ApiOperation({
     summary: 'Delete a Lookup',
     description:
-      'Soft-deletes a Lookup (marks as deleted). Requires DELETE permission (HIGH risk, justification required).',
+      'Marks a Lookup as deleted so it is no longer active. Implementation may use soft-delete internally. Requires DELETE permission (HIGH risk, justification required).',
   })
   @ApiParam({
     name: 'code',

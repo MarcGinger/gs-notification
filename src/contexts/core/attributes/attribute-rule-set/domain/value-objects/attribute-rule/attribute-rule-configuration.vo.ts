@@ -26,7 +26,7 @@ import {
 /**
  * AttributeRuleSetAttributeRuleConfiguration Value Object
  *
- * Embedded configuration for attribute_rule settings specific to a attribute_rule.
+ * Embedded configuration for attribute_rule settings specific to an attribute_rule.
  * This is owned by the AttributeRule aggregate and not shared across attribute_rule.
  * Replaces the separate AttributeRuleSetAttributeRuleConfigurationAggregate for attribute_rule-owned configurations.
  *

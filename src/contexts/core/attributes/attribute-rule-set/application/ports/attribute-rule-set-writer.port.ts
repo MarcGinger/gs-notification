@@ -31,7 +31,7 @@ export const ATTRIBUTE_RULE_SET_WRITER_TOKEN =
  */
 export interface IAttributeRuleSetWriter {
   /**
-   * Save a AttributeRuleSet aggregate (create or update)
+   * Save an AttributeRuleSet aggregate (create or update)
    * @param user - The authenticated user context
    * @param attributeRuleSet - The AttributeRuleSet aggregate to save
    * @param expectedVersion - Optional version for optimistic locking
@@ -44,7 +44,7 @@ export interface IAttributeRuleSetWriter {
   ): Promise<Result<SaveReceipt, DomainError>>;
 
   /**
-   * Delete a AttributeRuleSet by its unique identifier
+   * Delete an AttributeRuleSet by its unique identifier
    * @param user - The authenticated user context
    * @param code - The unique identifier of the AttributeRuleSet to delete
    * @returns Result indicating success or domain error

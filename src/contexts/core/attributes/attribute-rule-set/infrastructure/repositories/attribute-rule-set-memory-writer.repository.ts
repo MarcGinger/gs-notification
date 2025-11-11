@@ -93,7 +93,7 @@ export class AttributeRuleSetWriterRepository
   }
 
   /**
-   * Save a AttributeRuleSet aggregate (create or update) using In-Memory store approach
+   * Save an AttributeRuleSet aggregate (create or update) using In-Memory store approach
    * @param actor - The authenticated user context
    * @param attributeRuleSet - The AttributeRuleSet aggregate to save
    * @param expectedVersionFromCaller - Optional version for optimistic locking
@@ -319,7 +319,7 @@ export class AttributeRuleSetWriterRepository
   }
 
   /**
-   * Delete a AttributeRuleSet by its unique identifier using In-Memory store approach
+   * Delete an AttributeRuleSet by its unique identifier using In-Memory store approach
    * @param actor - The authenticated user context
    * @param code - The unique identifier of the AttributeRuleSet to delete
    * @returns Result with SaveReceipt containing revision tracking or domain error

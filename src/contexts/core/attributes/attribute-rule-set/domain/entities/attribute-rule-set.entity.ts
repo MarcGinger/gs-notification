@@ -37,7 +37,7 @@ import {
 /**
  * AttributeRuleSet Entity
  *
- * Core domain entity representing a attributeRuleSet in the core.
+ * Core domain entity representing an attributeRuleSet in the core.
  * Handles attributeRuleSet identity, validation, and state management.
  */
 export class AttributeRuleSetEntity extends EntityIdBase<
@@ -133,7 +133,7 @@ export class AttributeRuleSetEntity extends EntityIdBase<
   }
 
   /**
-   * Factory method to reconstitute a attributeRuleSet entity from persistence
+   * Factory method to reconstitute an attributeRuleSet entity from persistence
    *
    * @param props - AttributeRuleSet properties from database
    * @returns AttributeRuleSetEntity instance
