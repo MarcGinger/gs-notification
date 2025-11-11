@@ -19,16 +19,16 @@ import {
 } from './../decorators//attributerule';
 
 export class UpdateAttributeruleRequest implements UpdateAttributeruleProps {
-  @ApiAttributeruleCode()
+  @ApiAttributeruleCode({ required: false })
   code?: string;
 
-  @ApiAttributeruleName()
+  @ApiAttributeruleName({ required: false })
   name?: string;
 
   @ApiAttributeruleDescription({ required: false })
   description?: string;
 
-  @ApiAttributeruleType()
+  @ApiAttributeruleType({ required: false })
   type?: AttributeruleTypeValue;
 
   @ApiAttributeruleReference({ required: false })

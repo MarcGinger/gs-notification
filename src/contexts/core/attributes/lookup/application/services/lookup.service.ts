@@ -284,7 +284,10 @@ export class LookupApplicationService {
         this.upsertLookupUseCase.execute({
           user,
           code: validatedcode,
-          props,
+          props: {
+            ...props,
+            code: validatedcode,
+          },
           correlationId,
           authorizationReason: 'update_lookup',
           ...(options?.idempotencyKey && {
@@ -347,7 +350,7 @@ export class LookupApplicationService {
   }
 
   /**
-   * Get a lookup by ID with authorization
+   * Get a lookup by code with authorization
    */
   async getLookupById(
     user: IUserToken,

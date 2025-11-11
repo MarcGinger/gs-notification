@@ -295,7 +295,7 @@ export class LookupTypeApplicationService {
           code: validatedcode,
           props: {
             ...props,
-            code: validatedcode, // Ensure code is included in props
+            code: validatedcode,
           },
           correlationId,
           authorizationReason: 'update_lookup_type',
@@ -360,7 +360,7 @@ export class LookupTypeApplicationService {
   }
 
   /**
-   * Get a lookupType by ID with authorization
+   * Get a lookupType by code with authorization
    */
   async getLookupTypeById(
     user: IUserToken,

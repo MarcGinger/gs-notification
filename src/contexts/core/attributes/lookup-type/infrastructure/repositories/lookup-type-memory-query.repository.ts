@@ -289,7 +289,7 @@ export class LookupTypeQueryRepository implements ILookupTypeQuery {
     });
 
     try {
-      Log.debug(this.logger, 'Finding lookupType by ID', {
+      Log.debug(this.logger, 'Finding lookupType by code', {
         ...logContext,
         queryDetails: {
           scope: 'shared_lookupType_store',

@@ -44,7 +44,7 @@ export interface ILookupTypeReader {
   ): Promise<Result<Option<LookupTypeSnapshotProps>, DomainError>>;
 
   /**
-   * Check if a lookupType exists by ID (for write-path validation)
+   * Check if a lookupType exists by code (for write-path validation)
    * @param actor - The authenticated user context
    * @param code - The unique identifier of the LookupType
    * @param options - Optional repository options

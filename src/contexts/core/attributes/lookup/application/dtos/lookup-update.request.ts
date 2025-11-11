@@ -4,7 +4,6 @@
 import { UpdateLookupProps } from '../../domain/props';
 import {
   ApiLookupAttributes,
-  ApiLookupCode,
   ApiLookupDescription,
   ApiLookupEnabled,
   ApiLookupLookupType,
@@ -12,13 +11,10 @@ import {
 } from './decorators';
 
 export class UpdateLookupRequest implements UpdateLookupProps {
-  @ApiLookupLookupType()
+  @ApiLookupLookupType({ required: false })
   lookupType?: string;
 
-  @ApiLookupCode()
-  code: string;
-
-  @ApiLookupName()
+  @ApiLookupName({ required: false })
   name?: string;
 
   @ApiLookupDescription({ required: false })

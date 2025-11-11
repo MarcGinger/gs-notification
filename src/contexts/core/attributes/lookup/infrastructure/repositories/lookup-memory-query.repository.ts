@@ -188,7 +188,7 @@ export class LookupQueryRepository implements ILookupQuery {
     });
 
     try {
-      Log.debug(this.logger, 'Finding lookup by ID', {
+      Log.debug(this.logger, 'Finding lookup by code', {
         ...logContext,
         queryDetails: {
           scope: 'shared_lookup_store',

@@ -11,7 +11,7 @@ import {
 import type { UpdateAttributeruleRequest } from './';
 
 export class UpdateLookupTypeRequest implements UpdateLookupTypeProps {
-  @ApiLookupTypeName()
+  @ApiLookupTypeName({ required: false })
   name?: string;
 
   @ApiLookupTypeDescription({ required: false })
@@ -20,6 +20,6 @@ export class UpdateLookupTypeRequest implements UpdateLookupTypeProps {
   @ApiLookupTypeEnabled({ required: false })
   enabled?: boolean;
 
-  @ApiLookupTypeAttributesRequest()
+  @ApiLookupTypeAttributesRequest({ required: false })
   attributes?: Record<string, UpdateAttributeruleRequest>;
 }

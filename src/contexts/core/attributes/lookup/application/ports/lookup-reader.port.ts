@@ -44,7 +44,7 @@ export interface ILookupReader {
   ): Promise<Result<Option<LookupSnapshotProps>, DomainError>>;
 
   /**
-   * Check if a lookup exists by ID (for write-path validation)
+   * Check if a lookup exists by code (for write-path validation)
    * @param actor - The authenticated user context
    * @param code - The unique identifier of the Lookup
    * @param options - Optional repository options

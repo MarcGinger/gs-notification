@@ -3,7 +3,7 @@
 
 export interface UpdateLookupProps {
   lookupType?: string;
-  code: string;
+  code?: string;
   name?: string;
   description?: string;
   enabled?: boolean;

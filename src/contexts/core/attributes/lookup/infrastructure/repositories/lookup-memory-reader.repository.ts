@@ -133,7 +133,7 @@ export class LookupReaderRepository implements ILookupReader {
     );
 
     try {
-      Log.debug(this.logger, 'Finding lookup by ID in shared store', {
+      Log.debug(this.logger, 'Finding lookup by code in shared store', {
         ...logContext,
         queryDetails: {
           scope: 'shared_lookup_store',
@@ -202,7 +202,7 @@ export class LookupReaderRepository implements ILookupReader {
   }
 
   /**
-   * Check if a lookup exists by ID (for write-path validation)
+   * Check if a lookup exists by code (for write-path validation)
    * @param actor - The authenticated user context
    * @param code - The unique identifier of the Lookup
    * @param options - Optional repository options
