@@ -24,14 +24,14 @@ import {
   LookupQueryRepository,
   LookupReaderRepository,
   LookupWriterRepository,
-  AttributeRuleReaderRepository,
+  AttributeRuleSetReaderRepository,
 } from './infrastructure/repositories';
 
 // Tokens for injection - imported directly from port files
 import {
   LOOKUP_READER_TOKEN,
   LOOKUP_WRITER_TOKEN,
-  ATTRIBUTE_RULE_REFERENCE_READER_TOKEN,
+  ATTRIBUTE_RULE_SET_REFERENCE_READER_TOKEN,
   LOOKUP_QUERY_TOKEN,
 } from './application/ports';
 @Module({
@@ -56,8 +56,8 @@ import {
 
     // Bounded Context Reader Repositories
     {
-      provide: ATTRIBUTE_RULE_REFERENCE_READER_TOKEN,
-      useClass: AttributeRuleReaderRepository,
+      provide: ATTRIBUTE_RULE_SET_REFERENCE_READER_TOKEN,
+      useClass: AttributeRuleSetReaderRepository,
     },
 
     // Services that depend on repositories
@@ -86,7 +86,7 @@ import {
     LOOKUP_WRITER_TOKEN,
     LOOKUP_QUERY_TOKEN,
     // Bounded Context Reader tokens
-    ATTRIBUTE_RULE_REFERENCE_READER_TOKEN,
+    ATTRIBUTE_RULE_SET_REFERENCE_READER_TOKEN,
   ],
 })
 export class LookupModule {}

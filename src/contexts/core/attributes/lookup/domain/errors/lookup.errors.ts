@@ -46,14 +46,14 @@ export const LookupErrors = {
     category: 'validation',
     retryable: false,
   } as DomainError<'LOOKUP.CREATED_AT_REQUIRED', LookupContext>,
-  INVALID_ATTRIBUTE_RULE_CODE: {
-    code: 'LOOKUP.INVALID_ATTRIBUTE_RULE_CODE',
-    title: 'Invalid Attribute rule Reference',
+  INVALID_ATTRIBUTE_RULE_SET_CODE: {
+    code: 'LOOKUP.INVALID_ATTRIBUTE_RULE_SET_CODE',
+    title: 'Invalid Attribute rule set Reference',
     detail:
-      'The specified code does not exist. Attribute rule must be valid when updating lookup.',
+      'The specified code does not exist. Attribute rule set must be valid when updating lookup.',
     category: 'validation',
     retryable: false,
-  } as DomainError<'LOOKUP.INVALID_ATTRIBUTE_RULE_CODE', LookupContext>,
+  } as DomainError<'LOOKUP.INVALID_ATTRIBUTE_RULE_SET_CODE', LookupContext>,
   INVALID_ATTRIBUTES: {
     code: 'LOOKUP.INVALID_ATTRIBUTES',
     title: 'Value Required',

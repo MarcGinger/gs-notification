@@ -10,9 +10,9 @@ import { AttributesSharedModule } from './attributes-shared.module';
 import { LookupRouterModule } from './lookup/interface/http/lookup.router';
 
 import { LookupProjectorModule } from './lookup/lookup-projector.module';
-import { AttributeRuleRouterModule } from './attribute-rule/interface/http/attribute-rule.router';
+import { AttributeRuleSetRouterModule } from './attribute-rule-set/interface/http/attribute-rule-set.router';
 
-import { AttributeRuleProjectorModule } from './attribute-rule/attribute-rule-projector.module';
+import { AttributeRuleSetProjectorModule } from './attribute-rule-set/attribute-rule-set-projector.module';
 
 /**
  * Attributes Module - Bounded Context Entry Point
@@ -37,15 +37,15 @@ import { AttributeRuleProjectorModule } from './attribute-rule/attribute-rule-pr
     AttributesSharedModule,
     LookupRouterModule,
     LookupProjectorModule,
-    AttributeRuleRouterModule,
-    AttributeRuleProjectorModule,
+    AttributeRuleSetRouterModule,
+    AttributeRuleSetProjectorModule,
   ],
   exports: [
     // Export all modules for potential cross-domain dependencies
     LookupRouterModule,
     LookupProjectorModule,
-    AttributeRuleRouterModule,
-    AttributeRuleProjectorModule,
+    AttributeRuleSetRouterModule,
+    AttributeRuleSetProjectorModule,
   ],
 })
 export class CoreAttributesModule {}

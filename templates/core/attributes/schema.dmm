@@ -169,7 +169,7 @@
 		"172126ee-01dd-4c68-93b1-6084ca2e4c20": {
 			"id": "172126ee-01dd-4c68-93b1-6084ca2e4c20",
 			"visible": true,
-			"name": "rule",
+			"name": "attribute_rule",
 			"desc": "",
 			"estimatedSize": "",
 			"cols": [
@@ -510,7 +510,7 @@
 		"26cdf662-b910-43c0-8541-2cff7760e849": {
 			"id": "26cdf662-b910-43c0-8541-2cff7760e849",
 			"visible": true,
-			"name": "attribute_rule",
+			"name": "attribute_rule_set",
 			"desc": "",
 			"estimatedSize": "",
 			"cols": [
@@ -773,7 +773,7 @@
 		},
 		"type": "MARIADB",
 		"version": 1,
-		"lastSaved": 1762857931699,
+		"lastSaved": 1762857998758,
 		"beforeScript": "",
 		"afterScript": "",
 		"sqlSettings": {
@@ -807,7 +807,8 @@
 			"major": 12,
 			"minor": 2,
 			"extra": 0
-		}
+		},
+		"modelPdfReportPath": "D:\\gs\\banking\\gs\\mdt\\gsmdm-person\\tools\\domain\\data\\Masterdata person management.pdf"
 	},
 	"otherObjects": {},
 	"diagrams": {

@@ -18,7 +18,7 @@
           "name": "lookup_type",
           "type": "string",
           "childRelationshipType": "",
-          "parentRelationshipType": "AttributeRule",
+          "parentRelationshipType": "AttributeRuleSet",
           "datatype": "VARCHAR",
           "primaryKey": false,
           "required": true,
@@ -177,7 +177,7 @@
       "relationships": [
         {
           "name": "lookup_type_lookup",
-          "parentTable": "attribute_rule",
+          "parentTable": "attribute_rule_set",
           "parentColumn": {
             "name": "code",
             "type": "string",
@@ -210,7 +210,7 @@
             "name": "lookup_type",
             "type": "string",
             "childRelationshipType": "",
-            "parentRelationshipType": "AttributeRule",
+            "parentRelationshipType": "AttributeRuleSet",
             "datatype": "VARCHAR",
             "primaryKey": false,
             "required": true,
@@ -336,13 +336,13 @@
       "parentPath": []
     },
     {
-      "name": "rule",
+      "name": "attribute_rule",
       "description": "",
       "columns": [
         {
           "name": "id",
           "type": "Record<string, unknown>",
-          "childRelationshipType": "AttributeRule",
+          "childRelationshipType": "AttributeRuleSet",
           "parentRelationshipType": "",
           "datatype": "JSON",
           "primaryKey": true,
@@ -448,7 +448,7 @@
         },
         {
           "name": "type",
-          "type": "RuleTypeEnum",
+          "type": "AttributeRuleTypeEnum",
           "childRelationshipType": "",
           "parentRelationshipType": "",
           "datatype": "ENUM",
@@ -716,11 +716,11 @@
       "relationships": [
         {
           "name": "attributerule_lookup_type",
-          "parentTable": "rule",
+          "parentTable": "attribute_rule",
           "parentColumn": {
             "name": "id",
             "type": "Record<string, unknown>",
-            "childRelationshipType": "AttributeRule",
+            "childRelationshipType": "AttributeRuleSet",
             "parentRelationshipType": "",
             "datatype": "JSON",
             "primaryKey": true,
@@ -744,12 +744,12 @@
               "jsonShape": "object"
             }
           },
-          "childTable": "attribute_rule",
+          "childTable": "attribute_rule_set",
           "childColumn": {
             "name": "attributes",
             "type": "Record<string, unknown>",
             "childRelationshipType": "",
-            "parentRelationshipType": "Rule",
+            "parentRelationshipType": "AttributeRule",
             "datatype": "JSON",
             "primaryKey": false,
             "required": true,
@@ -781,7 +781,7 @@
         {
           "name": "id",
           "type": "Record<string, unknown>",
-          "childRelationshipType": "AttributeRule",
+          "childRelationshipType": "AttributeRuleSet",
           "parentRelationshipType": "",
           "datatype": "JSON",
           "primaryKey": true,
@@ -836,8 +836,8 @@
         }
       ],
       "docs": {
-        "name": "Rule",
-        "summary": "Configuration for rule table",
+        "name": "Attribute_rule",
+        "summary": "Configuration and metadata definitions for attributes, including their rules and validation behavior",
         "version": "1.0.0"
       },
       "apis": {},
@@ -874,19 +874,19 @@
       "redis": {
         "prefix": "",
         "version": "1.0",
-        "category": "core:attributes.rule.v1",
+        "category": "core:attributes.attribute.rule.v1",
         "ttl": 3600,
         "hash": true,
-        "aggregate": "rule"
+        "aggregate": "attribute_rule"
       },
       "eventstream": {
         "boundedContext": "core",
-        "aggregate": "rule",
+        "aggregate": "attribute_rule",
         "version": "v1",
-        "stream": "core.attributes.rule",
-        "createdEvent": "CoreAttributesRuleCreated.v1",
-        "updatedEvent": "CoreAttributesRuleUpdated.v1",
-        "deletedEvent": "CoreAttributesRuleDeleted.v1"
+        "stream": "core.attributes.attributeRule",
+        "createdEvent": "CoreAttributesAttributeRuleCreated.v1",
+        "updatedEvent": "CoreAttributesAttributeRuleUpdated.v1",
+        "deletedEvent": "CoreAttributesAttributeRuleDeleted.v1"
       },
       "permissions": {
         "bulk": [
@@ -898,13 +898,13 @@
         "auditView": true,
         "custom": []
       },
-      "domainName": "attribute-rule",
+      "domainName": "attribute-rule-set",
       "parentPath": [
-        "attribute_rule"
+        "attribute_rule_set"
       ]
     },
     {
-      "name": "attribute_rule",
+      "name": "attribute_rule_set",
       "description": "",
       "columns": [
         {
@@ -1016,7 +1016,7 @@
           "name": "attributes",
           "type": "Record<string, unknown>",
           "childRelationshipType": "",
-          "parentRelationshipType": "Rule",
+          "parentRelationshipType": "AttributeRule",
           "datatype": "JSON",
           "primaryKey": false,
           "required": true,
@@ -1043,11 +1043,11 @@
       "relationships": [
         {
           "name": "attributerule_lookup_type",
-          "parentTable": "rule",
+          "parentTable": "attribute_rule",
           "parentColumn": {
             "name": "id",
             "type": "Record<string, unknown>",
-            "childRelationshipType": "AttributeRule",
+            "childRelationshipType": "AttributeRuleSet",
             "parentRelationshipType": "",
             "datatype": "JSON",
             "primaryKey": true,
@@ -1071,12 +1071,12 @@
               "jsonShape": "object"
             }
           },
-          "childTable": "attribute_rule",
+          "childTable": "attribute_rule_set",
           "childColumn": {
             "name": "attributes",
             "type": "Record<string, unknown>",
             "childRelationshipType": "",
-            "parentRelationshipType": "Rule",
+            "parentRelationshipType": "AttributeRule",
             "datatype": "JSON",
             "primaryKey": false,
             "required": true,
@@ -1104,7 +1104,7 @@
         },
         {
           "name": "lookup_type_lookup",
-          "parentTable": "attribute_rule",
+          "parentTable": "attribute_rule_set",
           "parentColumn": {
             "name": "code",
             "type": "string",
@@ -1137,7 +1137,7 @@
             "name": "lookup_type",
             "type": "string",
             "childRelationshipType": "",
-            "parentRelationshipType": "AttributeRule",
+            "parentRelationshipType": "AttributeRuleSet",
             "datatype": "VARCHAR",
             "primaryKey": false,
             "required": true,
@@ -1252,8 +1252,8 @@
         }
       ],
       "docs": {
-        "name": "Attribute_rule",
-        "summary": "Configuration and metadata definitions for attributes, including their rules and validation behavior",
+        "name": "Attribute_rule_set",
+        "summary": "Configuration for attribute_rule_set table",
         "version": "1.0.0"
       },
       "apis": {},
@@ -1290,19 +1290,19 @@
       "redis": {
         "prefix": "",
         "version": "1.0",
-        "category": "core:attributes.attribute.rule.v1",
+        "category": "core:attributes.attribute.rule.set.v1",
         "ttl": 3600,
         "hash": true,
-        "aggregate": "attribute_rule"
+        "aggregate": "attribute_rule_set"
       },
       "eventstream": {
         "boundedContext": "core",
-        "aggregate": "attribute_rule",
+        "aggregate": "attribute_rule_set",
         "version": "v1",
-        "stream": "core.attributes.attributeRule",
-        "createdEvent": "CoreAttributesAttributeRuleCreated.v1",
-        "updatedEvent": "CoreAttributesAttributeRuleUpdated.v1",
-        "deletedEvent": "CoreAttributesAttributeRuleDeleted.v1"
+        "stream": "core.attributes.attributeRuleSet",
+        "createdEvent": "CoreAttributesAttributeRuleSetCreated.v1",
+        "updatedEvent": "CoreAttributesAttributeRuleSetUpdated.v1",
+        "deletedEvent": "CoreAttributesAttributeRuleSetDeleted.v1"
       },
       "permissions": {
         "bulk": [
@@ -1321,11 +1321,11 @@
   "relationships": [
     {
       "name": "attributerule_lookup_type",
-      "parentTable": "rule",
+      "parentTable": "attribute_rule",
       "parentColumn": {
         "name": "id",
         "type": "Record<string, unknown>",
-        "childRelationshipType": "AttributeRule",
+        "childRelationshipType": "AttributeRuleSet",
         "parentRelationshipType": "",
         "datatype": "JSON",
         "primaryKey": true,
@@ -1349,12 +1349,12 @@
           "jsonShape": "object"
         }
       },
-      "childTable": "attribute_rule",
+      "childTable": "attribute_rule_set",
       "childColumn": {
         "name": "attributes",
         "type": "Record<string, unknown>",
         "childRelationshipType": "",
-        "parentRelationshipType": "Rule",
+        "parentRelationshipType": "AttributeRule",
         "datatype": "JSON",
         "primaryKey": false,
         "required": true,
@@ -1382,7 +1382,7 @@
     },
     {
       "name": "lookup_type_lookup",
-      "parentTable": "attribute_rule",
+      "parentTable": "attribute_rule_set",
       "parentColumn": {
         "name": "code",
         "type": "string",
@@ -1415,7 +1415,7 @@
         "name": "lookup_type",
         "type": "string",
         "childRelationshipType": "",
-        "parentRelationshipType": "AttributeRule",
+        "parentRelationshipType": "AttributeRuleSet",
         "datatype": "VARCHAR",
         "primaryKey": false,
         "required": true,

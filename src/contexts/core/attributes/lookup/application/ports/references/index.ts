@@ -1,1 +1,1 @@
-export * from './attribute-rule.reference';
+export * from './attribute-rule-set.reference';
