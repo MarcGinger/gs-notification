@@ -11,331 +11,6 @@
   },
   "tables": [
     {
-      "name": "lookup",
-      "description": "",
-      "columns": [
-        {
-          "name": "lookup_type",
-          "type": "string",
-          "childRelationshipType": "",
-          "parentRelationshipType": "AttributeRuleSet",
-          "datatype": "VARCHAR",
-          "primaryKey": false,
-          "required": true,
-          "description": "Foreign key reference to lookup_type table. Defines the category or type of this lookup entry, enabling grouping and filtering of related lookup values.",
-          "defaultvalue": "",
-          "example": "COUNTRY",
-          "autoIncrement": false,
-          "maxLength": "64",
-          "array": false,
-          "isPII": "",
-          "secret": false,
-          "create": true,
-          "update": true,
-          "get": true,
-          "list": true,
-          "relationship": "one",
-          "parentRelationship": "lookup_type_lookup",
-          "childRelationship": "",
-          "meta": {
-            "kind": "string",
-            "maxLength": 64
-          }
-        },
-        {
-          "name": "code",
-          "type": "string",
-          "childRelationshipType": "",
-          "parentRelationshipType": "",
-          "datatype": "VARCHAR",
-          "primaryKey": true,
-          "required": true,
-          "description": "Primary key and unique identifier for the lookup entry. Used as the canonical reference value when this lookup is selected or referenced by other entities.",
-          "defaultvalue": "",
-          "example": "USA",
-          "autoIncrement": false,
-          "maxLength": "64",
-          "array": false,
-          "isPII": "",
-          "secret": false,
-          "create": true,
-          "update": true,
-          "get": true,
-          "list": true,
-          "parentRelationship": "",
-          "childRelationship": "",
-          "meta": {
-            "kind": "string",
-            "maxLength": 64
-          }
-        },
-        {
-          "name": "name",
-          "type": "string",
-          "childRelationshipType": "",
-          "parentRelationshipType": "",
-          "datatype": "VARCHAR",
-          "primaryKey": false,
-          "required": true,
-          "description": "Human-readable display name for the lookup entry. This is the text that should be shown to users in forms, dropdowns, and reports rather than the technical code.",
-          "defaultvalue": "",
-          "example": "United States",
-          "autoIncrement": false,
-          "maxLength": "128",
-          "array": false,
-          "isPII": "",
-          "secret": false,
-          "create": true,
-          "update": true,
-          "get": true,
-          "list": true,
-          "parentRelationship": "",
-          "childRelationship": "",
-          "meta": {
-            "kind": "string",
-            "maxLength": 128
-          }
-        },
-        {
-          "name": "description",
-          "type": "string",
-          "childRelationshipType": "",
-          "parentRelationshipType": "",
-          "datatype": "TEXT",
-          "primaryKey": false,
-          "required": false,
-          "description": "Optional detailed description providing additional context, usage notes, or business rules for this lookup entry. Can include markdown formatting for rich text display.",
-          "defaultvalue": "",
-          "example": "Primary currency used in the United States and its territories",
-          "autoIncrement": false,
-          "array": false,
-          "isPII": "",
-          "secret": false,
-          "create": true,
-          "update": true,
-          "get": true,
-          "list": true,
-          "parentRelationship": "",
-          "childRelationship": "",
-          "meta": {
-            "kind": "string",
-            "maxLength": 65535
-          }
-        },
-        {
-          "name": "enabled",
-          "type": "boolean",
-          "childRelationshipType": "",
-          "parentRelationshipType": "",
-          "datatype": "BOOLEAN",
-          "primaryKey": false,
-          "required": false,
-          "description": "Controls whether this lookup entry is active and available for selection. When false, the entry is hidden from user interfaces but preserved for historical data integrity.",
-          "defaultvalue": "true",
-          "example": "true",
-          "autoIncrement": false,
-          "array": false,
-          "isPII": "",
-          "secret": false,
-          "create": true,
-          "update": true,
-          "get": true,
-          "list": true,
-          "parentRelationship": "",
-          "childRelationship": "",
-          "meta": {
-            "kind": "boolean"
-          }
-        },
-        {
-          "name": "attributes",
-          "type": "Record<string, unknown>",
-          "childRelationshipType": "",
-          "parentRelationshipType": "",
-          "datatype": "JSON",
-          "primaryKey": false,
-          "required": false,
-          "description": "Dynamic JSON object containing custom attributes specific to this lookup entry. Structure and validation rules are defined by the associated lookup_type's attributerules.",
-          "defaultvalue": "",
-          "example": "{\"iso_code\": \"USD\", \"symbol\": \"$\"}",
-          "autoIncrement": false,
-          "array": false,
-          "isPII": "",
-          "secret": false,
-          "create": true,
-          "update": true,
-          "get": true,
-          "list": true,
-          "parentRelationship": "",
-          "childRelationship": "",
-          "meta": {
-            "kind": "json",
-            "jsonShape": "object"
-          }
-        }
-      ],
-      "relationships": [
-        {
-          "name": "lookup_type_lookup",
-          "parentTable": "attribute_rule_set",
-          "parentColumn": {
-            "name": "code",
-            "type": "string",
-            "childRelationshipType": "Lookup",
-            "parentRelationshipType": "",
-            "datatype": "VARCHAR",
-            "primaryKey": true,
-            "required": true,
-            "description": "Primary key and unique identifier for the lookup type. Defines the category or classification that groups related lookup entries together.",
-            "defaultvalue": "",
-            "example": "COUNTRY",
-            "autoIncrement": false,
-            "maxLength": "64",
-            "array": false,
-            "isPII": "",
-            "secret": false,
-            "create": true,
-            "update": true,
-            "get": true,
-            "list": true,
-            "parentRelationship": "",
-            "childRelationship": "lookup_type_lookup",
-            "meta": {
-              "kind": "string",
-              "maxLength": 64
-            }
-          },
-          "childTable": "lookup",
-          "childColumn": {
-            "name": "lookup_type",
-            "type": "string",
-            "childRelationshipType": "",
-            "parentRelationshipType": "AttributeRuleSet",
-            "datatype": "VARCHAR",
-            "primaryKey": false,
-            "required": true,
-            "description": "Foreign key reference to lookup_type table. Defines the category or type of this lookup entry, enabling grouping and filtering of related lookup values.",
-            "defaultvalue": "",
-            "example": "COUNTRY",
-            "autoIncrement": false,
-            "maxLength": "64",
-            "array": false,
-            "isPII": "",
-            "secret": false,
-            "create": true,
-            "update": true,
-            "get": true,
-            "list": true,
-            "relationship": "one",
-            "parentRelationship": "lookup_type_lookup",
-            "childRelationship": "",
-            "meta": {
-              "kind": "string",
-              "maxLength": 64
-            }
-          },
-          "type": "one",
-          "complex": true
-        }
-      ],
-      "lines": [],
-      "keys": [
-        {
-          "name": "code",
-          "type": "string",
-          "childRelationshipType": "",
-          "parentRelationshipType": "",
-          "datatype": "VARCHAR",
-          "primaryKey": true,
-          "required": true,
-          "description": "Primary key and unique identifier for the lookup entry. Used as the canonical reference value when this lookup is selected or referenced by other entities.",
-          "defaultvalue": "",
-          "example": "USA",
-          "autoIncrement": false,
-          "maxLength": "64",
-          "array": false,
-          "isPII": "",
-          "secret": false,
-          "create": true,
-          "update": true,
-          "get": true,
-          "list": true,
-          "parentRelationship": "",
-          "childRelationship": "",
-          "meta": {
-            "kind": "string",
-            "maxLength": 64
-          }
-        }
-      ],
-      "indexes": [],
-      "docs": {
-        "name": "Lookup",
-        "summary": "Configuration for lookup table",
-        "version": "1.0.0"
-      },
-      "apis": {},
-      "store": {
-        "read": "memory",
-        "write": "memory",
-        "query": "memory",
-        "projector": "memory"
-      },
-      "options": {
-        "command": true,
-        "create": true,
-        "update": true,
-        "read": "memory",
-        "write": "memory",
-        "query": "memory",
-        "projector": "memory",
-        "queue": false,
-        "softDelete": true,
-        "timestamps": true,
-        "versioning": true,
-        "logging": true,
-        "auditing": true,
-        "caching": true,
-        "eventStreaming": false
-      },
-      "cancel": {
-        "create": false,
-        "update": false,
-        "delete": false,
-        "batch": false,
-        "get": false
-      },
-      "redis": {
-        "prefix": "",
-        "version": "1.0",
-        "category": "core:lookup.lookup.v1",
-        "ttl": 3600,
-        "hash": true,
-        "aggregate": "lookup"
-      },
-      "eventstream": {
-        "boundedContext": "core",
-        "aggregate": "lookup",
-        "version": "v1",
-        "stream": "core.lookup.lookup",
-        "createdEvent": "CoreLookupLookupCreated.v1",
-        "updatedEvent": "CoreLookupLookupUpdated.v1",
-        "deletedEvent": "CoreLookupLookupDeleted.v1"
-      },
-      "permissions": {
-        "bulk": [
-          "update",
-          "delete",
-          "import"
-        ],
-        "adminOverride": true,
-        "auditView": true,
-        "custom": []
-      },
-      "domainName": "",
-      "parentPath": []
-    },
-    {
       "name": "attribute_rule",
       "description": "",
       "columns": [
@@ -910,7 +585,7 @@
         {
           "name": "code",
           "type": "string",
-          "childRelationshipType": "Lookup",
+          "childRelationshipType": "",
           "parentRelationshipType": "",
           "datatype": "VARCHAR",
           "primaryKey": true,
@@ -928,7 +603,7 @@
           "get": true,
           "list": true,
           "parentRelationship": "",
-          "childRelationship": "lookup_type_lookup",
+          "childRelationship": "",
           "meta": {
             "kind": "string",
             "maxLength": 64
@@ -1101,68 +776,6 @@
           },
           "type": "object",
           "complex": true
-        },
-        {
-          "name": "lookup_type_lookup",
-          "parentTable": "attribute_rule_set",
-          "parentColumn": {
-            "name": "code",
-            "type": "string",
-            "childRelationshipType": "Lookup",
-            "parentRelationshipType": "",
-            "datatype": "VARCHAR",
-            "primaryKey": true,
-            "required": true,
-            "description": "Primary key and unique identifier for the lookup type. Defines the category or classification that groups related lookup entries together.",
-            "defaultvalue": "",
-            "example": "COUNTRY",
-            "autoIncrement": false,
-            "maxLength": "64",
-            "array": false,
-            "isPII": "",
-            "secret": false,
-            "create": true,
-            "update": true,
-            "get": true,
-            "list": true,
-            "parentRelationship": "",
-            "childRelationship": "lookup_type_lookup",
-            "meta": {
-              "kind": "string",
-              "maxLength": 64
-            }
-          },
-          "childTable": "lookup",
-          "childColumn": {
-            "name": "lookup_type",
-            "type": "string",
-            "childRelationshipType": "",
-            "parentRelationshipType": "AttributeRuleSet",
-            "datatype": "VARCHAR",
-            "primaryKey": false,
-            "required": true,
-            "description": "Foreign key reference to lookup_type table. Defines the category or type of this lookup entry, enabling grouping and filtering of related lookup values.",
-            "defaultvalue": "",
-            "example": "COUNTRY",
-            "autoIncrement": false,
-            "maxLength": "64",
-            "array": false,
-            "isPII": "",
-            "secret": false,
-            "create": true,
-            "update": true,
-            "get": true,
-            "list": true,
-            "relationship": "one",
-            "parentRelationship": "lookup_type_lookup",
-            "childRelationship": "",
-            "meta": {
-              "kind": "string",
-              "maxLength": 64
-            }
-          },
-          "type": "one",
-          "complex": true
         }
       ],
       "lines": [],
@@ -1170,7 +783,7 @@
         {
           "name": "code",
           "type": "string",
-          "childRelationshipType": "Lookup",
+          "childRelationshipType": "",
           "parentRelationshipType": "",
           "datatype": "VARCHAR",
           "primaryKey": true,
@@ -1188,7 +801,7 @@
           "get": true,
           "list": true,
           "parentRelationship": "",
-          "childRelationship": "lookup_type_lookup",
+          "childRelationship": "",
           "meta": {
             "kind": "string",
             "maxLength": 64
@@ -1199,7 +812,7 @@
         {
           "name": "code",
           "type": "string",
-          "childRelationshipType": "Lookup",
+          "childRelationshipType": "",
           "parentRelationshipType": "",
           "datatype": "VARCHAR",
           "primaryKey": true,
@@ -1217,7 +830,7 @@
           "get": true,
           "list": true,
           "parentRelationship": "",
-          "childRelationship": "lookup_type_lookup",
+          "childRelationship": "",
           "meta": {
             "kind": "string",
             "maxLength": 64
@@ -1379,72 +992,10 @@
       },
       "type": "object",
       "complex": true
-    },
-    {
-      "name": "lookup_type_lookup",
-      "parentTable": "attribute_rule_set",
-      "parentColumn": {
-        "name": "code",
-        "type": "string",
-        "childRelationshipType": "Lookup",
-        "parentRelationshipType": "",
-        "datatype": "VARCHAR",
-        "primaryKey": true,
-        "required": true,
-        "description": "Primary key and unique identifier for the lookup type. Defines the category or classification that groups related lookup entries together.",
-        "defaultvalue": "",
-        "example": "COUNTRY",
-        "autoIncrement": false,
-        "maxLength": "64",
-        "array": false,
-        "isPII": "",
-        "secret": false,
-        "create": true,
-        "update": true,
-        "get": true,
-        "list": true,
-        "parentRelationship": "",
-        "childRelationship": "lookup_type_lookup",
-        "meta": {
-          "kind": "string",
-          "maxLength": 64
-        }
-      },
-      "childTable": "lookup",
-      "childColumn": {
-        "name": "lookup_type",
-        "type": "string",
-        "childRelationshipType": "",
-        "parentRelationshipType": "AttributeRuleSet",
-        "datatype": "VARCHAR",
-        "primaryKey": false,
-        "required": true,
-        "description": "Foreign key reference to lookup_type table. Defines the category or type of this lookup entry, enabling grouping and filtering of related lookup values.",
-        "defaultvalue": "",
-        "example": "COUNTRY",
-        "autoIncrement": false,
-        "maxLength": "64",
-        "array": false,
-        "isPII": "",
-        "secret": false,
-        "create": true,
-        "update": true,
-        "get": true,
-        "list": true,
-        "relationship": "one",
-        "parentRelationship": "lookup_type_lookup",
-        "childRelationship": "",
-        "meta": {
-          "kind": "string",
-          "maxLength": 64
-        }
-      },
-      "type": "one",
-      "complex": true
     }
   ],
   "documentation": {
-    "name": "lookup management",
-    "description": "# 📘 Lookup-Type Service — Detailed Description\n\n## 1. Purpose and Overview\n\nThe **Lookup-Type Service** is a foundational microservice designed to provide **attribute definition and validation capabilities** to any domain within the system that requires structured, rule-based metadata. It defines the **attribute model**, enforces validation rules, and exposes reusable schemas that other domains can implement.\n\nThis service is not limited to lookups — it becomes a **shared attribute policy provider** across multiple bounded contexts, including but not limited to:\n\n* **Lookup** — Dynamic attribute extensions for lookup entities.\n* **Person** — Additional personal or demographic fields.\n* **Company** — Organizational metadata (e.g. registration, sector, type).\n* **Customer** — Customer profile extensions, preferences, and classifications.\n* **Supplier** — Vendor and service provider attributes.\n* **Employer** — Employer metadata, registration details, or compliance data.\n\nBy centralizing attribute definitions, the Lookup-Type Service ensures that every domain implements attributes **consistently, securely, and with shared validation logic**.\n\n---\n\n## 2. Core Responsibilities\n\n### 2.1 Attribute Definition Management\n\n* Define **attribute types** (`string`, `boolean`, `integer`, `currency`, `date`, `datetime`, `other`).\n* Manage **validation rules** for each attribute:\n\n  * Required / optional\n  * Unique constraint\n  * Regex pattern and error messages\n  * Reserved / immutable fields\n  * Reference fields (for indexed search or foreign key mapping)\n* Support **custom domain-specific attribute definitions** under each bounded context.\n\n### 2.2 Lookup-Type Configuration\n\n* Define reusable **attribute schemas** known as `LookupType`.\n* Each `LookupType` describes a **set of attribute rules** that can be inherited or referenced by other services.\n* Maintain versioning and enable/disable control for type definitions.\n\n### 2.3 Validation-as-a-Service\n\nThe service acts as a **validation authority** for other domains that use dynamic attributes. Other microservices can:\n\n* Query `LookupType` and its associated attribute rules.\n* Perform client-side or server-side validation using those rules.\n* Enforce consistent attribute semantics system-wide.\n\n### 2.4 Multi-Domain Reuse\n\nAny domain that manages entities with flexible attributes (e.g., `Person`, `Customer`, `Supplier`) can **register or reference** attribute schemas from this service. This eliminates redundant schema management and promotes schema governance.\n\n---\n\n## 3. Domain Model\n\n### 3.1 LookupType Aggregate\n\n**Purpose:** Represents the blueprint for a set of attributes.\n\n**Attributes:**\n\n* `code` — Unique technical identifier for the lookup type (immutable).\n* `name` — Human-readable label.\n* `description` — Optional detailed explanation.\n* `enabled` — Boolean indicating whether the type is active.\n* `attributeRules` — A map of attribute rule definitions.\n\n**Responsibilities:**\n\n* Create, update, and deactivate lookup types.\n* Manage collections of `AttributeRule` value objects.\n* Validate integrity between rules (e.g., no duplicate names, reserved rule immutability).\n\n**Domain Events:**\n\n* `LookupTypeCreated`\n* `LookupTypeUpdated`\n* `LookupTypeEnabled`\n* `LookupTypeDisabled`\n* `LookupTypeAttributeRuleAdded`\n* `LookupTypeAttributeRuleUpdated`\n* `LookupTypeAttributeRuleRemoved`\n\n### 3.2 AttributeRule Value Object\n\n**Purpose:** Describes the behavior and constraints of a single attribute field.\n\n**Attributes:**\n\n* `name` — Unique name of the attribute.\n* `description` — What the attribute represents.\n* `type` — Data type (`string`, `integer`, `boolean`, etc.).\n* `required` — Indicates whether the attribute must always be present.\n* `unique` — Indicates if the value must be unique across the domain.\n* `regex` — Optional validation pattern.\n* `reference` — Indicates if the field can be used as a lookup key or external reference.\n* `reserved` — Protects critical attributes from deletion or modification.\n\n**Validation Behavior:**\n\n* Enforces type safety, uniqueness, and presence.\n* Provides error messages for validation failures (`requiredError`, `uniqueError`, `regexError`).\n\n---\n\n## 4. Integration and Implementation Model\n\n### 4.1 API Integration\n\nOther domains use the Lookup-Type Service via REST or internal service calls:\n\n#### Query APIs\n\n* `GET /api/v1/lookup-types` — List available lookup types.\n* `GET /api/v1/lookup-types/{code}` — Retrieve a specific type definition.\n\n#### Command APIs\n\n* `POST /api/v1/lookup-types` — Create a new type definition.\n* `PUT /api/v1/lookup-types/{code}` — Update a type definition and attribute rules.\n\nEach domain can cache or project these definitions locally for fast runtime validation.\n\n### 4.2 Domain Integration Pattern\n\nEach bounded context that supports dynamic attributes (e.g. Person, Company) implements an **AttributeRuleAdapter** or **AttributeRuleValidator** component:\n\n1. On entity creation/update, the service queries the Lookup-Type projection for the relevant type definition.\n2. AttributeRuleValidator enforces the rules.\n3. If validation passes, the entity is persisted.\n4. Violations trigger domain-level validation errors.\n\n### 4.3 Event-Driven Synchronization\n\n* `LookupType` and `AttributeRule` changes are published as **domain events** (via EventStoreDB or message bus).\n* Subscribing domains update their local projections to maintain current rule sets.\n\n---\n\n## 5. Architectural Role\n\n### 5.1 Shared Governance Layer\n\n* Provides a **single point of truth** for attribute rules.\n* Prevents each service from reinventing attribute schemas.\n* Supports auditability — changes to attribute definitions are event-sourced and version-controlled.\n\n### 5.2 Enabler for Dynamic Schemas\n\nBy decoupling attribute definitions from entity persistence:\n\n* Entities across domains can evolve without database migrations.\n* New attributes can be added dynamically by updating the ruleset.\n* Front-end forms (e.g. FEML) can render fields based on the active schema.\n\n### 5.3 Multi-Tenant Support\n\nEach `LookupType` and `AttributeRule` can be **scoped per tenant**, allowing custom attribute definitions for each tenant or organization.\n\nKey identifier pattern:\n\n```\ncore-lookup-type:v1:{tenant}:type:{lookupTypeCode}\ncore-lookup-type:v1:{tenant}:rule:{attributeName}\n```\n\n---\n\n## 6. Example Use Cases\n\n### 6.1 Lookup Domain\n\nDefines the schema for lookup entities:\n\n```json\n{\n  \"code\": \"ACCOUNT_STATUS\",\n  \"attributeRules\": {\n    \"category\": { \"type\": \"string\", \"required\": true },\n    \"terminal\": { \"type\": \"boolean\", \"required\": true }\n  }\n}\n```\n\nEach `Lookup` instance uses these rules to validate its attributes.\n\n### 6.2 Person Domain\n\nAllows additional attributes beyond fixed identity fields:\n\n```json\n{\n  \"code\": \"PERSON_PROFILE\",\n  \"attributeRules\": {\n    \"maritalStatus\": { \"type\": \"string\" },\n    \"employmentType\": { \"type\": \"string\" }\n  }\n}\n```\n\n### 6.3 Customer Domain\n\nManages customer metadata through reusable definitions:\n\n```json\n{\n  \"code\": \"CUSTOMER_CLASSIFICATION\",\n  \"attributeRules\": {\n    \"riskLevel\": { \"type\": \"string\", \"required\": true },\n    \"creditScore\": { \"type\": \"integer\" }\n  }\n}\n```\n\n---\n\n## 7. Benefits\n\n* **Centralized validation and governance** across all domains.\n* **Reduced coupling** — domains depend on rules, not hard-coded schemas.\n* **Dynamic extensibility** — new attributes require no schema migration.\n* **Auditability** — every rule change produces an event for traceability.\n* **Improved front-end flexibility** — FEML or Angular UIs can render fields dynamically.\n\n---\n\n## 8. Summary\n\nThe **Lookup-Type Service** establishes a unified, event-driven framework for defining and enforcing attribute rules across the entire platform. It acts as the **metadata backbone** for domains that require dynamic, extensible, and validated entity attributes.\n\nIt transforms attribute governance from a scattered, per-domain concern into a centralized, reusable, and evolvable capability — supporting compliance, adaptability, and developer productivity throughout the ecosystem.\n"
+    "name": "Attribute rule set management",
+    "description": "# 📘 Attribute Rule Set Service — Detailed Description\n\n## 1. Purpose and Overview\n\nThe **Attribute Rule Set Service** is a foundational microservice responsible for defining, governing, and exposing **reusable sets of attribute rules** that can be applied across multiple domains. Instead of each bounded context inventing its own way of describing dynamic fields, this service provides a **central catalog of rule sets** that describe *how attributes should behave* (type, constraints, validation messages, etc.).\n\nWhere other services manage concrete entities (Lookup, Person, Company, Customer, Supplier, Employer, etc.), the Attribute Rule Set Service manages **metadata about attributes**:\n\n* What fields exist (by code and name)\n* What type each field is (string, boolean, integer, currency, date, datetime, other)\n* Which fields are required or unique\n* Which fields must match a regex pattern\n* Which fields are reserved or used as references\n\nBy centralizing attribute rule sets, the service ensures that all domains implement their dynamic attributes **consistently and with shared validation logic**.\n\n---\n\n## 2. Core Responsibilities\n\n### 2.1 Attribute Rule Set Management\n\n* Define reusable **attribute rule sets**, each identified by a unique `code`.\n* Each rule set contains a **map of attribute rules**, keyed by attribute code.\n* Manage lifecycle operations:\n\n  * Create, update, enable/disable, and (soft) delete rule sets.\n* Support per-tenant customization of rule sets where needed.\n\n### 2.2 Attribute Rule Definition\n\nFor each attribute in a rule set, the service defines:\n\n* **Identity & description**\n\n  * `code` — technical identifier for the attribute (e.g. `email`, `risk_level`).\n  * `name` — user-facing label (e.g. \"Email\", \"Risk Level\").\n  * `description` — human-readable explanation and business context.\n\n* **Type & behavior**\n\n  * `type` — one of `string | boolean | integer | currency | date | datetime | other`.\n  * `reference` — whether this field is a reference/search key.\n  * `reserved` — protects attributes that must not be removed or radically changed.\n\n* **Validation rules**\n\n  * `required` — whether the field must always be present.\n  * `requiredError` — error message shown when required validation fails.\n  * `unique` — whether the field must be unique in its scope.\n  * `uniqueError` — error message when uniqueness is violated.\n  * `regex` — optional pattern for format validation.\n  * `regexError` — error message when the value doesn't match the pattern.\n\nThese rules are **pure metadata**; the actual data (lookup entities, people, companies, etc.) lives in other services.\n\n### 2.3 Validation-as-a-Service (via metadata)\n\nThe Attribute Rule Set Service itself does not validate entity payloads directly; instead, it provides:\n\n* A **canonical description** of attribute rules.\n* A contract that other services use to validate their own dynamic attributes.\n\nOther microservices can:\n\n* Query an attribute rule set by `code`.\n* Retrieve all rules for a given set.\n* Use those rules to perform client-side or server-side validation.\n\nThis turns validation into a **shared capability**, while keeping entity-specific logic in the owning bounded context.\n\n### 2.4 Multi-Domain Reuse\n\nAny domain that manages entities with flexible attributes can **bind to one or more attribute rule sets**, for example:\n\n* **Lookup** entries using rule sets like `COUNTRY_ATTRIBUTES`, `ACCOUNT_STATUS_ATTRIBUTES`.\n* **Person** domain using rule sets like `PERSON_PROFILE_ATTRIBUTES`.\n* **Customer** domain using rule sets like `CUSTOMER_CLASSIFICATION_ATTRIBUTES`.\n\nThis eliminates duplicated schema logic and promotes governance: rule sets are changed once and reflected everywhere they are used.\n\n---\n\n## 3. Domain Model\n\n### 3.1 AttributeRuleSet Aggregate\n\n**Purpose:** Represents a named collection of attribute rules.\n\n**Attributes:**\n\n* `code` — Unique technical identifier for the rule set (immutable), e.g. `PERSON_PROFILE_ATTRIBUTES`.\n* `name` — Human-readable label, e.g. \"Person Profile Attributes\".\n* `description` — Optional detailed explanation and business context.\n* `enabled` — Whether this rule set is active and should be used by consuming services.\n* `rules` — A map of `AttributeRule` value objects keyed by attribute code.\n\n**Responsibilities:**\n\n* Create, update, and deactivate rule sets.\n* Add, update, and remove individual attribute rules.\n* Enforce invariants between rules (no duplicate codes, reserved rules protected, valid types and regex patterns, etc.).\n\n**Example Structure:**\n\n```json\n{\n  \"code\": \"CUSTOMER_CLASSIFICATION_ATTRIBUTES\",\n  \"name\": \"Customer Classification Attributes\",\n  \"rules\": {\n    \"riskLevel\": {\n      \"type\": \"string\",\n      \"required\": true\n    },\n    \"creditScore\": {\n      \"type\": \"integer\",\n      \"required\": false\n    }\n  }\n}\n```\n\n**Domain Events (examples):**\n\n* `AttributeRuleSetCreated`\n* `AttributeRuleSetUpdated`\n* `AttributeRuleSetEnabled`\n* `AttributeRuleSetDisabled`\n* `AttributeRuleAdded`\n* `AttributeRuleUpdated`\n* `AttributeRuleRemoved`\n\n### 3.2 AttributeRule Value Object\n\n**Purpose:** Describes the behavior and constraints of a single attribute field inside a rule set.\n\n**Attributes:**\n\n* `code` — Unique code of the attribute within the rule set.\n* `name` — Human-readable label.\n* `description` — What the attribute represents and how it's used.\n* `type` — Data type (`string`, `integer`, `boolean`, `currency`, `date`, `datetime`, `other`).\n* `required` — Whether this attribute must always be present when the rule set is applied.\n* `unique` — Whether the attribute value must be unique in the scope defined by the consuming service.\n* `regex` — Optional pattern to validate the data format.\n* `reference` — Whether this attribute can be used as a reference/search key.\n* `reserved` — Whether this attribute is protected from deletion or incompatible changes.\n* `requiredError`, `uniqueError`, `regexError` — User-facing error messages for validation failures.\n\n**Validation Behavior (as metadata):**\n\n* Defines which attributes are mandatory.\n* Defines uniqueness and format rules.\n* Supplies message templates that consuming services can reuse when returning errors.\n\n---\n\n## 4. Integration and Implementation Model\n\n### 4.1 API Integration\n\nOther domains use the Attribute Rule Set Service via REST or internal service calls, typically:\n\n#### Query APIs\n\n* `GET /api/v1/attribute-rule-sets` — List available rule sets.\n* `GET /api/v1/attribute-rule-sets/{code}` — Retrieve a specific rule set with all attribute rules.\n\n#### Command APIs\n\n* `POST /api/v1/attribute-rule-sets` — Create a new rule set.\n* `PUT /api/v1/attribute-rule-sets/{code}` — Replace an existing rule set definition (full update), or\n* `PATCH /api/v1/attribute-rule-sets/{code}` — Apply partial changes (if supported).\n\nEach domain can cache or project rule sets locally for fast runtime validation.\n\n### 4.2 Domain Integration Pattern\n\nEach bounded context that supports dynamic attributes (Person, Company, Lookup, etc.) typically implements an **AttributeRuleSetAdapter** or **AttributeRuleValidator**:\n\n1. On entity create/update, the service determines which rule set(s) apply to the entity.\n2. It loads the attribute rule set definition (from a local projection or via the Attribute Rule Set Service API).\n3. The validator applies type, required, unique, and regex rules to the entity's attribute payload.\n4. If validation passes, the entity is persisted and events are emitted.\n5. If validation fails, domain-specific validation errors are produced using the error messages defined in the rule set.\n\n### 4.3 Event-Driven Synchronization\n\n* Attribute rule sets and their rules are stored as events (e.g. in EventStoreDB) and exposed via read models.\n* Changes to rule sets are published as **domain events**.\n* Consuming services subscribe to these events and update their local projections or caches, so validation rules stay in sync without tight coupling.\n\n---\n\n## 5. Architectural Role\n\n### 5.1 Shared Governance Layer\n\n* Acts as a **single point of truth** for attribute rule sets across the platform.\n* Prevents each service from recreating similar validation logic.\n* Provides auditability: every rule set change is recorded as a domain event.\n\n### 5.2 Enabler for Dynamic Schemas\n\nBy decoupling attribute rules from persistence schemas:\n\n* Entities can gain new attributes without database migrations.\n* Front-end forms (e.g. FEML-driven UIs) can render fields and validation dynamically based on a rule set.\n* Admin tools can allow configuration of which rule sets apply to which entity types.\n\n### 5.3 Multi-Tenant Support\n\nEach `AttributeRuleSet` can be **scoped per tenant**, enabling custom metadata per tenant or organization.\n\nKey identifier pattern (example):\n\n```text\ncore-attributes:v1:{tenant}:rule-set:{ruleSetCode}\ncore-attributes:v1:{tenant}:rule:{ruleSetCode}:{attributeCode}\n```\n\n---\n\n## 6. Example Use Cases\n\n### 6.1 Lookup Domain\n\nDefine a rule set for account status metadata:\n\n```json\n{\n  \"code\": \"ACCOUNT_STATUS_ATTRIBUTES\",\n  \"name\": \"Account Status Attributes\",\n  \"rules\": {\n    \"category\": { \"type\": \"string\", \"required\": true },\n    \"terminal\": { \"type\": \"boolean\", \"required\": true }\n  }\n}\n```\n\nThe Lookup service applies this rule set to all lookup entries of type `ACCOUNT_STATUS` when validating their `attributes` payload.\n\n### 6.2 Person Domain\n\nDefine a rule set for optional profile attributes:\n\n```json\n{\n  \"code\": \"PERSON_PROFILE_ATTRIBUTES\",\n  \"name\": \"Person Profile Attributes\",\n  \"rules\": {\n    \"maritalStatus\": { \"type\": \"string\" },\n    \"employmentType\": { \"type\": \"string\" }\n  }\n}\n```\n\nThe Person service uses this rule set to validate additional profile data stored in a flexible `attributes` structure.\n\n### 6.3 Customer Domain\n\nDefine a rule set for customer classification:\n\n```json\n{\n  \"code\": \"CUSTOMER_CLASSIFICATION_ATTRIBUTES\",\n  \"name\": \"Customer Classification Attributes\",\n  \"rules\": {\n    \"riskLevel\": { \"type\": \"string\", \"required\": true },\n    \"creditScore\": { \"type\": \"integer\" }\n  }\n}\n```\n\nThe Customer service uses this to validate classification metadata and enforce that `riskLevel` is always present.\n\n---\n\n## 7. Benefits\n\n* **Centralized validation and governance** for all dynamic attributes.\n* **Reduced coupling** — domains depend on rule sets, not hard-coded schemas.\n* **Dynamic extensibility** — adding new attributes is a configuration change, not a migration.\n* **Auditability** — every rule set and rule change is captured as an event.\n* **Front-end flexibility** — UIs can render fields and validation dynamically from rule sets.\n\n---\n\n## 8. Summary\n\nThe **Attribute Rule Set Service** provides an event-driven, tenant-aware framework for defining and managing attribute rule sets across the platform. It acts as the **metadata backbone** for any domain requiring dynamic, extensible, and validated attributes.\n\nBy consolidating attribute rules into shared, reusable rule sets, it transforms attribute handling from ad-hoc, per-service logic into a governed, composable capability — improving consistency, adaptability, and developer productivity across the ecosystem.\n"
   }
 }

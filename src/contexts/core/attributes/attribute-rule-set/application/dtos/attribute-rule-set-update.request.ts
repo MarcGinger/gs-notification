@@ -3,7 +3,7 @@
 
 import { UpdateAttributeRuleSetProps } from '../../domain/props';
 import {
-  ApiAttributeRuleSetAttributesRequest,
+  ApiAttributeRuleSetAttributesUpdateRequest,
   ApiAttributeRuleSetDescription,
   ApiAttributeRuleSetEnabled,
   ApiAttributeRuleSetName,
@@ -22,6 +22,6 @@ export class UpdateAttributeRuleSetRequest
   @ApiAttributeRuleSetEnabled({ required: false })
   enabled?: boolean;
 
-  @ApiAttributeRuleSetAttributesRequest({ required: false })
+  @ApiAttributeRuleSetAttributesUpdateRequest({ required: false })
   attributes?: Record<string, UpdateAttributeRuleRequest>;
 }

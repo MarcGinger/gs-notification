@@ -23,6 +23,7 @@ export class CoreDocumentation {
   | Applications/Services |
   |---------------|
   | [**attributes**](/api/docs/core/attributes) |
+  | [**lookup**](/api/docs/core/lookup) |
 
         `,
       )

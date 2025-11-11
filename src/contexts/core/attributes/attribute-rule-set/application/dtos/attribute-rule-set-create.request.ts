@@ -3,7 +3,7 @@
 
 import { CreateAttributeRuleSetProps } from '../../domain/props';
 import {
-  ApiAttributeRuleSetAttributesRequest,
+  ApiAttributeRuleSetAttributesCreateRequest,
   ApiAttributeRuleSetCode,
   ApiAttributeRuleSetDescription,
   ApiAttributeRuleSetEnabled,
@@ -26,6 +26,6 @@ export class CreateAttributeRuleSetRequest
   @ApiAttributeRuleSetEnabled({ required: false })
   enabled?: boolean;
 
-  @ApiAttributeRuleSetAttributesRequest()
+  @ApiAttributeRuleSetAttributesCreateRequest()
   attributes: Record<string, CreateAttributeRuleRequest>;
 }

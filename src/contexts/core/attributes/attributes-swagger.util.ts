@@ -5,7 +5,6 @@ import { INestApplication } from '@nestjs/common';
 import { AppConfigUtil } from 'src/shared/config/app-config.util';
 
 import { AttributesApplicationDocumentation } from './attributes.doc';
-import { LookupDocumentation } from './lookup/docs/lookup.doc';
 import { AttributeRuleSetDocumentation } from './attribute-rule-set/docs/attribute-rule-set.doc';
 
 /**
@@ -26,7 +25,6 @@ export function setupCoreAttributesDocs(
   );
 
   // Setup documentation for all core_attributes aggregates
-  const lookupUrls = LookupDocumentation.setupAll(app, port);
   const attributeRuleSetUrls = AttributeRuleSetDocumentation.setupAll(
     app,
     port,
@@ -34,7 +32,6 @@ export function setupCoreAttributesDocs(
 
   return {
     ...boundedContextUrls,
-    ...lookupUrls,
 
     ...attributeRuleSetUrls,
   };

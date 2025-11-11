@@ -17,114 +17,166 @@ export class AttributesApplicationDocumentation {
         { type: 'http', scheme: 'bearer', bearerFormat: 'JWT' },
         'bearer',
       )
-      .setTitle(`lookup management`)
+      .setTitle(`Attribute rule set management`)
       .setDescription(
         `
 ## bounded context: core
 [← Back to documentation](/api/docs/core)
 
-# 📘 Lookup-Type Service — Detailed Description
+# 📘 Attribute Rule Set Service — Detailed Description
 
 ## 1. Purpose and Overview
 
-The **Lookup-Type Service** is a foundational microservice designed to provide **attribute definition and validation capabilities** to any domain within the system that requires structured, rule-based metadata. It defines the **attribute model**, enforces validation rules, and exposes reusable schemas that other domains can implement.
+The **Attribute Rule Set Service** is a foundational microservice responsible for defining, governing, and exposing **reusable sets of attribute rules** that can be applied across multiple domains. Instead of each bounded context inventing its own way of describing dynamic fields, this service provides a **central catalog of rule sets** that describe *how attributes should behave* (type, constraints, validation messages, etc.).
 
-This service is not limited to lookups — it becomes a **shared attribute policy provider** across multiple bounded contexts, including but not limited to:
+Where other services manage concrete entities (Lookup, Person, Company, Customer, Supplier, Employer, etc.), the Attribute Rule Set Service manages **metadata about attributes**:
 
-* **Lookup** — Dynamic attribute extensions for lookup entities.
-* **Person** — Additional personal or demographic fields.
-* **Company** — Organizational metadata (e.g. registration, sector, type).
-* **Customer** — Customer profile extensions, preferences, and classifications.
-* **Supplier** — Vendor and service provider attributes.
-* **Employer** — Employer metadata, registration details, or compliance data.
+* What fields exist (by code and name)
+* What type each field is (string, boolean, integer, currency, date, datetime, other)
+* Which fields are required or unique
+* Which fields must match a regex pattern
+* Which fields are reserved or used as references
 
-By centralizing attribute definitions, the Lookup-Type Service ensures that every domain implements attributes **consistently, securely, and with shared validation logic**.
+By centralizing attribute rule sets, the service ensures that all domains implement their dynamic attributes **consistently and with shared validation logic**.
 
 ---
 
 ## 2. Core Responsibilities
 
-### 2.1 Attribute Definition Management
+### 2.1 Attribute Rule Set Management
 
-* Define **attribute types** (&#x60;string&#x60;, &#x60;boolean&#x60;, &#x60;integer&#x60;, &#x60;currency&#x60;, &#x60;date&#x60;, &#x60;datetime&#x60;, &#x60;other&#x60;).
-* Manage **validation rules** for each attribute:
+* Define reusable **attribute rule sets**, each identified by a unique &#x60;code&#x60;.
+* Each rule set contains a **map of attribute rules**, keyed by attribute code.
+* Manage lifecycle operations:
 
-  * Required / optional
-  * Unique constraint
-  * Regex pattern and error messages
-  * Reserved / immutable fields
-  * Reference fields (for indexed search or foreign key mapping)
-* Support **custom domain-specific attribute definitions** under each bounded context.
+  * Create, update, enable/disable, and (soft) delete rule sets.
+* Support per-tenant customization of rule sets where needed.
 
-### 2.2 Lookup-Type Configuration
+### 2.2 Attribute Rule Definition
 
-* Define reusable **attribute schemas** known as &#x60;LookupType&#x60;.
-* Each &#x60;LookupType&#x60; describes a **set of attribute rules** that can be inherited or referenced by other services.
-* Maintain versioning and enable/disable control for type definitions.
+For each attribute in a rule set, the service defines:
 
-### 2.3 Validation-as-a-Service
+* **Identity &amp; description**
 
-The service acts as a **validation authority** for other domains that use dynamic attributes. Other microservices can:
+  * &#x60;code&#x60; — technical identifier for the attribute (e.g. &#x60;email&#x60;, &#x60;risk_level&#x60;).
+  * &#x60;name&#x60; — user-facing label (e.g. &quot;Email&quot;, &quot;Risk Level&quot;).
+  * &#x60;description&#x60; — human-readable explanation and business context.
 
-* Query &#x60;LookupType&#x60; and its associated attribute rules.
-* Perform client-side or server-side validation using those rules.
-* Enforce consistent attribute semantics system-wide.
+* **Type &amp; behavior**
+
+  * &#x60;type&#x60; — one of &#x60;string | boolean | integer | currency | date | datetime | other&#x60;.
+  * &#x60;reference&#x60; — whether this field is a reference/search key.
+  * &#x60;reserved&#x60; — protects attributes that must not be removed or radically changed.
+
+* **Validation rules**
+
+  * &#x60;required&#x60; — whether the field must always be present.
+  * &#x60;requiredError&#x60; — error message shown when required validation fails.
+  * &#x60;unique&#x60; — whether the field must be unique in its scope.
+  * &#x60;uniqueError&#x60; — error message when uniqueness is violated.
+  * &#x60;regex&#x60; — optional pattern for format validation.
+  * &#x60;regexError&#x60; — error message when the value doesn&#x27;t match the pattern.
+
+These rules are **pure metadata**; the actual data (lookup entities, people, companies, etc.) lives in other services.
+
+### 2.3 Validation-as-a-Service (via metadata)
+
+The Attribute Rule Set Service itself does not validate entity payloads directly; instead, it provides:
+
+* A **canonical description** of attribute rules.
+* A contract that other services use to validate their own dynamic attributes.
+
+Other microservices can:
+
+* Query an attribute rule set by &#x60;code&#x60;.
+* Retrieve all rules for a given set.
+* Use those rules to perform client-side or server-side validation.
+
+This turns validation into a **shared capability**, while keeping entity-specific logic in the owning bounded context.
 
 ### 2.4 Multi-Domain Reuse
 
-Any domain that manages entities with flexible attributes (e.g., &#x60;Person&#x60;, &#x60;Customer&#x60;, &#x60;Supplier&#x60;) can **register or reference** attribute schemas from this service. This eliminates redundant schema management and promotes schema governance.
+Any domain that manages entities with flexible attributes can **bind to one or more attribute rule sets**, for example:
+
+* **Lookup** entries using rule sets like &#x60;COUNTRY_ATTRIBUTES&#x60;, &#x60;ACCOUNT_STATUS_ATTRIBUTES&#x60;.
+* **Person** domain using rule sets like &#x60;PERSON_PROFILE_ATTRIBUTES&#x60;.
+* **Customer** domain using rule sets like &#x60;CUSTOMER_CLASSIFICATION_ATTRIBUTES&#x60;.
+
+This eliminates duplicated schema logic and promotes governance: rule sets are changed once and reflected everywhere they are used.
 
 ---
 
 ## 3. Domain Model
 
-### 3.1 LookupType Aggregate
+### 3.1 AttributeRuleSet Aggregate
 
-**Purpose:** Represents the blueprint for a set of attributes.
+**Purpose:** Represents a named collection of attribute rules.
 
 **Attributes:**
 
-* &#x60;code&#x60; — Unique technical identifier for the lookup type (immutable).
-* &#x60;name&#x60; — Human-readable label.
-* &#x60;description&#x60; — Optional detailed explanation.
-* &#x60;enabled&#x60; — Boolean indicating whether the type is active.
-* &#x60;attributeRules&#x60; — A map of attribute rule definitions.
+* &#x60;code&#x60; — Unique technical identifier for the rule set (immutable), e.g. &#x60;PERSON_PROFILE_ATTRIBUTES&#x60;.
+* &#x60;name&#x60; — Human-readable label, e.g. &quot;Person Profile Attributes&quot;.
+* &#x60;description&#x60; — Optional detailed explanation and business context.
+* &#x60;enabled&#x60; — Whether this rule set is active and should be used by consuming services.
+* &#x60;rules&#x60; — A map of &#x60;AttributeRule&#x60; value objects keyed by attribute code.
 
 **Responsibilities:**
 
-* Create, update, and deactivate lookup types.
-* Manage collections of &#x60;AttributeRule&#x60; value objects.
-* Validate integrity between rules (e.g., no duplicate names, reserved rule immutability).
+* Create, update, and deactivate rule sets.
+* Add, update, and remove individual attribute rules.
+* Enforce invariants between rules (no duplicate codes, reserved rules protected, valid types and regex patterns, etc.).
 
-**Domain Events:**
+**Example Structure:**
 
-* &#x60;LookupTypeCreated&#x60;
-* &#x60;LookupTypeUpdated&#x60;
-* &#x60;LookupTypeEnabled&#x60;
-* &#x60;LookupTypeDisabled&#x60;
-* &#x60;LookupTypeAttributeRuleAdded&#x60;
-* &#x60;LookupTypeAttributeRuleUpdated&#x60;
-* &#x60;LookupTypeAttributeRuleRemoved&#x60;
+&#x60;&#x60;&#x60;json
+{
+  &quot;code&quot;: &quot;CUSTOMER_CLASSIFICATION_ATTRIBUTES&quot;,
+  &quot;name&quot;: &quot;Customer Classification Attributes&quot;,
+  &quot;rules&quot;: {
+    &quot;riskLevel&quot;: {
+      &quot;type&quot;: &quot;string&quot;,
+      &quot;required&quot;: true
+    },
+    &quot;creditScore&quot;: {
+      &quot;type&quot;: &quot;integer&quot;,
+      &quot;required&quot;: false
+    }
+  }
+}
+&#x60;&#x60;&#x60;
+
+**Domain Events (examples):**
+
+* &#x60;AttributeRuleSetCreated&#x60;
+* &#x60;AttributeRuleSetUpdated&#x60;
+* &#x60;AttributeRuleSetEnabled&#x60;
+* &#x60;AttributeRuleSetDisabled&#x60;
+* &#x60;AttributeRuleAdded&#x60;
+* &#x60;AttributeRuleUpdated&#x60;
+* &#x60;AttributeRuleRemoved&#x60;
 
 ### 3.2 AttributeRule Value Object
 
-**Purpose:** Describes the behavior and constraints of a single attribute field.
+**Purpose:** Describes the behavior and constraints of a single attribute field inside a rule set.
 
 **Attributes:**
 
-* &#x60;name&#x60; — Unique name of the attribute.
-* &#x60;description&#x60; — What the attribute represents.
-* &#x60;type&#x60; — Data type (&#x60;string&#x60;, &#x60;integer&#x60;, &#x60;boolean&#x60;, etc.).
-* &#x60;required&#x60; — Indicates whether the attribute must always be present.
-* &#x60;unique&#x60; — Indicates if the value must be unique across the domain.
-* &#x60;regex&#x60; — Optional validation pattern.
-* &#x60;reference&#x60; — Indicates if the field can be used as a lookup key or external reference.
-* &#x60;reserved&#x60; — Protects critical attributes from deletion or modification.
+* &#x60;code&#x60; — Unique code of the attribute within the rule set.
+* &#x60;name&#x60; — Human-readable label.
+* &#x60;description&#x60; — What the attribute represents and how it&#x27;s used.
+* &#x60;type&#x60; — Data type (&#x60;string&#x60;, &#x60;integer&#x60;, &#x60;boolean&#x60;, &#x60;currency&#x60;, &#x60;date&#x60;, &#x60;datetime&#x60;, &#x60;other&#x60;).
+* &#x60;required&#x60; — Whether this attribute must always be present when the rule set is applied.
+* &#x60;unique&#x60; — Whether the attribute value must be unique in the scope defined by the consuming service.
+* &#x60;regex&#x60; — Optional pattern to validate the data format.
+* &#x60;reference&#x60; — Whether this attribute can be used as a reference/search key.
+* &#x60;reserved&#x60; — Whether this attribute is protected from deletion or incompatible changes.
+* &#x60;requiredError&#x60;, &#x60;uniqueError&#x60;, &#x60;regexError&#x60; — User-facing error messages for validation failures.
 
-**Validation Behavior:**
+**Validation Behavior (as metadata):**
 
-* Enforces type safety, uniqueness, and presence.
-* Provides error messages for validation failures (&#x60;requiredError&#x60;, &#x60;uniqueError&#x60;, &#x60;regexError&#x60;).
+* Defines which attributes are mandatory.
+* Defines uniqueness and format rules.
+* Supplies message templates that consuming services can reuse when returning errors.
 
 ---
 
@@ -132,33 +184,36 @@ Any domain that manages entities with flexible attributes (e.g., &#x60;Person&#x
 
 ### 4.1 API Integration
 
-Other domains use the Lookup-Type Service via REST or internal service calls:
+Other domains use the Attribute Rule Set Service via REST or internal service calls, typically:
 
 #### Query APIs
 
-* &#x60;GET /api/v1/lookup-types&#x60; — List available lookup types.
-* &#x60;GET /api/v1/lookup-types/{code}&#x60; — Retrieve a specific type definition.
+* &#x60;GET /api/v1/attribute-rule-sets&#x60; — List available rule sets.
+* &#x60;GET /api/v1/attribute-rule-sets/{code}&#x60; — Retrieve a specific rule set with all attribute rules.
 
 #### Command APIs
 
-* &#x60;POST /api/v1/lookup-types&#x60; — Create a new type definition.
-* &#x60;PUT /api/v1/lookup-types/{code}&#x60; — Update a type definition and attribute rules.
+* &#x60;POST /api/v1/attribute-rule-sets&#x60; — Create a new rule set.
+* &#x60;PUT /api/v1/attribute-rule-sets/{code}&#x60; — Replace an existing rule set definition (full update), or
+* &#x60;PATCH /api/v1/attribute-rule-sets/{code}&#x60; — Apply partial changes (if supported).
 
-Each domain can cache or project these definitions locally for fast runtime validation.
+Each domain can cache or project rule sets locally for fast runtime validation.
 
 ### 4.2 Domain Integration Pattern
 
-Each bounded context that supports dynamic attributes (e.g. Person, Company) implements an **AttributeRuleAdapter** or **AttributeRuleValidator** component:
+Each bounded context that supports dynamic attributes (Person, Company, Lookup, etc.) typically implements an **AttributeRuleSetAdapter** or **AttributeRuleValidator**:
 
-1. On entity creation/update, the service queries the Lookup-Type projection for the relevant type definition.
-2. AttributeRuleValidator enforces the rules.
-3. If validation passes, the entity is persisted.
-4. Violations trigger domain-level validation errors.
+1. On entity create/update, the service determines which rule set(s) apply to the entity.
+2. It loads the attribute rule set definition (from a local projection or via the Attribute Rule Set Service API).
+3. The validator applies type, required, unique, and regex rules to the entity&#x27;s attribute payload.
+4. If validation passes, the entity is persisted and events are emitted.
+5. If validation fails, domain-specific validation errors are produced using the error messages defined in the rule set.
 
 ### 4.3 Event-Driven Synchronization
 
-* &#x60;LookupType&#x60; and &#x60;AttributeRule&#x60; changes are published as **domain events** (via EventStoreDB or message bus).
-* Subscribing domains update their local projections to maintain current rule sets.
+* Attribute rule sets and their rules are stored as events (e.g. in EventStoreDB) and exposed via read models.
+* Changes to rule sets are published as **domain events**.
+* Consuming services subscribe to these events and update their local projections or caches, so validation rules stay in sync without tight coupling.
 
 ---
 
@@ -166,27 +221,27 @@ Each bounded context that supports dynamic attributes (e.g. Person, Company) imp
 
 ### 5.1 Shared Governance Layer
 
-* Provides a **single point of truth** for attribute rules.
-* Prevents each service from reinventing attribute schemas.
-* Supports auditability — changes to attribute definitions are event-sourced and version-controlled.
+* Acts as a **single point of truth** for attribute rule sets across the platform.
+* Prevents each service from recreating similar validation logic.
+* Provides auditability: every rule set change is recorded as a domain event.
 
 ### 5.2 Enabler for Dynamic Schemas
 
-By decoupling attribute definitions from entity persistence:
+By decoupling attribute rules from persistence schemas:
 
-* Entities across domains can evolve without database migrations.
-* New attributes can be added dynamically by updating the ruleset.
-* Front-end forms (e.g. FEML) can render fields based on the active schema.
+* Entities can gain new attributes without database migrations.
+* Front-end forms (e.g. FEML-driven UIs) can render fields and validation dynamically based on a rule set.
+* Admin tools can allow configuration of which rule sets apply to which entity types.
 
 ### 5.3 Multi-Tenant Support
 
-Each &#x60;LookupType&#x60; and &#x60;AttributeRule&#x60; can be **scoped per tenant**, allowing custom attribute definitions for each tenant or organization.
+Each &#x60;AttributeRuleSet&#x60; can be **scoped per tenant**, enabling custom metadata per tenant or organization.
 
-Key identifier pattern:
+Key identifier pattern (example):
 
-&#x60;&#x60;&#x60;
-core-lookup-type:v1:{tenant}:type:{lookupTypeCode}
-core-lookup-type:v1:{tenant}:rule:{attributeName}
+&#x60;&#x60;&#x60;text
+core-attributes:v1:{tenant}:rule-set:{ruleSetCode}
+core-attributes:v1:{tenant}:rule:{ruleSetCode}:{attributeCode}
 &#x60;&#x60;&#x60;
 
 ---
@@ -195,72 +250,78 @@ core-lookup-type:v1:{tenant}:rule:{attributeName}
 
 ### 6.1 Lookup Domain
 
-Defines the schema for lookup entities:
+Define a rule set for account status metadata:
 
 &#x60;&#x60;&#x60;json
 {
-  &quot;code&quot;: &quot;ACCOUNT_STATUS&quot;,
-  &quot;attributeRules&quot;: {
+  &quot;code&quot;: &quot;ACCOUNT_STATUS_ATTRIBUTES&quot;,
+  &quot;name&quot;: &quot;Account Status Attributes&quot;,
+  &quot;rules&quot;: {
     &quot;category&quot;: { &quot;type&quot;: &quot;string&quot;, &quot;required&quot;: true },
     &quot;terminal&quot;: { &quot;type&quot;: &quot;boolean&quot;, &quot;required&quot;: true }
   }
 }
 &#x60;&#x60;&#x60;
 
-Each &#x60;Lookup&#x60; instance uses these rules to validate its attributes.
+The Lookup service applies this rule set to all lookup entries of type &#x60;ACCOUNT_STATUS&#x60; when validating their &#x60;attributes&#x60; payload.
 
 ### 6.2 Person Domain
 
-Allows additional attributes beyond fixed identity fields:
+Define a rule set for optional profile attributes:
 
 &#x60;&#x60;&#x60;json
 {
-  &quot;code&quot;: &quot;PERSON_PROFILE&quot;,
-  &quot;attributeRules&quot;: {
+  &quot;code&quot;: &quot;PERSON_PROFILE_ATTRIBUTES&quot;,
+  &quot;name&quot;: &quot;Person Profile Attributes&quot;,
+  &quot;rules&quot;: {
     &quot;maritalStatus&quot;: { &quot;type&quot;: &quot;string&quot; },
     &quot;employmentType&quot;: { &quot;type&quot;: &quot;string&quot; }
   }
 }
 &#x60;&#x60;&#x60;
 
+The Person service uses this rule set to validate additional profile data stored in a flexible &#x60;attributes&#x60; structure.
+
 ### 6.3 Customer Domain
 
-Manages customer metadata through reusable definitions:
+Define a rule set for customer classification:
 
 &#x60;&#x60;&#x60;json
 {
-  &quot;code&quot;: &quot;CUSTOMER_CLASSIFICATION&quot;,
-  &quot;attributeRules&quot;: {
+  &quot;code&quot;: &quot;CUSTOMER_CLASSIFICATION_ATTRIBUTES&quot;,
+  &quot;name&quot;: &quot;Customer Classification Attributes&quot;,
+  &quot;rules&quot;: {
     &quot;riskLevel&quot;: { &quot;type&quot;: &quot;string&quot;, &quot;required&quot;: true },
     &quot;creditScore&quot;: { &quot;type&quot;: &quot;integer&quot; }
   }
 }
 &#x60;&#x60;&#x60;
 
+The Customer service uses this to validate classification metadata and enforce that &#x60;riskLevel&#x60; is always present.
+
 ---
 
 ## 7. Benefits
 
-* **Centralized validation and governance** across all domains.
-* **Reduced coupling** — domains depend on rules, not hard-coded schemas.
-* **Dynamic extensibility** — new attributes require no schema migration.
-* **Auditability** — every rule change produces an event for traceability.
-* **Improved front-end flexibility** — FEML or Angular UIs can render fields dynamically.
+* **Centralized validation and governance** for all dynamic attributes.
+* **Reduced coupling** — domains depend on rule sets, not hard-coded schemas.
+* **Dynamic extensibility** — adding new attributes is a configuration change, not a migration.
+* **Auditability** — every rule set and rule change is captured as an event.
+* **Front-end flexibility** — UIs can render fields and validation dynamically from rule sets.
 
 ---
 
 ## 8. Summary
 
-The **Lookup-Type Service** establishes a unified, event-driven framework for defining and enforcing attribute rules across the entire platform. It acts as the **metadata backbone** for domains that require dynamic, extensible, and validated entity attributes.
+The **Attribute Rule Set Service** provides an event-driven, tenant-aware framework for defining and managing attribute rule sets across the platform. It acts as the **metadata backbone** for any domain requiring dynamic, extensible, and validated attributes.
 
-It transforms attribute governance from a scattered, per-domain concern into a centralized, reusable, and evolvable capability — supporting compliance, adaptability, and developer productivity throughout the ecosystem.
+By consolidating attribute rules into shared, reusable rule sets, it transforms attribute handling from ad-hoc, per-service logic into a governed, composable capability — improving consistency, adaptability, and developer productivity across the ecosystem.
 
 
 ### application: attributes
 
   | Modules |
   |---------------|
-  | [***lookup  →***](/api/docs/core/attributes/lookup) |
   | [***attribute-rule-set  →***](/api/docs/core/attributes/attribute-rule-set) |
         `,
       )

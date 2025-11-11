@@ -1,5 +1,6 @@
 export * from './attribute-rule-set-list-pagination.decorator';
-export * from './attributes-request.decorator';
+export * from './attributes-create-request.decorator';
+export * from './attributes-update-request.decorator';
 export * from './attributes.decorator';
 export * from './code.decorator';
 export * from './description.decorator';

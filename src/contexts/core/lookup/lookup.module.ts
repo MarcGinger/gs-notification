@@ -4,17 +4,17 @@
 import { Module } from '@nestjs/common';
 
 // Import shared infrastructure
-import { AttributesSharedModule } from './attributes-shared.module';
+import { LookupSharedModule } from './lookup-shared.module';
 
-// Import all attributes domain modules
-import { AttributeRuleSetRouterModule } from './attribute-rule-set/interface/http/attribute-rule-set.router';
+// Import all lookup domain modules
+import { LookupRouterModule } from './lookup/interface/http/lookup.router';
 
-import { AttributeRuleSetProjectorModule } from './attribute-rule-set/attribute-rule-set-projector.module';
+import { LookupProjectorModule } from './lookup/lookup-projector.module';
 
 /**
- * Attributes Module - Bounded Context Entry Point
+ * Lookup Module - Bounded Context Entry Point
  *
- * This module serves as the single entry point for the entire attributes bounded context.
+ * This module serves as the single entry point for the entire lookup bounded context.
  * It aggregates all domain modules and their corresponding projector modules, providing
  * a clean separation between the app module and domain-specific concerns.
  *
@@ -31,14 +31,14 @@ import { AttributeRuleSetProjectorModule } from './attribute-rule-set/attribute-
 @Module({
   imports: [
     // Shared infrastructure (imported once for all domains)
-    AttributesSharedModule,
-    AttributeRuleSetRouterModule,
-    AttributeRuleSetProjectorModule,
+    LookupSharedModule,
+    LookupRouterModule,
+    LookupProjectorModule,
   ],
   exports: [
     // Export all modules for potential cross-domain dependencies
-    AttributeRuleSetRouterModule,
-    AttributeRuleSetProjectorModule,
+    LookupRouterModule,
+    LookupProjectorModule,
   ],
 })
-export class CoreAttributesModule {}
+export class CoreLookupModule {}
