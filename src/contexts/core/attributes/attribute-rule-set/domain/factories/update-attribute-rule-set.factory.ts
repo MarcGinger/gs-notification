@@ -12,12 +12,12 @@ import {
 } from '../props';
 import { ValidatedAttributeRuleSetUpdateFields } from '../types';
 import {
+  AttributeRuleSetAttributeRuleConfiguration,
   AttributeRuleSetName,
   AttributeRuleSetDescription,
   AttributeRuleSetEnabled,
-  AttributeRuleSetAttributeRuleConfiguration,
 } from '../value-objects';
-import { updateAttributeRuleConfigurationFromProps } from './create-attribute-rule.factory';
+import { updateAttributeRuleConfigurationFromProps } from './attribute-rule.factory';
 
 /**
  * Update AttributeRuleSet Aggregate Factory

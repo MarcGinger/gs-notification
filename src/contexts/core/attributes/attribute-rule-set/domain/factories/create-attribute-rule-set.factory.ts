@@ -7,6 +7,7 @@ import { EventMetadata } from 'src/shared/domain/events';
 import { AttributeRuleSetAggregate } from '../aggregates';
 import { CreateAttributeRuleSetProps } from '../props';
 import { AttributeRuleSetDomainState } from '../state';
+import { createAttributeRuleConfigurationFromProps } from './attribute-rule.factory';
 import {
   AttributeRuleSetCreatedAt,
   AttributeRuleSetUpdatedAt,
@@ -16,7 +17,6 @@ import {
   AttributeRuleSetDescription,
   AttributeRuleSetEnabled,
 } from '../value-objects';
-import { createAttributeRuleConfigurationFromProps } from './create-attribute-rule.factory';
 
 /**
  * Enhanced attributeRuleSet entity factory with comprehensive validation and security context
@@ -93,7 +93,7 @@ export function createAttributeRuleSetAggregateFromProps(
         ...attributesResult.error.context,
         correlationId: metadata.correlationId,
         userId: metadata.userId,
-        operation: 'create_attribute_rule_set',
+        operation: 'create_attributes_rule_set',
         attributes: props.attributes,
       }),
     );
