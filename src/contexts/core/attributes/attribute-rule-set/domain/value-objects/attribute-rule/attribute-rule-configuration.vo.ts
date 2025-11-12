@@ -2,10 +2,7 @@
 // REMOVE THIS COMMENT TO STOP AUTOMATIC UPDATES TO THIS BLOCK
 
 import {
-  CollectionVOInstance,
   RecordVOInstance,
-  createCollectionVO,
-  createCollectionVOErrors,
   createRecordVO,
   createRecordVOErrors,
 } from 'src/shared/domain/value-objects';
@@ -27,7 +24,7 @@ import {
 } from './';
 
 /**
- * AttributeRuleSetAttributeRuleConfiguration Value Object (Item Type)
+ * AttributeRuleSetAttributeRuleConfiguration Value Object
  *
  * Embedded configuration for attribute_rule settings specific to an attribute_rule.
  * This is owned by the AttributeRule aggregate and not shared across attribute_rule.
@@ -36,8 +33,8 @@ import {
  * Composed of individual value objects for each field to ensure
  * proper validation and separation of concerns.
  */
-export const AttributeRuleSetAttributeRuleConfigurationItem = createRecordVO({
-  name: 'AttributeRuleSetAttributeRuleConfigurationItem',
+export const AttributeRuleSetAttributeRuleConfiguration = createRecordVO({
+  name: 'AttributeRuleSetAttributeRuleConfiguration',
 
   // Basic validation will be handled at the application level
   // Advanced validation can be added via refinements if needed
@@ -47,39 +44,11 @@ export const AttributeRuleSetAttributeRuleConfigurationItem = createRecordVO({
   ),
 });
 
-/** Public instance type for AttributeRuleSetAttributeRuleConfigurationItem */
-export type AttributeRuleSetAttributeRuleConfigurationItem = RecordVOInstance;
-
-/**
- * AttributeRuleSetAttributeRuleConfiguration Collection Value Object
- * Collection of AttributeRuleSetAttributeRuleConfiguration items
- * Allows empty collections.
- * Enforces unique values.
- */
-export const AttributeRuleSetAttributeRuleConfiguration = createCollectionVO<
-  Record<string, unknown>,
-  AttributeRuleSetAttributeRuleConfigurationItem
->({
-  name: 'AttributeRuleSetAttributeRuleConfiguration',
-  itemName: AttributeRuleSetAttributeRuleConfigurationItem.name,
-  itemFactory: AttributeRuleSetAttributeRuleConfigurationItem,
-  allowEmpty: true,
-  allowDuplicates: false,
-
-  errors: createCollectionVOErrors(
-    AttributeRuleErrors.INVALID_ATTRIBUTE_RULE_CONFIGURATION_DATA,
-    'AttributeRule AttributeRuleSetAttributeRuleConfiguration',
-  ),
-});
-
 /** Public instance type for AttributeRuleSetAttributeRuleConfiguration */
-export type AttributeRuleSetAttributeRuleConfiguration = CollectionVOInstance<
-  Record<string, unknown>,
-  AttributeRuleSetAttributeRuleConfigurationItem
->;
+export type AttributeRuleSetAttributeRuleConfiguration = RecordVOInstance;
 
 // Convenience creators using composed value objects
-export const createAttributeRuleSetAttributeRuleConfiguration = (config: {
+export const createAttributeRuleConfiguration = (config: {
   code: AttributeRuleCode;
   name: AttributeRuleName;
   description: AttributeRuleDescription;
@@ -92,16 +61,10 @@ export const createAttributeRuleSetAttributeRuleConfiguration = (config: {
   requiredError: AttributeRuleRequiredError;
   regex: AttributeRuleRegex;
   regexError: AttributeRuleRegexError;
-}) => AttributeRuleSetAttributeRuleConfigurationItem.create(config);
+}) => AttributeRuleSetAttributeRuleConfiguration.create(config);
 
-export const attributeRuleSetAttributeRuleConfigurationFrom = (v: unknown) =>
+export const attributeRuleConfigurationFrom = (v: unknown) =>
   AttributeRuleSetAttributeRuleConfiguration.from(v);
-
-export const createAttributeRuleConfiguration = (
-  items: Record<string, unknown>[],
-) => AttributeRuleSetAttributeRuleConfiguration.create(items);
-export const attributeRuleConfigurationFrom = (items: unknown) =>
-  AttributeRuleSetAttributeRuleConfiguration.from(items);
 
 /**
  * Converts AttributeRuleSetAttributeRuleConfiguration to AttributeRuleProps
@@ -109,5 +72,5 @@ export const attributeRuleConfigurationFrom = (items: unknown) =>
 export const attributeRuleConfigurationToSnapshotProps = (
   config: AttributeRuleSetAttributeRuleConfiguration,
 ): AttributeRuleProps => {
-  return config.items as unknown as AttributeRuleProps;
+  return config.value as unknown as AttributeRuleProps;
 };

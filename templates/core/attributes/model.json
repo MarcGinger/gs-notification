@@ -430,22 +430,22 @@
             "defaultvalue": "",
             "example": "{\"tenant\": \"default\", \"rule_id\": \"email_validation\"}",
             "autoIncrement": false,
-            "array": true,
+            "array": false,
             "isPII": "",
             "secret": false,
             "create": true,
             "update": true,
             "get": true,
             "list": true,
-            "relationship": "many",
+            "relationship": "one",
             "parentRelationship": "attribute_rule_attribute_rule_set",
             "childRelationship": "",
             "meta": {
               "kind": "json",
-              "jsonShape": "many"
+              "jsonShape": "one"
             }
           },
-          "type": "many",
+          "type": "one",
           "complex": true
         }
       ],
@@ -696,19 +696,19 @@
           "defaultvalue": "",
           "example": "{\"tenant\": \"default\", \"rule_id\": \"email_validation\"}",
           "autoIncrement": false,
-          "array": true,
+          "array": false,
           "isPII": "",
           "secret": false,
           "create": true,
           "update": true,
           "get": true,
           "list": true,
-          "relationship": "many",
+          "relationship": "one",
           "parentRelationship": "attribute_rule_attribute_rule_set",
           "childRelationship": "",
           "meta": {
             "kind": "json",
-            "jsonShape": "many"
+            "jsonShape": "one"
           }
         }
       ],
@@ -755,22 +755,22 @@
             "defaultvalue": "",
             "example": "{\"tenant\": \"default\", \"rule_id\": \"email_validation\"}",
             "autoIncrement": false,
-            "array": true,
+            "array": false,
             "isPII": "",
             "secret": false,
             "create": true,
             "update": true,
             "get": true,
             "list": true,
-            "relationship": "many",
+            "relationship": "one",
             "parentRelationship": "attribute_rule_attribute_rule_set",
             "childRelationship": "",
             "meta": {
               "kind": "json",
-              "jsonShape": "many"
+              "jsonShape": "one"
             }
           },
-          "type": "many",
+          "type": "one",
           "complex": true
         }
       ],
@@ -970,22 +970,22 @@
         "defaultvalue": "",
         "example": "{\"tenant\": \"default\", \"rule_id\": \"email_validation\"}",
         "autoIncrement": false,
-        "array": true,
+        "array": false,
         "isPII": "",
         "secret": false,
         "create": true,
         "update": true,
         "get": true,
         "list": true,
-        "relationship": "many",
+        "relationship": "one",
         "parentRelationship": "attribute_rule_attribute_rule_set",
         "childRelationship": "",
         "meta": {
           "kind": "json",
-          "jsonShape": "many"
+          "jsonShape": "one"
         }
       },
-      "type": "many",
+      "type": "one",
       "complex": true
     }
   ],

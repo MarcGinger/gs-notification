@@ -8,7 +8,6 @@ import {
   ListAttributeRuleSetResponse,
 } from '../dtos';
 import { mapAttributeRuleConfigurationToDto } from '../mappers';
-import { AttributeRuleSetAttributeRuleConfiguration } from '../../domain/value-objects';
 
 /**
  * AttributeRuleSet DTO Assembler
@@ -41,13 +40,9 @@ export class AttributeRuleSetDtoAssembler {
 
     // Use existing mappers for complex configurations
     dto.attributes = domainState.attributes
-      ? domainState.attributes
-          .toArray()
-          .map((item) =>
-            mapAttributeRuleConfigurationToDto<DetailAttributeRuleResponse>(
-              item as AttributeRuleSetAttributeRuleConfiguration,
-            ),
-          )
+      ? mapAttributeRuleConfigurationToDto<DetailAttributeRuleResponse>(
+          domainState.attributes,
+        )
       : undefined;
 
     return dto;
@@ -72,13 +67,9 @@ export class AttributeRuleSetDtoAssembler {
 
     // Use existing mappers for complex configurations
     dto.attributes = domainState.attributes
-      ? domainState.attributes
-          .toArray()
-          .map((item) =>
-            mapAttributeRuleConfigurationToDto<DetailAttributeRuleResponse>(
-              item as AttributeRuleSetAttributeRuleConfiguration,
-            ),
-          )
+      ? mapAttributeRuleConfigurationToDto<DetailAttributeRuleResponse>(
+          domainState.attributes,
+        )
       : undefined;
 
     return dto;

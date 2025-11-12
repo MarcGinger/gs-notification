@@ -534,7 +534,7 @@
 			"child": "26cdf662-b910-43c0-8541-2cff7760e849",
 			"c_mp": "true",
 			"c_mch": "true",
-			"c_p": "many",
+			"c_p": "one",
 			"c_ch": "many",
 			"c_cp": "",
 			"c_cch": "",
@@ -579,7 +579,7 @@
 		},
 		"type": "MARIADB",
 		"version": 1,
-		"lastSaved": 1762937267354,
+		"lastSaved": 1762948736197,
 		"beforeScript": "",
 		"afterScript": "",
 		"sqlSettings": {
@@ -625,8 +625,8 @@
 			"diagramItems": {
 				"172126ee-01dd-4c68-93b1-6084ca2e4c20": {
 					"referencedItemId": "172126ee-01dd-4c68-93b1-6084ca2e4c20",
-					"x": 354,
-					"y": 202,
+					"x": 309,
+					"y": 195,
 					"gHeight": 261,
 					"gWidth": 252,
 					"color": "#ffffff",
