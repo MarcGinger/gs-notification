@@ -112,7 +112,7 @@ export function updateAttributeRuleSetAggregateFromSnapshot(
 
   // Validateattributes if provided
   if (updateProps.attributes !== undefined) {
-    const attributesResult = AttributeRuleSetAttributes.update(
+    const attributesResult = AttributeRuleSetAttributes.from(
       updateProps.attributes,
     );
     if (!attributesResult.ok) {

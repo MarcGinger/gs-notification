@@ -2,7 +2,7 @@
 // REMOVE THIS COMMENT TO STOP AUTOMATIC UPDATES TO THIS BLOCK
 
 import {
-  AttributeRuleSetAttributeRuleConfiguration,
+  AttributeRuleSetAttributes,
   AttributeRuleSetCode,
   AttributeRuleSetDescription,
   AttributeRuleSetEnabled,
@@ -14,5 +14,5 @@ export interface ValidatedAttributeRuleSetUpdateFields {
   name?: AttributeRuleSetName;
   description?: AttributeRuleSetDescription;
   enabled?: AttributeRuleSetEnabled;
-  attributes?: AttributeRuleSetAttributeRuleConfiguration;
+  attributes?: AttributeRuleSetAttributes;
 }

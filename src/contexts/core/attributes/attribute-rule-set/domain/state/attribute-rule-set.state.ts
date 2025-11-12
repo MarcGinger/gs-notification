@@ -5,7 +5,7 @@ import {
   AttributeRuleSetCreatedAt,
   AttributeRuleSetUpdatedAt,
   AttributeRuleSetVersion,
-  AttributeRuleSetAttributeRuleConfiguration,
+  AttributeRuleSetAttributes,
   AttributeRuleSetCode,
   AttributeRuleSetDescription,
   AttributeRuleSetEnabled,
@@ -30,7 +30,7 @@ export interface AttributeRuleSetDomainState {
   name: AttributeRuleSetName;
   description?: AttributeRuleSetDescription;
   enabled?: AttributeRuleSetEnabled;
-  attributes?: AttributeRuleSetAttributeRuleConfiguration;
+  attributes?: AttributeRuleSetAttributes;
   version: AttributeRuleSetVersion;
   createdAt: AttributeRuleSetCreatedAt;
   updatedAt: AttributeRuleSetUpdatedAt;
