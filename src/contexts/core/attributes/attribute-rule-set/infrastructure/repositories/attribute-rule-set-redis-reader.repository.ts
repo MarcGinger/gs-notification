@@ -112,7 +112,7 @@ export class AttributeRuleSetReaderRepository
         hashData.attributes,
         'attributes',
       ) as Record<string, unknown> | null;
-      
+
       // Handle both old format (flat AttributeRuleProps) and new format (Record<string, AttributeRuleProps>)
       let attributes: Record<string, AttributeRuleProps> | undefined;
       if (rawAttributes && typeof rawAttributes === 'object') {
@@ -131,7 +131,7 @@ export class AttributeRuleSetReaderRepository
           attributes = { rule: rawAttributes as unknown as AttributeRuleProps };
         }
       }
-      
+
       // Extract basic fields directly from hash data
 
       return {

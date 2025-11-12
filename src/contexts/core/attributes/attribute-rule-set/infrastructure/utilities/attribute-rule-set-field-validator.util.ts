@@ -44,7 +44,7 @@ export class AttributeRuleSetFieldValidatorUtil {
       attributesType: typeof aggregateData.attributes,
       allKeys: Object.keys(aggregateData),
     });
-    
+
     const code = aggregateData.code as string;
     const name = aggregateData.name as string;
     const description = aggregateData.description as string;

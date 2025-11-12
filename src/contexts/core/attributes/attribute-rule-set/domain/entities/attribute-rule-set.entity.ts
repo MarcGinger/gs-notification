@@ -171,7 +171,7 @@ export class AttributeRuleSetEntity extends EntityIdBase<
     if (!enabledResult.ok) {
       return err(enabledResult.error);
     }
-    
+
     let attributes: AttributeRuleSetAttributeRuleConfiguration | undefined;
     if (snapshot.attributes !== undefined && snapshot.attributes !== null) {
       const attributesResult = AttributeRuleSetAttributeRuleConfiguration.from(
@@ -182,7 +182,7 @@ export class AttributeRuleSetEntity extends EntityIdBase<
       }
       attributes = attributesResult.value;
     }
-    
+
     const createdAtResult = AttributeRuleSetCreatedAt.from(snapshot.createdAt);
     if (!createdAtResult.ok) {
       return err(createdAtResult.error);
@@ -358,7 +358,7 @@ export class AttributeRuleSetEntity extends EntityIdBase<
       attributesValue: this.props.attributes?.value,
       attributesType: typeof this.props.attributes?.value,
     });
-    
+
     return {
       code: this.props.code.value,
       name: this.props.name.value,

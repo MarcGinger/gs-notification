@@ -117,7 +117,7 @@ export function updateAttributeRuleSetAggregateFromSnapshot(
       inputType: typeof updateProps.attributes,
       inputKeys: Object.keys(updateProps.attributes || {}),
     });
-    
+
     const attributesResult = AttributeRuleSetAttributes.update(
       updateProps.attributes,
     );
