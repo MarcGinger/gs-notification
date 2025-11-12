@@ -9,9 +9,9 @@ import { CreateAttributeRuleProps, UpdateAttributeRuleProps } from '../props';
  * Since attributes is a single configuration object, not a collection
  */
 export const AttributeRuleSetAttributes = {
-  create: (config: CreateAttributeRuleProps) =>
+  create: (config: Record<string, CreateAttributeRuleProps>) =>
     AttributeRuleSetAttributeRuleConfiguration.from(config),
-  update: (config: UpdateAttributeRuleProps) =>
+  update: (config: Record<string, UpdateAttributeRuleProps>) =>
     AttributeRuleSetAttributeRuleConfiguration.from(config),
   from: (v: unknown) => AttributeRuleSetAttributeRuleConfiguration.from(v),
 };
@@ -21,6 +21,7 @@ export type AttributeRuleSetAttributes =
   AttributeRuleSetAttributeRuleConfiguration;
 
 // Convenience creators for AttributeRuleSetAttributes
-export const createAttributeRuleSetAttributes =
-  AttributeRuleSetAttributes.create;
+export const createAttributeRuleSetAttributes = (
+  config: Record<string, CreateAttributeRuleProps>,
+) => AttributeRuleSetAttributes.create(config);
 export const attributeRuleSetattributesFrom = AttributeRuleSetAttributes.from;

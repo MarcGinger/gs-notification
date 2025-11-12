@@ -12,7 +12,6 @@ import {
   RepositoryLoggingConfig,
   handleRepositoryError,
   safeParseJSON,
-  safeParseJSONArray,
   RepositoryOptions,
 } from 'src/shared/infrastructure/repositories';
 import { Result, DomainError, err, ok } from 'src/shared/errors';
@@ -109,10 +108,30 @@ export class AttributeRuleSetReaderRepository
       // Parse array fields using safeParseJSONArray utility
 
       // Parse object fields using safeParseJSON utility
-      const attributes = safeParseJSON<AttributeRuleProps>(
+      const rawAttributes = safeParseJSON<unknown>(
         hashData.attributes,
         'attributes',
-      );
+      ) as Record<string, unknown> | null;
+      
+      // Handle both old format (flat AttributeRuleProps) and new format (Record<string, AttributeRuleProps>)
+      let attributes: Record<string, AttributeRuleProps> | undefined;
+      if (rawAttributes && typeof rawAttributes === 'object') {
+        const keys = Object.keys(rawAttributes);
+        // Check if it's already in the new wrapped format
+        if (
+          keys.length > 0 &&
+          !Object.prototype.hasOwnProperty.call(rawAttributes, 'code')
+        ) {
+          // Already in wrapped format
+          attributes = rawAttributes as Record<string, AttributeRuleProps>;
+        } else if (
+          Object.prototype.hasOwnProperty.call(rawAttributes, 'code')
+        ) {
+          // Old flat format - wrap it
+          attributes = { rule: rawAttributes as unknown as AttributeRuleProps };
+        }
+      }
+      
       // Extract basic fields directly from hash data
 
       return {

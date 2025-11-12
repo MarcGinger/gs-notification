@@ -112,6 +112,12 @@ export function updateAttributeRuleSetAggregateFromSnapshot(
 
   // Validateattributes if provided
   if (updateProps.attributes !== undefined) {
+    console.log('🔍 Factory DEBUG - Processing attributes:', {
+      inputAttributes: updateProps.attributes,
+      inputType: typeof updateProps.attributes,
+      inputKeys: Object.keys(updateProps.attributes || {}),
+    });
+    
     const attributesResult = AttributeRuleSetAttributes.update(
       updateProps.attributes,
     );
@@ -125,6 +131,14 @@ export function updateAttributeRuleSetAggregateFromSnapshot(
         }),
       );
     }
+
+    console.log('🔍 Factory DEBUG - After validation:', {
+      hasValue: !!attributesResult.value,
+      valueType: typeof attributesResult.value?.value,
+      valueKeys: attributesResult.value?.value
+        ? Object.keys(attributesResult.value.value)
+        : [],
+    });
 
     validatedFields.attributes = attributesResult.value;
   }

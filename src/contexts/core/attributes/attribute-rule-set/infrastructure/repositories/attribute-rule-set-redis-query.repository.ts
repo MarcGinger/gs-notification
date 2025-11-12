@@ -11,7 +11,6 @@ import {
   RepositoryLoggingConfig,
   handleRepositoryError,
   safeParseJSON,
-  safeParseJSONArray,
   RepositoryOptions,
 } from 'src/shared/infrastructure/repositories';
 import { Result, DomainError, err, ok } from 'src/shared/errors';
@@ -276,10 +275,9 @@ export class AttributeRuleSetQueryRepository implements IAttributeRuleSetQuery {
       // Parse array fields using safeParseJSONArray utility
 
       // Parse object fields using safeParseJSON utility
-      const attributes = safeParseJSON<DetailAttributeRuleResponse>(
-        hashData.attributes,
-        'attributes',
-      );
+      const attributes = safeParseJSON<
+        Record<string, DetailAttributeRuleResponse>
+      >(hashData.attributes, 'attributes');
       // Extract basic fields directly from hash data
 
       return {

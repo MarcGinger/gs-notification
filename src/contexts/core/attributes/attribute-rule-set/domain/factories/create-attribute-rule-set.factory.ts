@@ -85,7 +85,7 @@ export function createAttributeRuleSetAggregateFromProps(
 
   // Create attributes configuration using specialized factory
   const attributesResult = props.attributes
-    ? AttributeRuleSetAttributes.from(props.attributes)
+    ? AttributeRuleSetAttributes.create(props.attributes)
     : ok(undefined);
   if (!attributesResult.ok) {
     return err(attributesResult.error);

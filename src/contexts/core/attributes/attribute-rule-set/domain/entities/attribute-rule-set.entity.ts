@@ -171,12 +171,18 @@ export class AttributeRuleSetEntity extends EntityIdBase<
     if (!enabledResult.ok) {
       return err(enabledResult.error);
     }
-    const attributesResult = AttributeRuleSetAttributeRuleConfiguration.from(
-      snapshot.attributes,
-    );
-    if (!attributesResult.ok) {
-      return err(attributesResult.error);
+    
+    let attributes: AttributeRuleSetAttributeRuleConfiguration | undefined;
+    if (snapshot.attributes !== undefined && snapshot.attributes !== null) {
+      const attributesResult = AttributeRuleSetAttributeRuleConfiguration.from(
+        snapshot.attributes,
+      );
+      if (!attributesResult.ok) {
+        return err(attributesResult.error);
+      }
+      attributes = attributesResult.value;
     }
+    
     const createdAtResult = AttributeRuleSetCreatedAt.from(snapshot.createdAt);
     if (!createdAtResult.ok) {
       return err(createdAtResult.error);
@@ -197,7 +203,7 @@ export class AttributeRuleSetEntity extends EntityIdBase<
       name: nameResult.value,
       description: descriptionResult.value,
       enabled: enabledResult.value,
-      attributes: attributesResult.value,
+      attributes: attributes,
       createdAt: createdAtResult.value,
       updatedAt: updatedAtResult.value,
       version: versionResult.value,
@@ -345,6 +351,14 @@ export class AttributeRuleSetEntity extends EntityIdBase<
    * Gets a snapshot of current entity state for serialization
    */
   public toSnapshot(): AttributeRuleSetSnapshotProps {
+    // Debug: Check what we have in props.attributes
+    console.log('🔍 Entity toSnapshot DEBUG:', {
+      code: this.props.code.value,
+      hasAttributes: !!this.props.attributes,
+      attributesValue: this.props.attributes?.value,
+      attributesType: typeof this.props.attributes?.value,
+    });
+    
     return {
       code: this.props.code.value,
       name: this.props.name.value,

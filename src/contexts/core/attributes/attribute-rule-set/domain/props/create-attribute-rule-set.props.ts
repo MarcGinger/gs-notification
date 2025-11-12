@@ -8,5 +8,5 @@ export interface CreateAttributeRuleSetProps {
   name: string;
   description?: string;
   enabled?: boolean;
-  attributes?: CreateAttributeRuleProps;
+  attributes?: Record<string, CreateAttributeRuleProps>;
 }

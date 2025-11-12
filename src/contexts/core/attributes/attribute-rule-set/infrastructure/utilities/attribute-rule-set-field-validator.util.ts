@@ -37,6 +37,14 @@ export class AttributeRuleSetFieldValidatorUtil {
     createdAt: Date;
     updatedAt: Date;
   } {
+    // Debug: Check what we receive in event data
+    console.log('🔍 Projector DEBUG - Event data received:', {
+      hasAttributes: 'attributes' in aggregateData,
+      attributesValue: aggregateData.attributes as unknown,
+      attributesType: typeof aggregateData.attributes,
+      allKeys: Object.keys(aggregateData),
+    });
+    
     const code = aggregateData.code as string;
     const name = aggregateData.name as string;
     const description = aggregateData.description as string;
@@ -45,6 +53,11 @@ export class AttributeRuleSetFieldValidatorUtil {
     const attributes = aggregateData.attributes
       ? JSON.stringify(aggregateData.attributes)
       : undefined;
+
+    console.log('🔍 Projector DEBUG - After processing:', {
+      hasAttributes: !!attributes,
+      attributesString: attributes,
+    });
 
     // Extract version and timestamps with proper type conversion
     const version = EventDataProcessingUtils.extractVersion(aggregateData);
