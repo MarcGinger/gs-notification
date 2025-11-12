@@ -40,9 +40,7 @@ export class AttributeRuleSetDtoAssembler {
 
     // Use existing mappers for complex configurations
     dto.attributes = domainState.attributes
-      ? mapAttributeRuleConfigurationToDto<
-          Record<string, DetailAttributeRuleResponse>
-        >(domainState.attributes)
+      ? mapAttributeRuleConfigurationToDto(domainState.attributes)
       : undefined;
 
     return dto;

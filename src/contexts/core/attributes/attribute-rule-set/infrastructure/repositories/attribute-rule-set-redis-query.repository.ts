@@ -11,6 +11,7 @@ import {
   RepositoryLoggingConfig,
   handleRepositoryError,
   safeParseJSON,
+  safeParseJSONArray,
   RepositoryOptions,
 } from 'src/shared/infrastructure/repositories';
 import { Result, DomainError, err, ok } from 'src/shared/errors';

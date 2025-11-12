@@ -183,17 +183,6 @@ export class UpsertAttributeRuleSetUseCase
           attributeRuleSet: AttributeRuleSetAggregate,
           expectedVersion?: number,
         ) => {
-          console.log('Upsert operation initiated.');
-          console.log('🔍 Use Case DEBUG - Aggregate state:', {
-            hasAttributes: !!attributeRuleSet.entity.attributes,
-            attributesValueKeys: attributeRuleSet.entity.attributes?.value
-              ? Object.keys(attributeRuleSet.entity.attributes.value)
-              : [],
-            attributesValueType:
-              typeof attributeRuleSet.entity.attributes?.value,
-            fullAttributesValue: attributeRuleSet.entity.attributes?.value,
-          });
-
           const result = await this.attributeRuleSetWriter.save(
             actor,
             attributeRuleSet,

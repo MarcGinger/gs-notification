@@ -8,19 +8,36 @@ import {
 } from 'src/shared/domain/value-objects';
 import { AttributeRuleErrors } from '../../errors/attribute-rule.errors';
 import { AttributeRuleProps } from '../../props';
+import {
+  AttributeRuleCode,
+  AttributeRuleDescription,
+  AttributeRuleName,
+  AttributeRuleReference,
+  AttributeRuleRegex,
+  AttributeRuleRegexError,
+  AttributeRuleRequired,
+  AttributeRuleRequiredError,
+  AttributeRuleReserved,
+  AttributeRuleType,
+  AttributeRuleUnique,
+  AttributeRuleUniqueError,
+} from './';
 
 /**
  * AttributeRuleSetAttributeRuleConfiguration Value Object
  *
  * Embedded configuration for attribute_rule settings specific to an attribute_rule.
  * This is owned by the AttributeRule aggregate and not shared across attribute_rule.
- * Uses createRecordVO with allowEmpty: true to preserve Record<string, AttributeRuleProps> structure.
+ * Replaces the separate AttributeRuleSetAttributeRuleConfigurationAggregate for attribute_rule-owned configurations.
  *
- * The key insight is that allowEmpty: true allows empty objects, and the RecordVO
- * preserves the Record structure in its .value property without expanding it.
+ * Composed of individual value objects for each field to ensure
+ * proper validation and separation of concerns.
  */
 export const AttributeRuleSetAttributeRuleConfiguration = createRecordVO({
   name: 'AttributeRuleSetAttributeRuleConfiguration',
+
+  // JSON key validation - must start with letter/underscore, contain only alphanumeric, underscore
+  keyPattern: /^[a-zA-Z_][a-zA-Z0-9_]*$/,
 
   allowEmpty: true,
 
@@ -35,13 +52,30 @@ export const AttributeRuleSetAttributeRuleConfiguration = createRecordVO({
 /** Public instance type for AttributeRuleSetAttributeRuleConfiguration */
 export type AttributeRuleSetAttributeRuleConfiguration = RecordVOInstance;
 
+// Convenience creators using composed value objects
+export const createAttributeRuleConfiguration = (config: {
+  code: AttributeRuleCode;
+  name: AttributeRuleName;
+  description: AttributeRuleDescription;
+  type: AttributeRuleType;
+  reference: AttributeRuleReference;
+  reserved: AttributeRuleReserved;
+  unique: AttributeRuleUnique;
+  uniqueError: AttributeRuleUniqueError;
+  required: AttributeRuleRequired;
+  requiredError: AttributeRuleRequiredError;
+  regex: AttributeRuleRegex;
+  regexError: AttributeRuleRegexError;
+}) => AttributeRuleSetAttributeRuleConfiguration.create(config);
+
+export const attributeRuleConfigurationFrom = (v: unknown) =>
+  AttributeRuleSetAttributeRuleConfiguration.from(v);
+
 /**
  * Converts AttributeRuleSetAttributeRuleConfiguration to Record<string, AttributeRuleProps>
- * for persistence. The RecordVO stores the data as Record<string, unknown> so we cast it.
  */
 export const attributeRuleConfigurationToSnapshotProps = (
   config: AttributeRuleSetAttributeRuleConfiguration,
 ): Record<string, AttributeRuleProps> => {
-  // The RecordVO.value returns Record<string, unknown>, but we know it's AttributeRuleProps
-  return config.value as Record<string, AttributeRuleProps>;
+  return config.value as unknown as Record<string, AttributeRuleProps>;
 };

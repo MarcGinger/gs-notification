@@ -18,6 +18,7 @@ import {
   AttributeRuleRegex,
   AttributeRuleRegexError,
   AttributeRuleSetAttributeRuleConfiguration,
+  createAttributeRuleConfiguration,
 } from '../value-objects';
 
 /**
@@ -208,17 +209,24 @@ export function createAttributeRuleConfigurationFromProps(
     );
   }
 
-  // Create a single attribute rule record and wrap it in the configuration
-  const singleAttributeRecord: Record<string, CreateAttributeRuleProps> = {
-    [attributeRuleCodeResult.value.value]: attributeRuleProps,
-  };
-
-  const attributeRuleResult = AttributeRuleSetAttributeRuleConfiguration.from(
-    singleAttributeRecord,
-  );
+  const attributeRuleResult = createAttributeRuleConfiguration({
+    code: attributeRuleCodeResult.value,
+    name: attributeRuleNameResult.value,
+    description: attributeRuleDescriptionResult.value,
+    type: attributeRuleTypeResult.value,
+    reference: attributeRuleReferenceResult.value,
+    reserved: attributeRuleReservedResult.value,
+    unique: attributeRuleUniqueResult.value,
+    uniqueError: attributeRuleUniqueErrorResult.value,
+    required: attributeRuleRequiredResult.value,
+    requiredError: attributeRuleRequiredErrorResult.value,
+    regex: attributeRuleRegexResult.value,
+    regexError: attributeRuleRegexErrorResult.value,
+  });
   if (!attributeRuleResult.ok) {
     return err(
       withContext(attributeRuleResult.error, {
+        ...attributeRuleResult.error.context,
         correlationId: metadata.correlationId,
         userId: metadata.userId,
         operation: 'create_attribute_rule_configuration',

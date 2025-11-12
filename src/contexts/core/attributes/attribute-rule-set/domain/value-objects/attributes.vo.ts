@@ -21,7 +21,6 @@ export type AttributeRuleSetAttributes =
   AttributeRuleSetAttributeRuleConfiguration;
 
 // Convenience creators for AttributeRuleSetAttributes
-export const createAttributeRuleSetAttributes = (
-  config: Record<string, CreateAttributeRuleProps>,
-) => AttributeRuleSetAttributes.create(config);
+export const createAttributeRuleSetAttributes =
+  AttributeRuleSetAttributes.create;
 export const attributeRuleSetattributesFrom = AttributeRuleSetAttributes.from;
