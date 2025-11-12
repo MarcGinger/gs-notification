@@ -6,10 +6,7 @@ import {
   createCollectionVO,
   createCollectionVOErrors,
 } from 'src/shared/domain/value-objects';
-import {
-  AttributeRuleSetAttributeRuleConfiguration,
-  AttributeRuleSetAttributeRuleConfigurationItem,
-} from './attribute-rule';
+import { AttributeRuleSetAttributeRuleConfigurationItem } from './attribute-rule';
 import { CreateAttributeRuleProps } from '../props';
 import { AttributeRuleSetErrors } from '../errors/attribute-rule-set.errors';
 
