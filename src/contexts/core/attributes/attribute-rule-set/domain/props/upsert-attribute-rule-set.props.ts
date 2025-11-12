@@ -8,5 +8,5 @@ export interface UpsertAttributeRuleSetProps {
   name?: string;
   description?: string;
   enabled?: boolean;
-  attributes?: UpsertAttributeRuleProps;
+  attributes?: Record<string, UpsertAttributeRuleProps>;
 }

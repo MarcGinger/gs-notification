@@ -31,8 +31,18 @@ export const mapAttributeRuleSetSnapshotToDto = (
  *
  * This application-layer function uses domain extraction and transforms
  * the data to match the required DTO structure without business defaults.
+ *
+ * @param attributeRuleConfiguration - Domain value object containing attributeRule configurations
+ * @returns Record<string, T> where T is typically DetailAttributeRuleResponse
+ *
+ * @example
+ * ```typescript
+ * // Typical usage:
+ * const attributeRuleDto = mapAttributeRuleConfigurationToDto<DetailAttributeRuleResponse>(rulesConfig);
+ * // Result: Record<string, DetailAttributeRuleResponse>
+ * ```
  */
-
 export const mapAttributeRuleConfigurationToDto = <T>(
   attributeRuleConfiguration: AttributeRuleSetAttributeRuleConfiguration,
-): T => extractAttributeRuleConfigurationData<T>(attributeRuleConfiguration);
+): Record<string, T> =>
+  extractAttributeRuleConfigurationData<T>(attributeRuleConfiguration);
