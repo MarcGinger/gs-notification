@@ -36,6 +36,8 @@ import {
 export const AttributeRuleSetAttributeRuleConfiguration = createRecordVO({
   name: 'AttributeRuleSetAttributeRuleConfiguration',
 
+  allowEmpty: true,
+
   // Basic validation will be handled at the application level
   // Advanced validation can be added via refinements if needed
   errors: createRecordVOErrors(

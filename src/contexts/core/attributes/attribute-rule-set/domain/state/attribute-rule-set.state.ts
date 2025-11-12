@@ -30,7 +30,7 @@ export interface AttributeRuleSetDomainState {
   name: AttributeRuleSetName;
   description?: AttributeRuleSetDescription;
   enabled?: AttributeRuleSetEnabled;
-  attributes: AttributeRuleSetAttributeRuleConfiguration;
+  attributes?: AttributeRuleSetAttributeRuleConfiguration;
   version: AttributeRuleSetVersion;
   createdAt: AttributeRuleSetCreatedAt;
   updatedAt: AttributeRuleSetUpdatedAt;

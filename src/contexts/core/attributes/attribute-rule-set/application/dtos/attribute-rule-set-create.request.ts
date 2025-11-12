@@ -26,6 +26,6 @@ export class CreateAttributeRuleSetRequest
   @ApiAttributeRuleSetEnabled({ required: false })
   enabled?: boolean;
 
-  @ApiAttributeRuleSetAttributesCreateRequest()
-  attributes: CreateAttributeRuleRequest;
+  @ApiAttributeRuleSetAttributesCreateRequest({ required: false })
+  attributes?: CreateAttributeRuleRequest;
 }

@@ -222,9 +222,6 @@ export class AttributeRuleSetEntity extends EntityIdBase<
     if (!props.name) {
       return err(AttributeRuleSetErrors.INVALID_NAME_DATA);
     }
-    if (!props.attributes) {
-      return err(AttributeRuleSetErrors.INVALID_ATTRIBUTES_DATA);
-    }
 
     return ok(undefined);
   }
@@ -249,7 +246,9 @@ export class AttributeRuleSetEntity extends EntityIdBase<
     return this.props.enabled;
   }
 
-  public get attributes(): AttributeRuleSetAttributeRuleConfiguration {
+  public get attributes():
+    | AttributeRuleSetAttributeRuleConfiguration
+    | undefined {
     return this.props.attributes;
   }
 
@@ -351,9 +350,9 @@ export class AttributeRuleSetEntity extends EntityIdBase<
       name: this.props.name.value,
       description: this.props.description?.value,
       enabled: this.props.enabled?.value,
-      attributes: attributeRuleConfigurationToSnapshotProps(
-        this.props.attributes,
-      ),
+      attributes: this.props.attributes
+        ? attributeRuleConfigurationToSnapshotProps(this.props.attributes)
+        : undefined,
       createdAt: this.props.createdAt.value,
       updatedAt: this.props.updatedAt.value,
       version: this.props.version.value,

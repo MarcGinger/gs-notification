@@ -143,7 +143,9 @@ export class AttributeRuleSetAggregate extends AggregateRootBase {
       name: entityProps.name.value,
       description: entityProps.description?.value,
       enabled: entityProps.enabled?.value,
-      attributes: extractAttributeRuleConfigurationData(entityProps.attributes),
+      attributes: entityProps.attributes
+        ? extractAttributeRuleConfigurationData(entityProps.attributes)
+        : undefined,
     });
 
     // Apply as domain event with clean business data
@@ -198,7 +200,7 @@ export class AttributeRuleSetAggregate extends AggregateRootBase {
           name: string;
           description?: string;
           enabled?: boolean;
-          attributes: AttributeRuleProps;
+          attributes?: AttributeRuleProps;
         };
 
         // For event replay, we need to reconstruct the full snapshot
@@ -460,9 +462,9 @@ export class AttributeRuleSetAggregate extends AggregateRootBase {
       name: this._entity.name.value,
       description: this._entity.description?.value,
       enabled: this._entity.enabled?.value,
-      attributes: extractAttributeRuleConfigurationData(
-        this._entity.attributes,
-      ),
+      attributes: this._entity.attributes
+        ? extractAttributeRuleConfigurationData(this._entity.attributes)
+        : undefined,
     });
 
     // Apply as domain event with clean business data

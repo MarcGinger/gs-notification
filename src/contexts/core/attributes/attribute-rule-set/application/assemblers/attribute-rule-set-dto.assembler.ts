@@ -39,10 +39,11 @@ export class AttributeRuleSetDtoAssembler {
     dto.enabled = domainState.enabled?.value;
 
     // Use existing mappers for complex configurations
-    dto.attributes =
-      mapAttributeRuleConfigurationToDto<DetailAttributeRuleResponse>(
-        domainState.attributes,
-      );
+    dto.attributes = domainState.attributes
+      ? mapAttributeRuleConfigurationToDto<DetailAttributeRuleResponse>(
+          domainState.attributes,
+        )
+      : undefined;
 
     return dto;
   }
@@ -65,10 +66,11 @@ export class AttributeRuleSetDtoAssembler {
     dto.enabled = domainState.enabled?.value;
 
     // Use existing mappers for complex configurations
-    dto.attributes =
-      mapAttributeRuleConfigurationToDto<DetailAttributeRuleResponse>(
-        domainState.attributes,
-      );
+    dto.attributes = domainState.attributes
+      ? mapAttributeRuleConfigurationToDto<DetailAttributeRuleResponse>(
+          domainState.attributes,
+        )
+      : undefined;
 
     return dto;
   }

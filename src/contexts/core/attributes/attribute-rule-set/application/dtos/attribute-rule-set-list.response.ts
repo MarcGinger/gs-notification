@@ -23,6 +23,6 @@ export class ListAttributeRuleSetResponse {
   @ApiAttributeRuleSetEnabled({ required: false })
   enabled?: boolean;
 
-  @ApiAttributeRuleSetAttributes()
-  attributes: DetailAttributeRuleResponse;
+  @ApiAttributeRuleSetAttributes({ required: false })
+  attributes?: DetailAttributeRuleResponse;
 }
