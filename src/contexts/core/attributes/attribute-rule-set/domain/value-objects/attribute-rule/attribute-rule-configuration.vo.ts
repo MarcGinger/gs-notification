@@ -36,9 +36,8 @@ import {
  * Composed of individual value objects for each field to ensure
  * proper validation and separation of concerns.
  */
-export const AttributeRuleSetAttributeRuleItemConfiguration = createRecordVO({
-  name: 'AttributeRuleSetAttributeRuleItemConfiguration',
-  allowEmpty: false,
+export const AttributeRuleSetAttributeRuleConfigurationItem = createRecordVO({
+  name: 'AttributeRuleSetAttributeRuleConfigurationItem',
 
   // Basic validation will be handled at the application level
   // Advanced validation can be added via refinements if needed
@@ -48,8 +47,8 @@ export const AttributeRuleSetAttributeRuleItemConfiguration = createRecordVO({
   ),
 });
 
-/** Public instance type for AttributeRuleSetAttributeRuleConfiguration */
-export type AttributeRuleSetAttributeRuleItemConfiguration = RecordVOInstance;
+/** Public instance type for AttributeRuleSetAttributeRuleConfigurationItem */
+export type AttributeRuleSetAttributeRuleConfigurationItem = RecordVOInstance;
 
 /**
  * AttributeRuleSetAttributeRuleConfiguration Collection Value Object
@@ -59,11 +58,11 @@ export type AttributeRuleSetAttributeRuleItemConfiguration = RecordVOInstance;
  */
 export const AttributeRuleSetAttributeRuleConfiguration = createCollectionVO<
   Record<string, unknown>,
-  AttributeRuleSetAttributeRuleItemConfiguration
+  AttributeRuleSetAttributeRuleConfigurationItem
 >({
   name: 'AttributeRuleSetAttributeRuleConfiguration',
-  itemName: AttributeRuleSetAttributeRuleItemConfiguration.name,
-  itemFactory: AttributeRuleSetAttributeRuleItemConfiguration,
+  itemName: AttributeRuleSetAttributeRuleConfigurationItem.name,
+  itemFactory: AttributeRuleSetAttributeRuleConfigurationItem,
   allowEmpty: true,
   allowDuplicates: false,
 
@@ -76,7 +75,7 @@ export const AttributeRuleSetAttributeRuleConfiguration = createCollectionVO<
 /** Public instance type for AttributeRuleSetAttributeRuleConfiguration */
 export type AttributeRuleSetAttributeRuleConfiguration = CollectionVOInstance<
   Record<string, unknown>,
-  AttributeRuleSetAttributeRuleItemConfiguration
+  AttributeRuleSetAttributeRuleConfigurationItem
 >;
 
 // Convenience creators using composed value objects
@@ -93,7 +92,7 @@ export const createAttributeRuleSetAttributeRuleConfiguration = (config: {
   requiredError: AttributeRuleRequiredError;
   regex: AttributeRuleRegex;
   regexError: AttributeRuleRegexError;
-}) => AttributeRuleSetAttributeRuleItemConfiguration.create(config);
+}) => AttributeRuleSetAttributeRuleConfigurationItem.create(config);
 
 export const attributeRuleSetAttributeRuleConfigurationFrom = (v: unknown) =>
   AttributeRuleSetAttributeRuleConfiguration.from(v);

@@ -23,16 +23,6 @@ export interface AttributeRuleContext extends Record<string, unknown> {
 }
 
 export const AttributeRuleErrors = {
-  ATTRIBUTE_RULE_FACTORY_CREATION_FAILED: {
-    code: 'ATTRIBUTE_RULE.ATTRIBUTE_RULE_FACTORY_CREATION_FAILED',
-    title: 'Factory Creation Failed',
-    detail: 'Failed to create Attribute rule using factory.',
-    category: 'validation',
-    retryable: false,
-  } as DomainError<
-    'ATTRIBUTE_RULE.ATTRIBUTE_RULE_FACTORY_CREATION_FAILED',
-    AttributeRuleContext
-  >,
   ENUM_NOT_ALLOWED_TYPE: {
     code: 'ATTRIBUTE_RULE.ENUM_NOT_ALLOWED_TYPE',
     title: 'Invalid Option',

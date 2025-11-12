@@ -6,7 +6,10 @@ import {
   createCollectionVO,
   createCollectionVOErrors,
 } from 'src/shared/domain/value-objects';
-import { AttributeRuleSetAttributeRuleItemConfiguration } from './attribute-rule';
+import {
+  AttributeRuleSetAttributeRuleConfiguration,
+  AttributeRuleSetAttributeRuleConfigurationItem,
+} from './attribute-rule';
 import { CreateAttributeRuleProps } from '../props';
 import { AttributeRuleSetErrors } from '../errors/attribute-rule-set.errors';
 
@@ -16,11 +19,11 @@ import { AttributeRuleSetErrors } from '../errors/attribute-rule-set.errors';
  */
 export const AttributeRuleSetAttributes = createCollectionVO<
   unknown,
-  AttributeRuleSetAttributeRuleItemConfiguration
+  AttributeRuleSetAttributeRuleConfigurationItem
 >({
   name: 'AttributeRuleSetAttributes',
-  itemName: AttributeRuleSetAttributeRuleItemConfiguration.name,
-  itemFactory: AttributeRuleSetAttributeRuleItemConfiguration,
+  itemName: AttributeRuleSetAttributeRuleConfigurationItem.name,
+  itemFactory: AttributeRuleSetAttributeRuleConfigurationItem,
   allowEmpty: true, // Attributes can have no attribute attribute-rule-set configurations
   allowDuplicates: false,
 
@@ -33,7 +36,7 @@ export const AttributeRuleSetAttributes = createCollectionVO<
 /** Public instance type for AttributeRuleSetAttributes */
 export type AttributeRuleSetAttributes = CollectionVOInstance<
   unknown,
-  AttributeRuleSetAttributeRuleItemConfiguration
+  AttributeRuleSetAttributeRuleConfigurationItem
 >;
 
 // Convenience creators for AttributeRuleSetAttributes
