@@ -15,8 +15,8 @@ import {
   AttributeRuleSetName,
   AttributeRuleSetDescription,
   AttributeRuleSetEnabled,
-  AttributeRuleSetAttributes,
 } from '../value-objects';
+import { createAttributeRuleConfigurationFromProps } from './create-attribute-rule.factory';
 
 /**
  * Enhanced attributeRuleSet entity factory with comprehensive validation and security context
@@ -83,12 +83,20 @@ export function createAttributeRuleSetAggregateFromProps(
     );
   }
 
-  // Create attributes configuration using specialized factory
+  // Create attributes configuration using specialized factory with comprehensive validation
   const attributesResult = props.attributes
-    ? AttributeRuleSetAttributes.from(props.attributes)
+    ? createAttributeRuleConfigurationFromProps(props.attributes, metadata)
     : ok(undefined);
   if (!attributesResult.ok) {
-    return err(attributesResult.error);
+    return err(
+      withContext(attributesResult.error, {
+        ...attributesResult.error.context,
+        correlationId: metadata.correlationId,
+        userId: metadata.userId,
+        operation: 'create_attribute_rule_set',
+        attributes: props.attributes,
+      }),
+    );
   }
 
   const createdAtResult = AttributeRuleSetCreatedAt.create(clock.now());

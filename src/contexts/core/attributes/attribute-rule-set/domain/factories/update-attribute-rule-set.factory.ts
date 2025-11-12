@@ -15,8 +15,9 @@ import {
   AttributeRuleSetName,
   AttributeRuleSetDescription,
   AttributeRuleSetEnabled,
-  AttributeRuleSetAttributes,
+  AttributeRuleSetAttributeRuleConfiguration,
 } from '../value-objects';
+import { updateAttributeRuleConfigurationFromProps } from './create-attribute-rule.factory';
 
 /**
  * Update AttributeRuleSet Aggregate Factory
@@ -110,14 +111,30 @@ export function updateAttributeRuleSetAggregateFromSnapshot(
     validatedFields.enabled = enabledResult.value;
   }
 
-  // Validateattributes if provided
+  // Validate attributes if provided using specialized factory with comprehensive validation
   if (updateProps.attributes !== undefined) {
-    const attributesResult = AttributeRuleSetAttributes.update(
+    // Convert existing attributes to proper format for merging
+    let existingAttributesConfig:
+      | AttributeRuleSetAttributeRuleConfiguration
+      | undefined;
+    if (existingSnapshot.attributes) {
+      const existingResult = AttributeRuleSetAttributeRuleConfiguration.from(
+        existingSnapshot.attributes,
+      );
+      if (existingResult.ok) {
+        existingAttributesConfig = existingResult.value;
+      }
+    }
+
+    const attributesResult = updateAttributeRuleConfigurationFromProps(
       updateProps.attributes,
+      metadata,
+      existingAttributesConfig,
     );
     if (!attributesResult.ok) {
       return err(
         withContext(attributesResult.error, {
+          ...attributesResult.error.context,
           operation: 'update_attribute_rule_set_attributes_validation',
           correlationId: metadata.correlationId,
           userId: metadata.actor?.userId,
