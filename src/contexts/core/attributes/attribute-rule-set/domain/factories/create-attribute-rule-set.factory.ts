@@ -16,6 +16,7 @@ import {
   AttributeRuleSetName,
   AttributeRuleSetDescription,
   AttributeRuleSetEnabled,
+  AttributeRuleSetAttributeRuleConfiguration,
 } from '../value-objects';
 
 /**
@@ -83,20 +84,59 @@ export function createAttributeRuleSetAggregateFromProps(
     );
   }
 
-  // Create attributes configuration using specialized factory with comprehensive validation
-  const attributesResult = props.attributes
-    ? createAttributeRuleConfigurationFromProps(props.attributes, metadata)
-    : ok(undefined);
-  if (!attributesResult.ok) {
-    return err(
-      withContext(attributesResult.error, {
-        ...attributesResult.error.context,
-        correlationId: metadata.correlationId,
-        userId: metadata.userId,
-        operation: 'create_attributes_rule_set',
-        attributes: props.attributes,
-      }),
-    );
+  // Create attributes configuration using comprehensive validation for each attribute rule
+  let attributesResult: Result<
+    AttributeRuleSetAttributeRuleConfiguration | undefined,
+    DomainError
+  >;
+
+  if (props.attributes) {
+    const validatedAttributeConfigurations: Record<string, unknown> = {};
+
+    // Validate each attribute rule in the record using the specialized factory
+    for (const [key, attributeRuleProps] of Object.entries(props.attributes)) {
+      const singleAttributeResult = createAttributeRuleConfigurationFromProps(
+        attributeRuleProps,
+        metadata,
+      );
+
+      if (!singleAttributeResult.ok) {
+        return err(
+          withContext(singleAttributeResult.error, {
+            ...singleAttributeResult.error.context,
+            correlationId: metadata.correlationId,
+            userId: metadata.userId,
+            operation: 'create_attribute_rule_set',
+            attributeKey: key,
+            attributes: props.attributes,
+          }),
+        );
+      }
+
+      // Store the validated configuration as raw value for the record
+      validatedAttributeConfigurations[key] = singleAttributeResult.value.value;
+    }
+
+    // Create the final AttributeRuleSetAttributeRuleConfiguration from validated data
+    const finalAttributesResult =
+      AttributeRuleSetAttributeRuleConfiguration.from(
+        validatedAttributeConfigurations,
+      );
+    if (!finalAttributesResult.ok) {
+      return err(
+        withContext(finalAttributesResult.error, {
+          ...finalAttributesResult.error.context,
+          correlationId: metadata.correlationId,
+          userId: metadata.userId,
+          operation: 'create_attribute_rule_set_final_attributes',
+          attributes: props.attributes,
+        }),
+      );
+    }
+
+    attributesResult = ok(finalAttributesResult.value);
+  } else {
+    attributesResult = ok(undefined);
   }
 
   const createdAtResult = AttributeRuleSetCreatedAt.create(clock.now());
@@ -120,7 +160,7 @@ export function createAttributeRuleSetAggregateFromProps(
     name: nameResult.value,
     description: descriptionResult.value,
     enabled: enabledResult.value,
-    attributes: attributesResult.value,
+    attributes: attributesResult.ok ? attributesResult.value : undefined,
     createdAt: createdAtResult.value,
     updatedAt: updatedAtResult.value,
     version: versionResult.value,
