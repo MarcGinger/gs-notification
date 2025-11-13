@@ -11,13 +11,14 @@ import {
   UpdateAttributeRuleSetProps,
 } from '../props';
 import { ValidatedAttributeRuleSetUpdateFields } from '../types';
+import { CreateAttributeRuleProps } from '../props/attribute-rule';
 import {
   AttributeRuleSetAttributeRuleConfiguration,
   AttributeRuleSetName,
   AttributeRuleSetDescription,
   AttributeRuleSetEnabled,
 } from '../value-objects';
-import { updateAttributeRuleConfigurationFromProps } from './attribute-rule.factory';
+import { createAttributeRuleConfigurationFromProps } from './attribute-rule.factory';
 
 /**
  * Update AttributeRuleSet Aggregate Factory
@@ -111,39 +112,55 @@ export function updateAttributeRuleSetAggregateFromSnapshot(
     validatedFields.enabled = enabledResult.value;
   }
 
-  // Validate attributes if provided using specialized factory with comprehensive validation
+  // Validate attributes if provided - handle UpdateAttributeRuleProps[] (array replacement)
   if (updateProps.attributes !== undefined) {
-    // Convert existing attributes to proper format for merging
-    let existingAttributesConfig:
-      | AttributeRuleSetAttributeRuleConfiguration
-      | undefined;
-    if (existingSnapshot.attributes) {
-      const existingResult = AttributeRuleSetAttributeRuleConfiguration.from(
-        existingSnapshot.attributes,
+    const validatedAttributeConfigurations: unknown[] = [];
+
+    // Validate each attribute rule in the array using the specialized factory
+    for (let index = 0; index < updateProps.attributes.length; index++) {
+      const attributeRuleProps = updateProps.attributes[index];
+
+      // For updates, we can use createAttributeRuleConfigurationFromProps since we're replacing the entire array
+      const singleAttributeResult = createAttributeRuleConfigurationFromProps(
+        attributeRuleProps as CreateAttributeRuleProps, // UpdateAttributeRuleProps and CreateAttributeRuleProps are compatible
+        metadata,
       );
-      if (existingResult.ok) {
-        existingAttributesConfig = existingResult.value;
+
+      if (!singleAttributeResult.ok) {
+        return err(
+          withContext(singleAttributeResult.error, {
+            ...singleAttributeResult.error.context,
+            correlationId: metadata.correlationId,
+            userId: metadata.actor?.userId,
+            operation: 'update_attribute_rule_set_attributes_validation',
+            attributeIndex: index,
+            providedAttributes: updateProps.attributes,
+          }),
+        );
       }
+
+      // Store the validated configuration for the array
+      validatedAttributeConfigurations.push(singleAttributeResult.value);
     }
 
-    const attributesResult = updateAttributeRuleConfigurationFromProps(
-      updateProps.attributes,
-      metadata,
-      existingAttributesConfig,
-    );
-    if (!attributesResult.ok) {
+    // Create the final AttributeRuleSetAttributeRuleConfiguration from validated data
+    const finalAttributesResult =
+      AttributeRuleSetAttributeRuleConfiguration.from(
+        validatedAttributeConfigurations,
+      );
+    if (!finalAttributesResult.ok) {
       return err(
-        withContext(attributesResult.error, {
-          ...attributesResult.error.context,
-          operation: 'update_attribute_rule_set_attributes_validation',
+        withContext(finalAttributesResult.error, {
+          ...finalAttributesResult.error.context,
           correlationId: metadata.correlationId,
           userId: metadata.actor?.userId,
+          operation: 'update_attribute_rule_set_final_attributes',
           providedAttributes: updateProps.attributes,
         }),
       );
     }
 
-    validatedFields.attributes = attributesResult.value;
+    validatedFields.attributes = finalAttributesResult.value;
   }
 
   // 3. Apply all validated changes in single atomic operation

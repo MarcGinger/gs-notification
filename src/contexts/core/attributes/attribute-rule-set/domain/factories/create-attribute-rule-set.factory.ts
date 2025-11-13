@@ -91,10 +91,11 @@ export function createAttributeRuleSetAggregateFromProps(
   >;
 
   if (props.attributes) {
-    const validatedAttributeConfigurations: Record<string, unknown> = {};
+    const validatedAttributeConfigurations: unknown[] = [];
 
-    // Validate each attribute rule in the record using the specialized factory
-    for (const [key, attributeRuleProps] of Object.entries(props.attributes)) {
+    // Validate each attribute rule in the array using the specialized factory
+    for (let index = 0; index < props.attributes.length; index++) {
+      const attributeRuleProps = props.attributes[index];
       const singleAttributeResult = createAttributeRuleConfigurationFromProps(
         attributeRuleProps,
         metadata,
@@ -107,14 +108,14 @@ export function createAttributeRuleSetAggregateFromProps(
             correlationId: metadata.correlationId,
             userId: metadata.userId,
             operation: 'create_attribute_rule_set',
-            attributeKey: key,
+            attributeIndex: index,
             attributes: props.attributes,
           }),
         );
       }
 
-      // Store the validated configuration as raw value for the record
-      validatedAttributeConfigurations[key] = singleAttributeResult.value.value;
+      // Store the validated configuration for the array
+      validatedAttributeConfigurations.push(singleAttributeResult.value);
     }
 
     // Create the final AttributeRuleSetAttributeRuleConfiguration from validated data

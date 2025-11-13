@@ -2,7 +2,10 @@
 // REMOVE THIS COMMENT TO STOP AUTOMATIC UPDATES TO THIS BLOCK
 
 import {
+  CollectionVOInstance,
   RecordVOInstance,
+  createCollectionVO,
+  createCollectionVOErrors,
   createRecordVO,
   createRecordVOErrors,
 } from 'src/shared/domain/value-objects';
@@ -24,7 +27,7 @@ import {
 } from './';
 
 /**
- * AttributeRuleSetAttributeRuleConfiguration Value Object
+ * AttributeRuleSetAttributeRuleConfiguration Value Object (Item Type)
  *
  * Embedded configuration for attribute_rule settings specific to an attribute_rule.
  * This is owned by the AttributeRule aggregate and not shared across attribute_rule.
@@ -33,12 +36,8 @@ import {
  * Composed of individual value objects for each field to ensure
  * proper validation and separation of concerns.
  */
-export const AttributeRuleSetAttributeRuleConfiguration = createRecordVO({
-  name: 'AttributeRuleSetAttributeRuleConfiguration',
-
-  // JSON key validation - must start with letter/underscore, contain only alphanumeric, underscore
-  keyPattern: /^[a-zA-Z_][a-zA-Z0-9_]*$/,
-  allowEmpty: true,
+export const AttributeRuleSetAttributeRuleConfigurationItem = createRecordVO({
+  name: 'AttributeRuleSetAttributeRuleConfigurationItem',
 
   // Basic validation will be handled at the application level
   // Advanced validation can be added via refinements if needed
@@ -48,11 +47,39 @@ export const AttributeRuleSetAttributeRuleConfiguration = createRecordVO({
   ),
 });
 
+/** Public instance type for AttributeRuleSetAttributeRuleConfigurationItem */
+export type AttributeRuleSetAttributeRuleConfigurationItem = RecordVOInstance;
+
+/**
+ * AttributeRuleSetAttributeRuleConfiguration Collection Value Object
+ * Collection of AttributeRuleSetAttributeRuleConfiguration items
+ * Allows empty collections.
+ * Enforces unique values.
+ */
+export const AttributeRuleSetAttributeRuleConfiguration = createCollectionVO<
+  Record<string, unknown>,
+  AttributeRuleSetAttributeRuleConfigurationItem
+>({
+  name: 'AttributeRuleSetAttributeRuleConfiguration',
+  itemName: AttributeRuleSetAttributeRuleConfigurationItem.name,
+  itemFactory: AttributeRuleSetAttributeRuleConfigurationItem,
+  allowEmpty: true,
+  allowDuplicates: false,
+
+  errors: createCollectionVOErrors(
+    AttributeRuleErrors.INVALID_ATTRIBUTE_RULE_CONFIGURATION_DATA,
+    'AttributeRule AttributeRuleSetAttributeRuleConfiguration',
+  ),
+});
+
 /** Public instance type for AttributeRuleSetAttributeRuleConfiguration */
-export type AttributeRuleSetAttributeRuleConfiguration = RecordVOInstance;
+export type AttributeRuleSetAttributeRuleConfiguration = CollectionVOInstance<
+  Record<string, unknown>,
+  AttributeRuleSetAttributeRuleConfigurationItem
+>;
 
 // Convenience creators using composed value objects
-export const createAttributeRuleConfiguration = (config: {
+export const createAttributeRuleSetAttributeRuleConfiguration = (config: {
   code: AttributeRuleCode;
   name: AttributeRuleName;
   description: AttributeRuleDescription;
@@ -65,16 +92,22 @@ export const createAttributeRuleConfiguration = (config: {
   requiredError: AttributeRuleRequiredError;
   regex: AttributeRuleRegex;
   regexError: AttributeRuleRegexError;
-}) => AttributeRuleSetAttributeRuleConfiguration.create(config);
+}) => AttributeRuleSetAttributeRuleConfigurationItem.create(config);
 
-export const attributeRuleConfigurationFrom = (v: unknown) =>
+export const attributeRuleSetAttributeRuleConfigurationFrom = (v: unknown) =>
   AttributeRuleSetAttributeRuleConfiguration.from(v);
 
+export const createAttributeRuleConfiguration = (
+  items: Record<string, unknown>[],
+) => AttributeRuleSetAttributeRuleConfiguration.create(items);
+export const attributeRuleConfigurationFrom = (items: unknown) =>
+  AttributeRuleSetAttributeRuleConfiguration.from(items);
+
 /**
- * Converts AttributeRuleSetAttributeRuleConfiguration to Record<string, AttributeRuleProps>
+ * Converts AttributeRuleSetAttributeRuleConfiguration to AttributeRuleProps
  */
 export const attributeRuleConfigurationToSnapshotProps = (
   config: AttributeRuleSetAttributeRuleConfiguration,
-): Record<string, AttributeRuleProps> => {
-  return config.value as unknown as Record<string, AttributeRuleProps>;
+): AttributeRuleProps => {
+  return config.items as unknown as AttributeRuleProps;
 };

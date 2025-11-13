@@ -13,7 +13,7 @@ export interface AttributeRuleSetUpdatedEventPayload {
   name: string;
   description?: string;
   enabled?: boolean;
-  attributes?: Record<string, AttributeRuleProps>;
+  attributes?: AttributeRuleProps[];
 }
 
 /**
@@ -51,7 +51,7 @@ export class AttributeRuleSetUpdatedEvent {
     return this.payload.enabled;
   }
 
-  get attributes(): Record<string, AttributeRuleProps> | undefined {
+  get attributes(): AttributeRuleProps[] | undefined {
     return this.payload.attributes;
   }
 }
