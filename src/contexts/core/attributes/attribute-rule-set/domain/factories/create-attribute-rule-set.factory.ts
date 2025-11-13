@@ -94,8 +94,12 @@ export function createAttributeRuleSetAggregateFromProps(
     const validatedAttributeConfigurations: unknown[] = [];
 
     // Validate each attribute rule in the array using the specialized factory
-    for (let index = 0; index < props.attributes.length; index++) {
-      const attributeRuleProps = props.attributes[index];
+    for (
+      let attributeIndex = 0;
+      attributeIndex < props.attributes.length;
+      attributeIndex++
+    ) {
+      const attributeRuleProps = props.attributes[attributeIndex];
       const singleAttributeResult = createAttributeRuleConfigurationFromProps(
         attributeRuleProps,
         metadata,
@@ -108,13 +112,13 @@ export function createAttributeRuleSetAggregateFromProps(
             correlationId: metadata.correlationId,
             userId: metadata.userId,
             operation: 'create_attribute_rule_set',
-            attributeIndex: index,
+            attributeIndex,
             attributes: props.attributes,
           }),
         );
       }
 
-      // Store the validated configuration for the array
+      // Store the validated configuration as raw value for the array
       validatedAttributeConfigurations.push(singleAttributeResult.value);
     }
 

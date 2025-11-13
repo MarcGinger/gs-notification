@@ -122,7 +122,7 @@ export function updateAttributeRuleSetAggregateFromSnapshot(
 
       // For updates, we can use createAttributeRuleConfigurationFromProps since we're replacing the entire array
       const singleAttributeResult = createAttributeRuleConfigurationFromProps(
-        attributeRuleProps as CreateAttributeRuleProps, // UpdateAttributeRuleProps and CreateAttributeRuleProps are compatible
+        attributeRuleProps as CreateAttributeRuleProps,
         metadata,
       );
 

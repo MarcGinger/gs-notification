@@ -8,6 +8,7 @@ import { AttributeRuleSetDomainState } from '../state';
 import { AttributeRuleSetErrors } from '../errors/attribute-rule-set.errors';
 import {
   AttributeRuleSetAttributeRuleConfiguration,
+  AttributeRuleSetAttributes,
   AttributeRuleSetCode,
   AttributeRuleSetCreatedAt,
   AttributeRuleSetUpdatedAt,
@@ -171,7 +172,7 @@ export class AttributeRuleSetEntity extends EntityIdBase<
     if (!enabledResult.ok) {
       return err(enabledResult.error);
     }
-    const attributesResult = AttributeRuleSetAttributeRuleConfiguration.from(
+    const attributesResult = AttributeRuleSetAttributes.from(
       snapshot.attributes,
     );
     if (!attributesResult.ok) {
@@ -246,9 +247,7 @@ export class AttributeRuleSetEntity extends EntityIdBase<
     return this.props.enabled;
   }
 
-  public get attributes():
-    | AttributeRuleSetAttributeRuleConfiguration
-    | undefined {
+  public get attributes(): AttributeRuleSetAttributes | undefined {
     return this.props.attributes;
   }
 
@@ -321,7 +320,7 @@ export class AttributeRuleSetEntity extends EntityIdBase<
    * @returns Result<AttributeRuleSetEntity, DomainError>
    */
   public withAttributes(
-    attributes: AttributeRuleSetAttributeRuleConfiguration,
+    attributes: AttributeRuleSetAttributes,
     updatedAt?: Date,
     version?: number,
   ): Result<AttributeRuleSetEntity, DomainError> {
@@ -351,7 +350,13 @@ export class AttributeRuleSetEntity extends EntityIdBase<
       description: this.props.description?.value,
       enabled: this.props.enabled?.value,
       attributes: this.props.attributes
-        ? attributeRuleConfigurationToSnapshotProps(this.props.attributes)
+        ? this.props.attributes
+            .toArray()
+            .map((item) =>
+              attributeRuleConfigurationToSnapshotProps(
+                item as AttributeRuleSetAttributeRuleConfiguration,
+              ),
+            )
         : undefined,
       createdAt: this.props.createdAt.value,
       updatedAt: this.props.updatedAt.value,
