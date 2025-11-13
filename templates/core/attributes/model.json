@@ -33,6 +33,7 @@
           "update": true,
           "get": true,
           "list": true,
+          "relationship": "object",
           "parentRelationship": "",
           "childRelationship": "attribute_rule_attribute_rule_set",
           "meta": {
@@ -410,6 +411,7 @@
             "update": true,
             "get": true,
             "list": true,
+            "relationship": "object",
             "parentRelationship": "",
             "childRelationship": "attribute_rule_attribute_rule_set",
             "meta": {
@@ -430,22 +432,22 @@
             "defaultvalue": "",
             "example": "{\"tenant\": \"default\", \"rule_id\": \"email_validation\"}",
             "autoIncrement": false,
-            "array": true,
+            "array": false,
             "isPII": "",
             "secret": false,
             "create": true,
             "update": true,
             "get": true,
             "list": true,
-            "relationship": "many",
+            "relationship": "object",
             "parentRelationship": "attribute_rule_attribute_rule_set",
             "childRelationship": "",
             "meta": {
               "kind": "json",
-              "jsonShape": "many"
+              "jsonShape": "object"
             }
           },
-          "type": "many",
+          "type": "object",
           "complex": true
         }
       ],
@@ -470,6 +472,7 @@
           "update": true,
           "get": true,
           "list": true,
+          "relationship": "object",
           "parentRelationship": "",
           "childRelationship": "attribute_rule_attribute_rule_set",
           "meta": {
@@ -696,19 +699,19 @@
           "defaultvalue": "",
           "example": "{\"tenant\": \"default\", \"rule_id\": \"email_validation\"}",
           "autoIncrement": false,
-          "array": true,
+          "array": false,
           "isPII": "",
           "secret": false,
           "create": true,
           "update": true,
           "get": true,
           "list": true,
-          "relationship": "many",
+          "relationship": "object",
           "parentRelationship": "attribute_rule_attribute_rule_set",
           "childRelationship": "",
           "meta": {
             "kind": "json",
-            "jsonShape": "many"
+            "jsonShape": "object"
           }
         }
       ],
@@ -735,6 +738,7 @@
             "update": true,
             "get": true,
             "list": true,
+            "relationship": "object",
             "parentRelationship": "",
             "childRelationship": "attribute_rule_attribute_rule_set",
             "meta": {
@@ -755,22 +759,22 @@
             "defaultvalue": "",
             "example": "{\"tenant\": \"default\", \"rule_id\": \"email_validation\"}",
             "autoIncrement": false,
-            "array": true,
+            "array": false,
             "isPII": "",
             "secret": false,
             "create": true,
             "update": true,
             "get": true,
             "list": true,
-            "relationship": "many",
+            "relationship": "object",
             "parentRelationship": "attribute_rule_attribute_rule_set",
             "childRelationship": "",
             "meta": {
               "kind": "json",
-              "jsonShape": "many"
+              "jsonShape": "object"
             }
           },
-          "type": "many",
+          "type": "object",
           "complex": true
         }
       ],
@@ -950,6 +954,7 @@
         "update": true,
         "get": true,
         "list": true,
+        "relationship": "object",
         "parentRelationship": "",
         "childRelationship": "attribute_rule_attribute_rule_set",
         "meta": {
@@ -970,22 +975,22 @@
         "defaultvalue": "",
         "example": "{\"tenant\": \"default\", \"rule_id\": \"email_validation\"}",
         "autoIncrement": false,
-        "array": true,
+        "array": false,
         "isPII": "",
         "secret": false,
         "create": true,
         "update": true,
         "get": true,
         "list": true,
-        "relationship": "many",
+        "relationship": "object",
         "parentRelationship": "attribute_rule_attribute_rule_set",
         "childRelationship": "",
         "meta": {
           "kind": "json",
-          "jsonShape": "many"
+          "jsonShape": "object"
         }
       },
-      "type": "many",
+      "type": "object",
       "complex": true
     }
   ],

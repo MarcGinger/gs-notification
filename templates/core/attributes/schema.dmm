@@ -443,7 +443,7 @@
 					"comment": "JSON object containing the collection of attribute rules that belong to this rule set. Each rule defines validation constraints, types, and behavior for specific attributes.",
 					"defaultvalue": "",
 					"data": "{\"tenant\": \"default\", \"rule_id\": \"email_validation\"}",
-					"after": "",
+					"after": "object()",
 					"autoinc": false,
 					"collation": "",
 					"charset": "",
@@ -579,7 +579,7 @@
 		},
 		"type": "MARIADB",
 		"version": 1,
-		"lastSaved": 1763019367516,
+		"lastSaved": 1763025722877,
 		"beforeScript": "",
 		"afterScript": "",
 		"sqlSettings": {

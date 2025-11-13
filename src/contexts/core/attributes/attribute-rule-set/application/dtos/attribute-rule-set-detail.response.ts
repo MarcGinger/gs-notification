@@ -24,5 +24,5 @@ export class DetailAttributeRuleSetResponse {
   enabled?: boolean;
 
   @ApiAttributeRuleSetAttributes()
-  attributes: DetailAttributeRuleResponse[];
+  attributes: Record<string, DetailAttributeRuleResponse>;
 }

@@ -11,7 +11,6 @@ import { AttributeRuleProps, AttributeRuleSetSnapshotProps } from '../props';
 import { ValidatedAttributeRuleSetUpdateFields } from '../types';
 import { extractAttributeRuleConfigurationData } from '../utilities';
 import {
-  AttributeRuleSetAttributeRuleConfiguration,
   AttributeRuleSetCode,
   createAttributeRuleSetCreatedAt,
   createAttributeRuleSetUpdatedAt,
@@ -144,13 +143,7 @@ export class AttributeRuleSetAggregate extends AggregateRootBase {
       name: entityProps.name.value,
       description: entityProps.description?.value,
       enabled: entityProps.enabled?.value,
-      attributes: entityProps.attributes
-        .toArray()
-        .map((item) =>
-          extractAttributeRuleConfigurationData(
-            item as AttributeRuleSetAttributeRuleConfiguration,
-          ),
-        ),
+      attributes: extractAttributeRuleConfigurationData(entityProps.attributes),
     });
 
     // Apply as domain event with clean business data
@@ -205,7 +198,7 @@ export class AttributeRuleSetAggregate extends AggregateRootBase {
           name: string;
           description?: string;
           enabled?: boolean;
-          attributes: AttributeRuleProps[];
+          attributes: Record<string, AttributeRuleProps>;
         };
 
         // For event replay, we need to reconstruct the full snapshot
@@ -467,13 +460,9 @@ export class AttributeRuleSetAggregate extends AggregateRootBase {
       name: this._entity.name.value,
       description: this._entity.description?.value,
       enabled: this._entity.enabled?.value,
-      attributes: this._entity.attributes
-        .toArray()
-        .map((item) =>
-          extractAttributeRuleConfigurationData(
-            item as AttributeRuleSetAttributeRuleConfiguration,
-          ),
-        ),
+      attributes: extractAttributeRuleConfigurationData(
+        this._entity.attributes,
+      ),
     });
 
     // Apply as domain event with clean business data
