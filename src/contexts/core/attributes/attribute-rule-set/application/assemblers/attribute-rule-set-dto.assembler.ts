@@ -41,14 +41,12 @@ export class AttributeRuleSetDtoAssembler {
 
     // Use existing mappers for complex configurations
     dto.attributes = domainState.attributes
-      ? domainState.attributes
-          .toArray()
-          .map((item) =>
-            mapAttributeRuleConfigurationToDto<DetailAttributeRuleResponse>(
-              item as AttributeRuleSetAttributeRuleConfiguration,
-            ),
-          )
-      : undefined;
+      .toArray()
+      .map((item) =>
+        mapAttributeRuleConfigurationToDto<DetailAttributeRuleResponse>(
+          item as AttributeRuleSetAttributeRuleConfiguration,
+        ),
+      );
 
     return dto;
   }
@@ -72,14 +70,12 @@ export class AttributeRuleSetDtoAssembler {
 
     // Use existing mappers for complex configurations
     dto.attributes = domainState.attributes
-      ? domainState.attributes
-          .toArray()
-          .map((item) =>
-            mapAttributeRuleConfigurationToDto<DetailAttributeRuleResponse>(
-              item as AttributeRuleSetAttributeRuleConfiguration,
-            ),
-          )
-      : undefined;
+      .toArray()
+      .map((item) =>
+        mapAttributeRuleConfigurationToDto<DetailAttributeRuleResponse>(
+          item as AttributeRuleSetAttributeRuleConfiguration,
+        ),
+      );
 
     return dto;
   }

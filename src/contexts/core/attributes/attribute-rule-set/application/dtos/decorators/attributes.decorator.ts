@@ -25,7 +25,7 @@ interface PropOptions {
  * @returns {PropertyDecorator}
  */
 export function ApiAttributeRuleSetAttributes(options: PropOptions = {}) {
-  const { required = false } = options;
+  const { required = true } = options;
   return applyDecorators(
     ApiProperty({
       description: `JSON object containing the collection of attribute rules that belong to this rule set. Each rule defines validation constraints, types, and behavior for specific attributes.`,

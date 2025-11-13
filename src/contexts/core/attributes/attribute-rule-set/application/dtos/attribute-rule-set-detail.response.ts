@@ -23,6 +23,6 @@ export class DetailAttributeRuleSetResponse {
   @ApiAttributeRuleSetEnabled({ required: false })
   enabled?: boolean;
 
-  @ApiAttributeRuleSetAttributes({ required: false })
-  attributes?: DetailAttributeRuleResponse[];
+  @ApiAttributeRuleSetAttributes()
+  attributes: DetailAttributeRuleResponse[];
 }

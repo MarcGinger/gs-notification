@@ -115,7 +115,7 @@ export function updateAttributeRuleSetAggregateFromSnapshot(
   if (updateProps.attributes !== undefined) {
     const validatedAttributeConfigurations: unknown[] = [];
 
-    // Validate each attribute rule in the array using the specialized factory
+    // Validate each Attribute rule in the array using the specialized factory
     for (let index = 0; index < updateProps.attributes.length; index++) {
       const attributeRuleProps = updateProps.attributes[index];
 

@@ -73,12 +73,10 @@ export class AttributeRuleSetStateMapper {
     const enabled = snapshot.enabled
       ? validateField('enabled', AttributeRuleSetEnabled.from(snapshot.enabled))
       : undefined;
-    const attributes = snapshot.attributes
-      ? validateField(
-          'attributes',
-          AttributeRuleSetAttributes.from(snapshot.attributes),
-        )
-      : undefined;
+    const attributes = validateField(
+      'attributes',
+      AttributeRuleSetAttributes.from(snapshot.attributes),
+    );
     const version = validateField(
       'version',
       AttributeRuleSetVersion.from(snapshot.version),
@@ -117,7 +115,7 @@ export class AttributeRuleSetStateMapper {
       name: name!,
       description: description || undefined,
       enabled: enabled || undefined,
-      attributes: attributes || undefined,
+      attributes: attributes!,
       version: version!,
       createdAt: createdAt!,
       updatedAt: updatedAt!,
@@ -142,14 +140,12 @@ export class AttributeRuleSetStateMapper {
       description: domainState.description?.value,
       enabled: domainState.enabled?.value,
       attributes: domainState.attributes
-        ? domainState.attributes
-            .toArray()
-            .map((item) =>
-              attributeRuleConfigurationToSnapshotProps(
-                item as AttributeRuleSetAttributeRuleConfiguration,
-              ),
-            )
-        : undefined, // Array of complex objects
+        .toArray()
+        .map((item) =>
+          attributeRuleConfigurationToSnapshotProps(
+            item as AttributeRuleSetAttributeRuleConfiguration,
+          ),
+        ), // Array of complex objects
       version: domainState.version.value,
       createdAt: domainState.createdAt.value,
       updatedAt: domainState.updatedAt.value,
