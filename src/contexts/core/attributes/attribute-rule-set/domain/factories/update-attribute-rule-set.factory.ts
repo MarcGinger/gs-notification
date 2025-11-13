@@ -11,14 +11,13 @@ import {
   UpdateAttributeRuleSetProps,
 } from '../props';
 import { ValidatedAttributeRuleSetUpdateFields } from '../types';
-import { CreateAttributeRuleProps } from '../props/attribute-rule';
 import {
   AttributeRuleSetAttributeRuleConfiguration,
   AttributeRuleSetName,
   AttributeRuleSetDescription,
   AttributeRuleSetEnabled,
 } from '../value-objects';
-import { createAttributeRuleConfigurationFromProps } from './attribute-rule.factory';
+import { updateAttributeRuleConfigurationFromProps } from './attribute-rule.factory';
 
 /**
  * Update AttributeRuleSet Aggregate Factory
@@ -121,8 +120,8 @@ export function updateAttributeRuleSetAggregateFromSnapshot(
       const attributeRuleProps = updateProps.attributes[index];
 
       // For updates, we can use createAttributeRuleConfigurationFromProps since we're replacing the entire array
-      const singleAttributeResult = createAttributeRuleConfigurationFromProps(
-        attributeRuleProps as CreateAttributeRuleProps,
+      const singleAttributeResult = updateAttributeRuleConfigurationFromProps(
+        attributeRuleProps,
         metadata,
       );
 

@@ -23,6 +23,7 @@ import {
 /**
  * Factory for creating attributeRule configuration with comprehensive validation
  */
+
 export function createAttributeRuleConfigurationFromProps(
   attributeRuleProps: CreateAttributeRuleProps,
   metadata: EventMetadata,
@@ -240,16 +241,16 @@ export function createAttributeRuleConfigurationFromProps(
 
 /**
  * Factory for updating attributeRule configuration with comprehensive validation
- * Merges new attributes with existing ones (PATCH behavior)
+ * Merges new attributeRule with existing ones (PATCH behavior)
  */
 export function updateAttributeRuleConfigurationFromProps(
   attributeRuleProps: UpdateAttributeRuleProps,
   metadata: EventMetadata,
-  existingAttributes?: AttributeRuleSetAttributeRuleConfigurationItem,
+  existingAttributeRule?: AttributeRuleSetAttributeRuleConfigurationItem,
 ): Result<AttributeRuleSetAttributeRuleConfigurationItem, DomainError> {
-  // Start with existing attributes as base, or empty object if none exist
-  const configObject: Record<string, unknown> = existingAttributes
-    ? { ...existingAttributes.value }
+  // Start with existing attributeRule as base, or empty object if none exist
+  const configObject: Record<string, unknown> = existingAttributeRule
+    ? { ...existingAttributeRule.value }
     : {};
   // Validate and add each provided field
   if (attributeRuleProps.code !== undefined) {
