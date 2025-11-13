@@ -198,7 +198,7 @@ export class AttributeRuleSetAggregate extends AggregateRootBase {
           name: string;
           description?: string;
           enabled?: boolean;
-          attributes: Record<string, AttributeRuleProps>;
+          attributes: AttributeRuleProps;
         };
 
         // For event replay, we need to reconstruct the full snapshot

@@ -276,9 +276,10 @@ export class AttributeRuleSetQueryRepository implements IAttributeRuleSetQuery {
       // Parse array fields using safeParseJSONArray utility
 
       // Parse object fields using safeParseJSON utility
-      const attributes = safeParseJSON<
-        Record<string, DetailAttributeRuleResponse>
-      >(hashData.attributes, 'attributes');
+      const attributes = safeParseJSON<DetailAttributeRuleResponse>(
+        hashData.attributes,
+        'attributes',
+      );
       // Extract basic fields directly from hash data
 
       return {

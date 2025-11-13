@@ -33,7 +33,6 @@
           "update": true,
           "get": true,
           "list": true,
-          "relationship": "object",
           "parentRelationship": "",
           "childRelationship": "attribute_rule_attribute_rule_set",
           "meta": {
@@ -411,7 +410,6 @@
             "update": true,
             "get": true,
             "list": true,
-            "relationship": "object",
             "parentRelationship": "",
             "childRelationship": "attribute_rule_attribute_rule_set",
             "meta": {
@@ -439,15 +437,15 @@
             "update": true,
             "get": true,
             "list": true,
-            "relationship": "object",
+            "relationship": "one",
             "parentRelationship": "attribute_rule_attribute_rule_set",
             "childRelationship": "",
             "meta": {
               "kind": "json",
-              "jsonShape": "object"
+              "jsonShape": "one"
             }
           },
-          "type": "object",
+          "type": "one",
           "complex": true
         }
       ],
@@ -472,7 +470,6 @@
           "update": true,
           "get": true,
           "list": true,
-          "relationship": "object",
           "parentRelationship": "",
           "childRelationship": "attribute_rule_attribute_rule_set",
           "meta": {
@@ -706,12 +703,12 @@
           "update": true,
           "get": true,
           "list": true,
-          "relationship": "object",
+          "relationship": "one",
           "parentRelationship": "attribute_rule_attribute_rule_set",
           "childRelationship": "",
           "meta": {
             "kind": "json",
-            "jsonShape": "object"
+            "jsonShape": "one"
           }
         }
       ],
@@ -738,7 +735,6 @@
             "update": true,
             "get": true,
             "list": true,
-            "relationship": "object",
             "parentRelationship": "",
             "childRelationship": "attribute_rule_attribute_rule_set",
             "meta": {
@@ -766,15 +762,15 @@
             "update": true,
             "get": true,
             "list": true,
-            "relationship": "object",
+            "relationship": "one",
             "parentRelationship": "attribute_rule_attribute_rule_set",
             "childRelationship": "",
             "meta": {
               "kind": "json",
-              "jsonShape": "object"
+              "jsonShape": "one"
             }
           },
-          "type": "object",
+          "type": "one",
           "complex": true
         }
       ],
@@ -954,7 +950,6 @@
         "update": true,
         "get": true,
         "list": true,
-        "relationship": "object",
         "parentRelationship": "",
         "childRelationship": "attribute_rule_attribute_rule_set",
         "meta": {
@@ -982,15 +977,15 @@
         "update": true,
         "get": true,
         "list": true,
-        "relationship": "object",
+        "relationship": "one",
         "parentRelationship": "attribute_rule_attribute_rule_set",
         "childRelationship": "",
         "meta": {
           "kind": "json",
-          "jsonShape": "object"
+          "jsonShape": "one"
         }
       },
-      "type": "object",
+      "type": "one",
       "complex": true
     }
   ],

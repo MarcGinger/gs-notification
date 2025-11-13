@@ -145,6 +145,7 @@ export function updateAttributeRuleSetAggregateFromSnapshot(
 
     validatedFields.attributes = attributesResult.value;
   }
+
   // 3. Apply all validated changes in single atomic operation
   const batchUpdateResult = existingAggregate.updateBatch(validatedFields);
   if (!batchUpdateResult.ok) {

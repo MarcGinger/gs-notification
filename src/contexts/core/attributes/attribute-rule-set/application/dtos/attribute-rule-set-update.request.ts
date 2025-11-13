@@ -23,5 +23,5 @@ export class UpdateAttributeRuleSetRequest
   enabled?: boolean;
 
   @ApiAttributeRuleSetAttributesUpdateRequest({ required: false })
-  attributes?: Record<string, UpdateAttributeRuleRequest>;
+  attributes?: UpdateAttributeRuleRequest;
 }
