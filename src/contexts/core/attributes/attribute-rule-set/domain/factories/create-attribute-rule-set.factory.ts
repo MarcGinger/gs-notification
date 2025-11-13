@@ -85,7 +85,10 @@ export function createAttributeRuleSetAggregateFromProps(
   }
 
   // Create attributes configuration using comprehensive validation for each attribute rule
-  let attributesValue: AttributeRuleSetAttributeRuleConfiguration | undefined;
+  let attributesResult: Result<
+    AttributeRuleSetAttributeRuleConfiguration | undefined,
+    DomainError
+  >;
 
   if (props.attributes) {
     const validatedAttributeConfigurations: Record<string, unknown> = {};
@@ -131,11 +134,13 @@ export function createAttributeRuleSetAggregateFromProps(
       );
     }
 
-    attributesValue = finalAttributesResult.value;
+    attributesResult = {
+      ok: true,
+      value: finalAttributesResult.value,
+    } as const;
   } else {
-    attributesValue = undefined;
+    attributesResult = { ok: true, value: undefined } as const;
   }
-
   const createdAtResult = AttributeRuleSetCreatedAt.create(clock.now());
   if (!createdAtResult.ok) {
     return err(createdAtResult.error);
@@ -157,7 +162,7 @@ export function createAttributeRuleSetAggregateFromProps(
     name: nameResult.value,
     description: descriptionResult.value,
     enabled: enabledResult.value,
-    attributes: attributesValue,
+    attributes: attributesResult.value,
     createdAt: createdAtResult.value,
     updatedAt: updatedAtResult.value,
     version: versionResult.value,
