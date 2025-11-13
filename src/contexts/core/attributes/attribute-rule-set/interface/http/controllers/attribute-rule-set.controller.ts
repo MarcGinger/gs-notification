@@ -8,6 +8,7 @@ import {
   Post,
   Body,
   Put,
+  Delete,
   HttpStatus,
   HttpCode,
   Param,
@@ -18,6 +19,7 @@ import {
   ApiTags,
   ApiOperation,
   ApiResponse,
+  ApiNoContentResponse,
   ApiCreatedResponse,
   ApiBody,
   ApiHeader,
@@ -43,6 +45,7 @@ import {
   AttributeRuleSetReadResource,
   AttributeRuleSetCreateResource,
   AttributeRuleSetUpdateResource,
+  AttributeRuleSetDeleteResource,
 } from '../../attribute-rule-set.resource';
 import { ApiCommonErrors } from 'src/shared/interfaces/http';
 
@@ -208,6 +211,36 @@ export class AttributeRuleSetController {
         updateAttributeRuleSetRequest,
       );
 
+    return result;
+  }
+
+  @Delete(':code')
+  @AttributeRuleSetDeleteResource()
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @ApiOperation({
+    summary: 'Delete an Attribute rule set',
+    description:
+      'Marks an Attribute rule set as deleted so it is no longer active. Implementation may use soft-delete internally. Requires DELETE permission (HIGH risk, justification required).',
+  })
+  @ApiParam({
+    name: 'code',
+    type: 'string',
+    description: 'AttributeRuleSet unique identifier',
+    example: 'COUNTRY',
+  })
+  @ApiCommonErrors()
+  @ApiNoContentResponse({
+    description: 'AttributeRuleSet deleted successfully. No content returned.',
+  })
+  async remove(
+    @CurrentUser() user: IUserToken,
+    @Param('code') code: string,
+  ): Promise<Result<void, DomainError>> {
+    const result =
+      await this.attributeRuleSetApplicationService.deleteAttributeRuleSet(
+        user,
+        code,
+      );
     return result;
   }
 }

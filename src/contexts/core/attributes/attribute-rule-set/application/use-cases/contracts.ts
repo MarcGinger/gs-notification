@@ -27,6 +27,15 @@ export abstract class IUpsertAttributeRuleSetUseCase {
   }): Promise<Result<DetailAttributeRuleSetResponse, DomainError>>;
 }
 
+export abstract class IDeleteAttributeRuleSetUseCase {
+  abstract execute(params: {
+    user: IUserToken;
+    code: string;
+    correlationId: string;
+    authorizationReason: string;
+  }): Promise<Result<void, DomainError>>;
+}
+
 export abstract class IGetAttributeRuleSetUseCase {
   abstract execute(params: {
     user: IUserToken;

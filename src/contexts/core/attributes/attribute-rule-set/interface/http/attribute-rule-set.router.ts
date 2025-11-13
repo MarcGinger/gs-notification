@@ -46,7 +46,7 @@ const attributeRuleSetRoutes: Routes = [
  *
  * Routes configured:
  * - /core/attributes/api/v1/attribute-rule-sets (GET, POST)
- * - /core/attributes/api/v1/attribute-rule-sets/:code (GET, PUT)
+ * - /core/attributes/api/v1/attribute-rule-sets/:code (GET, PUT, DELETE)
  * - /core/attributes/health/projectors/attributeRuleSet (GET)
  * - /core/attributes/health/projectors/attribute-rule-set/metrics (GET)
  */
