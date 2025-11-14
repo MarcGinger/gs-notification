@@ -232,13 +232,27 @@ describe('CollectionVO Factory', () => {
       }
     });
 
-    it('should create collection from single value', () => {
+    it('should reject non-array input with error', () => {
       const result = BasicCollectionVO.from('single-item');
 
-      expect(isOk(result)).toBe(true);
-      if (isOk(result)) {
-        expect(result.value.size).toBe(1);
-        expect(result.value.toArray()).toEqual(['single-item']);
+      expect(isErr(result)).toBe(true);
+      if (isErr(result)) {
+        expect(result.error.detail).toContain('Input must be an array');
+      }
+    });
+
+    it('should reject object input with error', () => {
+      const objectInput = {
+        key1: 'value1',
+        key2: 'value2',
+      };
+      const result = BasicCollectionVO.from(objectInput);
+
+      expect(isErr(result)).toBe(true);
+      if (isErr(result)) {
+        expect(result.error.detail).toContain(
+          'Input must be an array, not object',
+        );
       }
     });
 
