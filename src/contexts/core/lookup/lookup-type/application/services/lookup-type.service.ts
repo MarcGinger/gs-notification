@@ -27,9 +27,11 @@ import type {
   UpdateLookupTypeProps,
 } from '../../domain/props';
 import {
+  CreateLookupTypeRequest,
   DetailLookupTypeResponse,
   ListLookupTypeFilterRequest,
   LookupTypePageResponse,
+  UpdateLookupTypeRequest,
 } from '../dtos';
 
 // Application layer
@@ -202,7 +204,7 @@ export class LookupTypeApplicationService {
   async createLookupType(
     user: IUserToken,
     lookupType: string,
-    props: CreateLookupTypeProps,
+    props: CreateLookupTypeRequest,
     options?: { idempotencyKey?: string; correlationId?: string },
   ): Promise<Result<DetailLookupTypeResponse, DomainError>> {
     const authContext = this.createAuthContext(user, 'create');
@@ -224,7 +226,10 @@ export class LookupTypeApplicationService {
         this.upsertLookupTypeUseCase.execute({
           user,
           code: props.code,
-          props,
+          props: {
+            ...props,
+            lookupType,
+          },
           correlationId,
           authorizationReason: 'create_lookup_type',
           ...(options?.idempotencyKey && {
@@ -241,7 +246,7 @@ export class LookupTypeApplicationService {
     user: IUserToken,
     lookupType: string,
     code: string,
-    props: UpdateLookupTypeProps,
+    props: UpdateLookupTypeRequest,
     options?: { idempotencyKey?: string; correlationId?: string },
   ): Promise<Result<DetailLookupTypeResponse, DomainError>> {
     // Early input validation
@@ -298,6 +303,7 @@ export class LookupTypeApplicationService {
           props: {
             ...props,
             code: validatedcode,
+            lookupType,
           },
           correlationId,
           authorizationReason: 'update_lookup_type',
