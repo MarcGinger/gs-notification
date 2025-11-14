@@ -7,9 +7,9 @@ import { Module } from '@nestjs/common';
 import { LookupSharedModule } from './lookup-shared.module';
 
 // Import all lookup domain modules
-import { LookupRouterModule } from './lookup/interface/http/lookup.router';
+import { LookupTypeRouterModule } from './lookup-type/interface/http/lookup-type.router';
 
-import { LookupProjectorModule } from './lookup/lookup-projector.module';
+import { LookupTypeProjectorModule } from './lookup-type/lookup-type-projector.module';
 
 /**
  * Lookup Module - Bounded Context Entry Point
@@ -32,13 +32,13 @@ import { LookupProjectorModule } from './lookup/lookup-projector.module';
   imports: [
     // Shared infrastructure (imported once for all domains)
     LookupSharedModule,
-    LookupRouterModule,
-    LookupProjectorModule,
+    LookupTypeRouterModule,
+    LookupTypeProjectorModule,
   ],
   exports: [
     // Export all modules for potential cross-domain dependencies
-    LookupRouterModule,
-    LookupProjectorModule,
+    LookupTypeRouterModule,
+    LookupTypeProjectorModule,
   ],
 })
 export class CoreLookupModule {}

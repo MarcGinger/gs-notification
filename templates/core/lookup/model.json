@@ -11,7 +11,7 @@
   },
   "tables": [
     {
-      "name": "lookup",
+      "name": "lookup_type",
       "description": "",
       "columns": [
         {
@@ -206,8 +206,8 @@
       ],
       "indexes": [],
       "docs": {
-        "name": "Lookup",
-        "summary": "Configuration for lookup table",
+        "name": "Lookup_type",
+        "summary": "Configuration for lookup_type table",
         "version": "1.0.0"
       },
       "apis": {},
@@ -244,19 +244,19 @@
       "redis": {
         "prefix": "",
         "version": "1.0",
-        "category": "core:lookup.lookup.v1",
+        "category": "core:lookup.lookup.type.v1",
         "ttl": 3600,
         "hash": true,
-        "aggregate": "lookup"
+        "aggregate": "lookup_type"
       },
       "eventstream": {
         "boundedContext": "core",
-        "aggregate": "lookup",
+        "aggregate": "lookup_type",
         "version": "v1",
-        "stream": "core.lookup.lookup",
-        "createdEvent": "CoreLookupLookupCreated.v1",
-        "updatedEvent": "CoreLookupLookupUpdated.v1",
-        "deletedEvent": "CoreLookupLookupDeleted.v1"
+        "stream": "core.lookup.lookupType",
+        "createdEvent": "CoreLookupLookupTypeCreated.v1",
+        "updatedEvent": "CoreLookupLookupTypeUpdated.v1",
+        "deletedEvent": "CoreLookupLookupTypeDeleted.v1"
       },
       "permissions": {
         "bulk": [
