@@ -113,6 +113,30 @@ export function updateAttributeRuleSetAggregateFromSnapshot(
 
   // Validate attributes if provided using specialized factory with comprehensive validation
   if (updateProps.attributes !== undefined) {
+    // Validate that attributes is an object/record, not an array
+    if (Array.isArray(updateProps.attributes)) {
+      // Try to validate with AttributeRuleSetAttributeRuleConfiguration to get proper error
+      const objectValidationResult =
+        AttributeRuleSetAttributeRuleConfiguration.from(updateProps.attributes);
+      if (!objectValidationResult.ok) {
+        return err(
+          withContext(objectValidationResult.error, {
+            ...objectValidationResult.error.context,
+            correlationId: metadata.correlationId,
+            userId: metadata.actor?.userId,
+            operation: 'update_attribute_rule_set_validate_object',
+            message:
+              'Attributes must be an object of AttributeRule objects, not an array',
+            receivedType: Array.isArray(updateProps.attributes)
+              ? 'array'
+              : typeof updateProps.attributes,
+            isArray: Array.isArray(updateProps.attributes),
+            providedAttributes: updateProps.attributes,
+          }),
+        );
+      }
+    }
+
     // Convert existing attributes to proper format for merging
     let existingAttributesConfig:
       | AttributeRuleSetAttributeRuleConfiguration

@@ -91,6 +91,30 @@ export function createAttributeRuleSetAggregateFromProps(
   >;
 
   if (props.attributes) {
+    // Validate that attributes is an object/record, not an array
+    if (Array.isArray(props.attributes)) {
+      // Try to validate with AttributeRuleSetAttributeRuleConfiguration to get proper error
+      const objectValidationResult =
+        AttributeRuleSetAttributeRuleConfiguration.from(props.attributes);
+      if (!objectValidationResult.ok) {
+        return err(
+          withContext(objectValidationResult.error, {
+            ...objectValidationResult.error.context,
+            correlationId: metadata.correlationId,
+            userId: metadata.userId,
+            operation: 'create_attribute_rule_set_validate_object',
+            message:
+              'Attributes must be an object of AttributeRule objects, not an array',
+            receivedType: Array.isArray(props.attributes)
+              ? 'array'
+              : typeof props.attributes,
+            isArray: Array.isArray(props.attributes),
+            attributes: props.attributes,
+          }),
+        );
+      }
+    }
+
     const validatedAttributeConfigurations: Record<string, unknown> = {};
 
     // Validate each Attribute rule in the record using the specialized factory

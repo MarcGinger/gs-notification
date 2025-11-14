@@ -28,12 +28,14 @@ export function createRecordVOErrors(
   return {
     type: (value: unknown) => ({
       ...baseError,
-      detail: `${entityName} must be an object, received: ${typeof value}`,
+      detail: `${entityName} must be an object, received: ${
+        Array.isArray(value) ? 'array' : typeof value
+      }`,
       context: {
         value,
         operation: 'type_check',
         expected: 'object',
-        received: typeof value,
+        received: Array.isArray(value) ? 'array' : typeof value,
       },
     }),
 
