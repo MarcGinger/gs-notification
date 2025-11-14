@@ -30,11 +30,11 @@ import {
   ProjectionMetrics,
   ProjectionMetricsCollector,
 } from 'src/shared/infrastructure/stores';
+import { safeParseJSON } from 'src/shared/infrastructure/repositories';
 import { LookupProjectionKeys } from '../../lookup-projection-keys';
 import { DetailLookupResponse } from '../../application/dtos';
 import { lookupStore, LookupProjection } from '../stores/lookup.store';
 import { LookupFieldValidatorUtil } from '../utilities/lookup-field-validator.util';
-import { safeParseJSON } from 'src/shared/infrastructure/repositories';
 /**
  * Lookup projector error catalog using shared error definitions
  */
@@ -682,7 +682,7 @@ export class LookupProjector
       // Extract tenant using shared utility
       const tenant = TenantExtractor.extractTenant(event);
 
-      // Use LookupFieldValidatorUtil to create validated initiation fee snapshot
+      // Use LookupFieldValidatorUtil to create validated Lookup snapshot
       const lookupSnapshot =
         LookupFieldValidatorUtil.createLookupProjectorDataFromEventData(
           eventData,
