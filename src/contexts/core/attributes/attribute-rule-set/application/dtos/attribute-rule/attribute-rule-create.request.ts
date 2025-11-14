@@ -4,7 +4,6 @@
 import type { AttributeRuleTypeValue } from '../../../domain/value-objects';
 import { CreateAttributeRuleProps } from '../../../domain/props';
 import {
-  ApiAttributeRuleCode,
   ApiAttributeRuleDescription,
   ApiAttributeRuleName,
   ApiAttributeRuleReference,
@@ -19,9 +18,6 @@ import {
 } from './../decorators//attribute-rule';
 
 export class CreateAttributeRuleRequest implements CreateAttributeRuleProps {
-  @ApiAttributeRuleCode()
-  code: string;
-
   @ApiAttributeRuleName()
   name: string;
 

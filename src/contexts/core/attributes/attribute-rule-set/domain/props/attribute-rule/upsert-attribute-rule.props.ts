@@ -4,7 +4,6 @@
 import type { AttributeRuleTypeValue } from '../../value-objects';
 
 export interface UpsertAttributeRuleProps {
-  code?: string;
   name?: string;
   description?: string;
   type?: AttributeRuleTypeValue;

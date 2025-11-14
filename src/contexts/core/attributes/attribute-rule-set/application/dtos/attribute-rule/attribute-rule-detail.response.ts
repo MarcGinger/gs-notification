@@ -3,7 +3,6 @@
 
 import type { AttributeRuleTypeValue } from './../decorators';
 import {
-  ApiAttributeRuleCode,
   ApiAttributeRuleDescription,
   ApiAttributeRuleName,
   ApiAttributeRuleReference,
@@ -18,9 +17,6 @@ import {
 } from './../decorators//attribute-rule';
 
 export class DetailAttributeRuleResponse {
-  @ApiAttributeRuleCode()
-  code: string;
-
   @ApiAttributeRuleName()
   name: string;
 

@@ -4,7 +4,6 @@
 import type { AttributeRuleTypeValue } from '../../../domain/value-objects';
 import { UpdateAttributeRuleProps } from '../../../domain/props';
 import {
-  ApiAttributeRuleCode,
   ApiAttributeRuleDescription,
   ApiAttributeRuleName,
   ApiAttributeRuleReference,
@@ -19,9 +18,6 @@ import {
 } from './../decorators//attribute-rule';
 
 export class UpdateAttributeRuleRequest implements UpdateAttributeRuleProps {
-  @ApiAttributeRuleCode({ required: false })
-  code?: string;
-
   @ApiAttributeRuleName({ required: false })
   name?: string;
 

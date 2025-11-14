@@ -1,5 +1,4 @@
 export * from './attribute-rule-configuration.vo';
-export * from './code.vo';
 export * from './description.vo';
 export * from './name.vo';
 export * from './reference.vo';

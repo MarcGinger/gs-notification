@@ -3,8 +3,6 @@
 import { DomainError } from 'src/shared/errors';
 
 export interface AttributeRuleContext extends Record<string, unknown> {
-  id: Record<string, unknown>;
-  code: string;
   name: string;
   description?: string;
   type: string;
@@ -54,13 +52,6 @@ export const AttributeRuleErrors = {
     'ATTRIBUTE_RULE.INVALID_ATTRIBUTE_RULE_CONFIGURATION_DATA',
     AttributeRuleContext
   >,
-  INVALID_CODE: {
-    code: 'ATTRIBUTE_RULE.INVALID_CODE',
-    title: 'Value Required',
-    detail: 'Code is required for Attribute rule.',
-    category: 'validation',
-    retryable: false,
-  } as DomainError<'ATTRIBUTE_RULE.INVALID_CODE', AttributeRuleContext>,
   INVALID_DESCRIPTION: {
     code: 'ATTRIBUTE_RULE.INVALID_DESCRIPTION',
     title: 'Value Required',

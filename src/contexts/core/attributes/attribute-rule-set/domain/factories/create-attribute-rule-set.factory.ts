@@ -91,36 +91,10 @@ export function createAttributeRuleSetAggregateFromProps(
   >;
 
   if (props.attributes) {
-    // Validate that attributes is actually an array
-    if (!Array.isArray(props.attributes)) {
-      // Try to validate with AttributeRuleSetAttributeRuleConfiguration to get proper error
-      const arrayValidationResult =
-        AttributeRuleSetAttributeRuleConfiguration.from(props.attributes);
-      if (!arrayValidationResult.ok) {
-        return err(
-          withContext(arrayValidationResult.error, {
-            ...arrayValidationResult.error.context,
-            correlationId: metadata.correlationId,
-            userId: metadata.userId,
-            operation: 'create_attribute_rule_set_validate_array',
-            message: 'Attributes must be an array of AttributeRule objects',
-            receivedType: typeof props.attributes,
-            isArray: Array.isArray(props.attributes),
-            attributes: props.attributes,
-          }),
-        );
-      }
-    }
+    const validatedAttributeConfigurations: Record<string, unknown> = {};
 
-    const validatedAttributeConfigurations: unknown[] = [];
-
-    // Validate each Attribute rule in the array using the specialized factory
-    for (
-      let attributeIndex = 0;
-      attributeIndex < props.attributes.length;
-      attributeIndex++
-    ) {
-      const attributeRuleProps = props.attributes[attributeIndex];
+    // Validate each Attribute rule in the record using the specialized factory
+    for (const [key, attributeRuleProps] of Object.entries(props.attributes)) {
       const singleAttributeResult = createAttributeRuleConfigurationFromProps(
         attributeRuleProps,
         metadata,
@@ -133,14 +107,14 @@ export function createAttributeRuleSetAggregateFromProps(
             correlationId: metadata.correlationId,
             userId: metadata.userId,
             operation: 'create_attribute_rule_set',
-            attributeIndex,
+            attributeKey: key,
             attributes: props.attributes,
           }),
         );
       }
 
-      // Store the validated configuration as raw value for the array
-      validatedAttributeConfigurations.push(singleAttributeResult.value.value);
+      // Store the validated configuration as raw value for the record
+      validatedAttributeConfigurations[key] = singleAttributeResult.value.value;
     }
 
     // Create the final AttributeRuleSetAttributeRuleConfiguration from validated data

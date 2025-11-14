@@ -29,27 +29,6 @@
 					"estimatedSize": ""
 				},
 				{
-					"id": "421fbeed-bc13-4b47-8805-fdabba9a14fa",
-					"name": "code",
-					"datatype": "VARCHAR",
-					"param": "64",
-					"pk": false,
-					"nn": true,
-					"comment": "Unique technical identifier for the attribute rule within its scope. Used as a stable reference that doesn't change even if the display name is updated.",
-					"defaultvalue": "",
-					"data": "email_validation",
-					"autoinc": false,
-					"after": "",
-					"enum": "",
-					"unsigned": false,
-					"zerofill": false,
-					"estimatedSize": "",
-					"collation": "",
-					"charset": "",
-					"fk": false,
-					"binary": false
-				},
-				{
 					"id": "a88a8801-0d41-42ae-b338-c8a2385ad09c",
 					"name": "name",
 					"datatype": "VARCHAR",
@@ -443,7 +422,7 @@
 					"comment": "JSON object containing the collection of attribute rules that belong to this rule set. Each rule defines validation constraints, types, and behavior for specific attributes.",
 					"defaultvalue": "",
 					"data": "{\"tenant\": \"default\", \"rule_id\": \"email_validation\"}",
-					"after": "",
+					"after": "object()",
 					"autoinc": false,
 					"collation": "",
 					"charset": "",
@@ -579,7 +558,7 @@
 		},
 		"type": "MARIADB",
 		"version": 1,
-		"lastSaved": 1763092541544,
+		"lastSaved": 1763096398033,
 		"beforeScript": "",
 		"afterScript": "",
 		"sqlSettings": {
@@ -625,9 +604,9 @@
 			"diagramItems": {
 				"172126ee-01dd-4c68-93b1-6084ca2e4c20": {
 					"referencedItemId": "172126ee-01dd-4c68-93b1-6084ca2e4c20",
-					"x": 309,
-					"y": 195,
-					"gHeight": 261,
+					"x": 325,
+					"y": 199,
+					"gHeight": 243,
 					"gWidth": 252,
 					"color": "#ffffff",
 					"background": "#03a9f4",
@@ -638,7 +617,7 @@
 				"26cdf662-b910-43c0-8541-2cff7760e849": {
 					"referencedItemId": "26cdf662-b910-43c0-8541-2cff7760e849",
 					"x": 310,
-					"y": 39,
+					"y": 38,
 					"gHeight": 117,
 					"gWidth": 202,
 					"color": "#ffffff",

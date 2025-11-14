@@ -4,7 +4,6 @@
 import { AttributeRuleTypeValue } from '../../value-objects';
 
 export interface AttributeRuleProps {
-  code: string;
   name: string;
   description?: string;
   type: AttributeRuleTypeValue;
