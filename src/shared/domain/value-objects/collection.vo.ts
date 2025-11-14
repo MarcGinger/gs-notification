@@ -345,8 +345,14 @@ export function createCollectionVO<
         return CollectionVO.create(value as TPrimitive[]);
       }
 
-      // Handle single values - convert to array
-      return CollectionVO.create([value as TPrimitive]);
+      // For non-array values, return error instead of auto-converting
+      // This prevents objects from being wrapped as single-item arrays
+      return err(
+        config.errors.invalidItem(
+          value,
+          'Input must be an array, not ' + typeof value,
+        ),
+      );
     }
 
     // ==================== Accessors ====================
