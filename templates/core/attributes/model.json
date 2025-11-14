@@ -425,27 +425,27 @@
             "parentRelationshipType": "AttributeRule",
             "datatype": "JSON",
             "primaryKey": false,
-            "required": true,
+            "required": false,
             "description": "JSON object containing the collection of attribute rules that belong to this rule set. Each rule defines validation constraints, types, and behavior for specific attributes.",
             "defaultvalue": "",
             "example": "{\"tenant\": \"default\", \"rule_id\": \"email_validation\"}",
             "autoIncrement": false,
-            "array": false,
+            "array": true,
             "isPII": "",
             "secret": false,
             "create": true,
             "update": true,
             "get": true,
             "list": true,
-            "relationship": "one",
+            "relationship": "many",
             "parentRelationship": "attribute_rule_attribute_rule_set",
             "childRelationship": "",
             "meta": {
               "kind": "json",
-              "jsonShape": "one"
+              "jsonShape": "many"
             }
           },
-          "type": "one",
+          "type": "many",
           "complex": true
         }
       ],
@@ -691,24 +691,24 @@
           "parentRelationshipType": "AttributeRule",
           "datatype": "JSON",
           "primaryKey": false,
-          "required": true,
+          "required": false,
           "description": "JSON object containing the collection of attribute rules that belong to this rule set. Each rule defines validation constraints, types, and behavior for specific attributes.",
           "defaultvalue": "",
           "example": "{\"tenant\": \"default\", \"rule_id\": \"email_validation\"}",
           "autoIncrement": false,
-          "array": false,
+          "array": true,
           "isPII": "",
           "secret": false,
           "create": true,
           "update": true,
           "get": true,
           "list": true,
-          "relationship": "one",
+          "relationship": "many",
           "parentRelationship": "attribute_rule_attribute_rule_set",
           "childRelationship": "",
           "meta": {
             "kind": "json",
-            "jsonShape": "one"
+            "jsonShape": "many"
           }
         }
       ],
@@ -750,27 +750,27 @@
             "parentRelationshipType": "AttributeRule",
             "datatype": "JSON",
             "primaryKey": false,
-            "required": true,
+            "required": false,
             "description": "JSON object containing the collection of attribute rules that belong to this rule set. Each rule defines validation constraints, types, and behavior for specific attributes.",
             "defaultvalue": "",
             "example": "{\"tenant\": \"default\", \"rule_id\": \"email_validation\"}",
             "autoIncrement": false,
-            "array": false,
+            "array": true,
             "isPII": "",
             "secret": false,
             "create": true,
             "update": true,
             "get": true,
             "list": true,
-            "relationship": "one",
+            "relationship": "many",
             "parentRelationship": "attribute_rule_attribute_rule_set",
             "childRelationship": "",
             "meta": {
               "kind": "json",
-              "jsonShape": "one"
+              "jsonShape": "many"
             }
           },
-          "type": "one",
+          "type": "many",
           "complex": true
         }
       ],
@@ -965,27 +965,27 @@
         "parentRelationshipType": "AttributeRule",
         "datatype": "JSON",
         "primaryKey": false,
-        "required": true,
+        "required": false,
         "description": "JSON object containing the collection of attribute rules that belong to this rule set. Each rule defines validation constraints, types, and behavior for specific attributes.",
         "defaultvalue": "",
         "example": "{\"tenant\": \"default\", \"rule_id\": \"email_validation\"}",
         "autoIncrement": false,
-        "array": false,
+        "array": true,
         "isPII": "",
         "secret": false,
         "create": true,
         "update": true,
         "get": true,
         "list": true,
-        "relationship": "one",
+        "relationship": "many",
         "parentRelationship": "attribute_rule_attribute_rule_set",
         "childRelationship": "",
         "meta": {
           "kind": "json",
-          "jsonShape": "one"
+          "jsonShape": "many"
         }
       },
-      "type": "one",
+      "type": "many",
       "complex": true
     }
   ],

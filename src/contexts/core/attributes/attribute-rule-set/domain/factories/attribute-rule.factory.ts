@@ -17,7 +17,7 @@ import {
   AttributeRuleRequiredError,
   AttributeRuleRegex,
   AttributeRuleRegexError,
-  AttributeRuleSetAttributeRuleConfiguration,
+  AttributeRuleSetAttributeRuleConfigurationItem,
 } from '../value-objects';
 
 /**
@@ -27,7 +27,7 @@ import {
 export function createAttributeRuleConfigurationFromProps(
   attributeRuleProps: CreateAttributeRuleProps,
   metadata: EventMetadata,
-): Result<AttributeRuleSetAttributeRuleConfiguration, DomainError> {
+): Result<AttributeRuleSetAttributeRuleConfigurationItem, DomainError> {
   // Create attributeRule value objects
   const attributeRuleCodeResult = AttributeRuleCode.from(
     attributeRuleProps.code,
@@ -209,20 +209,21 @@ export function createAttributeRuleConfigurationFromProps(
     );
   }
 
-  const attributeRuleResult = AttributeRuleSetAttributeRuleConfiguration.from({
-    code: attributeRuleCodeResult.value.value,
-    name: attributeRuleNameResult.value.value,
-    description: attributeRuleDescriptionResult.value.value,
-    type: attributeRuleTypeResult.value.value,
-    reference: attributeRuleReferenceResult.value.value,
-    reserved: attributeRuleReservedResult.value.value,
-    unique: attributeRuleUniqueResult.value.value,
-    uniqueError: attributeRuleUniqueErrorResult.value.value,
-    required: attributeRuleRequiredResult.value.value,
-    requiredError: attributeRuleRequiredErrorResult.value.value,
-    regex: attributeRuleRegexResult.value.value,
-    regexError: attributeRuleRegexErrorResult.value.value,
-  });
+  const attributeRuleResult =
+    AttributeRuleSetAttributeRuleConfigurationItem.from({
+      code: attributeRuleCodeResult.value.value,
+      name: attributeRuleNameResult.value.value,
+      description: attributeRuleDescriptionResult.value.value,
+      type: attributeRuleTypeResult.value.value,
+      reference: attributeRuleReferenceResult.value.value,
+      reserved: attributeRuleReservedResult.value.value,
+      unique: attributeRuleUniqueResult.value.value,
+      uniqueError: attributeRuleUniqueErrorResult.value.value,
+      required: attributeRuleRequiredResult.value.value,
+      requiredError: attributeRuleRequiredErrorResult.value.value,
+      regex: attributeRuleRegexResult.value.value,
+      regexError: attributeRuleRegexErrorResult.value.value,
+    });
   if (!attributeRuleResult.ok) {
     return err(
       withContext(attributeRuleResult.error, {
@@ -245,8 +246,8 @@ export function createAttributeRuleConfigurationFromProps(
 export function updateAttributeRuleConfigurationFromProps(
   attributeRuleProps: UpdateAttributeRuleProps,
   metadata: EventMetadata,
-  existingAttributeRule?: AttributeRuleSetAttributeRuleConfiguration,
-): Result<AttributeRuleSetAttributeRuleConfiguration, DomainError> {
+  existingAttributeRule?: AttributeRuleSetAttributeRuleConfigurationItem,
+): Result<AttributeRuleSetAttributeRuleConfigurationItem, DomainError> {
   // Start with existing attributeRule as base, or empty object if none exist
   const configObject: Record<string, unknown> = existingAttributeRule
     ? { ...existingAttributeRule.value }
@@ -470,7 +471,7 @@ export function updateAttributeRuleConfigurationFromProps(
 
   // Create the configuration from the validated fields
   const attributeRuleResult =
-    AttributeRuleSetAttributeRuleConfiguration.from(configObject);
+    AttributeRuleSetAttributeRuleConfigurationItem.from(configObject);
   if (!attributeRuleResult.ok) {
     return err(
       withContext(attributeRuleResult.error, {

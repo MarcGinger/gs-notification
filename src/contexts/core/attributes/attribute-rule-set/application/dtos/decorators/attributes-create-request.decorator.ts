@@ -3,7 +3,12 @@
 
 import { applyDecorators } from '@nestjs/common';
 import { ApiProperty } from '@nestjs/swagger';
-import { IsObject, IsOptional, IsNotEmpty } from 'class-validator';
+import {
+  IsArray,
+  IsOptional,
+  IsNotEmpty,
+  ValidateNested,
+} from 'class-validator';
 import { Type } from 'class-transformer';
 import { CreateAttributeRuleRequest } from '../../dtos/attribute-rule';
 
@@ -22,15 +27,17 @@ interface PropOptions {
 export function ApiAttributeRuleSetAttributesCreateRequest(
   options: PropOptions = {},
 ) {
-  const { required = true } = options;
+  const { required = false } = options;
   return applyDecorators(
     ApiProperty({
       description: `JSON object containing the collection of attribute rules that belong to this rule set. Each rule defines validation constraints, types, and behavior for specific attributes.`,
       type: () => CreateAttributeRuleRequest,
+      isArray: true,
       required,
     }),
     Type(() => CreateAttributeRuleRequest),
-    IsObject(),
+    IsArray(),
+    ValidateNested({ each: true }),
     required ? IsNotEmpty() : IsOptional(),
   );
 }

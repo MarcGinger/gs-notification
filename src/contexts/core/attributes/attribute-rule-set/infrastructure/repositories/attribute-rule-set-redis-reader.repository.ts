@@ -108,11 +108,12 @@ export class AttributeRuleSetReaderRepository
 
       // Parse array fields using safeParseJSONArray utility
 
-      // Parse object fields using safeParseJSON utility
-      const attributes = safeParseJSON<AttributeRuleProps>(
+      const attributes = safeParseJSON<AttributeRuleProps[]>(
         hashData.attributes,
         'attributes',
       );
+
+      // Parse object fields using safeParseJSON utility
       // Extract basic fields directly from hash data
 
       return {

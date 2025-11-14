@@ -13,6 +13,7 @@ import {
   AttributeRuleSetName,
   AttributeRuleSetDescription,
   AttributeRuleSetEnabled,
+  AttributeRuleSetAttributes,
   AttributeRuleSetAttributeRuleConfiguration,
   attributeRuleConfigurationToSnapshotProps,
   AttributeRuleSetCreatedAt,
@@ -72,10 +73,12 @@ export class AttributeRuleSetStateMapper {
     const enabled = snapshot.enabled
       ? validateField('enabled', AttributeRuleSetEnabled.from(snapshot.enabled))
       : undefined;
-    const attributes = validateField(
-      'attributes',
-      AttributeRuleSetAttributeRuleConfiguration.from(snapshot.attributes),
-    );
+    const attributes = snapshot.attributes
+      ? validateField(
+          'attributes',
+          AttributeRuleSetAttributes.from(snapshot.attributes),
+        )
+      : undefined;
     const version = validateField(
       'version',
       AttributeRuleSetVersion.from(snapshot.version),
@@ -114,7 +117,7 @@ export class AttributeRuleSetStateMapper {
       name: name!,
       description: description || undefined,
       enabled: enabled || undefined,
-      attributes: attributes!,
+      attributes: attributes || undefined,
       version: version!,
       createdAt: createdAt!,
       updatedAt: updatedAt!,
@@ -138,9 +141,15 @@ export class AttributeRuleSetStateMapper {
       name: domainState.name.value,
       description: domainState.description?.value,
       enabled: domainState.enabled?.value,
-      attributes: attributeRuleConfigurationToSnapshotProps(
-        domainState.attributes,
-      ), // Complex object - stored as-is for now
+      attributes: domainState.attributes
+        ? domainState.attributes
+            .toArray()
+            .map((item) =>
+              attributeRuleConfigurationToSnapshotProps(
+                item as AttributeRuleSetAttributeRuleConfiguration,
+              ),
+            )
+        : undefined, // Array of complex objects
       version: domainState.version.value,
       createdAt: domainState.createdAt.value,
       updatedAt: domainState.updatedAt.value,
