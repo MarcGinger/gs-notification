@@ -119,7 +119,7 @@ export function createAttributeRuleSetAggregateFromProps(
       }
 
       // Store the validated configuration as raw value for the array
-      validatedAttributeConfigurations.push(singleAttributeResult.value);
+      validatedAttributeConfigurations.push(singleAttributeResult.value.value);
     }
 
     // Create the final AttributeRuleSetAttributeRuleConfiguration from validated data

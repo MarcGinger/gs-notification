@@ -139,7 +139,7 @@ export function updateAttributeRuleSetAggregateFromSnapshot(
       }
 
       // Store the validated configuration for the array
-      validatedAttributeConfigurations.push(singleAttributeResult.value);
+      validatedAttributeConfigurations.push(singleAttributeResult.value.value);
     }
 
     // Create the final AttributeRuleSetAttributeRuleConfiguration from validated data
