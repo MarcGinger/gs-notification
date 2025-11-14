@@ -11,7 +11,11 @@
 import { Result, DomainError } from 'src/shared/errors';
 import type { IUserToken } from 'src/shared/security';
 import type { UpsertLookupTypeProps } from '../../domain/props';
-import type { DetailLookupTypeResponse } from '../dtos';
+import type {
+  DetailLookupTypeResponse,
+  LookupTypePageResponse,
+  ListLookupTypeFilterRequest,
+} from '../dtos';
 
 export abstract class IUpsertLookupTypeUseCase {
   abstract execute(params: {
@@ -38,4 +42,11 @@ export abstract class IGetLookupTypeUseCase {
     code: string;
     correlationId: string;
   }): Promise<Result<DetailLookupTypeResponse, DomainError>>;
+}
+export abstract class IListLookupTypeUseCase {
+  abstract execute(params: {
+    user: IUserToken;
+    filter?: ListLookupTypeFilterRequest;
+    correlationId: string;
+  }): Promise<Result<LookupTypePageResponse, DomainError>>;
 }

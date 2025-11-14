@@ -2,7 +2,7 @@
 // REMOVE THIS COMMENT TO STOP AUTOMATIC UPDATES TO THIS BLOCK
 
 import { LookupTypeDomainState } from '../../domain/state';
-import { DetailLookupTypeResponse } from '../dtos';
+import { DetailLookupTypeResponse, ListLookupTypeResponse } from '../dtos';
 
 /**
  * LookupType DTO Assembler
@@ -37,6 +37,41 @@ export class LookupTypeDtoAssembler {
 
     return dto;
   }
+
+  /**
+   * Convert LookupTypeDomainState to list response DTO
+   *
+   * @param domainState - Rich domain state with VOs
+   * @returns Clean DTO for list API response
+   */
+  static toListResponse(
+    domainState: LookupTypeDomainState,
+  ): ListLookupTypeResponse {
+    const dto = new ListLookupTypeResponse();
+
+    // Extract primitive values from VOs
+    dto.lookupType = domainState.lookupType.value;
+    dto.code = domainState.code.value;
+    dto.name = domainState.name.value;
+    dto.description = domainState.description?.value;
+    dto.enabled = domainState.enabled?.value;
+    dto.attributes = domainState.attributes?.value;
+
+    return dto;
+  }
+
+  /**
+   * Convert array of LookupTypeDomainState to array of list DTOs
+   *
+   * @param domainStates - Array of rich domain states
+   * @returns Array of clean DTOs for list API response
+   */
+  static toListResponseArray(
+    domainStates: LookupTypeDomainState[],
+  ): ListLookupTypeResponse[] {
+    return domainStates.map((domainState) => this.toListResponse(domainState));
+  }
+
   /**
    * Convert array of LookupTypeDomainState to array of detail DTOs
    *

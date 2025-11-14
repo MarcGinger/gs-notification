@@ -11,11 +11,21 @@ import {
   handleRepositoryError,
   RepositoryOptions,
 } from 'src/shared/infrastructure/repositories';
-import { Result, DomainError, ok } from 'src/shared/errors';
+import { Result, DomainError, ok, err } from 'src/shared/errors';
 import { ActorContext } from 'src/shared/application/context';
 import { Option } from 'src/shared/domain/types';
 import { CacheMetricsCollector } from 'src/shared/infrastructure/projections/cache-optimization';
-import { DetailLookupTypeResponse } from '../../application/dtos';
+import {
+  DetailLookupTypeResponse,
+  LookupTypePageResponse,
+  ListLookupTypeFilterRequest,
+  ListLookupTypeResponse,
+} from '../../application/dtos';
+import { RepositoryErrorFactory } from 'src/shared/domain/errors/repository.error';
+import {
+  PaginationMetaResponse,
+  BaseListFilterRequest,
+} from 'src/shared/application/dtos';
 import {
   lookupTypeStore,
   LookupTypeProjection,
@@ -140,6 +150,22 @@ export class LookupTypeQueryRepository implements ILookupTypeQuery {
   }
 
   /**
+   * Transform LookupTypeReadModel to ListLookupTypeResponse DTO
+   */
+  private toListResponse(
+    lookupType: LookupTypeReadModel,
+  ): ListLookupTypeResponse {
+    return {
+      lookupType: lookupType.lookupType,
+      code: lookupType.code,
+      name: lookupType.name,
+      description: lookupType.description,
+      enabled: lookupType.enabled,
+      attributes: lookupType.attributes,
+    } as ListLookupTypeResponse;
+  }
+
+  /**
    * Transform LookupTypeReadModel to DetailLookupTypeResponse DTO
    */
   private toDetailResponse(
@@ -153,6 +179,77 @@ export class LookupTypeQueryRepository implements ILookupTypeQuery {
       enabled: lookupType.enabled,
       attributes: lookupType.attributes,
     } as DetailLookupTypeResponse;
+  }
+
+  /**
+   * Apply filters to lookupType data using client-side filtering
+   */
+  private matchesFilter(
+    lookupType: LookupTypeReadModel,
+    filter?: ListLookupTypeFilterRequest,
+  ): boolean {
+    if (!filter) return true;
+
+    // Filter by name (partial match)
+    if (filter.name) {
+      if (!lookupType.name.toLowerCase().includes(filter.name.toLowerCase())) {
+        return false;
+      }
+    }
+    // Filter by name (partial match)
+    if (filter.code) {
+      if (!lookupType.code.toLowerCase().includes(filter.code.toLowerCase())) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  /**
+   * Sort lookupTypes based on sort criteria
+   */
+  private sortLookupTypes(
+    lookupTypes: LookupTypeReadModel[],
+    sortBy?: Record<string, string>,
+  ): LookupTypeReadModel[] {
+    if (!sortBy || Object.keys(sortBy).length === 0) {
+      // No sorting criteria provided, return as-is
+      return lookupTypes;
+    }
+
+    return lookupTypes.sort((a, b) => {
+      for (const [field, direction] of Object.entries(sortBy)) {
+        let aVal: number | Date | string;
+        let bVal: number | Date | string;
+
+        switch (field) {
+          case 'name':
+            aVal = a.name;
+            bVal = b.name;
+            break;
+          case 'code':
+            aVal = a.code;
+            bVal = b.code;
+            break;
+          case 'createdAt':
+            aVal = a.createdAt;
+            bVal = b.createdAt;
+            break;
+          case 'updatedAt':
+            aVal = a.updatedAt;
+            bVal = b.updatedAt;
+            break;
+          default:
+            continue;
+        }
+
+        if (aVal === bVal) continue;
+
+        const comparison = aVal < bVal ? -1 : 1;
+        return direction?.toLowerCase() === 'desc' ? -comparison : comparison;
+      }
+      return 0;
+    });
   }
   /**
    * Helper to create consistent logging context using shared utilities
@@ -236,6 +333,186 @@ export class LookupTypeQueryRepository implements ILookupTypeQuery {
         error as Error,
         'MEDIUM',
       );
+      return Promise.resolve(handleRepositoryError(error));
+    }
+  }
+
+  /**
+   * Find LookupType records with pagination and filtering using in-memory projections.
+   *
+   * Leverages the established in-memory patterns from LookupTypeProjector and LookupTypeReaderRepository
+   * with shared lookupType store and production-ready caching.
+   *
+   * Features:
+   * - In-memory lookupType store access with LRU caching
+   * - Client-side filtering for code patterns and name search
+   * - Efficient in-memory sorting with configurable directions
+   * - Pagination with total count calculation
+   * - Tenant isolation using store key patterns
+   * - Comprehensive logging and error handling
+   * - Production-ready metrics collection
+   *
+   * @param actor - The actor context containing authentication and request metadata.
+   * @param filter - Optional filter criteria for the lookup-type search.
+   * @param options - Optional repository options (e.g., pagination, sorting).
+   * @returns A promise resolving to a Result containing paginated LookupType responses or a DomainError.
+   */
+  async findPaginated(
+    actor: ActorContext,
+    filter?: ListLookupTypeFilterRequest,
+    options?: RepositoryOptions,
+  ): Promise<Result<LookupTypePageResponse, DomainError>> {
+    const operation = 'findPaginated';
+    const correlationId =
+      options?.correlationId ??
+      CorrelationUtil.generateForOperation('lookup-type-query-paginated');
+
+    const logContext = this.createLogContext(operation, correlationId, actor, {
+      filterName: filter?.name,
+      filterCode: filter?.code,
+      page: (filter as BaseListFilterRequest)?.page,
+      size: (filter as BaseListFilterRequest)?.size,
+      sortBy: filter?.getSortByRecord?.() || {},
+      dataSource: 'in-memory-projector',
+    });
+
+    // Validate actor context with enhanced security logging
+    const validation = RepositoryLoggingUtil.validateActorContext(
+      this.logger,
+      actor,
+      logContext,
+    );
+    if (!validation.ok) return err(validation.error);
+
+    // Guard tenant explicitly
+    if (!actor.tenant) {
+      return err(
+        RepositoryErrorFactory.validationError('tenant', 'Missing tenant id'),
+      );
+    }
+
+    // Log successful authorization
+    RepositoryLoggingUtil.logAuthorizationSuccess(
+      this.logger,
+      operation,
+      logContext,
+      {
+        operationType: 'lookup-type_query_paginated',
+        scope: 'in_memory_projection_search',
+        tenant: actor.tenant,
+      },
+    );
+
+    try {
+      const page = (filter as BaseListFilterRequest)?.page ?? 1;
+      const size = Math.min((filter as BaseListFilterRequest)?.size ?? 20, 100); // Cap at 100 items per page
+
+      Log.debug(this.logger, 'Fetching lookup-types from in-memory store', {
+        ...logContext,
+        queryDetails: {
+          scope: 'shared_lookup-type_store',
+          method: 'lookupTypeStore.getAll',
+          tenant: actor.tenant,
+        },
+      });
+
+      // Get all lookup-types for the tenant from in-memory store
+      const allLookupTypes = this.getLookupTypesForTenant(actor.tenant);
+
+      if (allLookupTypes.length === 0) {
+        // No lookup-types found for tenant
+        const meta = new PaginationMetaResponse({
+          page,
+          size,
+          totalItems: 0,
+          totalPages: 0,
+          hasNextPage: false,
+          hasPreviousPage: false,
+        });
+
+        const response = LookupTypePageResponse.create([], meta);
+
+        Log.debug(this.logger, 'No lookup-types found for tenant in memory', {
+          ...logContext,
+          totalItems: 0,
+        });
+
+        return Promise.resolve(ok(response));
+      }
+
+      // Apply client-side filtering
+      const filteredLookupTypes = allLookupTypes.filter((lookupType) =>
+        this.matchesFilter(lookupType, filter),
+      );
+
+      // Apply client-side sorting
+      const sortedLookupTypes = this.sortLookupTypes(
+        filteredLookupTypes,
+        filter?.getSortByRecord?.(),
+      );
+
+      // Calculate pagination metadata
+      const totalItems = sortedLookupTypes.length;
+      const totalPages = Math.ceil(totalItems / size);
+      const hasNextPage = page < totalPages;
+      const hasPreviousPage = page > 1;
+
+      // Apply pagination
+      const startIndex = (page - 1) * size;
+      const endIndex = startIndex + size;
+      const paginatedLookupTypes = sortedLookupTypes.slice(
+        startIndex,
+        endIndex,
+      );
+
+      // Transform to DTOs
+      const lookupTypeResponses = paginatedLookupTypes.map((lookupType) =>
+        this.toListResponse(lookupType),
+      );
+
+      const meta = new PaginationMetaResponse({
+        page,
+        size,
+        totalItems,
+        totalPages,
+        hasNextPage,
+        hasPreviousPage,
+      });
+
+      const response = LookupTypePageResponse.create(lookupTypeResponses, meta);
+
+      // Log successful query metrics
+      RepositoryLoggingUtil.logQueryMetrics(
+        this.logger,
+        operation,
+        logContext,
+        {
+          resultCount: paginatedLookupTypes.length,
+          dataQuality: paginatedLookupTypes.length > 0 ? 'good' : 'empty',
+          sampleData: {
+            totalItems,
+            totalProjectionsScanned: allLookupTypes.length,
+            filteredCount: filteredLookupTypes.length,
+            page,
+            size,
+            hasFilters: !!(filter?.name || filter?.code),
+            sortFields: Object.keys(filter?.getSortByRecord?.() ?? {}),
+          },
+        },
+      );
+
+      return Promise.resolve(ok(response));
+    } catch (error) {
+      // Log operation error using shared utility
+      RepositoryLoggingUtil.logOperationError(
+        this.logger,
+        operation,
+        logContext,
+        error as Error,
+        'HIGH',
+      );
+
+      // Handle and return the classified error using shared utility
       return Promise.resolve(handleRepositoryError(error));
     }
   }

@@ -26,7 +26,11 @@ import type {
   CreateLookupTypeProps,
   UpdateLookupTypeProps,
 } from '../../domain/props';
-import { DetailLookupTypeResponse } from '../dtos';
+import {
+  DetailLookupTypeResponse,
+  ListLookupTypeFilterRequest,
+  LookupTypePageResponse,
+} from '../dtos';
 
 // Application layer
 import { LookupTypeAuthorizationService } from './lookup-type-authorization.service';
@@ -37,6 +41,7 @@ import {
   IUpsertLookupTypeUseCase,
   IDeleteLookupTypeUseCase,
   IGetLookupTypeUseCase,
+  IListLookupTypeUseCase,
 } from '../use-cases/contracts';
 
 /**
@@ -51,6 +56,7 @@ export class LookupTypeApplicationService {
     private readonly upsertLookupTypeUseCase: IUpsertLookupTypeUseCase,
     private readonly deleteLookupTypeUseCase: IDeleteLookupTypeUseCase,
     private readonly getLookupTypeUseCase: IGetLookupTypeUseCase,
+    private readonly listLookupTypeUseCase: IListLookupTypeUseCase,
     @Inject(CLOCK) private readonly clock: Clock,
     @Inject(APP_LOGGER) moduleLogger: Logger,
   ) {
@@ -195,6 +201,7 @@ export class LookupTypeApplicationService {
    */
   async createLookupType(
     user: IUserToken,
+    lookupType: string,
     props: CreateLookupTypeProps,
     options?: { idempotencyKey?: string; correlationId?: string },
   ): Promise<Result<DetailLookupTypeResponse, DomainError>> {
@@ -232,6 +239,7 @@ export class LookupTypeApplicationService {
    */
   async updateLookupType(
     user: IUserToken,
+    lookupType: string,
     code: string,
     props: UpdateLookupTypeProps,
     options?: { idempotencyKey?: string; correlationId?: string },
@@ -306,6 +314,7 @@ export class LookupTypeApplicationService {
    */
   async deleteLookupType(
     user: IUserToken,
+    lookupType: string,
     code: string,
   ): Promise<Result<void, DomainError>> {
     // Early input validation
@@ -358,6 +367,7 @@ export class LookupTypeApplicationService {
    */
   async getLookupTypeById(
     user: IUserToken,
+    lookupType: string,
     code: string,
   ): Promise<Result<DetailLookupTypeResponse, DomainError>> {
     // Early input validation
@@ -389,6 +399,46 @@ export class LookupTypeApplicationService {
             CorrelationUtil.generateForOperation('lookup-type-read'),
         }),
       logContext: { code: validatedcode },
+    });
+  }
+
+  /**
+   * List lookupTypes with authorization and pagination
+   */
+  async listLookupTypes(
+    user: IUserToken,
+    lookupType: string,
+    filter?: ListLookupTypeFilterRequest,
+  ): Promise<Result<LookupTypePageResponse, DomainError>> {
+    const authContext = this.createAuthContext(user, 'list');
+    const correlationId =
+      CorrelationUtil.generateForOperation('lookup-type-list');
+
+    // Ensure we always have a proper filter object
+    const safeFilter = filter || new ListLookupTypeFilterRequest();
+
+    return this.authorizeThenExecute<LookupTypePageResponse>({
+      operation: 'read', // List is a form of read operation
+      user,
+      correlationIdPrefix: 'lookup-type-list',
+      doAuthorize: () =>
+        this.lookupTypeAuthorizationService.canReadLookupType(
+          user.sub,
+          'list', // Use 'list' as a special code for list operations
+          correlationId,
+          authContext,
+        ),
+      doExecute: () =>
+        this.listLookupTypeUseCase.execute({
+          user,
+          filter: safeFilter,
+          correlationId,
+        }),
+      logContext: {
+        operation: 'list_lookup_types',
+        pageSize: safeFilter.size,
+        page: safeFilter.page,
+      },
     });
   }
 }

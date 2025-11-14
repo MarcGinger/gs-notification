@@ -4,6 +4,7 @@
 import {
   Controller,
   Get,
+  Query,
   Post,
   Body,
   Put,
@@ -34,8 +35,12 @@ import {
   DetailLookupTypeResponse,
   CreateLookupTypeRequest,
   UpdateLookupTypeRequest,
+  LookupTypePageResponse,
+  ListLookupTypeFilterRequest,
+  ListLookupTypeResponse,
 } from '../../../application/dtos';
 import { Result, ResultInterceptor, DomainError } from 'src/shared/errors';
+import { PaginatedResponse } from 'src/shared/application/dtos';
 import {
   LookupTypeReadResource,
   LookupTypeCreateResource,
@@ -54,7 +59,38 @@ export class LookupTypeController {
     private readonly lookupTypeApplicationService: LookupTypeApplicationService,
   ) {}
 
-  @Get(':code')
+  @Get(':lookupType')
+  @LookupTypeReadResource()
+  @ApiOperation({
+    summary: 'List Lookup types',
+    description:
+      'Retrieves a list of Lookup types with optional filtering. Requires READ permission (LOW risk).',
+  })
+  @ApiParam({
+    name: 'lookupType',
+    type: 'string',
+    description: '',
+    example: 'COUNTRY',
+  })
+  @ApiOkResponse({
+    description: 'List of Lookup types retrieved successfully',
+    type: LookupTypePageResponse,
+  })
+  @ApiCommonErrors()
+  async list(
+    @CurrentUser() user: IUserToken,
+    @Param('lookupType') lookupType: string,
+    @Query() pageRequest?: ListLookupTypeFilterRequest,
+  ): Promise<Result<PaginatedResponse<ListLookupTypeResponse>, DomainError>> {
+    const result = await this.lookupTypeApplicationService.listLookupTypes(
+      user,
+      lookupType,
+      pageRequest,
+    );
+    return result;
+  }
+
+  @Get(':lookupType/attributes/:code')
   @LookupTypeReadResource()
   @ApiOperation({
     summary: 'Get Lookup type by code',
@@ -62,9 +98,15 @@ export class LookupTypeController {
       'Retrieves a single Lookup type by its unique identifier. Requires READ permission (LOW risk).',
   })
   @ApiParam({
+    name: 'lookupType',
+    type: 'string',
+    description: '',
+    example: 'COUNTRY',
+  })
+  @ApiParam({
     name: 'code',
     type: 'string',
-    description: 'LookupType unique identifier',
+    description: '',
     example: 'USA',
   })
   @ApiOkResponse({
@@ -74,10 +116,12 @@ export class LookupTypeController {
   @ApiCommonErrors()
   async get(
     @CurrentUser() user: IUserToken,
+    @Param('lookupType') lookupType: string,
     @Param('code') code: string,
   ): Promise<Result<DetailLookupTypeResponse, DomainError>> {
     const result = await this.lookupTypeApplicationService.getLookupTypeById(
       user,
+      lookupType,
       code,
     );
 
@@ -87,7 +131,7 @@ export class LookupTypeController {
   // Core CRUD Operations
   // ========================================
 
-  @Post()
+  @Post(':lookupType')
   @LookupTypeCreateResource()
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({
@@ -100,6 +144,12 @@ export class LookupTypeController {
     required: false,
     description:
       'Ensures the request is processed only once. Accepts both Idempotency-Key and x-idempotency-key headers.',
+  })
+  @ApiParam({
+    name: 'lookupType',
+    type: 'string',
+    description: '',
+    example: 'COUNTRY',
   })
   @ApiCreatedResponse({
     type: DetailLookupTypeResponse,
@@ -118,6 +168,7 @@ export class LookupTypeController {
   @ApiBody({ type: CreateLookupTypeRequest })
   async create(
     @CurrentUser() user: IUserToken,
+    @Param('lookupType') lookupType: string,
     @Body() createLookupTypeRequest: CreateLookupTypeRequest,
     @IdempotencyKey(new IdempotencyKeyPipe())
     idempotencyKey: string | undefined,
@@ -127,6 +178,7 @@ export class LookupTypeController {
     // Call service with options including idempotency key
     const result = await this.lookupTypeApplicationService.createLookupType(
       user,
+      lookupType,
       createLookupTypeRequest,
       {
         idempotencyKey,
@@ -136,7 +188,7 @@ export class LookupTypeController {
     return result;
   }
 
-  @Put(':code')
+  @Put(':lookupType/attributes/:code')
   @LookupTypeUpdateResource()
   @ApiOperation({
     summary: 'Update a Lookup type',
@@ -144,9 +196,15 @@ export class LookupTypeController {
       'Updates an existing Lookup type with new data. Supports partial updates. Requires UPDATE permission (MEDIUM risk).',
   })
   @ApiParam({
+    name: 'lookupType',
+    type: 'string',
+    description: '',
+    example: 'COUNTRY',
+  })
+  @ApiParam({
     name: 'code',
     type: 'string',
-    description: 'LookupType unique identifier',
+    description: '',
     example: 'USA',
   })
   @ApiResponse({
@@ -168,11 +226,13 @@ export class LookupTypeController {
   })
   async update(
     @CurrentUser() user: IUserToken,
+    @Param('lookupType') lookupType: string,
     @Param('code') code: string,
     @Body() updateLookupTypeRequest: UpdateLookupTypeRequest,
   ): Promise<Result<DetailLookupTypeResponse, DomainError>> {
     const result = await this.lookupTypeApplicationService.updateLookupType(
       user,
+      lookupType,
       code,
       updateLookupTypeRequest,
     );
@@ -180,7 +240,7 @@ export class LookupTypeController {
     return result;
   }
 
-  @Delete(':code')
+  @Delete(':lookupType/attributes/:code')
   @LookupTypeDeleteResource()
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({
@@ -189,9 +249,15 @@ export class LookupTypeController {
       'Marks a Lookup type as deleted so it is no longer active. Implementation may use soft-delete internally. Requires DELETE permission (HIGH risk, justification required).',
   })
   @ApiParam({
+    name: 'lookupType',
+    type: 'string',
+    description: '',
+    example: 'COUNTRY',
+  })
+  @ApiParam({
     name: 'code',
     type: 'string',
-    description: 'LookupType unique identifier',
+    description: '',
     example: 'USA',
   })
   @ApiCommonErrors()
@@ -200,10 +266,12 @@ export class LookupTypeController {
   })
   async remove(
     @CurrentUser() user: IUserToken,
+    @Param('lookupType') lookupType: string,
     @Param('code') code: string,
   ): Promise<Result<void, DomainError>> {
     const result = await this.lookupTypeApplicationService.deleteLookupType(
       user,
+      lookupType,
       code,
     );
     return result;

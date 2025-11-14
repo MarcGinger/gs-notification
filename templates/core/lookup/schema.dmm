@@ -24,7 +24,7 @@
 					"comment": "Foreign key reference to lookup_type table. Defines the category or type of this lookup entry, enabling grouping and filtering of related lookup values.",
 					"defaultvalue": "",
 					"data": "COUNTRY",
-					"after": "route('lookup-types')",
+					"after": "route('attributes')",
 					"autoinc": false,
 					"collation": "",
 					"charset": "",
@@ -140,7 +140,44 @@
 					"estimatedSize": ""
 				}
 			],
-			"indexes": [],
+			"indexes": [
+				{
+					"id": "b3c1cab8-d0d3-4c08-b31d-ffd8bc867b05",
+					"name": "lookup_type_ix_name",
+					"unique": false,
+					"fulltext": false,
+					"using": "na",
+					"algorithm": "na",
+					"lockoption": "na",
+					"cols": [
+						{
+							"id": "72596e2a-e2cf-4f89-a3f2-a9009dfebbf2",
+							"colid": "e6aab6f9-5e93-4297-bbf6-b6da9aeb7e5a",
+							"mariadb": {
+								"desc": false
+							}
+						}
+					]
+				},
+				{
+					"id": "581ddba5-d6cb-4318-8762-b25397ce2679",
+					"name": "lookup_type_ix_code",
+					"unique": false,
+					"fulltext": false,
+					"using": "na",
+					"algorithm": "na",
+					"lockoption": "na",
+					"cols": [
+						{
+							"id": "c3bcd646-ba2d-40c5-a17b-dd27e32665c5",
+							"colid": "ebac1fb7-62dc-4206-8401-15abbcb34447",
+							"mariadb": {
+								"desc": false
+							}
+						}
+					]
+				}
+			],
 			"keys": [
 				{
 					"cols": [
@@ -193,7 +230,7 @@
 		},
 		"type": "MARIADB",
 		"version": 1,
-		"lastSaved": 1763105129716,
+		"lastSaved": 1763114674227,
 		"beforeScript": "",
 		"afterScript": "",
 		"sqlSettings": {
@@ -239,7 +276,7 @@
 			"diagramItems": {
 				"0ec1176a-6b19-4e20-afb4-8fd8821fb644": {
 					"x": 86,
-					"y": 38,
+					"y": 37,
 					"gHeight": 135,
 					"gWidth": 232,
 					"background": "#03a9f4",
