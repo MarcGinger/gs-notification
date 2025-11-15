@@ -39,8 +39,8 @@ export abstract class IDeleteLookupTypeUseCase {
 export abstract class IGetLookupTypeUseCase {
   abstract execute(params: {
     user: IUserToken;
-    code: string;
     lookupType: string;
+    code: string;
     correlationId: string;
   }): Promise<Result<DetailLookupTypeResponse, DomainError>>;
 }

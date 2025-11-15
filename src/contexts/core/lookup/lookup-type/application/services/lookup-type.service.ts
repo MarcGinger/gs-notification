@@ -378,29 +378,30 @@ export class LookupTypeApplicationService {
       return err(codeValidation.error);
     }
 
+    const validatedcode = codeValidation.value;
     const authContext = this.createAuthContext(user, 'read');
 
     return this.authorizeThenExecute<DetailLookupTypeResponse>({
       operation: 'read',
       user,
-      code: codeValidation.value,
+      code: validatedcode,
       correlationIdPrefix: 'lookup-type-read',
       doAuthorize: () =>
         this.lookupTypeAuthorizationService.canReadLookupType(
           user.sub,
-          codeValidation.value,
+          validatedcode,
           CorrelationUtil.generateForOperation('lookup-type-read'),
           authContext,
         ),
       doExecute: () =>
         this.getLookupTypeUseCase.execute({
           user,
-          code: codeValidation.value,
           lookupType,
+          code: validatedcode,
           correlationId:
             CorrelationUtil.generateForOperation('lookup-type-read'),
         }),
-      logContext: { code: codeValidation.value },
+      logContext: { code: validatedcode },
     });
   }
 
