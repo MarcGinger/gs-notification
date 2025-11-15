@@ -59,7 +59,7 @@ export class AttributeRuleSetController {
     private readonly attributeRuleSetApplicationService: AttributeRuleSetApplicationService,
   ) {}
 
-  @Get()
+  @Get('')
   @AttributeRuleSetReadResource()
   @ApiOperation({
     summary: 'List Attribute rule sets',
@@ -95,7 +95,7 @@ export class AttributeRuleSetController {
   @ApiParam({
     name: 'code',
     type: 'string',
-    description: 'AttributeRuleSet unique identifier',
+    description: '',
     example: 'COUNTRY',
   })
   @ApiOkResponse({
@@ -119,7 +119,7 @@ export class AttributeRuleSetController {
   // Core CRUD Operations
   // ========================================
 
-  @Post()
+  @Post('')
   @AttributeRuleSetCreateResource()
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({
@@ -179,7 +179,7 @@ export class AttributeRuleSetController {
   @ApiParam({
     name: 'code',
     type: 'string',
-    description: 'AttributeRuleSet unique identifier',
+    description: '',
     example: 'COUNTRY',
   })
   @ApiResponse({
@@ -225,7 +225,7 @@ export class AttributeRuleSetController {
   @ApiParam({
     name: 'code',
     type: 'string',
-    description: 'AttributeRuleSet unique identifier',
+    description: '',
     example: 'COUNTRY',
   })
   @ApiCommonErrors()

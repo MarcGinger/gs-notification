@@ -22,15 +22,11 @@ import { LookupServiceConstants } from '../../../service-constants';
 
 // Domain types and errors
 import { LookupTypeErrors } from '../../domain/errors/lookup-type.errors';
-import type {
-  CreateLookupTypeProps,
-  UpdateLookupTypeProps,
-} from '../../domain/props';
 import {
-  CreateLookupTypeRequest,
   DetailLookupTypeResponse,
   ListLookupTypeFilterRequest,
   LookupTypePageResponse,
+  CreateLookupTypeRequest,
   UpdateLookupTypeRequest,
 } from '../dtos';
 
@@ -302,8 +298,8 @@ export class LookupTypeApplicationService {
           code: validatedcode,
           props: {
             ...props,
-            code: validatedcode,
             lookupType,
+            code: validatedcode,
           },
           correlationId,
           authorizationReason: 'update_lookup_type',

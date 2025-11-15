@@ -22,14 +22,12 @@ import { AttributesServiceConstants } from '../../../service-constants';
 
 // Domain types and errors
 import { AttributeRuleSetErrors } from '../../domain/errors/attribute-rule-set.errors';
-import type {
-  CreateAttributeRuleSetProps,
-  UpdateAttributeRuleSetProps,
-} from '../../domain/props';
 import {
   DetailAttributeRuleSetResponse,
   ListAttributeRuleSetFilterRequest,
   AttributeRuleSetPageResponse,
+  CreateAttributeRuleSetRequest,
+  UpdateAttributeRuleSetRequest,
 } from '../dtos';
 
 // Application layer
@@ -210,7 +208,7 @@ export class AttributeRuleSetApplicationService {
    */
   async createAttributeRuleSet(
     user: IUserToken,
-    props: CreateAttributeRuleSetProps,
+    props: CreateAttributeRuleSetRequest,
     options?: { idempotencyKey?: string; correlationId?: string },
   ): Promise<Result<DetailAttributeRuleSetResponse, DomainError>> {
     const authContext = this.createAuthContext(user, 'create');
@@ -248,7 +246,7 @@ export class AttributeRuleSetApplicationService {
   async updateAttributeRuleSet(
     user: IUserToken,
     code: string,
-    props: UpdateAttributeRuleSetProps,
+    props: UpdateAttributeRuleSetRequest,
     options?: { idempotencyKey?: string; correlationId?: string },
   ): Promise<Result<DetailAttributeRuleSetResponse, DomainError>> {
     // Early input validation
