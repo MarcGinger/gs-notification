@@ -36,7 +36,7 @@ import {
   TemplateProjectionUpsertResult,
   TemplateRowMappers,
 } from '../schemas/template.schema';
-import { Props } from '../../domain/props';
+
 /**
  * Template projector error catalog using shared error definitions
  */

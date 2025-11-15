@@ -30,7 +30,11 @@ import {
   ProjectionMetrics,
   ProjectionMetricsCollector,
 } from 'src/shared/infrastructure/stores';
-import { safeParseJSON } from 'src/shared/infrastructure/repositories';
+import {
+  isString,
+  safeParseJSON,
+  safeParseJSONArray,
+} from 'src/shared/infrastructure/repositories';
 import { TemplateProjectionKeys } from '../../template-projection-keys';
 import { DetailTemplateResponse } from '../../application/dtos';
 import { templateStore, TemplateProjection } from '../stores/template.store';

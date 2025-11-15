@@ -242,7 +242,7 @@ export class ConfigApplicationService {
     if (!workspaceCodeValidation.ok) {
       return err(workspaceCodeValidation.error);
     }
-    const validatedworkspaceCode = workspaceCodeValidation.value;
+    const validatedWorkspaceCode = workspaceCodeValidation.value;
 
     const authContext = this.createAuthContext(user, 'update');
     const correlationId =
@@ -257,7 +257,7 @@ export class ConfigApplicationService {
       user.sub, 
       'update', 
       CorrelationUtil.generateForOperation('config-update'), 
-      validatedworkspaceCode, 
+      validatedWorkspaceCode, 
       fields, 
       authContext
     );
@@ -265,7 +265,7 @@ export class ConfigApplicationService {
     if (!opAuth.value.authorized) {
       return err(withContext(ConfigErrors.PERMISSION_DENIED, { 
         operation: 'update', 
-        workspaceCode: validatedworkspaceCode, 
+        workspaceCode: validatedWorkspaceCode, 
         userId: user.sub,
         category: 'security'
       }));
@@ -275,22 +275,22 @@ export class ConfigApplicationService {
     return this.authorizeThenExecute<DetailConfigResponse>({
       operation: 'update',
       user,
-      workspaceCode: validatedworkspaceCode,
+      workspaceCode: validatedWorkspaceCode,
       correlationIdPrefix: 'config-update',
       doAuthorize: () =>
         this.configAuthorizationService.canUpdateConfig(
           user.sub,
-          validatedworkspaceCode,
+          validatedWorkspaceCode,
           correlationId,
           authContext,
         ),
       doExecute: () =>
         this.upsertConfigUseCase.execute({
           user,
-          workspaceCode: validatedworkspaceCode,
+          workspaceCode: validatedWorkspaceCode,
           props: {
             ...props,
-            code: validatedworkspaceCode,
+            workspaceCode: validatedWorkspaceCode,
           },
           correlationId,
           authorizationReason: 'update_config',
@@ -298,7 +298,7 @@ export class ConfigApplicationService {
             idempotencyKey: options.idempotencyKey,
           }),
         }),
-      logContext: { workspaceCode: validatedworkspaceCode },
+      logContext: { workspaceCode: validatedWorkspaceCode },
     });
   }
 
@@ -317,30 +317,30 @@ export class ConfigApplicationService {
     if (!workspaceCodeValidation.ok) {
       return err(workspaceCodeValidation.error);
     }
-    const validatedworkspaceCode = workspaceCodeValidation.value;
+    const validatedWorkspaceCode = workspaceCodeValidation.value;
 
     const authContext = this.createAuthContext(user, 'read');
 
     return this.authorizeThenExecute<DetailConfigResponse>({
       operation: 'read',
       user,
-      workspaceCode: validatedworkspaceCode,
+      workspaceCode: validatedWorkspaceCode,
       correlationIdPrefix: 'config-read',
       doAuthorize: () =>
         this.configAuthorizationService.canReadConfig(
           user.sub,
-          validatedworkspaceCode,
+          validatedWorkspaceCode,
           CorrelationUtil.generateForOperation('config-read'),
           authContext,
         ),
       doExecute: () =>
         this.getConfigUseCase.execute({
           user,
-          workspaceCode: validatedworkspaceCode,
+          workspaceCode: validatedWorkspaceCode,
           correlationId: CorrelationUtil.generateForOperation('config-read'),
         }),
       logContext: {
-        workspaceCode: validatedworkspaceCode,
+        workspaceCode: validatedWorkspaceCode,
       },
     });
   }

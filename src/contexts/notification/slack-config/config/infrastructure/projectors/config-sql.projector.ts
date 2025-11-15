@@ -36,7 +36,7 @@ import {
   ConfigProjectionUpsertResult,
   ConfigRowMappers,
 } from '../schemas/config.schema';
-import { Props } from '../../domain/props';
+
 /**
  * Config projector error catalog using shared error definitions
  */

@@ -243,7 +243,7 @@ export class WorkspaceApplicationService {
     if (!codeValidation.ok) {
       return err(codeValidation.error);
     }
-    const validatedcode = codeValidation.value;
+    const validatedCode = codeValidation.value;
 
     const authContext = this.createAuthContext(user, 'update');
     const correlationId =
@@ -258,7 +258,7 @@ export class WorkspaceApplicationService {
       user.sub, 
       'update', 
       CorrelationUtil.generateForOperation('workspace-update'), 
-      validatedcode, 
+      validatedCode, 
       fields, 
       authContext
     );
@@ -266,7 +266,7 @@ export class WorkspaceApplicationService {
     if (!opAuth.value.authorized) {
       return err(withContext(WorkspaceErrors.PERMISSION_DENIED, { 
         operation: 'update', 
-        code: validatedcode, 
+        code: validatedCode, 
         userId: user.sub,
         category: 'security'
       }));
@@ -276,22 +276,22 @@ export class WorkspaceApplicationService {
     return this.authorizeThenExecute<DetailWorkspaceResponse>({
       operation: 'update',
       user,
-      code: validatedcode,
+      code: validatedCode,
       correlationIdPrefix: 'workspace-update',
       doAuthorize: () =>
         this.workspaceAuthorizationService.canUpdateWorkspace(
           user.sub,
-          validatedcode,
+          validatedCode,
           correlationId,
           authContext,
         ),
       doExecute: () =>
         this.upsertWorkspaceUseCase.execute({
           user,
-          code: validatedcode,
+          code: validatedCode,
           props: {
             ...props,
-            code: validatedcode,
+            code: validatedCode,
           },
           correlationId,
           authorizationReason: 'update_workspace',
@@ -299,7 +299,7 @@ export class WorkspaceApplicationService {
             idempotencyKey: options.idempotencyKey,
           }),
         }),
-      logContext: { code: validatedcode },
+      logContext: { code: validatedCode },
     });
   }
 
@@ -315,30 +315,30 @@ export class WorkspaceApplicationService {
     if (!codeValidation.ok) {
       return err(codeValidation.error);
     }
-    const validatedcode = codeValidation.value;
+    const validatedCode = codeValidation.value;
 
     const authContext = this.createAuthContext(user, 'read');
 
     return this.authorizeThenExecute<DetailWorkspaceResponse>({
       operation: 'read',
       user,
-      code: validatedcode,
+      code: validatedCode,
       correlationIdPrefix: 'workspace-read',
       doAuthorize: () =>
         this.workspaceAuthorizationService.canReadWorkspace(
           user.sub,
-          validatedcode,
+          validatedCode,
           CorrelationUtil.generateForOperation('workspace-read'),
           authContext,
         ),
       doExecute: () =>
         this.getWorkspaceUseCase.execute({
           user,
-          code: validatedcode,
+          code: validatedCode,
           correlationId: CorrelationUtil.generateForOperation('workspace-read'),
         }),
       logContext: {
-        code: validatedcode,
+        code: validatedCode,
       },
     });
   }

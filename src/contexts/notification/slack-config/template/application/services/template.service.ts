@@ -243,7 +243,7 @@ export class TemplateApplicationService {
     if (!codeValidation.ok) {
       return err(codeValidation.error);
     }
-    const validatedcode = codeValidation.value;
+    const validatedCode = codeValidation.value;
 
     const authContext = this.createAuthContext(user, 'update');
     const correlationId =
@@ -258,7 +258,7 @@ export class TemplateApplicationService {
       user.sub, 
       'update', 
       CorrelationUtil.generateForOperation('template-update'), 
-      validatedcode, 
+      validatedCode, 
       fields, 
       authContext
     );
@@ -266,7 +266,7 @@ export class TemplateApplicationService {
     if (!opAuth.value.authorized) {
       return err(withContext(TemplateErrors.PERMISSION_DENIED, { 
         operation: 'update', 
-        code: validatedcode, 
+        code: validatedCode, 
         userId: user.sub,
         category: 'security'
       }));
@@ -276,22 +276,22 @@ export class TemplateApplicationService {
     return this.authorizeThenExecute<DetailTemplateResponse>({
       operation: 'update',
       user,
-      code: validatedcode,
+      code: validatedCode,
       correlationIdPrefix: 'template-update',
       doAuthorize: () =>
         this.templateAuthorizationService.canUpdateTemplate(
           user.sub,
-          validatedcode,
+          validatedCode,
           correlationId,
           authContext,
         ),
       doExecute: () =>
         this.upsertTemplateUseCase.execute({
           user,
-          code: validatedcode,
+          code: validatedCode,
           props: {
             ...props,
-            code: validatedcode,
+            code: validatedCode,
           },
           correlationId,
           authorizationReason: 'update_template',
@@ -299,7 +299,7 @@ export class TemplateApplicationService {
             idempotencyKey: options.idempotencyKey,
           }),
         }),
-      logContext: { code: validatedcode },
+      logContext: { code: validatedCode },
     });
   }
 
@@ -315,30 +315,30 @@ export class TemplateApplicationService {
     if (!codeValidation.ok) {
       return err(codeValidation.error);
     }
-    const validatedcode = codeValidation.value;
+    const validatedCode = codeValidation.value;
 
     const authContext = this.createAuthContext(user, 'read');
 
     return this.authorizeThenExecute<DetailTemplateResponse>({
       operation: 'read',
       user,
-      code: validatedcode,
+      code: validatedCode,
       correlationIdPrefix: 'template-read',
       doAuthorize: () =>
         this.templateAuthorizationService.canReadTemplate(
           user.sub,
-          validatedcode,
+          validatedCode,
           CorrelationUtil.generateForOperation('template-read'),
           authContext,
         ),
       doExecute: () =>
         this.getTemplateUseCase.execute({
           user,
-          code: validatedcode,
+          code: validatedCode,
           correlationId: CorrelationUtil.generateForOperation('template-read'),
         }),
       logContext: {
-        code: validatedcode,
+        code: validatedCode,
       },
     });
   }

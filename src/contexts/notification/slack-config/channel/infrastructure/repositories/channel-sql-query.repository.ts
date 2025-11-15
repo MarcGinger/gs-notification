@@ -10,6 +10,7 @@ import {
   RepositoryLoggingUtil,
   RepositoryLoggingConfig,
   RepositoryExecutionUtil,
+  safeParseJSON,
   handleRepositoryError,
   RepositoryOptions,
   isString,
@@ -219,7 +220,7 @@ export class ChannelQueryRepository implements IChannelQuery {
       filterWorkspaceCode: filter?.workspaceCode,
       page: filter?.page,
       size: filter?.size,
-      sortBy: filter ? {} : {},
+      sortBy: filter?.getSortByRecord?.() || {},
     });
 
     // Validate actor context with enhanced security logging
@@ -302,9 +303,8 @@ export class ChannelQueryRepository implements IChannelQuery {
         }
       }
 
-      // Build ORDER BY clause with default sorting
-      const sortByRecord: Record<string, string> = { code: 'asc' };
-      const orderBy = this.buildOrderByClause(sortByRecord);
+      // Build ORDER BY clause
+      const orderBy = this.buildOrderByClause(filter?.getSortByRecord?.());
 
       // Build pagination
       const page = filter?.page ?? 1;
@@ -411,7 +411,7 @@ export class ChannelQueryRepository implements IChannelQuery {
               filter?.name ||
               filter?.workspaceCode
             ),
-            sortFields: filter?.sortBy ? [filter.sortBy] : [],
+            sortFields: Object.keys(filter?.getSortByRecord?.() ?? {}),
           },
         },
       );
@@ -521,11 +521,7 @@ export class ChannelQueryRepository implements IChannelQuery {
       isDm: channel.is_dm,
       topic: channel.topic ?? undefined,
       purpose: channel.purpose ?? undefined,
-      subscribedEvents: safeParseJSONArray(
-        channel.subscribed_events,
-        'subscribedEvents',
-        isString,
-      ),
+      subscribedEvents: channel.subscribed_events ?? undefined,
       enabled: channel.enabled,
     };
 

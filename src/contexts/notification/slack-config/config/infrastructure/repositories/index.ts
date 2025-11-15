@@ -4,3 +4,4 @@
 export * from './config-memory-query.repository';
 export * from './config-memory-reader.repository';
 export * from './config-memory-writer.repository';
+export * from './workspace-redis.repository';

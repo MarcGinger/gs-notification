@@ -35,6 +35,7 @@ import {
   WorkspaceProjectionUpsertResult,
   WorkspaceRowMappers,
 } from '../schemas/workspace.schema';
+
 /**
  * Workspace projector error catalog using shared error definitions
  */

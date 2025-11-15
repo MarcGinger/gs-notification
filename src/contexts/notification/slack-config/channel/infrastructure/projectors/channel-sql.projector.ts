@@ -35,6 +35,7 @@ import {
   ChannelProjectionUpsertResult,
   ChannelRowMappers,
 } from '../schemas/channel.schema';
+
 /**
  * Channel projector error catalog using shared error definitions
  */

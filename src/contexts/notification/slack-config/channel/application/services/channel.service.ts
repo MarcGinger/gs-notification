@@ -243,7 +243,7 @@ export class ChannelApplicationService {
     if (!codeValidation.ok) {
       return err(codeValidation.error);
     }
-    const validatedcode = codeValidation.value;
+    const validatedCode = codeValidation.value;
 
     const authContext = this.createAuthContext(user, 'update');
     const correlationId =
@@ -258,7 +258,7 @@ export class ChannelApplicationService {
       user.sub, 
       'update', 
       CorrelationUtil.generateForOperation('channel-update'), 
-      validatedcode, 
+      validatedCode, 
       fields, 
       authContext
     );
@@ -266,7 +266,7 @@ export class ChannelApplicationService {
     if (!opAuth.value.authorized) {
       return err(withContext(ChannelErrors.PERMISSION_DENIED, { 
         operation: 'update', 
-        code: validatedcode, 
+        code: validatedCode, 
         userId: user.sub,
         category: 'security'
       }));
@@ -276,22 +276,22 @@ export class ChannelApplicationService {
     return this.authorizeThenExecute<DetailChannelResponse>({
       operation: 'update',
       user,
-      code: validatedcode,
+      code: validatedCode,
       correlationIdPrefix: 'channel-update',
       doAuthorize: () =>
         this.channelAuthorizationService.canUpdateChannel(
           user.sub,
-          validatedcode,
+          validatedCode,
           correlationId,
           authContext,
         ),
       doExecute: () =>
         this.upsertChannelUseCase.execute({
           user,
-          code: validatedcode,
+          code: validatedCode,
           props: {
             ...props,
-            code: validatedcode,
+            code: validatedCode,
           },
           correlationId,
           authorizationReason: 'update_channel',
@@ -299,7 +299,7 @@ export class ChannelApplicationService {
             idempotencyKey: options.idempotencyKey,
           }),
         }),
-      logContext: { code: validatedcode },
+      logContext: { code: validatedCode },
     });
   }
 
@@ -315,30 +315,30 @@ export class ChannelApplicationService {
     if (!codeValidation.ok) {
       return err(codeValidation.error);
     }
-    const validatedcode = codeValidation.value;
+    const validatedCode = codeValidation.value;
 
     const authContext = this.createAuthContext(user, 'read');
 
     return this.authorizeThenExecute<DetailChannelResponse>({
       operation: 'read',
       user,
-      code: validatedcode,
+      code: validatedCode,
       correlationIdPrefix: 'channel-read',
       doAuthorize: () =>
         this.channelAuthorizationService.canReadChannel(
           user.sub,
-          validatedcode,
+          validatedCode,
           CorrelationUtil.generateForOperation('channel-read'),
           authContext,
         ),
       doExecute: () =>
         this.getChannelUseCase.execute({
           user,
-          code: validatedcode,
+          code: validatedCode,
           correlationId: CorrelationUtil.generateForOperation('channel-read'),
         }),
       logContext: {
-        code: validatedcode,
+        code: validatedCode,
       },
     });
   }
