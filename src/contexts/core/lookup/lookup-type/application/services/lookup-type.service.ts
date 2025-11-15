@@ -225,13 +225,12 @@ export class LookupTypeApplicationService {
     props: CreateLookupTypeRequest,
     options?: { idempotencyKey?: string; correlationId?: string },
   ): Promise<Result<DetailLookupTypeResponse, DomainError>> {
-    // Early input validation
     const lookupTypeValidation = this.validateLookupType(lookupType, 'create');
     if (!lookupTypeValidation.ok) {
       return err(lookupTypeValidation.error);
     }
-
     const validatedLookupType = lookupTypeValidation.value;
+
     const authContext = this.createAuthContext(user, 'create');
     const correlationId =
       options?.correlationId ||
@@ -279,14 +278,14 @@ export class LookupTypeApplicationService {
     if (!lookupTypeValidation.ok) {
       return err(lookupTypeValidation.error);
     }
+    const validatedLookupType = lookupTypeValidation.value;
 
     const codeValidation = this.validateCode(code, 'update');
     if (!codeValidation.ok) {
       return err(codeValidation.error);
     }
-
-    const validatedLookupType = lookupTypeValidation.value;
     const validatedcode = codeValidation.value;
+
     const authContext = this.createAuthContext(user, 'update');
     const correlationId =
       options?.correlationId ||
@@ -359,14 +358,14 @@ export class LookupTypeApplicationService {
     if (!lookupTypeValidation.ok) {
       return err(lookupTypeValidation.error);
     }
+    const validatedLookupType = lookupTypeValidation.value;
 
     const codeValidation = this.validateCode(code, 'delete');
     if (!codeValidation.ok) {
       return err(codeValidation.error);
     }
-
-    const validatedLookupType = lookupTypeValidation.value;
     const validatedcode = codeValidation.value;
+
     const authContext = this.createAuthContext(user, 'delete');
 
     return this.authorizeThenExecute<void>({
@@ -423,14 +422,14 @@ export class LookupTypeApplicationService {
     if (!lookupTypeValidation.ok) {
       return err(lookupTypeValidation.error);
     }
+    const validatedLookupType = lookupTypeValidation.value;
 
     const codeValidation = this.validateCode(code, 'read');
     if (!codeValidation.ok) {
       return err(codeValidation.error);
     }
-
-    const validatedLookupType = lookupTypeValidation.value;
     const validatedcode = codeValidation.value;
+
     const authContext = this.createAuthContext(user, 'read');
 
     return this.authorizeThenExecute<DetailLookupTypeResponse>({
@@ -453,7 +452,10 @@ export class LookupTypeApplicationService {
           correlationId:
             CorrelationUtil.generateForOperation('lookup-type-read'),
         }),
-      logContext: { code: validatedcode, lookupType: validatedLookupType },
+      logContext: {
+        code: validatedcode,
+        lookupType: validatedLookupType,
+      },
     });
   }
 
@@ -465,13 +467,12 @@ export class LookupTypeApplicationService {
     lookupType: string,
     filter?: ListLookupTypeFilterRequest,
   ): Promise<Result<LookupTypePageResponse, DomainError>> {
-    // Early input validation
-    const lookupTypeValidation = this.validateLookupType(lookupType, 'list');
+    const lookupTypeValidation = this.validateLookupType(lookupType, 'read');
     if (!lookupTypeValidation.ok) {
       return err(lookupTypeValidation.error);
     }
-
     const validatedLookupType = lookupTypeValidation.value;
+
     const authContext = this.createAuthContext(user, 'list');
     const correlationId =
       CorrelationUtil.generateForOperation('lookup-type-list');
