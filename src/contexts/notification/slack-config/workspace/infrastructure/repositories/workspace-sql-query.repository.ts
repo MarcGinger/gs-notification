@@ -476,7 +476,6 @@ export class WorkspaceQueryRepository implements IWorkspaceQuery {
   private toListResponse(workspace: WorkspaceRow): ListWorkspaceResponse {
     // Parse JSON arrays using specialized utility with type validation
     // Parse complex JSONB objects - let undefined values be undefined (no fake defaults)
-
     // Create properly structured response with explicit field mapping
     // All undefined values are passed through - no fake defaults
     const response: ListWorkspaceResponse = {
