@@ -261,6 +261,7 @@ It transforms attribute governance from a scattered, per-domain concern into a c
   | Modules |
   |---------------|
   | [***lookup-type  →***](/api/docs/core/lookup/lookup-type) |
+  | [***lookup-xxx  →***](/api/docs/core/lookup/lookup-xxx) |
         `,
       )
       .setVersion('1.0.0')

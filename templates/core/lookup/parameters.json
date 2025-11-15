@@ -52,6 +52,54 @@
         "auditView": true,
         "custom": []
       }
+    },
+    "lookup_xxx": {
+      "docs": {
+        "name": "Lookup_xxx",
+        "summary": "Configuration for lookup_xxx table",
+        "version": "1.0.0"
+      },
+      "apis": {},
+      "store": {
+        "read": "sql,eventstream,redis",
+        "write": "sql,eventstream,redis",
+        "query": "sql,eventstream,redis"
+      },
+      "redis": {
+        "prefix": "",
+        "version": "1.0",
+        "category": "core:lookup.lookup.xxx.v1",
+        "ttl": 3600,
+        "hash": true,
+        "aggregate": "lookup_xxx"
+      },
+      "eventstream": {
+        "boundedContext": "core",
+        "aggregate": "lookup_xxx",
+        "version": "v1",
+        "stream": "core.lookup.lookupXxx",
+        "createdEvent": "CoreLookupLookupXxxCreated.v1",
+        "updatedEvent": "CoreLookupLookupXxxUpdated.v1",
+        "deletedEvent": "CoreLookupLookupXxxDeleted.v1"
+      },
+      "cols": {
+        "lookup_type": {},
+        "code": {},
+        "name": {},
+        "description": {},
+        "enabled": {},
+        "attributes": {}
+      },
+      "permissions": {
+        "bulk": [
+          "update",
+          "delete",
+          "import"
+        ],
+        "adminOverride": true,
+        "auditView": true,
+        "custom": []
+      }
     }
   },
   "docs": {

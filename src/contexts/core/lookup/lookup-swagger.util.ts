@@ -6,6 +6,7 @@ import { AppConfigUtil } from 'src/shared/config/app-config.util';
 
 import { LookupApplicationDocumentation } from './lookup.doc';
 import { LookupTypeDocumentation } from './lookup-type/docs/lookup-type.doc';
+import { LookupXxxDocumentation } from './lookup-xxx/docs/lookup-xxx.doc';
 
 /**
  * Setup core-lookup application/service Swagger documentation
@@ -23,9 +24,11 @@ export function setupCoreLookupDocs(
 
   // Setup documentation for all core_lookup aggregates
   const lookupTypeUrls = LookupTypeDocumentation.setupAll(app, port);
+  const lookupXxxUrls = LookupXxxDocumentation.setupAll(app, port);
 
   return {
     ...boundedContextUrls,
     ...lookupTypeUrls,
+    ...lookupXxxUrls,
   };
 }

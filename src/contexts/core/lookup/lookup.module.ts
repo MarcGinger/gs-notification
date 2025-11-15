@@ -10,6 +10,9 @@ import { LookupSharedModule } from './lookup-shared.module';
 import { LookupTypeRouterModule } from './lookup-type/interface/http/lookup-type.router';
 
 import { LookupTypeProjectorModule } from './lookup-type/lookup-type-projector.module';
+import { LookupXxxRouterModule } from './lookup-xxx/interface/http/lookup-xxx.router';
+
+import { LookupXxxProjectorModule } from './lookup-xxx/lookup-xxx-projector.module';
 
 /**
  * Lookup Module - Bounded Context Entry Point
@@ -34,11 +37,15 @@ import { LookupTypeProjectorModule } from './lookup-type/lookup-type-projector.m
     LookupSharedModule,
     LookupTypeRouterModule,
     LookupTypeProjectorModule,
+    LookupXxxRouterModule,
+    LookupXxxProjectorModule,
   ],
   exports: [
     // Export all modules for potential cross-domain dependencies
     LookupTypeRouterModule,
     LookupTypeProjectorModule,
+    LookupXxxRouterModule,
+    LookupXxxProjectorModule,
   ],
 })
 export class CoreLookupModule {}

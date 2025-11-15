@@ -200,6 +200,207 @@
 			"customCode": "",
 			"temporary": false,
 			"ifnotexists": false
+		},
+		"94feb1ca-aa34-4728-b172-18957ac06737": {
+			"collation": "utf8mb4_general_ci",
+			"charset": "utf8mb4",
+			"database": "gscore-lookup",
+			"desc": "",
+			"embeddable": false,
+			"id": "94feb1ca-aa34-4728-b172-18957ac06737",
+			"initautoinc": "",
+			"name": "lookup_xxx",
+			"relations": [],
+			"rowformat": "Dynamic",
+			"tabletype": "InnoDB",
+			"cols": [
+				{
+					"id": "3bc63a00-9909-4793-9cfe-57e78aad82cd",
+					"name": "lookup_type",
+					"datatype": "VARCHAR",
+					"param": "64",
+					"pk": false,
+					"nn": true,
+					"fk": false,
+					"comment": "Foreign key reference to lookup_type table. Defines the category or type of this lookup entry, enabling grouping and filtering of related lookup values.",
+					"defaultvalue": "",
+					"data": "COUNTRY",
+					"after": "route('attributes')",
+					"autoinc": false,
+					"collation": "",
+					"charset": "",
+					"binary": false,
+					"zerofill": false,
+					"unsigned": false,
+					"enum": "",
+					"estimatedSize": ""
+				},
+				{
+					"after": "",
+					"autoinc": true,
+					"charset": "",
+					"collation": "",
+					"comment": "Primary key and unique identifier for the lookup entry. Used as the canonical reference value when this lookup is selected or referenced by other entities.",
+					"datatype": "UUID",
+					"defaultvalue": "",
+					"enum": "",
+					"id": "a7e11ee4-0462-48b7-9b21-a7367268cc35",
+					"name": "code",
+					"nn": true,
+					"param": "64",
+					"pk": true,
+					"unsigned": false,
+					"zerofill": false,
+					"data": "USA",
+					"estimatedSize": "",
+					"fk": false,
+					"binary": false
+				},
+				{
+					"after": "",
+					"autoinc": false,
+					"charset": "",
+					"collation": "",
+					"comment": "Human-readable display name for the lookup entry. This is the text that should be shown to users in forms, dropdowns, and reports rather than the technical code.",
+					"datatype": "VARCHAR",
+					"defaultvalue": "",
+					"enum": "",
+					"id": "990dbb1a-4595-4536-a873-d4240e3bcdef",
+					"name": "name",
+					"nn": true,
+					"param": "128",
+					"pk": false,
+					"unsigned": false,
+					"zerofill": false,
+					"data": "United States",
+					"estimatedSize": "",
+					"fk": false,
+					"binary": false
+				},
+				{
+					"id": "ee565fd1-7086-472c-9f5d-b5b064ab3913",
+					"name": "description",
+					"datatype": "TEXT",
+					"param": "",
+					"pk": false,
+					"nn": false,
+					"fk": false,
+					"comment": "Optional detailed description providing additional context, usage notes, or business rules for this lookup entry. Can include markdown formatting for rich text display.",
+					"defaultvalue": "",
+					"data": "Primary currency used in the United States and its territories",
+					"after": "",
+					"autoinc": false,
+					"collation": "",
+					"charset": "",
+					"binary": false,
+					"zerofill": false,
+					"unsigned": false,
+					"enum": "",
+					"estimatedSize": ""
+				},
+				{
+					"id": "2800d165-6d4f-43f0-b9e7-59004f427dcd",
+					"name": "enabled",
+					"datatype": "BOOLEAN",
+					"param": "",
+					"pk": false,
+					"nn": false,
+					"fk": false,
+					"comment": "Controls whether this lookup entry is active and available for selection. When false, the entry is hidden from user interfaces but preserved for historical data integrity.",
+					"defaultvalue": "true",
+					"data": "true",
+					"after": "",
+					"autoinc": false,
+					"collation": "",
+					"charset": "",
+					"binary": false,
+					"zerofill": false,
+					"unsigned": false,
+					"enum": "",
+					"estimatedSize": ""
+				},
+				{
+					"id": "2cbe9204-5e88-4c67-b9a7-410bf4ab8c56",
+					"name": "attributes",
+					"datatype": "JSON",
+					"param": "",
+					"pk": false,
+					"nn": false,
+					"fk": false,
+					"comment": "Dynamic JSON object containing custom attributes specific to this lookup entry. Structure and validation rules are defined by the associated lookup_type's attributerules.",
+					"defaultvalue": "",
+					"data": "{\"iso_code\": \"USD\", \"symbol\": \"$\"}",
+					"after": "",
+					"autoinc": false,
+					"collation": "",
+					"charset": "",
+					"binary": false,
+					"zerofill": false,
+					"unsigned": false,
+					"enum": "",
+					"estimatedSize": ""
+				}
+			],
+			"indexes": [
+				{
+					"id": "5e62a68a-7981-48ba-861f-beee03ab9d99",
+					"name": "lookup_type_ix_name",
+					"unique": false,
+					"fulltext": false,
+					"using": "na",
+					"algorithm": "na",
+					"lockoption": "na",
+					"cols": [
+						{
+							"id": "7fc75757-ff64-4cd3-b8f6-6f9edcdb8054",
+							"colid": "990dbb1a-4595-4536-a873-d4240e3bcdef",
+							"mariadb": {
+								"desc": false
+							}
+						}
+					]
+				},
+				{
+					"id": "359b5e66-dd98-4d65-b140-c22f5cb4ac7f",
+					"name": "lookup_type_ix_code",
+					"unique": false,
+					"fulltext": false,
+					"using": "na",
+					"algorithm": "na",
+					"lockoption": "na",
+					"cols": [
+						{
+							"id": "707bb454-83a1-4229-bfae-5855c950f815",
+							"colid": "a7e11ee4-0462-48b7-9b21-a7367268cc35",
+							"mariadb": {
+								"desc": false
+							}
+						}
+					]
+				}
+			],
+			"keys": [
+				{
+					"cols": [
+						{
+							"colid": "a7e11ee4-0462-48b7-9b21-a7367268cc35",
+							"id": "45c84bcc-3f24-4868-b43c-6751968523fa"
+						}
+					],
+					"id": "3e943475-4736-4df2-8c72-b66d99e91c9c",
+					"isPk": true,
+					"name": "PRIMARY"
+				}
+			],
+			"lines": [],
+			"visible": true,
+			"afterScript": "",
+			"generate": true,
+			"generateCustomCode": true,
+			"estimatedSize": "",
+			"customCode": "",
+			"temporary": false,
+			"ifnotexists": false
 		}
 	},
 	"relations": {},
@@ -230,7 +431,7 @@
 		},
 		"type": "MARIADB",
 		"version": 1,
-		"lastSaved": 1763114674227,
+		"lastSaved": 1763114706572,
 		"beforeScript": "",
 		"afterScript": "",
 		"sqlSettings": {
@@ -285,6 +486,18 @@
 					"resized": false,
 					"autoExpand": true,
 					"backgroundOpacity": "10"
+				},
+				"94feb1ca-aa34-4728-b172-18957ac06737": {
+					"x": 86,
+					"y": 245,
+					"gHeight": 135,
+					"gWidth": 232,
+					"background": "#03a9f4",
+					"color": "#ffffff",
+					"referencedItemId": "94feb1ca-aa34-4728-b172-18957ac06737",
+					"resized": false,
+					"autoExpand": true,
+					"backgroundOpacity": "10"
 				}
 			},
 			"isOpen": true,
@@ -336,7 +549,8 @@
 	},
 	"diagramsOrder": [],
 	"order": [
-		"0ec1176a-6b19-4e20-afb4-8fd8821fb644"
+		"0ec1176a-6b19-4e20-afb4-8fd8821fb644",
+		"94feb1ca-aa34-4728-b172-18957ac06737"
 	],
 	"collapsedTreeItems": [],
 	"reverseStats": {}
