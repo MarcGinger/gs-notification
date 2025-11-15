@@ -476,20 +476,20 @@ export class LookupTypeProjector
       const tenant = TenantExtractor.extractTenant(event);
 
       // Use LookupTypeFieldValidatorUtil to create validated lookupType snapshot
-      const lookupTypeProjectorData =
+      const projectorData =
         LookupTypeFieldValidatorUtil.createLookupTypeProjectorDataFromEventData(
           eventData,
         );
 
-      // Parse JSON string back to object for attributes field using safe parser
+      // Parse object fields using safeParseJSON utility
       const attributes = safeParseJSON<Record<string, unknown>>(
-        lookupTypeProjectorData.attributes,
+        projectorData.attributes,
         'attributes',
       );
 
       // Add projector-specific fields for SQL storage
       return {
-        ...lookupTypeProjectorData,
+        ...projectorData,
         attributes,
         tenant,
         deletedAt: null, // Projector handles soft deletes

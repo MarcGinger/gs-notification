@@ -4,7 +4,7 @@
 import { UpdateAttributeRuleProps } from './attribute-rule';
 
 export interface UpdateAttributeRuleSetProps {
-  code?: string;
+  code: string;
   name?: string;
   description?: string;
   enabled?: boolean;

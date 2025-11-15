@@ -254,8 +254,8 @@ export class AttributeRuleSetApplicationService {
     if (!codeValidation.ok) {
       return err(codeValidation.error);
     }
-
     const validatedcode = codeValidation.value;
+
     const authContext = this.createAuthContext(user, 'update');
     const correlationId =
       options?.correlationId ||
@@ -326,8 +326,8 @@ export class AttributeRuleSetApplicationService {
     if (!codeValidation.ok) {
       return err(codeValidation.error);
     }
-
     const validatedcode = codeValidation.value;
+
     const authContext = this.createAuthContext(user, 'delete');
 
     return this.authorizeThenExecute<void>({
@@ -363,7 +363,10 @@ export class AttributeRuleSetApplicationService {
           authorizationReason: 'delete_attribute_rule_set',
         });
       },
-      logContext: { code: validatedcode, riskLevel: 'HIGH' },
+      logContext: {
+        code: validatedcode,
+        riskLevel: 'HIGH',
+      },
     });
   }
 
@@ -379,8 +382,8 @@ export class AttributeRuleSetApplicationService {
     if (!codeValidation.ok) {
       return err(codeValidation.error);
     }
-
     const validatedcode = codeValidation.value;
+
     const authContext = this.createAuthContext(user, 'read');
 
     return this.authorizeThenExecute<DetailAttributeRuleSetResponse>({
@@ -403,7 +406,9 @@ export class AttributeRuleSetApplicationService {
             'attribute-rule-set-read',
           ),
         }),
-      logContext: { code: validatedcode },
+      logContext: {
+        code: validatedcode,
+      },
     });
   }
 
