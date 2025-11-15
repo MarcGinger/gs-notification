@@ -2,8 +2,8 @@
 // REMOVE THIS COMMENT TO STOP AUTOMATIC UPDATES TO THIS BLOCK
 
 export interface UpdateLookupTypeProps {
-  lookupType?: string;
-  code?: string;
+  lookupType: string;
+  code: string;
   name?: string;
   description?: string;
   enabled?: boolean;

@@ -2,7 +2,7 @@
 // REMOVE THIS COMMENT TO STOP AUTOMATIC UPDATES TO THIS BLOCK
 
 export interface UpsertLookupTypeProps {
-  lookupType?: string;
+  lookupType: string;
   code: string;
   name?: string;
   description?: string;
