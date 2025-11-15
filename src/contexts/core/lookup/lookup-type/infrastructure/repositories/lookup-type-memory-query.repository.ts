@@ -31,7 +31,6 @@ import {
   LookupTypeProjection,
 } from '../stores/lookup-type.store';
 import { ILookupTypeQuery } from '../../application/ports';
-import { LookupTypeLookupType } from '../../domain/value-objects';
 
 /**
  * LookupType Read Model - In-Memory Projection
