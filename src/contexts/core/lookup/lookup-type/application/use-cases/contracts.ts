@@ -40,12 +40,14 @@ export abstract class IGetLookupTypeUseCase {
   abstract execute(params: {
     user: IUserToken;
     code: string;
+    lookupType: string;
     correlationId: string;
   }): Promise<Result<DetailLookupTypeResponse, DomainError>>;
 }
 export abstract class IListLookupTypeUseCase {
   abstract execute(params: {
     user: IUserToken;
+    lookupType: string;
     filter?: ListLookupTypeFilterRequest;
     correlationId: string;
   }): Promise<Result<LookupTypePageResponse, DomainError>>;

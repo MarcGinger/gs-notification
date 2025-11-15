@@ -28,6 +28,7 @@ export class ListLookupTypeHandler
     // ✅ Delegate to use case for business logic
     return await this.listLookupTypeUseCase.execute({
       user: query.user,
+      lookupType: query.lookupType,
       filter: query.filter,
       correlationId: query.correlationId || 'unknown',
     });

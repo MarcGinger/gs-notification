@@ -16,6 +16,7 @@ export class GetLookupTypeHandler implements IQueryHandler<GetLookupTypeQuery> {
   ): Promise<Result<DetailLookupTypeResponse | null, DomainError>> {
     return this.getLookupTypeUseCase.execute({
       user: query.user,
+      lookupType: query.lookupType,
       code: query.code,
       correlationId: query.correlationId || 'query-handler',
     });

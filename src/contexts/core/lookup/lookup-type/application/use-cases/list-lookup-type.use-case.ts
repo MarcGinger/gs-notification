@@ -67,6 +67,7 @@ export class ListLookupTypeUseCase implements IListLookupTypeUseCase {
    */
   async execute(params: {
     user: IUserToken;
+    lookupType: string;
     filter?: ListLookupTypeFilterRequest;
     correlationId: string;
   }): Promise<Result<LookupTypePageResponse, DomainError>> {
@@ -80,6 +81,7 @@ export class ListLookupTypeUseCase implements IListLookupTypeUseCase {
       : new ListLookupTypeFilterRequest();
     const query = new ListLookupTypeQuery(
       params.user,
+      params.lookupType,
       filter,
       params.correlationId,
     );
@@ -376,8 +378,14 @@ export interface ListLookupTypeUseCaseContext {
  */
 export function createListLookupTypeQuery(
   user: IUserToken,
+  lookupType: string,
   filter: ListLookupTypeFilterRequest,
   context: ListLookupTypeUseCaseContext,
 ): ListLookupTypeQuery {
-  return new ListLookupTypeQuery(user, filter, context.correlationId);
+  return new ListLookupTypeQuery(
+    user,
+    lookupType,
+    filter,
+    context.correlationId,
+  );
 }

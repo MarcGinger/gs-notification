@@ -8,6 +8,7 @@ import { ListLookupTypeFilterRequest } from '../dtos';
 export class ListLookupTypeQuery {
   constructor(
     public readonly user: IUserToken,
+    public readonly lookupType: string,
     public readonly filter = new ListLookupTypeFilterRequest(),
     public readonly correlationId?: string,
   ) {}

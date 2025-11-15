@@ -6,6 +6,7 @@ import { IUserToken } from 'src/shared/security';
 export class GetLookupTypeQuery {
   constructor(
     public readonly user: IUserToken,
+    public readonly lookupType: string,
     public readonly code: string,
     // Metadata
     public readonly correlationId?: string,

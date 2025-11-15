@@ -47,10 +47,11 @@ export class GetLookupTypeUseCase implements IGetLookupTypeUseCase {
 
   async execute(params: {
     user: IUserToken;
+    lookupType: string;
     code: string;
     correlationId: string;
   }): Promise<Result<DetailLookupTypeResponse, DomainError>> {
-    const { user, code, correlationId } = params;
+    const { user, lookupType, code, correlationId } = params;
 
     // Simple input validation
     if (!code?.trim()) {
