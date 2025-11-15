@@ -33,6 +33,7 @@ import { SLACK_CONFIG_DI_TOKENS } from './slack-config.constants';
 import { SlackConfigPolicyService } from './slack-config-policy.service';
 // TODO remove this line if not used
 import { SlackModule } from 'src/shared/infrastructure/slack/slack.module';
+import { EventEncryptionModule } from 'src/shared/infrastructure/encryption';
 
 /**
  * Slack config Shared Module
@@ -62,6 +63,7 @@ import { SlackModule } from 'src/shared/infrastructure/slack/slack.module';
     ComplianceModule,
     ComplianceInfrastructureModule,
     InfrastructureModule,
+    EventEncryptionModule.register(), // New unified encryption factory
     TypeOrmDatabaseModule,
     // TODO import other shared modules as needed
     SlackModule,
@@ -118,6 +120,7 @@ import { SlackModule } from 'src/shared/infrastructure/slack/slack.module';
     ComplianceModule,
     ComplianceInfrastructureModule,
     InfrastructureModule,
+    EventEncryptionModule,
 
     // Export shared services
     SlackConfigPolicyService,

@@ -37,7 +37,6 @@ import {
   AttributeRuleSetRowMappers,
 } from '../schemas/attribute-rule-set.schema';
 import { AttributeRuleProps } from '../../domain/props';
-
 /**
  * AttributeRuleSet projector error catalog using shared error definitions
  */

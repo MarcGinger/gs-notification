@@ -22,8 +22,11 @@ import { SlackConfigServiceConstants } from '../../../service-constants';
 
 // Domain types and errors
 import { ConfigErrors } from '../../domain/errors/config.errors';
-import type { CreateConfigProps, UpdateConfigProps } from '../../domain/props';
-import { DetailConfigResponse } from '../dtos';
+import {
+  DetailConfigResponse,
+  CreateConfigRequest,
+  UpdateConfigRequest,
+} from '../dtos';
 
 // Application layer
 import { ConfigAuthorizationService } from './config-authorization.service';
@@ -190,7 +193,7 @@ export class ConfigApplicationService {
    */
   async createConfig(
     user: IUserToken,
-    props: CreateConfigProps,
+    props: CreateConfigRequest,
     options?: { idempotencyKey?: string; correlationId?: string },
   ): Promise<Result<DetailConfigResponse, DomainError>> {
     const authContext = this.createAuthContext(user, 'create');
@@ -228,7 +231,7 @@ export class ConfigApplicationService {
   async updateConfig(
     user: IUserToken,
     workspaceCode: string,
-    props: UpdateConfigProps,
+    props: UpdateConfigRequest,
     options?: { idempotencyKey?: string; correlationId?: string },
   ): Promise<Result<DetailConfigResponse, DomainError>> {
     // Early input validation
@@ -239,8 +242,8 @@ export class ConfigApplicationService {
     if (!workspaceCodeValidation.ok) {
       return err(workspaceCodeValidation.error);
     }
-
     const validatedworkspaceCode = workspaceCodeValidation.value;
+
     const authContext = this.createAuthContext(user, 'update');
     const correlationId =
       options?.correlationId ||
@@ -285,7 +288,10 @@ export class ConfigApplicationService {
         this.upsertConfigUseCase.execute({
           user,
           workspaceCode: validatedworkspaceCode,
-          props,
+          props: {
+            ...props,
+            code: validatedworkspaceCode,
+          },
           correlationId,
           authorizationReason: 'update_config',
           ...(options?.idempotencyKey && {
@@ -297,7 +303,7 @@ export class ConfigApplicationService {
   }
 
   /**
-   * Get a config by ID with authorization
+   * Get a config by workspaceCode with authorization
    */
   async getConfigById(
     user: IUserToken,
@@ -311,8 +317,8 @@ export class ConfigApplicationService {
     if (!workspaceCodeValidation.ok) {
       return err(workspaceCodeValidation.error);
     }
-
     const validatedworkspaceCode = workspaceCodeValidation.value;
+
     const authContext = this.createAuthContext(user, 'read');
 
     return this.authorizeThenExecute<DetailConfigResponse>({
@@ -333,7 +339,9 @@ export class ConfigApplicationService {
           workspaceCode: validatedworkspaceCode,
           correlationId: CorrelationUtil.generateForOperation('config-read'),
         }),
-      logContext: { workspaceCode: validatedworkspaceCode },
+      logContext: {
+        workspaceCode: validatedworkspaceCode,
+      },
     });
   }
 }

@@ -2,7 +2,6 @@
 // REMOVE THIS COMMENT TO STOP AUTOMATIC UPDATES TO THIS BLOCK
 
 import type { AttributeRuleTypeValue } from '../../../domain/value-objects';
-import { UpdateAttributeRuleProps } from '../../../domain/props';
 import {
   ApiAttributeRuleDescription,
   ApiAttributeRuleName,
@@ -17,7 +16,7 @@ import {
   ApiAttributeRuleUniqueError,
 } from './../decorators//attribute-rule';
 
-export class UpdateAttributeRuleRequest implements UpdateAttributeRuleProps {
+export class UpdateAttributeRuleRequest {
   @ApiAttributeRuleName({ required: false })
   name?: string;
 

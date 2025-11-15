@@ -54,14 +54,14 @@ export class ConfigController {
   @Get(':workspaceCode')
   @ConfigReadResource()
   @ApiOperation({
-    summary: 'Get Config by ID',
+    summary: 'Get Config by workspaceCode',
     description:
       'Retrieves a single Config by its unique identifier. Requires READ permission (LOW risk).',
   })
   @ApiParam({
     name: 'workspaceCode',
     type: 'string',
-    description: 'Config unique identifier',
+    description: '',
     example: 'T01EXAMPLE123',
   })
   @ApiOkResponse({
@@ -84,7 +84,7 @@ export class ConfigController {
   // Core CRUD Operations
   // ========================================
 
-  @Post()
+  @Post('')
   @ConfigCreateResource()
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({
@@ -143,7 +143,7 @@ export class ConfigController {
   @ApiParam({
     name: 'workspaceCode',
     type: 'string',
-    description: 'Config unique identifier',
+    description: '',
     example: 'T01EXAMPLE123',
   })
   @ApiResponse({

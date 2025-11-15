@@ -44,7 +44,7 @@ export interface IConfigReader {
   ): Promise<Result<Option<ConfigSnapshotProps>, DomainError>>;
 
   /**
-   * Check if a config exists by ID (for write-path validation)
+   * Check if a config exists by workspaceCode (for write-path validation)
    * @param actor - The authenticated user context
    * @param workspaceCode - The unique identifier of the Config
    * @param options - Optional repository options

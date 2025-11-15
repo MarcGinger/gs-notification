@@ -220,7 +220,7 @@ export class ChannelReaderRepository implements IChannelReader {
       // Generate cluster-safe Redis key
       const redisKey = this.generateChannelKey(actor.tenant, code.value);
 
-      Log.debug(this.logger, 'Finding channel by ID in Redis', {
+      Log.debug(this.logger, 'Finding channel by code in Redis', {
         ...logContext,
         queryDetails: {
           scope: 'redis_hash',
@@ -294,7 +294,7 @@ export class ChannelReaderRepository implements IChannelReader {
   }
 
   /**
-   * Check if a channel exists by ID (for write-path validation)
+   * Check if a channel exists by code (for write-path validation)
    * @param actor - The authenticated user context
    * @param code - The unique identifier of the Channel
    * @param options - Optional repository options

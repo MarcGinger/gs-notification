@@ -44,7 +44,7 @@ export interface ITemplateReader {
   ): Promise<Result<Option<TemplateSnapshotProps>, DomainError>>;
 
   /**
-   * Check if a template exists by ID (for write-path validation)
+   * Check if a template exists by code (for write-path validation)
    * @param actor - The authenticated user context
    * @param code - The unique identifier of the Template
    * @param options - Optional repository options

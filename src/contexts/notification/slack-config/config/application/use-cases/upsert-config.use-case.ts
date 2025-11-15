@@ -47,12 +47,7 @@ import {
 } from '../services';
 import { DetailConfigResponse } from '../dtos';
 import { ConfigDtoAssembler } from '../assemblers';
-// Shared compliance services
-import {
-  PIIClassificationService,
-  PIIProtectionService,
-  DataRetentionService,
-} from 'src/shared/services/compliance';
+
 type ConfigSnapshot = Parameters<typeof updateConfigAggregateFromSnapshot>[0];
 
 @Injectable()
@@ -71,9 +66,6 @@ export class UpsertConfigUseCase implements IUpsertConfigUseCase {
     readonly moduleLogger: Logger,
     @Inject(CLOCK)
     private readonly clock: Clock,
-    private readonly piiClassificationService: PIIClassificationService,
-    private readonly piiProtectionService: PIIProtectionService,
-    private readonly dataRetentionService: DataRetentionService,
   ) {
     this.loggingConfig = {
       serviceName: SlackConfigServiceConstants.SERVICE_NAME,
@@ -118,17 +110,7 @@ export class UpsertConfigUseCase implements IUpsertConfigUseCase {
       return err(validation.error);
     }
 
-    // Step 2: Check PII compliance for input data with domain context
-    const classification = this.piiClassificationService.classifyData(
-      {},
-      {
-        domain: 'slack-config',
-        tenant: command.user.tenant,
-        // entityType: 'Config' // Future: for entity-level rules
-      },
-    );
-
-    // Step 3: Create safe log context (no raw command that might contain PII)
+    // Step 2: Create basic log context for audit trail
     const safeLogContext = UseCaseLoggingUtil.createLogContext(
       this.loggingConfig,
       this.clock,
@@ -145,50 +127,8 @@ export class UpsertConfigUseCase implements IUpsertConfigUseCase {
       },
     );
 
-    // Log compliance check with detailed audit trail
-    UseCaseLoggingUtil.logComplianceCheck(
-      this.logger,
-      operation,
-      safeLogContext,
-      classification,
-    );
-
-    // Step 4: Mask payload for logging if PII detected (no domain mutation)
+    // Step 3: Process upsert with audit logging
     const rawProps = command.props; // Keep original for domain processing
-
-    if (classification.containsPII) {
-      const maskedForLog = this.piiProtectionService.maskForLog(
-        rawProps as unknown as Record<string, unknown>,
-        classification,
-      );
-      this.logger.debug(
-        { ...safeLogContext, payload: maskedForLog },
-        'masked input for audit',
-      );
-    }
-
-    // Step 5: Robust audit generation with error handling
-    if (classification.containsPII) {
-      try {
-        this.piiProtectionService.generateProtectionAudit(
-          [], // No protection log since we're not mutating domain data
-          {
-            userId: command.user.sub,
-            tenant: command.user.tenant,
-            operation: 'upsert_config',
-            domain: 'slack-config',
-            entityType: 'config',
-          },
-        );
-      } catch (e) {
-        this.logger.warn(
-          { err: e as Error, ...safeLogContext },
-          'protection audit failed (non-fatal)',
-        );
-      }
-    }
-
-    // Step 6: Upsert aggregate with raw data (no domain mutation)
     const fieldsToUpdate = extractDefinedFields(rawProps || {});
 
     // Note: UpsertConfigProps approach provides cleaner validation semantics
@@ -288,23 +228,12 @@ export class UpsertConfigUseCase implements IUpsertConfigUseCase {
 
       // Merge/update when existing, otherwise create with props
       runDomain: ({ existing, metadata, clock }) => {
-        // Enhance metadata with PII classification results
-        const enhancedMetadata = {
-          ...metadata,
-          piiProtected: classification.containsPII,
-          dataClassification: classification.containsPII
-            ? ('confidential' as const)
-            : ('internal' as const),
-          encryptionRequired:
-            classification.containsPII && classification.requiresEncryption,
-        };
-
         if (existing) {
-          // UPDATE path - use existing update logic with enhanced metadata
+          // UPDATE path - use existing update logic
           return updateConfigAggregateFromSnapshot(
             existing,
             rawProps || {},
-            enhancedMetadata,
+            metadata,
             clock,
           );
         }
@@ -315,11 +244,7 @@ export class UpsertConfigUseCase implements IUpsertConfigUseCase {
         };
 
         const createProps = upsertProps as CreateConfigProps;
-        return createConfigAggregateFromProps(
-          createProps,
-          enhancedMetadata,
-          clock,
-        );
+        return createConfigAggregateFromProps(createProps, metadata, clock);
       },
     });
 
@@ -335,46 +260,6 @@ export class UpsertConfigUseCase implements IUpsertConfigUseCase {
     }
 
     const aggregate = aggregateResult.value;
-
-    // Step 7: Generate retention metadata now that entityId is known
-    if (classification.containsPII) {
-      try {
-        const retention =
-          await this.dataRetentionService.generateRetentionMetadata(
-            classification,
-            {
-              tenant: command.user.tenant,
-              userId: command.user.sub,
-              entityType: 'config',
-              entityId: aggregate.id.toString(), // Now we have the actual ID
-              domain: 'slack-config',
-            },
-          );
-
-        // Log comprehensive compliance protection details
-        UseCaseLoggingUtil.logComplianceProtection(
-          this.logger,
-          operation,
-          safeLogContext,
-          {
-            fieldsProtected: 0, // No fields mutated at domain level
-            strategiesUsed: ['classification-only'],
-            auditGenerated: true,
-            retentionApplied: true,
-            retentionExpiry: new Date(retention.retentionExpiry),
-            legalBasis: retention.legalBasis,
-            automaticDeletion: retention.automaticDeletion,
-            auditRecord: retention.auditRecord.tenant,
-          },
-        );
-      } catch (e) {
-        this.logger.warn(
-          { err: e as Error, ...safeLogContext },
-          'retention metadata generation failed (non-fatal)',
-        );
-      }
-    }
-
     const domainState = aggregate.toDomainState();
     const dto = ConfigDtoAssembler.toDetailResponse(domainState);
 
@@ -388,8 +273,6 @@ export class UpsertConfigUseCase implements IUpsertConfigUseCase {
         aggregateVersion: aggregate.version,
         eventCount: aggregate.uncommittedEvents?.length ?? 0,
         businessData: {
-          // ... other non-PII business fields
-          complianceApplied: classification.containsPII,
           fieldsUpdated: Object.keys(fieldsToUpdate).length,
           upsertAction: isCreate ? 'created' : 'updated',
         },

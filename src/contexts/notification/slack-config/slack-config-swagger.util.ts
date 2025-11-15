@@ -4,7 +4,7 @@
 import { INestApplication } from '@nestjs/common';
 import { AppConfigUtil } from 'src/shared/config/app-config.util';
 
-import { SlackConfigDocumentation } from './slack-config.doc';
+import { SlackConfigApplicationDocumentation } from './slack-config.doc';
 import { WorkspaceDocumentation } from './workspace/docs/workspace.doc';
 import { ChannelDocumentation } from './channel/docs/channel.doc';
 import { TemplateDocumentation } from './template/docs/template.doc';
@@ -22,7 +22,10 @@ export function setupNotificationSlackConfigDocs(
     return {};
   }
 
-  const boundedContextUrls = SlackConfigDocumentation.setupAll(app, port);
+  const boundedContextUrls = SlackConfigApplicationDocumentation.setupAll(
+    app,
+    port,
+  );
 
   // Setup documentation for all notification_slack_config aggregates
   const workspaceUrls = WorkspaceDocumentation.setupAll(app, port);

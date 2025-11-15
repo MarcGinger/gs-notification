@@ -56,12 +56,12 @@ export class TemplateController {
     private readonly templateApplicationService: TemplateApplicationService,
   ) {}
 
-  @Get()
+  @Get('')
   @TemplateReadResource()
   @ApiOperation({
     summary: 'List Templates',
     description:
-      'Retrieves a list of Templates with optional filtering. Supports pagination and filtering by name or category. Requires READ permission (LOW risk).',
+      'Retrieves a list of Templates with optional filtering. Requires READ permission (LOW risk).',
   })
   @ApiOkResponse({
     description: 'List of Templates retrieved successfully',
@@ -82,14 +82,14 @@ export class TemplateController {
   @Get(':code')
   @TemplateReadResource()
   @ApiOperation({
-    summary: 'Get Template by ID',
+    summary: 'Get Template by code',
     description:
       'Retrieves a single Template by its unique identifier. Requires READ permission (LOW risk).',
   })
   @ApiParam({
     name: 'code',
     type: 'string',
-    description: 'Template unique identifier',
+    description: '',
     example: 'payment_failure_alert',
   })
   @ApiOkResponse({
@@ -112,7 +112,7 @@ export class TemplateController {
   // Core CRUD Operations
   // ========================================
 
-  @Post()
+  @Post('')
   @TemplateCreateResource()
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({
@@ -171,7 +171,7 @@ export class TemplateController {
   @ApiParam({
     name: 'code',
     type: 'string',
-    description: 'Template unique identifier',
+    description: '',
     example: 'payment_failure_alert',
   })
   @ApiResponse({

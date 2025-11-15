@@ -25,7 +25,6 @@ import { ConfigProjectionKeys } from '../../config-projection-keys';
 import { ConfigWorkspaceCode } from '../../domain/value-objects';
 import { ConfigDeletedEvent } from '../../domain/events';
 import { IConfigWriter } from '../../application/ports';
-
 /**
  * Config Writer Repository - Interface Segregation Principle Implementation
  *

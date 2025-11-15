@@ -56,12 +56,12 @@ export class ChannelController {
     private readonly channelApplicationService: ChannelApplicationService,
   ) {}
 
-  @Get()
+  @Get('')
   @ChannelReadResource()
   @ApiOperation({
     summary: 'List Channels',
     description:
-      'Retrieves a list of Channels with optional filtering. Supports pagination and filtering by name or category. Requires READ permission (LOW risk).',
+      'Retrieves a list of Channels with optional filtering. Requires READ permission (LOW risk).',
   })
   @ApiOkResponse({
     description: 'List of Channels retrieved successfully',
@@ -82,14 +82,14 @@ export class ChannelController {
   @Get(':code')
   @ChannelReadResource()
   @ApiOperation({
-    summary: 'Get Channel by ID',
+    summary: 'Get Channel by code',
     description:
       'Retrieves a single Channel by its unique identifier. Requires READ permission (LOW risk).',
   })
   @ApiParam({
     name: 'code',
     type: 'string',
-    description: 'Channel unique identifier',
+    description: '',
     example: 'C01EXAMPLE001',
   })
   @ApiOkResponse({
@@ -112,7 +112,7 @@ export class ChannelController {
   // Core CRUD Operations
   // ========================================
 
-  @Post()
+  @Post('')
   @ChannelCreateResource()
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({
@@ -171,7 +171,7 @@ export class ChannelController {
   @ApiParam({
     name: 'code',
     type: 'string',
-    description: 'Channel unique identifier',
+    description: '',
     example: 'C01EXAMPLE001',
   })
   @ApiResponse({

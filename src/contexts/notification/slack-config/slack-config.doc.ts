@@ -10,7 +10,7 @@ import { SwaggerConfigUtil } from 'src/docs/swagger-config.util';
  * This module handles the Swagger documentation for notifications
  *
  */
-export class SlackConfigDocumentation {
+export class SlackConfigApplicationDocumentation {
   static setup(app: INestApplication, port: string | number): void {
     const config = new DocumentBuilder()
       .addBearerAuth(
@@ -161,13 +161,13 @@ This service is a critical component of the Notification Bounded Context, enabli
     port: string | number,
   ): Record<string, string> {
     // Setup main notification documentation
-    SlackConfigDocumentation.setup(app, port);
+    SlackConfigApplicationDocumentation.setup(app, port);
 
     // Setup sub-module documentation
 
     // Return all endpoint URLs
     return {
-      notification: SlackConfigDocumentation.getEndpoint(port),
+      notification: SlackConfigApplicationDocumentation.getEndpoint(port),
     };
   }
 

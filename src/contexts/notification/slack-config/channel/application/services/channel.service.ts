@@ -22,14 +22,12 @@ import { SlackConfigServiceConstants } from '../../../service-constants';
 
 // Domain types and errors
 import { ChannelErrors } from '../../domain/errors/channel.errors';
-import type {
-  CreateChannelProps,
-  UpdateChannelProps,
-} from '../../domain/props';
 import {
   DetailChannelResponse,
   ListChannelFilterRequest,
   ChannelPageResponse,
+  CreateChannelRequest,
+  UpdateChannelRequest,
 } from '../dtos';
 
 // Application layer
@@ -199,7 +197,7 @@ export class ChannelApplicationService {
    */
   async createChannel(
     user: IUserToken,
-    props: CreateChannelProps,
+    props: CreateChannelRequest,
     options?: { idempotencyKey?: string; correlationId?: string },
   ): Promise<Result<DetailChannelResponse, DomainError>> {
     const authContext = this.createAuthContext(user, 'create');
@@ -237,7 +235,7 @@ export class ChannelApplicationService {
   async updateChannel(
     user: IUserToken,
     code: string,
-    props: UpdateChannelProps,
+    props: UpdateChannelRequest,
     options?: { idempotencyKey?: string; correlationId?: string },
   ): Promise<Result<DetailChannelResponse, DomainError>> {
     // Early input validation
@@ -245,8 +243,8 @@ export class ChannelApplicationService {
     if (!codeValidation.ok) {
       return err(codeValidation.error);
     }
-
     const validatedcode = codeValidation.value;
+
     const authContext = this.createAuthContext(user, 'update');
     const correlationId =
       options?.correlationId ||
@@ -291,7 +289,10 @@ export class ChannelApplicationService {
         this.upsertChannelUseCase.execute({
           user,
           code: validatedcode,
-          props,
+          props: {
+            ...props,
+            code: validatedcode,
+          },
           correlationId,
           authorizationReason: 'update_channel',
           ...(options?.idempotencyKey && {
@@ -303,7 +304,7 @@ export class ChannelApplicationService {
   }
 
   /**
-   * Get a channel by ID with authorization
+   * Get a channel by code with authorization
    */
   async getChannelById(
     user: IUserToken,
@@ -314,8 +315,8 @@ export class ChannelApplicationService {
     if (!codeValidation.ok) {
       return err(codeValidation.error);
     }
-
     const validatedcode = codeValidation.value;
+
     const authContext = this.createAuthContext(user, 'read');
 
     return this.authorizeThenExecute<DetailChannelResponse>({
@@ -336,7 +337,9 @@ export class ChannelApplicationService {
           code: validatedcode,
           correlationId: CorrelationUtil.generateForOperation('channel-read'),
         }),
-      logContext: { code: validatedcode },
+      logContext: {
+        code: validatedcode,
+      },
     });
   }
 

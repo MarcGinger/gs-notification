@@ -455,7 +455,7 @@ export class WorkspaceQueryRepository implements IWorkspaceQuery {
       filterName: filter?.name,
       page: filter?.page,
       size: filter?.size,
-      sortBy: filter?.sortBy,
+      sortBy: filter?.getSortByRecord?.() || {},
       dataSource: 'redis-projector',
     });
 
@@ -571,7 +571,7 @@ export class WorkspaceQueryRepository implements IWorkspaceQuery {
       // Apply client-side sorting
       const sortedWorkspaces = this.sortWorkspaces(
         filteredWorkspaces,
-        filter?.sortBy,
+        filter?.getSortByRecord?.(),
       );
 
       // Calculate pagination metadata
@@ -616,7 +616,7 @@ export class WorkspaceQueryRepository implements IWorkspaceQuery {
             page,
             size,
             hasFilters: !!(filter?.code || filter?.name),
-            sortFields: Object.keys(filter?.sortBy ?? {}),
+            sortFields: Object.keys(filter?.getSortByRecord?.() ?? {}),
           },
         },
       );

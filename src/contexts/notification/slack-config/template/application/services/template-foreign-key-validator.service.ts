@@ -85,9 +85,9 @@ export class TemplateForeignKeyValidatorService {
       return err(workspaceCodeResult.error);
     }
 
-    const workspace = workspaceCodeResult.value;
+    const _workspace = workspaceCodeResult.value;
 
-    if (Option.isNone(workspace)) {
+    if (Option.isNone(_workspace)) {
       Log.warn(logger, 'Workspace not found during validation', {
         application: SlackConfigServiceConstants.SERVICE_NAME,
         component: context.component,
@@ -118,7 +118,7 @@ export class TemplateForeignKeyValidatorService {
       operation: context.operation,
     });
 
-    return ok(workspace.value);
+    return ok(_workspace.value);
   }
 
   /**

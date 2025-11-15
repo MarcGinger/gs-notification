@@ -44,7 +44,7 @@ export interface IWorkspaceReader {
   ): Promise<Result<Option<WorkspaceSnapshotProps>, DomainError>>;
 
   /**
-   * Check if a workspace exists by ID (for write-path validation)
+   * Check if a workspace exists by code (for write-path validation)
    * @param actor - The authenticated user context
    * @param code - The unique identifier of the Workspace
    * @param options - Optional repository options

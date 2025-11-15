@@ -212,7 +212,7 @@ export class WorkspaceReaderRepository implements IWorkspaceReader {
       // Generate cluster-safe Redis key
       const redisKey = this.generateWorkspaceKey(actor.tenant, code.value);
 
-      Log.debug(this.logger, 'Finding workspace by ID in Redis', {
+      Log.debug(this.logger, 'Finding workspace by code in Redis', {
         ...logContext,
         queryDetails: {
           scope: 'redis_hash',
@@ -286,7 +286,7 @@ export class WorkspaceReaderRepository implements IWorkspaceReader {
   }
 
   /**
-   * Check if a workspace exists by ID (for write-path validation)
+   * Check if a workspace exists by code (for write-path validation)
    * @param actor - The authenticated user context
    * @param code - The unique identifier of the Workspace
    * @param options - Optional repository options

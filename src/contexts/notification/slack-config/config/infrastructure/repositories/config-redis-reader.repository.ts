@@ -218,7 +218,7 @@ export class ConfigReaderRepository implements IConfigReader {
         workspaceCode.value,
       );
 
-      Log.debug(this.logger, 'Finding config by ID in Redis', {
+      Log.debug(this.logger, 'Finding config by workspaceCode in Redis', {
         ...logContext,
         queryDetails: {
           scope: 'redis_hash',
@@ -292,7 +292,7 @@ export class ConfigReaderRepository implements IConfigReader {
   }
 
   /**
-   * Check if a config exists by ID (for write-path validation)
+   * Check if a config exists by workspaceCode (for write-path validation)
    * @param actor - The authenticated user context
    * @param workspaceCode - The unique identifier of the Config
    * @param options - Optional repository options

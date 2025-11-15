@@ -229,7 +229,7 @@ export class TemplateReaderRepository implements ITemplateReader {
       // Generate cluster-safe Redis key
       const redisKey = this.generateTemplateKey(actor.tenant, code.value);
 
-      Log.debug(this.logger, 'Finding template by ID in Redis', {
+      Log.debug(this.logger, 'Finding template by code in Redis', {
         ...logContext,
         queryDetails: {
           scope: 'redis_hash',
@@ -303,7 +303,7 @@ export class TemplateReaderRepository implements ITemplateReader {
   }
 
   /**
-   * Check if a template exists by ID (for write-path validation)
+   * Check if a template exists by code (for write-path validation)
    * @param actor - The authenticated user context
    * @param code - The unique identifier of the Template
    * @param options - Optional repository options

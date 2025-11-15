@@ -487,7 +487,7 @@ export class TemplateQueryRepository implements ITemplateQuery {
       filterWorkspaceCode: filter?.workspaceCode,
       page: filter?.page,
       size: filter?.size,
-      sortBy: filter?.sortBy,
+      sortBy: filter?.getSortByRecord?.() || {},
       dataSource: 'redis-projector',
     });
 
@@ -603,7 +603,7 @@ export class TemplateQueryRepository implements ITemplateQuery {
       // Apply client-side sorting
       const sortedTemplates = this.sortTemplates(
         filteredTemplates,
-        filter?.sortBy,
+        filter?.getSortByRecord?.(),
       );
 
       // Calculate pagination metadata
@@ -652,7 +652,7 @@ export class TemplateQueryRepository implements ITemplateQuery {
               filter?.name ||
               filter?.workspaceCode
             ),
-            sortFields: Object.keys(filter?.sortBy ?? {}),
+            sortFields: Object.keys(filter?.getSortByRecord?.() ?? {}),
           },
         },
       );

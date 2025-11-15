@@ -480,7 +480,7 @@ export class ChannelQueryRepository implements IChannelQuery {
       filterWorkspaceCode: filter?.workspaceCode,
       page: filter?.page,
       size: filter?.size,
-      sortBy: filter?.sortBy,
+      sortBy: filter?.getSortByRecord?.() || {},
       dataSource: 'redis-projector',
     });
 
@@ -596,7 +596,7 @@ export class ChannelQueryRepository implements IChannelQuery {
       // Apply client-side sorting
       const sortedChannels = this.sortChannels(
         filteredChannels,
-        filter?.sortBy,
+        filter?.getSortByRecord?.(),
       );
 
       // Calculate pagination metadata
@@ -645,7 +645,7 @@ export class ChannelQueryRepository implements IChannelQuery {
               filter?.name ||
               filter?.workspaceCode
             ),
-            sortFields: Object.keys(filter?.sortBy ?? {}),
+            sortFields: Object.keys(filter?.getSortByRecord?.() ?? {}),
           },
         },
       );

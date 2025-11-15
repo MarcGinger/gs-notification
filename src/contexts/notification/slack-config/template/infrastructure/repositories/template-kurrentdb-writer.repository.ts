@@ -25,7 +25,6 @@ import { TemplateProjectionKeys } from '../../template-projection-keys';
 import { TemplateCode } from '../../domain/value-objects';
 import { TemplateDeletedEvent } from '../../domain/events';
 import { ITemplateWriter } from '../../application/ports';
-
 /**
  * Template Writer Repository - Interface Segregation Principle Implementation
  *

@@ -44,7 +44,7 @@ export interface IChannelReader {
   ): Promise<Result<Option<ChannelSnapshotProps>, DomainError>>;
 
   /**
-   * Check if a channel exists by ID (for write-path validation)
+   * Check if a channel exists by code (for write-path validation)
    * @param actor - The authenticated user context
    * @param code - The unique identifier of the Channel
    * @param options - Optional repository options

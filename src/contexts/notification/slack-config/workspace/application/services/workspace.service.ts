@@ -22,14 +22,12 @@ import { SlackConfigServiceConstants } from '../../../service-constants';
 
 // Domain types and errors
 import { WorkspaceErrors } from '../../domain/errors/workspace.errors';
-import type {
-  CreateWorkspaceProps,
-  UpdateWorkspaceProps,
-} from '../../domain/props';
 import {
   DetailWorkspaceResponse,
   ListWorkspaceFilterRequest,
   WorkspacePageResponse,
+  CreateWorkspaceRequest,
+  UpdateWorkspaceRequest,
 } from '../dtos';
 
 // Application layer
@@ -199,7 +197,7 @@ export class WorkspaceApplicationService {
    */
   async createWorkspace(
     user: IUserToken,
-    props: CreateWorkspaceProps,
+    props: CreateWorkspaceRequest,
     options?: { idempotencyKey?: string; correlationId?: string },
   ): Promise<Result<DetailWorkspaceResponse, DomainError>> {
     const authContext = this.createAuthContext(user, 'create');
@@ -237,7 +235,7 @@ export class WorkspaceApplicationService {
   async updateWorkspace(
     user: IUserToken,
     code: string,
-    props: UpdateWorkspaceProps,
+    props: UpdateWorkspaceRequest,
     options?: { idempotencyKey?: string; correlationId?: string },
   ): Promise<Result<DetailWorkspaceResponse, DomainError>> {
     // Early input validation
@@ -245,8 +243,8 @@ export class WorkspaceApplicationService {
     if (!codeValidation.ok) {
       return err(codeValidation.error);
     }
-
     const validatedcode = codeValidation.value;
+
     const authContext = this.createAuthContext(user, 'update');
     const correlationId =
       options?.correlationId ||
@@ -291,7 +289,10 @@ export class WorkspaceApplicationService {
         this.upsertWorkspaceUseCase.execute({
           user,
           code: validatedcode,
-          props,
+          props: {
+            ...props,
+            code: validatedcode,
+          },
           correlationId,
           authorizationReason: 'update_workspace',
           ...(options?.idempotencyKey && {
@@ -303,7 +304,7 @@ export class WorkspaceApplicationService {
   }
 
   /**
-   * Get a workspace by ID with authorization
+   * Get a workspace by code with authorization
    */
   async getWorkspaceById(
     user: IUserToken,
@@ -314,8 +315,8 @@ export class WorkspaceApplicationService {
     if (!codeValidation.ok) {
       return err(codeValidation.error);
     }
-
     const validatedcode = codeValidation.value;
+
     const authContext = this.createAuthContext(user, 'read');
 
     return this.authorizeThenExecute<DetailWorkspaceResponse>({
@@ -336,7 +337,9 @@ export class WorkspaceApplicationService {
           code: validatedcode,
           correlationId: CorrelationUtil.generateForOperation('workspace-read'),
         }),
-      logContext: { code: validatedcode },
+      logContext: {
+        code: validatedcode,
+      },
     });
   }
 

@@ -22,14 +22,12 @@ import { SlackConfigServiceConstants } from '../../../service-constants';
 
 // Domain types and errors
 import { TemplateErrors } from '../../domain/errors/template.errors';
-import type {
-  CreateTemplateProps,
-  UpdateTemplateProps,
-} from '../../domain/props';
 import {
   DetailTemplateResponse,
   ListTemplateFilterRequest,
   TemplatePageResponse,
+  CreateTemplateRequest,
+  UpdateTemplateRequest,
 } from '../dtos';
 
 // Application layer
@@ -199,7 +197,7 @@ export class TemplateApplicationService {
    */
   async createTemplate(
     user: IUserToken,
-    props: CreateTemplateProps,
+    props: CreateTemplateRequest,
     options?: { idempotencyKey?: string; correlationId?: string },
   ): Promise<Result<DetailTemplateResponse, DomainError>> {
     const authContext = this.createAuthContext(user, 'create');
@@ -237,7 +235,7 @@ export class TemplateApplicationService {
   async updateTemplate(
     user: IUserToken,
     code: string,
-    props: UpdateTemplateProps,
+    props: UpdateTemplateRequest,
     options?: { idempotencyKey?: string; correlationId?: string },
   ): Promise<Result<DetailTemplateResponse, DomainError>> {
     // Early input validation
@@ -245,8 +243,8 @@ export class TemplateApplicationService {
     if (!codeValidation.ok) {
       return err(codeValidation.error);
     }
-
     const validatedcode = codeValidation.value;
+
     const authContext = this.createAuthContext(user, 'update');
     const correlationId =
       options?.correlationId ||
@@ -291,7 +289,10 @@ export class TemplateApplicationService {
         this.upsertTemplateUseCase.execute({
           user,
           code: validatedcode,
-          props,
+          props: {
+            ...props,
+            code: validatedcode,
+          },
           correlationId,
           authorizationReason: 'update_template',
           ...(options?.idempotencyKey && {
@@ -303,7 +304,7 @@ export class TemplateApplicationService {
   }
 
   /**
-   * Get a template by ID with authorization
+   * Get a template by code with authorization
    */
   async getTemplateById(
     user: IUserToken,
@@ -314,8 +315,8 @@ export class TemplateApplicationService {
     if (!codeValidation.ok) {
       return err(codeValidation.error);
     }
-
     const validatedcode = codeValidation.value;
+
     const authContext = this.createAuthContext(user, 'read');
 
     return this.authorizeThenExecute<DetailTemplateResponse>({
@@ -336,7 +337,9 @@ export class TemplateApplicationService {
           code: validatedcode,
           correlationId: CorrelationUtil.generateForOperation('template-read'),
         }),
-      logContext: { code: validatedcode },
+      logContext: {
+        code: validatedcode,
+      },
     });
   }
 

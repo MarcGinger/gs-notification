@@ -25,7 +25,6 @@ import { ChannelProjectionKeys } from '../../channel-projection-keys';
 import { ChannelCode } from '../../domain/value-objects';
 import { ChannelDeletedEvent } from '../../domain/events';
 import { IChannelWriter } from '../../application/ports';
-
 /**
  * Channel Writer Repository - Interface Segregation Principle Implementation
  *

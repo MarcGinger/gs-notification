@@ -56,12 +56,12 @@ export class WorkspaceController {
     private readonly workspaceApplicationService: WorkspaceApplicationService,
   ) {}
 
-  @Get()
+  @Get('')
   @WorkspaceReadResource()
   @ApiOperation({
     summary: 'List Workspaces',
     description:
-      'Retrieves a list of Workspaces with optional filtering. Supports pagination and filtering by name or category. Requires READ permission (LOW risk).',
+      'Retrieves a list of Workspaces with optional filtering. Requires READ permission (LOW risk).',
   })
   @ApiOkResponse({
     description: 'List of Workspaces retrieved successfully',
@@ -82,14 +82,14 @@ export class WorkspaceController {
   @Get(':code')
   @WorkspaceReadResource()
   @ApiOperation({
-    summary: 'Get Workspace by ID',
+    summary: 'Get Workspace by code',
     description:
       'Retrieves a single Workspace by its unique identifier. Requires READ permission (LOW risk).',
   })
   @ApiParam({
     name: 'code',
     type: 'string',
-    description: 'Workspace unique identifier',
+    description: '',
     example: 'T01EXAMPLE123',
   })
   @ApiOkResponse({
@@ -112,7 +112,7 @@ export class WorkspaceController {
   // Core CRUD Operations
   // ========================================
 
-  @Post()
+  @Post('')
   @WorkspaceCreateResource()
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({
@@ -171,7 +171,7 @@ export class WorkspaceController {
   @ApiParam({
     name: 'code',
     type: 'string',
-    description: 'Workspace unique identifier',
+    description: '',
     example: 'T01EXAMPLE123',
   })
   @ApiResponse({

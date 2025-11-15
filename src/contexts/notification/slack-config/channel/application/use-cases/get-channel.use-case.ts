@@ -14,76 +14,35 @@ import {
 
 // Shared utilities and infrastructure
 import { APP_LOGGER, componentLogger, Logger } from 'src/shared/logging';
-import { Clock, CLOCK } from 'src/shared/infrastructure/time';
-import { CorrelationUtil } from 'src/shared/utilities/correlation.util';
 import { CACHE_TTL } from 'src/shared/application/caching/cache.config';
 import { RepositoryOptions } from 'src/shared/infrastructure/repositories/repository.types';
 import { Option } from 'src/shared/domain/types';
 import { ActorContextUtil } from 'src/shared/utilities/actor-context.util';
-import {
-  UseCaseLoggingUtil,
-  UseCaseLoggingConfig,
-} from 'src/shared/application/utils/use-case-logging.util';
 import { IUserToken } from 'src/shared/security';
-
-// Service configuration
-import { SlackConfigServiceConstants } from '../../../service-constants';
 
 // Application layer
 import { IChannelQuery, CHANNEL_QUERY_TOKEN } from '../ports';
-import { ChannelAuthorizationAdapter } from '../services';
 import { DetailChannelResponse } from '../dtos';
 import { IGetChannelUseCase } from './contracts';
 import { ChannelErrors } from '../../domain/errors';
 
 /**
- * Get Channel Use Case - CQRS Read Side Implementation
+ * Get Channel Use Case - Simplified CQRS Read Side Implementation
  *
- * This use case properly follows CQRS principles by working directly with DTOs
- * from the query port, avoiding dependencies on domain value objects.
- * The query port returns read-optimized DetailChannelResponse DTOs directly.
- */
-
-import {
-  PIIClassificationService,
-  PIIProtectionService,
-  DataRetentionService,
-} from 'src/shared/services/compliance';
-
-/**
- * ✅ Enhanced Get Channel Use Case with Modern Security and Compliance
- *
- * Features:
- * - Classification-only PII approach (no domain data mutation)
- * - Safe logging contexts to prevent accidental PII disclosure
- * - Enhanced error handling with structured domain errors
- * - Cache-first strategy for optimal performance
- * - Comprehensive audit trails and compliance tracking
- * - CQRS-compliant read operations with DTO optimization
+ * Simple use case that queries for channel data by code.
+ * Authorization is handled at the service layer.
  */
 
 @Injectable()
 export class GetChannelUseCase implements IGetChannelUseCase {
   private readonly logger: Logger;
-  private readonly loggingConfig: UseCaseLoggingConfig;
 
   constructor(
     @Inject(CHANNEL_QUERY_TOKEN)
     private readonly query: IChannelQuery,
-    private readonly authorizationService: ChannelAuthorizationAdapter,
-    @Inject(CLOCK) private readonly clock: Clock,
     @Inject(APP_LOGGER) moduleLogger: Logger,
-    private readonly piiClassificationService: PIIClassificationService,
-    private readonly piiProtectionService: PIIProtectionService,
-    private readonly dataRetentionService: DataRetentionService,
   ) {
-    this.loggingConfig = {
-      serviceName: SlackConfigServiceConstants.SERVICE_NAME,
-      component: 'GetChannelUseCase',
-      domain: 'slack-config',
-      entityType: 'channel',
-    };
-    this.logger = componentLogger(moduleLogger, this.loggingConfig.component);
+    this.logger = componentLogger(moduleLogger, 'GetChannelUseCase');
   }
 
   async execute(params: {
@@ -91,232 +50,76 @@ export class GetChannelUseCase implements IGetChannelUseCase {
     code: string;
     correlationId: string;
   }): Promise<Result<DetailChannelResponse, DomainError>> {
-    const operation = 'get_channel';
-    const startTime = this.clock.nowMs();
-    const correlationId = params.correlationId || CorrelationUtil.generate();
+    const { user, code, correlationId } = params;
 
-    // Step 1: Extract raw properties for domain logic (no PII protection at domain level)
-    const rawProps = {
-      code: params.code,
-    };
-
-    // Step 2: Create safe logging context (no PII, deferred retention metadata)
-    const safeLogContext = UseCaseLoggingUtil.createLogContext(
-      this.loggingConfig,
-      this.clock,
-      operation,
-      params as any, // Query doesn't extend BaseUseCaseCommand but has similar structure
-      {
-        channelCode: rawProps.code,
-        operationRisk: UseCaseLoggingUtil.assessOperationRisk(operation),
-        readOperation: true,
-        cacheEnabled: true,
-      },
-    );
-
-    // Step 3: Validate query with enhanced logging
-    const validation = UseCaseLoggingUtil.validateCommand(
-      this.logger,
-      params as any, // Query validation adapted for read operations
-      safeLogContext,
-    );
-    if (!validation.ok) {
-      return err(validation.error);
-    }
-
-    // Step 1: Check authorization first
-    const authResult = await this.authorizationService.canReadResource(
-      params.user.sub,
-      params.code, // Using code as channel identifier
-      correlationId,
-      {
-        tenant: params.user.tenant,
-        roles: params.user.roles,
-        operationType: 'read',
-      },
-    );
-
-    if (!authResult.ok) {
-      UseCaseLoggingUtil.logOperationError(
-        this.logger,
-        operation,
-        safeLogContext,
-        authResult.error,
-        'HIGH',
-      );
-      return err(authResult.error);
-    }
-
-    if (!authResult.value) {
-      const authError = {
-        code: 'CHANNEL.READ_NOT_AUTHORIZED' as const,
-        title: 'Not authorized to read this channel',
-        category: 'security' as const,
-        context: {
-          userId: params.user.sub,
-          channelCode: params.code,
-          operation: 'read',
-        },
-      };
-      UseCaseLoggingUtil.logOperationError(
-        this.logger,
-        operation,
-        safeLogContext,
-        authError,
-        'HIGH',
-      );
-      return err(authError);
-    }
-
-    // Step 2: Simple validation for query-side operations (CQRS compliant)
-    if (
-      !params.code ||
-      typeof params.code !== 'string' ||
-      params.code.trim().length === 0
-    ) {
-      const validationError = {
-        code: 'CHANNEL.INVALID_THE_CODE' as const,
-        title: 'Invalid channel code',
+    // Simple input validation
+    if (!code?.trim()) {
+      return err({
+        code: 'CHANNEL.INVALID_CODE' as const,
+        title: 'Invalid code',
         category: 'validation' as const,
-        context: {
-          code: params.code,
-          correlationId,
-          userId: params.user.sub,
-          operation: 'get_channel',
-        },
-      };
-      UseCaseLoggingUtil.logOperationError(
-        this.logger,
-        operation,
-        safeLogContext,
-        validationError,
-        'MEDIUM',
-      );
-      return err(validationError);
+        context: { code, correlationId, userId: user.sub },
+      });
     }
 
-    // Step 3: Enhanced repository options with cache-first strategy
+    // Setup repository options with caching
     const repositoryOptions: RepositoryOptions = {
       cache: {
-        ttl: CACHE_TTL.STANDARD, // 5 minutes cache for channel reads
-        refreshCache: false, // Don't refresh on read
+        ttl: CACHE_TTL.STANDARD,
+        refreshCache: false,
       },
       correlationId,
-      requestId: params.user.sub,
+      requestId: user.sub,
     };
 
-    // Step 4: Load the aggregate using enhanced repository with caching
-    const actorResult = ActorContextUtil.fromUserTokenSafe(params.user);
+    // Convert user token to actor context
+    const actorResult = ActorContextUtil.fromUserTokenSafe(user);
     if (!isOk(actorResult)) {
-      const contextError = withContext(actorResult.error, {
-        correlationId,
-        userId: params.user.sub,
-        operation: 'get_channel',
-        code: params.code,
-      });
-      UseCaseLoggingUtil.logOperationError(
-        this.logger,
-        operation,
-        safeLogContext,
-        contextError,
-        'HIGH',
+      return err(
+        withContext(actorResult.error, {
+          correlationId,
+          userId: user.sub,
+          operation: 'get_channel',
+          code,
+        }),
       );
-      return err(contextError);
     }
-    const actor = actorResult.value;
 
-    const channelResult = await this.query.findById(
-      actor,
-      params.code,
+    // Query for the channel data
+    const queryResult = await this.query.findById(
+      actorResult.value,
+      code,
       repositoryOptions,
     );
 
-    if (!isOk(channelResult)) {
-      const contextError = withContext(channelResult.error, {
-        correlationId,
-        userId: params.user.sub,
-        operation: 'get_channel',
-        code: params.code,
-      });
-      UseCaseLoggingUtil.logOperationError(
-        this.logger,
-        operation,
-        safeLogContext,
-        contextError,
-        'MEDIUM',
+    if (!isOk(queryResult)) {
+      return err(
+        withContext(queryResult.error, {
+          correlationId,
+          userId: user.sub,
+          operation: 'get_channel',
+          code,
+        }),
       );
-      return err(contextError);
     }
 
-    // Step 5: Handle Option<DetailChannelResponse> safely - query port already returns DTOs (proper CQRS)
-    const channelDto = Option.isNone(channelResult.value)
+    // Handle Option<DetailChannelResponse>
+    const channelDto = Option.isNone(queryResult.value)
       ? null
-      : channelResult.value.value;
+      : queryResult.value.value;
 
-    // Step 5.1: Return 404 error if channel not found
     if (!channelDto) {
-      const notFoundError = withContext(ChannelErrors.CHANNEL_NOT_FOUND, {
-        code: params.code,
-        name: '', // Default values for required fields
-        workspaceCode: '', // Default values for required fields
-        isPrivate: false, // Default values for required fields
-        isDm: false, // Default values for required fields
-        enabled: false, // Default values for required fields
-        channelCode: params.code,
-        correlationId,
-        userId: params.user.sub,
-        operation: 'get_channel',
-      });
-
-      UseCaseLoggingUtil.logOperationError(
-        this.logger,
-        operation,
-        safeLogContext,
-        notFoundError,
-        'LOW',
-      );
-
-      return err(notFoundError);
-    }
-
-    // Step 6: Light compliance check for read operations (audit log only)
-    // For read operations, we only log data access for compliance audit
-    const readClassification = this.piiClassificationService.classifyData(
-      {},
-      {
-        domain: 'slack-config',
-        tenant: params.user.tenant,
-        // entityType: 'Channel' // Future: for entity-level rules
-      },
-    );
-
-    if (readClassification.containsPII) {
-      // Log data access for audit trail (no protection needed for reads)
-      UseCaseLoggingUtil.logComplianceCheck(
-        this.logger,
-        operation,
-        safeLogContext,
-        readClassification,
+      return err(
+        withContext(ChannelErrors.CHANNEL_NOT_FOUND, {
+          code,
+          correlationId,
+          userId: user.sub,
+          operation: 'get_channel',
+        }),
       );
     }
 
-    // Step 7: Log operation success with comprehensive metrics
-    const executionTime = this.clock.nowMs() - startTime;
-    UseCaseLoggingUtil.logOperationSuccess(
-      this.logger,
-      operation,
-      safeLogContext,
-      {
-        executionTimeMs: executionTime,
-        businessData: {
-          channelCode: params.code,
-          found: true,
-          cacheEnabled: true,
-          cacheTtl: repositoryOptions.cache?.ttl,
-          dataAccessLogged: true,
-        },
-      },
-    );
+    // Success - no logging needed as this is handled at service layer
 
     return ok(channelDto);
   }
