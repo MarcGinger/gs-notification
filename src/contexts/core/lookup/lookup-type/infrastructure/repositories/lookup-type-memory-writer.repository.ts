@@ -317,6 +317,7 @@ export class LookupTypeWriterRepository implements ILookupTypeWriter {
    */
   async delete(
     actor: ActorContext,
+    lookupType: string,
     code: LookupTypeCode,
   ): Promise<Result<SaveReceipt, DomainError>> {
     const operation = 'delete';

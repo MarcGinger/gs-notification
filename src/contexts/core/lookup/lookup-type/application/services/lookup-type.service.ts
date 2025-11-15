@@ -354,6 +354,7 @@ export class LookupTypeApplicationService {
         );
         return this.deleteLookupTypeUseCase.execute({
           user,
+          lookupType,
           code: validatedcode,
           correlationId:
             CorrelationUtil.generateForOperation('lookup-type-delete'),

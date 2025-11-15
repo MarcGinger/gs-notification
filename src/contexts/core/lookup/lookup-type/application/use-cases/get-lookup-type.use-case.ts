@@ -89,6 +89,7 @@ export class GetLookupTypeUseCase implements IGetLookupTypeUseCase {
     // Query for the lookupType data
     const queryResult = await this.query.findById(
       actorResult.value,
+      lookupType,
       code,
       repositoryOptions,
     );

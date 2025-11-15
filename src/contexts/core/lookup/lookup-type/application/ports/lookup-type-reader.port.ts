@@ -6,7 +6,10 @@ import { RepositoryOptions } from 'src/shared/infrastructure/repositories';
 import { ActorContext } from 'src/shared/application/context';
 import { Option } from 'src/shared/domain/types';
 import { LookupTypeSnapshotProps } from '../../domain/props';
-import { LookupTypeCode } from '../../domain/value-objects';
+import {
+  LookupTypeCode,
+  LookupTypeLookupType,
+} from '../../domain/value-objects';
 
 /**
  * Token for injecting ILookupTypeReader port implementation
@@ -39,6 +42,7 @@ export interface ILookupTypeReader {
    */
   findById(
     actor: ActorContext,
+    lookupType: string,
     code: LookupTypeCode,
     options?: RepositoryOptions,
   ): Promise<Result<Option<LookupTypeSnapshotProps>, DomainError>>;
@@ -52,6 +56,7 @@ export interface ILookupTypeReader {
    */
   exists(
     actor: ActorContext,
+    lookupType: string,
     code: LookupTypeCode,
     options?: RepositoryOptions,
   ): Promise<Result<boolean, DomainError>>;
@@ -65,6 +70,7 @@ export interface ILookupTypeReader {
    */
   getVersion(
     actor: ActorContext,
+    lookupType: LookupTypeLookupType,
     code: LookupTypeCode,
     options?: RepositoryOptions,
   ): Promise<Result<Option<number>, DomainError>>;
@@ -78,6 +84,7 @@ export interface ILookupTypeReader {
    */
   getMinimal(
     actor: ActorContext,
+    lookupType: LookupTypeLookupType,
     code: LookupTypeCode,
     options?: RepositoryOptions,
   ): Promise<Result<Option<{ code: string; version: number }>, DomainError>>;

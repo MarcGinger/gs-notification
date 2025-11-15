@@ -42,6 +42,7 @@ export interface ILookupTypeQuery {
    */
   findById(
     actor: ActorContext,
+    lookupType: string,
     code: string,
     options?: RepositoryOptions,
   ): Promise<Result<Option<DetailLookupTypeResponse>, DomainError>>;
@@ -55,6 +56,7 @@ export interface ILookupTypeQuery {
    */
   findPaginated(
     actor: ActorContext,
+    lookupType: string,
     filter?: ListLookupTypeFilterRequest,
     options?: RepositoryOptions,
   ): Promise<Result<LookupTypePageResponse, DomainError>>;

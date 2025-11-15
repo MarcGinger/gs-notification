@@ -30,6 +30,7 @@ export abstract class IUpsertLookupTypeUseCase {
 export abstract class IDeleteLookupTypeUseCase {
   abstract execute(params: {
     user: IUserToken;
+    lookupType: string;
     code: string;
     correlationId: string;
     authorizationReason: string;

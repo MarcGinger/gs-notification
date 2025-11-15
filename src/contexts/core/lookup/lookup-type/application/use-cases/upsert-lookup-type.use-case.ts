@@ -151,7 +151,11 @@ export class UpsertLookupTypeUseCase implements IUpsertLookupTypeUseCase {
       roles: command.user.roles,
     };
 
-    const existsR = await this.lookupTypeReader.exists(actor, codeR.value);
+    const existsR = await this.lookupTypeReader.exists(
+      actor,
+      command.props.lookupType ?? '',
+      codeR.value,
+    );
     if (!existsR.ok) return err(existsR.error);
 
     const isCreate = !existsR.value;
@@ -214,6 +218,7 @@ export class UpsertLookupTypeUseCase implements IUpsertLookupTypeUseCase {
           // We know it exists, so load it for update
           const foundR = await this.lookupTypeReader.findById(
             actor,
+            command.props.lookupType ?? '',
             codeR.value,
           );
           if (!foundR.ok) return foundR;

@@ -12,6 +12,7 @@ import { SecurityMetadata } from 'src/shared/domain/events/event-metadata';
 export class DeleteLookupTypeCommand extends BaseCommand {
   constructor(
     user: IUserToken,
+    public readonly lookupType: string,
     public readonly code: string,
     correlationId: string,
     securityContext: SecurityMetadata,
@@ -24,6 +25,7 @@ export class DeleteLookupTypeCommand extends BaseCommand {
    */
   static create(
     user: IUserToken,
+    lookupType: string,
     code: string,
     correlationId: string = CorrelationUtil.generate(),
     additionalSecurityContext?: Partial<SecurityMetadata>,
@@ -35,6 +37,7 @@ export class DeleteLookupTypeCommand extends BaseCommand {
 
     return new DeleteLookupTypeCommand(
       user,
+      lookupType,
       code,
       correlationId,
       securityContext,

@@ -5,7 +5,10 @@ import { Result, DomainError } from 'src/shared/errors';
 import { ActorContext } from 'src/shared/application/context';
 import { SaveReceipt } from 'src/shared/infrastructure/repositories';
 import { LookupTypeAggregate } from '../../domain/aggregates';
-import { LookupTypeCode } from '../../domain/value-objects';
+import {
+  LookupTypeCode,
+  LookupTypeLookupType,
+} from '../../domain/value-objects';
 
 /**
  * Token for injecting ILookupTypeWriter port implementation
@@ -50,6 +53,7 @@ export interface ILookupTypeWriter {
    */
   delete(
     actor: ActorContext,
+    lookupType: string,
     code: LookupTypeCode,
   ): Promise<Result<SaveReceipt, DomainError>>;
 }

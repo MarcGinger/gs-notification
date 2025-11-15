@@ -260,6 +260,7 @@ export class ListLookupTypeUseCase implements IListLookupTypeUseCase {
       // ✅ Use findPaginated directly since we have ILookupTypeQuery
       const lookupTypeResult = await this.query.findPaginated(
         actor,
+        query.lookupType,
         query.filter,
         repositoryOptions,
       );

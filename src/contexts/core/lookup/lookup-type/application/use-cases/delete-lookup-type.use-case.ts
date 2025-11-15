@@ -87,6 +87,7 @@ export class DeleteLookupTypeUseCase implements IDeleteLookupTypeUseCase {
    */
   async execute(params: {
     user: IUserToken;
+    lookupType: string;
     code: string;
     correlationId: string;
     authorizationReason: string;
@@ -97,6 +98,7 @@ export class DeleteLookupTypeUseCase implements IDeleteLookupTypeUseCase {
     // Create a command-like object for internal use
     const command = {
       user: params.user,
+      lookupType: params.lookupType,
       code: params.code,
       correlationId: params.correlationId,
       authorizationReason: params.authorizationReason,
@@ -171,6 +173,7 @@ export class DeleteLookupTypeUseCase implements IDeleteLookupTypeUseCase {
 
             const deleteResult = await this.lookupTypeWriter.delete(
               actor,
+              command.lookupType,
               codeResult.value,
             );
             return deleteResult.ok ? ok(undefined) : deleteResult;
@@ -200,6 +203,7 @@ export class DeleteLookupTypeUseCase implements IDeleteLookupTypeUseCase {
 
           const foundR = await this.lookupTypeReader.findById(
             actor,
+            command.lookupType,
             codeR.value,
           );
           if (!foundR.ok) {

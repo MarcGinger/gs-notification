@@ -31,6 +31,7 @@ import {
   LookupTypeProjection,
 } from '../stores/lookup-type.store';
 import { ILookupTypeQuery } from '../../application/ports';
+import { LookupTypeLookupType } from '../../domain/value-objects';
 
 /**
  * LookupType Read Model - In-Memory Projection
@@ -279,6 +280,7 @@ export class LookupTypeQueryRepository implements ILookupTypeQuery {
    */
   findById(
     actor: ActorContext,
+    lookupType: string,
     code: string,
     options?: RepositoryOptions,
   ): Promise<Result<Option<DetailLookupTypeResponse>, DomainError>> {
@@ -359,6 +361,7 @@ export class LookupTypeQueryRepository implements ILookupTypeQuery {
    */
   async findPaginated(
     actor: ActorContext,
+    lookupType: string,
     filter?: ListLookupTypeFilterRequest,
     options?: RepositoryOptions,
   ): Promise<Result<LookupTypePageResponse, DomainError>> {

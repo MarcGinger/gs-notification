@@ -21,6 +21,7 @@ export class DeleteLookupTypeHandler
   ): Promise<Result<void, DomainError>> {
     return await this.deleteLookupTypeUseCase.execute({
       user: command.user,
+      lookupType: command.lookupType,
       code: command.code,
       correlationId: command.correlationId,
       authorizationReason: 'CQRS Command Handler',

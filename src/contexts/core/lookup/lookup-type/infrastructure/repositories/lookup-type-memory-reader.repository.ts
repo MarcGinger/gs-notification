@@ -16,7 +16,10 @@ import { Option } from 'src/shared/domain/types';
 import { ActorContext } from 'src/shared/application/context';
 import { RepositoryErrorFactory } from 'src/shared/domain/errors/repository.error';
 import { LookupTypeSnapshotProps } from '../../domain/props';
-import { LookupTypeCode } from '../../domain/value-objects';
+import {
+  LookupTypeCode,
+  LookupTypeLookupType,
+} from '../../domain/value-objects';
 import { ILookupTypeReader } from '../../application/ports';
 import { lookupTypeStore } from '../stores/lookup-type.store';
 
@@ -89,6 +92,7 @@ export class LookupTypeReaderRepository implements ILookupTypeReader {
    */
   async findById(
     actor: ActorContext,
+    lookupType: string,
     code: LookupTypeCode,
     options?: RepositoryOptions,
   ): Promise<Result<Option<LookupTypeSnapshotProps>, DomainError>> {
@@ -210,6 +214,7 @@ export class LookupTypeReaderRepository implements ILookupTypeReader {
    */
   async exists(
     actor: ActorContext,
+    lookupType: string,
     code: LookupTypeCode,
     options?: RepositoryOptions,
   ): Promise<Result<boolean, DomainError>> {
@@ -294,6 +299,7 @@ export class LookupTypeReaderRepository implements ILookupTypeReader {
    */
   async getVersion(
     actor: ActorContext,
+    lookupType: LookupTypeLookupType,
     code: LookupTypeCode,
     options?: RepositoryOptions,
   ): Promise<Result<Option<number>, DomainError>> {
@@ -393,6 +399,7 @@ export class LookupTypeReaderRepository implements ILookupTypeReader {
    */
   async getMinimal(
     actor: ActorContext,
+    lookupType: LookupTypeLookupType,
     code: LookupTypeCode,
     options?: RepositoryOptions,
   ): Promise<Result<Option<{ code: string; version: number }>, DomainError>> {
