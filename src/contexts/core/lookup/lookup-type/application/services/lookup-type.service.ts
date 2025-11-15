@@ -121,6 +121,28 @@ export class LookupTypeApplicationService {
   }
 
   /**
+   * Helper to validate required lookupType input
+   */
+  private validateLookupType(
+    lookupType: string,
+    operation: string,
+    correlationId?: string,
+  ): Result<string, DomainError> {
+    if (!lookupType?.trim()) {
+      return err(
+        withContext(LookupTypeErrors.INVALID_LOOKUP_TYPE_DATA, {
+          operation,
+          field: 'lookupType',
+          correlationId:
+            correlationId ||
+            CorrelationUtil.generateForOperation(`lookup-type-${operation}`),
+        }),
+      );
+    }
+    return ok(lookupType.trim());
+  }
+
+  /**
    * Centralized auth → log → execute → catch pattern
    */
   private async authorizeThenExecute<T>(args: {
@@ -203,6 +225,13 @@ export class LookupTypeApplicationService {
     props: CreateLookupTypeRequest,
     options?: { idempotencyKey?: string; correlationId?: string },
   ): Promise<Result<DetailLookupTypeResponse, DomainError>> {
+    // Early input validation
+    const lookupTypeValidation = this.validateLookupType(lookupType, 'create');
+    if (!lookupTypeValidation.ok) {
+      return err(lookupTypeValidation.error);
+    }
+
+    const validatedLookupType = lookupTypeValidation.value;
     const authContext = this.createAuthContext(user, 'create');
     const correlationId =
       options?.correlationId ||
@@ -224,7 +253,7 @@ export class LookupTypeApplicationService {
           code: props.code,
           props: {
             ...props,
-            lookupType,
+            lookupType: validatedLookupType,
           },
           correlationId,
           authorizationReason: 'create_lookup_type',
@@ -246,11 +275,17 @@ export class LookupTypeApplicationService {
     options?: { idempotencyKey?: string; correlationId?: string },
   ): Promise<Result<DetailLookupTypeResponse, DomainError>> {
     // Early input validation
+    const lookupTypeValidation = this.validateLookupType(lookupType, 'update');
+    if (!lookupTypeValidation.ok) {
+      return err(lookupTypeValidation.error);
+    }
+
     const codeValidation = this.validateCode(code, 'update');
     if (!codeValidation.ok) {
       return err(codeValidation.error);
     }
 
+    const validatedLookupType = lookupTypeValidation.value;
     const validatedcode = codeValidation.value;
     const authContext = this.createAuthContext(user, 'update');
     const correlationId =
@@ -298,7 +333,7 @@ export class LookupTypeApplicationService {
           code: validatedcode,
           props: {
             ...props,
-            lookupType,
+            lookupType: validatedLookupType,
             code: validatedcode,
           },
           correlationId,
@@ -320,11 +355,17 @@ export class LookupTypeApplicationService {
     code: string,
   ): Promise<Result<void, DomainError>> {
     // Early input validation
+    const lookupTypeValidation = this.validateLookupType(lookupType, 'delete');
+    if (!lookupTypeValidation.ok) {
+      return err(lookupTypeValidation.error);
+    }
+
     const codeValidation = this.validateCode(code, 'delete');
     if (!codeValidation.ok) {
       return err(codeValidation.error);
     }
 
+    const validatedLookupType = lookupTypeValidation.value;
     const validatedcode = codeValidation.value;
     const authContext = this.createAuthContext(user, 'delete');
 
@@ -354,14 +395,18 @@ export class LookupTypeApplicationService {
         );
         return this.deleteLookupTypeUseCase.execute({
           user,
-          lookupType,
+          lookupType: validatedLookupType,
           code: validatedcode,
           correlationId:
             CorrelationUtil.generateForOperation('lookup-type-delete'),
           authorizationReason: 'delete_lookup_type',
         });
       },
-      logContext: { code: validatedcode, riskLevel: 'HIGH' },
+      logContext: {
+        code: validatedcode,
+        lookupType: validatedLookupType,
+        riskLevel: 'HIGH',
+      },
     });
   }
 
@@ -374,11 +419,17 @@ export class LookupTypeApplicationService {
     code: string,
   ): Promise<Result<DetailLookupTypeResponse, DomainError>> {
     // Early input validation
+    const lookupTypeValidation = this.validateLookupType(lookupType, 'read');
+    if (!lookupTypeValidation.ok) {
+      return err(lookupTypeValidation.error);
+    }
+
     const codeValidation = this.validateCode(code, 'read');
     if (!codeValidation.ok) {
       return err(codeValidation.error);
     }
 
+    const validatedLookupType = lookupTypeValidation.value;
     const validatedcode = codeValidation.value;
     const authContext = this.createAuthContext(user, 'read');
 
@@ -397,12 +448,12 @@ export class LookupTypeApplicationService {
       doExecute: () =>
         this.getLookupTypeUseCase.execute({
           user,
-          lookupType,
+          lookupType: validatedLookupType,
           code: validatedcode,
           correlationId:
             CorrelationUtil.generateForOperation('lookup-type-read'),
         }),
-      logContext: { code: validatedcode },
+      logContext: { code: validatedcode, lookupType: validatedLookupType },
     });
   }
 
@@ -414,6 +465,13 @@ export class LookupTypeApplicationService {
     lookupType: string,
     filter?: ListLookupTypeFilterRequest,
   ): Promise<Result<LookupTypePageResponse, DomainError>> {
+    // Early input validation
+    const lookupTypeValidation = this.validateLookupType(lookupType, 'list');
+    if (!lookupTypeValidation.ok) {
+      return err(lookupTypeValidation.error);
+    }
+
+    const validatedLookupType = lookupTypeValidation.value;
     const authContext = this.createAuthContext(user, 'list');
     const correlationId =
       CorrelationUtil.generateForOperation('lookup-type-list');
@@ -435,12 +493,13 @@ export class LookupTypeApplicationService {
       doExecute: () =>
         this.listLookupTypeUseCase.execute({
           user,
-          lookupType,
+          lookupType: validatedLookupType,
           filter: safeFilter,
           correlationId,
         }),
       logContext: {
         operation: 'list_lookup_types',
+        lookupType: validatedLookupType,
         pageSize: safeFilter.size,
         page: safeFilter.page,
       },
