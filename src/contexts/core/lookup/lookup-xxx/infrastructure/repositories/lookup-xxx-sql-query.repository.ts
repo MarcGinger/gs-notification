@@ -288,7 +288,7 @@ export class LookupXxxQueryRepository implements ILookupXxxQuery {
       }
 
       // Build ORDER BY clause
-      const orderBy = this.buildOrderByClause(filter?.sortBy);
+      const orderBy = this.buildOrderByClause(filter?.getSortByRecord?.());
 
       // Build pagination
       const page = filter?.page ?? 1;
