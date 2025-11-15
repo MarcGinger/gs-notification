@@ -127,14 +127,16 @@ export class LookupXxxReaderRepository implements ILookupXxxReader {
           aggregateData,
         );
 
+      // Parse object fields using safeParseJSON utility
+      const attributes = safeParseJSON<Record<string, unknown>>(
+        projectorData.attributes,
+        'attributes',
+      );
+
       // Convert projector data to snapshot props with proper type conversion
       const lookupXxxSnapshot: LookupXxxSnapshotProps = {
         ...projectorData,
-        // Parse JSON string back to object for attributes field using safe parser
-        attributes: safeParseJSON<Record<string, unknown>>(
-          projectorData.attributes,
-          'attributes',
-        ),
+        attributes,
       };
 
       return lookupXxxSnapshot;
