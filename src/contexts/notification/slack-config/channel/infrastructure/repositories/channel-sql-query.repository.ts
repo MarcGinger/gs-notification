@@ -10,7 +10,6 @@ import {
   RepositoryLoggingUtil,
   RepositoryLoggingConfig,
   RepositoryExecutionUtil,
-  safeParseJSON,
   handleRepositoryError,
   RepositoryOptions,
   isString,
@@ -509,7 +508,11 @@ export class ChannelQueryRepository implements IChannelQuery {
    */
   private toListResponse(channel: ChannelRow): ListChannelResponse {
     // Parse JSON arrays using specialized utility with type validation
-    // Parse complex JSONB objects - let undefined values be undefined (no fake defaults)
+    const subscribedEvents = safeParseJSONArray(
+      channel.subscribed_events,
+      'subscribedEvents',
+      isString,
+    );
 
     // Create properly structured response with explicit field mapping
     // All undefined values are passed through - no fake defaults
@@ -521,7 +524,7 @@ export class ChannelQueryRepository implements IChannelQuery {
       isDm: channel.is_dm,
       topic: channel.topic ?? undefined,
       purpose: channel.purpose ?? undefined,
-      subscribedEvents: channel.subscribed_events ?? undefined,
+      subscribedEvents,
       enabled: channel.enabled,
     };
 

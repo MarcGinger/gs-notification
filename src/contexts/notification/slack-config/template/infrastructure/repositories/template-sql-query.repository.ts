@@ -513,7 +513,14 @@ export class TemplateQueryRepository implements ITemplateQuery {
    */
   private toListResponse(template: TemplateRow): ListTemplateResponse {
     // Parse JSON arrays using specialized utility with type validation
-    // Parse complex JSONB objects - let undefined values be undefined (no fake defaults)
+    const contentBlocks = safeParseJSONArray(
+      template.content_blocks,
+      'content_blocks',
+      isString,
+    );
+    const variables = template.variables
+      ? safeParseJSONArray(template.variables, 'variables', isString)
+      : undefined;
     const samplePayload = safeParseJSON<Record<string, unknown>>(
       template.sample_payload,
       'sample_payload',
@@ -526,8 +533,8 @@ export class TemplateQueryRepository implements ITemplateQuery {
       workspaceCode: template.workspace_code,
       name: template.name,
       description: template.description ?? undefined,
-      contentBlocks: template.content_blocks,
-      variables: template.variables ?? undefined,
+      contentBlocks,
+      variables,
       samplePayload,
       enabled: template.enabled,
     };

@@ -17,7 +17,7 @@ import { ActorContext } from 'src/shared/application/context';
 import { EventStoreService } from 'src/shared/infrastructure/eventstore';
 import { RepositoryErrorFactory } from 'src/shared/domain/errors/repository.error';
 import { CorrelationUtil } from 'src/shared/utilities';
-import { ConfigSnapshotProps, WorkspaceProps } from '../../domain/props';
+import { ConfigSnapshotProps } from '../../domain/props';
 import { ConfigProjectionKeys } from '../../config-projection-keys';
 import { ConfigWorkspaceCode } from '../../domain/value-objects';
 import { IConfigReader } from '../../application/ports';

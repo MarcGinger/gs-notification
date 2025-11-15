@@ -17,7 +17,7 @@ import { ActorContext } from 'src/shared/application/context';
 import { EventStoreService } from 'src/shared/infrastructure/eventstore';
 import { RepositoryErrorFactory } from 'src/shared/domain/errors/repository.error';
 import { CorrelationUtil } from 'src/shared/utilities';
-import { TemplateSnapshotProps, WorkspaceProps } from '../../domain/props';
+import { TemplateSnapshotProps } from '../../domain/props';
 import { TemplateProjectionKeys } from '../../template-projection-keys';
 import { TemplateCode } from '../../domain/value-objects';
 import { ITemplateReader } from '../../application/ports';
