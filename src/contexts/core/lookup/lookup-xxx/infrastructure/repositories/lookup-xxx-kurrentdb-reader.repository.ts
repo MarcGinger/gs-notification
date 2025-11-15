@@ -9,6 +9,7 @@ import {
   RepositoryLoggingConfig,
   handleRepositoryError,
   RepositoryOptions,
+  safeParseJSON,
 } from 'src/shared/infrastructure/repositories';
 import { Result, DomainError, err, ok } from 'src/shared/errors';
 import { Option } from 'src/shared/domain/types';
@@ -121,10 +122,20 @@ export class LookupXxxReaderRepository implements ILookupXxxReader {
       const aggregateData = lastEvent.data as Record<string, any>;
 
       // Use LookupXxxFieldValidatorUtil to create validated lookup-xxx snapshot
-      const lookupXxxSnapshot =
+      const projectorData =
         LookupXxxFieldValidatorUtil.createLookupXxxProjectorDataFromEventData(
           aggregateData,
         );
+
+      // Convert projector data to snapshot props with proper type conversion
+      const lookupXxxSnapshot: LookupXxxSnapshotProps = {
+        ...projectorData,
+        // Parse JSON string back to object for attributes field using safe parser
+        attributes: safeParseJSON<Record<string, unknown>>(
+          projectorData.attributes,
+          'attributes',
+        ),
+      };
 
       return lookupXxxSnapshot;
     } catch (error) {
